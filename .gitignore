@@ -1,5 +1,6 @@
 build/
 release/
 *.exe
+*.out
 
 .DS_Store
