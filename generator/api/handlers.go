@@ -18,7 +18,7 @@ func GenerateSecretHandler(w http.ResponseWriter, r *http.Request) {
 	// Set headers and response.
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	// Responde with JSON.
+	// Respond with JSON.
 	sr := SecretResponse{Secret: secret}
 	if err := json.NewEncoder(w).Encode(&sr); err != nil {
 		panic(err)
