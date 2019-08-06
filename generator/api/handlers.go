@@ -6,11 +6,12 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/RedeployAB/redeploy-secrets/secret-generator/secrets"
+	"github.com/RedeployAB/redeploy-secrets/generator/secrets"
 )
 
-// HandleGenerateSecret handles requests for secret generation.
-func HandleGenerateSecret(w http.ResponseWriter, r *http.Request) {
+// GenerateSecretHandler handles requests for secret generation.
+func GenerateSecretHandler(w http.ResponseWriter, r *http.Request) {
+
 	query := r.URL.Query()
 	params := handleGenerateSecretQuery(query)
 	secret := secrets.GenerateSecret(params.Length, params.SpecialCharacters)

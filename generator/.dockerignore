@@ -1,0 +1,10 @@
+api/*
+config/*
+secrets/*
+*.sh
+*.go
+*.md
+makefile
+
+.git
+.cache

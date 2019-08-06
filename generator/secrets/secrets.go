@@ -8,7 +8,7 @@ import (
 
 var stdLetters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUWXYZ_-"
 
-// Generates a secret.
+// GenerateSecret generates a random string.
 func GenerateSecret(l int, sc bool) string {
 	var strbld strings.Builder
 
@@ -16,11 +16,9 @@ func GenerateSecret(l int, sc bool) string {
 	if sc == true {
 		strbld.WriteString("!?=()&%")
 	}
-
 	bltrs := []byte(strbld.String())
 
 	rand.Seed(time.Now().UnixNano())
-
 	b := make([]byte, l)
 	for i := range b {
 		b[i] = bltrs[rand.Intn(len(bltrs))]
