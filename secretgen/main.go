@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -15,7 +14,7 @@ var apiVer = "v1"
 
 func init() {
 	conf = config.Configure()
-	fmt.Printf("Server listening on: %s\n", conf.Port)
+	log.Printf("Server listening on: %s\n", conf.Port)
 }
 
 func main() {
