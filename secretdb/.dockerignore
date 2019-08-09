@@ -1,0 +1,14 @@
+api/*
+config/*
+db/*
+internal/*
+middleware/*
+models/*
+secrets/*
+*.sh
+*.go
+*.md
+makefile
+
+.git
+.cache
