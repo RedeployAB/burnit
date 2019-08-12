@@ -7,10 +7,11 @@ fi
 
 VERSION=$1
 OS=linux
+BIN=secretgen
 # Test and build with make.
 make VERSION=$VERSION release -j3 || { echo 'FAILURE: test/build failed'; exit 1;}
 # Rename and copy file
 mkdir -p release/bin
-cp release/secretgen-$VERSION-$OS-amd64 release/bin/secretgen
+cp release/$BIN-$VERSION-$OS-amd64 release/bin/$BIN
 # Create docker image.
-docker build -t secretgen:$VERSION --build-arg VERSION=$VERSION .
+docker build -t $BIN:$VERSION --build-arg VERSION=$VERSION .
