@@ -11,11 +11,10 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
-// Secrets represents the DB session to Secrets with methods etc.
 var session *mgo.Session
 
 // Connect is used to connect to database with options
-// specified in the passed in ConnectionOptions argument.
+// specified in the passed in options argument.
 func Connect(opts config.Database) {
 	dialInfo := &mgo.DialInfo{
 		Addrs:    []string{opts.Address},
@@ -37,7 +36,7 @@ func Connect(opts config.Database) {
 	var err error
 	session, err = mgo.DialWithInfo(dialInfo)
 	if err != nil {
-		log.Fatalf("connection to database failed, error: %v\n", err)
+		log.Fatalf("error: connection to database failed, error: %v\n", err)
 	}
 	session.SetSafe(&mgo.Safe{})
 }
