@@ -15,7 +15,7 @@ func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
 }
 
-// ReadSecretHandler reads a secret.
+// ReadSecretHandler reads a secret fron the database by ID.
 func ReadSecretHandler(collection *mgo.Collection) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -27,16 +27,18 @@ func ReadSecretHandler(collection *mgo.Collection) http.Handler {
 			return
 		}
 		// Handle if passphrase is set on the secret.
-		if len(s.Passphrase) > 0 && !internal.CompareHash(s.Passphrase, r.Header.Get("passphrase")) {
+		if len(s.Passphrase) > 0 && !internal.CompareHash(s.Passphrase, r.Header.Get("x-passphrase")) {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
 		Delete(vars["id"], collection)
-		sr := SecretResponse{
-			Secret:    s.Secret,
-			CreatedAt: s.CreatedAt,
-			ExpiresAt: s.ExpiresAt,
+		sr := SecretResponseBody{
+			Data: secretData{
+				Secret:    s.Secret,
+				CreatedAt: s.CreatedAt,
+				ExpiresAt: s.ExpiresAt,
+			},
 		}
 		w.WriteHeader(http.StatusOK)
 		if err := json.NewEncoder(w).Encode(&sr); err != nil {
@@ -45,14 +47,14 @@ func ReadSecretHandler(collection *mgo.Collection) http.Handler {
 	})
 }
 
-// CreateSecretHandler handles creation of secrets.
+// CreateSecretHandler inserts a secret into the database.
 func CreateSecretHandler(collection *mgo.Collection) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		var sb SecretBody
 		if err := json.NewDecoder(r.Body).Decode(&sb); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			if err := json.NewEncoder(w).Encode(&ErrorResponse{Error: "malformed request"}); err != nil {
+			if err := json.NewEncoder(w).Encode(&ErrorResponseBody{Error: "malformed request"}); err != nil {
 				panic(err)
 			}
 			return
@@ -65,10 +67,12 @@ func CreateSecretHandler(collection *mgo.Collection) http.Handler {
 		}
 
 		w.WriteHeader(http.StatusCreated)
-		sr := SecretResponse{
-			ID:        s.ID.Hex(),
-			CreatedAt: s.CreatedAt,
-			ExpiresAt: s.ExpiresAt,
+		sr := SecretResponseBody{
+			Data: secretData{
+				ID:        s.ID.Hex(),
+				CreatedAt: s.CreatedAt,
+				ExpiresAt: s.ExpiresAt,
+			},
 		}
 		if err := json.NewEncoder(w).Encode(&sr); err != nil {
 			panic(err)
@@ -76,18 +80,18 @@ func CreateSecretHandler(collection *mgo.Collection) http.Handler {
 	})
 }
 
-// UpdateSecretHandler handler updates a secret.
+// UpdateSecretHandler handler updates a secret in the database.
 func UpdateSecretHandler(collection *mgo.Collection) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusNotImplemented)
-		if err := json.NewEncoder(w).Encode(&Response{Data: "not implemented"}); err != nil {
+		if err := json.NewEncoder(w).Encode(&ResponseBody{Data: "not implemented"}); err != nil {
 			panic(err)
 		}
 	})
 }
 
-// DeleteSecretHandler deletes a secret.
+// DeleteSecretHandler deletes a secret from the database.
 func DeleteSecretHandler(collection *mgo.Collection) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")

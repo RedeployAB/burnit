@@ -2,18 +2,22 @@ package api
 
 import "time"
 
-// Response represents a standard response.
-type Response struct {
+// ResponseBody represents a standard response.
+type ResponseBody struct {
 	Data string `json:"data"`
 }
 
-// ErrorResponse represents an error response.
-type ErrorResponse struct {
+// ErrorResponseBody represents an error response.
+type ErrorResponseBody struct {
 	Error string `json:"error"`
 }
 
-// SecretResponse represents a secret type response.
-type SecretResponse struct {
+// SecretResponseBody represents a secret type response.
+type SecretResponseBody struct {
+	Data secretData `json:"data"`
+}
+
+type secretData struct {
 	ID        string    `json:"id,omitempty"`
 	Secret    string    `json:"secret,omitempty"`
 	CreatedAt time.Time `json:"created_at"`
