@@ -1,6 +1,10 @@
 package api
 
-// SecretResponse represents a secret response.
-type SecretResponse struct {
+// SecretResponseBody represents a secret response.
+type SecretResponseBody struct {
+	Data secretData `json:"data"`
+}
+
+type secretData struct {
 	Secret string `json:"secret"`
 }

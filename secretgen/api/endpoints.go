@@ -19,12 +19,12 @@ func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 func GenerateSecretHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	params := handleGenerateSecretQuery(query)
-	secret := secrets.GenerateSecret(params.Length, params.SpecialCharacters)
+	secret := secrets.GenerateRandomString(params.Length, params.SpecialCharacters)
 	// Set headers and response.
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	// Respond with JSON.
-	sr := SecretResponse{Secret: secret}
+	sr := SecretResponseBody{Data: secretData{Secret: secret}}
 	if err := json.NewEncoder(w).Encode(&sr); err != nil {
 		panic(err)
 	}

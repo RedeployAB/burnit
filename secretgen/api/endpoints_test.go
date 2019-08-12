@@ -27,7 +27,7 @@ func TestGenerateSecretHandler(t *testing.T) {
 		t.Errorf("Status code incorrect, got: %d, want: 200", res.Code)
 	}
 
-	var rb SecretResponse
+	var rb SecretResponseBody
 	b, err := ioutil.ReadAll(res.Body)
 
 	err = json.Unmarshal(b, &rb)
@@ -35,11 +35,11 @@ func TestGenerateSecretHandler(t *testing.T) {
 		t.Errorf("Unmarshal failed.")
 	}
 
-	if rb.Secret == "" {
-		t.Errorf("Response incorrect, got: empty string, want: %s", rb.Secret)
+	if rb.Data.Secret == "" {
+		t.Errorf("Response incorrect, got: empty string, want: %s", rb.Data.Secret)
 	}
 
-	runeCount := utf8.RuneCountInString(rb.Secret)
+	runeCount := utf8.RuneCountInString(rb.Data.Secret)
 	if runeCount != 16 {
 		t.Errorf("Response secret length incorrect, got: %d, want: 16", runeCount)
 	}
@@ -54,7 +54,7 @@ func TestGenerateSecretHandlerParams(t *testing.T) {
 		t.Errorf("Status code incorrect, got: %d, want: 200", res.Code)
 	}
 
-	var rb SecretResponse
+	var rb SecretResponseBody
 	b, err := ioutil.ReadAll(res.Body)
 
 	err = json.Unmarshal(b, &rb)
@@ -62,11 +62,11 @@ func TestGenerateSecretHandlerParams(t *testing.T) {
 		t.Errorf("Unmarshal failed.")
 	}
 
-	if rb.Secret == "" {
-		t.Errorf("Response incorrect, got: empty string, want: %s", rb.Secret)
+	if rb.Data.Secret == "" {
+		t.Errorf("Response incorrect, got: empty string, want: %s", rb.Data.Secret)
 	}
 
-	runeCount := utf8.RuneCountInString(rb.Secret)
+	runeCount := utf8.RuneCountInString(rb.Data.Secret)
 	if runeCount != 22 {
 		t.Errorf("Response secret length incorrect, got: %d, want: 22", runeCount)
 	}

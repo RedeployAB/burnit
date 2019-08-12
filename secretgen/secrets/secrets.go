@@ -8,8 +8,11 @@ import (
 
 var stdLetters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUWXYZ_-"
 
-// GenerateSecret generates a random string.
-func GenerateSecret(l int, sc bool) string {
+// GenerateRandomString generates a random string. Argument
+// l determines amount of characters in the
+// resulting string. Argument sc determines if
+// special characters should be used.
+func GenerateRandomString(l int, sc bool) string {
 	var strbld strings.Builder
 
 	strbld.WriteString(stdLetters)

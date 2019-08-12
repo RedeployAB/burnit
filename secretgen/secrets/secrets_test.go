@@ -16,7 +16,7 @@ func TestGenerateSecret(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		secret := GenerateSecret(test.x, test.y)
+		secret := GenerateRandomString(test.x, test.y)
 		count := utf8.RuneCountInString(secret)
 		if count != test.n {
 			t.Errorf("Number of characters in generated string incorrect, got: %d, want: %d", count, test.n)
@@ -26,6 +26,6 @@ func TestGenerateSecret(t *testing.T) {
 
 func BenchmarkGenerateSecret(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		GenerateSecret(8, true)
+		GenerateRandomString(8, true)
 	}
 }
