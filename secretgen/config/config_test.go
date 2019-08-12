@@ -7,8 +7,8 @@ import (
 
 func TestConfigure(t *testing.T) {
 	confDefault := Configure()
-	if confDefault.Port != "3000" {
-		t.Errorf("Default port value is incorrect, got %s, want: 3000", confDefault.Port)
+	if confDefault.Port != "3002" {
+		t.Errorf("Default port value is incorrect, got %s, want: 3002", confDefault.Port)
 	}
 
 	os.Setenv("SECRET_GENERATOR_PORT", "5000")

@@ -9,13 +9,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var conf config.Config
 var apiVer = "v1"
-
-func init() {
-	conf = config.Configure()
-	log.Printf("Server listening on: %s\n", conf.Port)
-}
+var port = config.Config.Port
 
 func main() {
 	r := mux.NewRouter()
@@ -23,5 +18,7 @@ func main() {
 	r.HandleFunc("/api/"+apiVer+"/secret", api.GenerateSecretHandler).Methods("GET")
 	r.PathPrefix("/").HandlerFunc(api.NotFoundHandler)
 	// Start server.
-	log.Fatal(http.ListenAndServe(":"+conf.Port, r))
+	log.Printf("server listening on: %s", port)
+	log.Fatal(http.ListenAndServe(":"+port, r))
+
 }

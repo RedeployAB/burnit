@@ -1,28 +1,33 @@
 package config
 
-import (
-	"os"
-)
+import "os"
+
+// Config exports a configuration to be used by application.
+var Config Configuration
+
+func init() {
+	Config = Configure()
+}
 
 // Server represents server part of configuration.
 type Server struct {
 	Port string
 }
 
-// Config represents a configuration.
-type Config struct {
+// Configuration represents a configuration.
+type Configuration struct {
 	Server
 }
 
 // Configure performs the necessary steps
 // for server/app configuration.
-func Configure() Config {
+func Configure() Configuration {
 	port := os.Getenv("SECRET_GENERATOR_PORT")
 	if port == "" {
-		port = "3000"
+		port = "3002"
 	}
 
-	config := Config{Server{Port: port}}
+	config := Configuration{Server{Port: port}}
 
 	return config
 }
