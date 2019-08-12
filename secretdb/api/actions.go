@@ -2,9 +2,9 @@ package api
 
 import (
 	"errors"
-	"os"
 	"time"
 
+	"github.com/RedeployAB/redeploy-secrets/secretdb/config"
 	"github.com/RedeployAB/redeploy-secrets/secretdb/internal"
 	"github.com/RedeployAB/redeploy-secrets/secretdb/models"
 	"gopkg.in/mgo.v2"
@@ -23,7 +23,7 @@ func Find(id string, collection *mgo.Collection) (models.Secret, error) {
 		return models.Secret{}, err
 	}
 
-	secret := internal.Decrypt([]byte(s.Secret), os.Getenv("PASSPHRASE"))
+	secret := internal.Decrypt([]byte(s.Secret), config.Config.Passphrase)
 	s.Secret = string(secret)
 
 	return s, nil
@@ -35,7 +35,7 @@ func Insert(sb SecretBody, collection *mgo.Collection) (models.Secret, error) {
 	created := time.Now()
 	expires := created.AddDate(0, 0, 7)
 
-	secret := internal.Encrypt([]byte(sb.Secret), os.Getenv("PASSPHRASE"))
+	secret := internal.Encrypt([]byte(sb.Secret), config.Config.Passphrase)
 	s := &models.Secret{
 		ID:        id,
 		Secret:    string(secret),

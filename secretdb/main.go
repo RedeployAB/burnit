@@ -11,17 +11,12 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var conf config.Config
 var apiVer = "v1"
-
-func init() {
-	conf = config.Configure()
-	log.Printf("Server listening on: %s\n", conf.Port)
-}
+var port = config.Config.Port
 
 func main() {
 	// Connect to db
-	db.Connect(conf.Database)
+	db.Connect(config.Config.Database)
 	session, err := db.GetSession()
 	if err != nil {
 		log.Fatalf("error: %v", err)
@@ -43,5 +38,6 @@ func main() {
 	// Attach logger.
 	r.Use(middleware.Logger)
 	// Start server.
-	log.Fatal(http.ListenAndServe(":"+conf.Server.Port, r))
+	log.Printf("server listening on: %s", port)
+	log.Fatal(http.ListenAndServe(":"+port, r))
 }

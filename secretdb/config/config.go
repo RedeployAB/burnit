@@ -1,15 +1,22 @@
 package config
 
 import (
+	"log"
 	"os"
 	"strconv"
 )
 
+// Config exports a configuration to be used by application.
+var Config Configuration
+
+func init() {
+	Config = Configure()
+}
+
 // Server represents server part of configuration.
 type Server struct {
-	Port             string
-	GeneratorBaseURL string
-	GeneratorPath    string
+	Port       string
+	Passphrase string
 }
 
 // Database represents database part of configuration.
@@ -21,28 +28,23 @@ type Database struct {
 	SSL      bool
 }
 
-// Config represents a configuration.
-type Config struct {
+// Configuration represents a configuration.
+type Configuration struct {
 	Server
 	Database
 }
 
 // Configure performs the necessary steps
 // for server/app configuration.
-func Configure() Config {
+func Configure() Configuration {
 	port := os.Getenv("SECRET_DB_PORT")
 	if port == "" {
-		port = "4000"
+		port = "3001"
 	}
 
-	generatorBaseURL := os.Getenv("SECRET_GENERATOR_BASE_URL")
-	if generatorBaseURL == "" {
-		generatorBaseURL = "http://localhost:3000"
-	}
-
-	generatorPath := os.Getenv("SECRET_GENERATOR_REQUEST_PATH")
-	if generatorPath == "" {
-		generatorPath = "/api/v1/secret"
+	passphrase := os.Getenv("PASSPHRASE")
+	if passphrase == "" {
+		log.Fatalln("error: environment variable PASSPHRASE must be set")
 	}
 
 	dbHost := os.Getenv("DB_HOST")
@@ -62,11 +64,10 @@ func Configure() Config {
 		dbSSL, _ = strconv.ParseBool(dbSSLStr)
 	}
 
-	config := Config{
+	config := Configuration{
 		Server{
-			Port:             port,
-			GeneratorBaseURL: generatorBaseURL,
-			GeneratorPath:    generatorPath,
+			Port:       port,
+			Passphrase: passphrase,
 		},
 		Database{
 			Address:  dbHost,
