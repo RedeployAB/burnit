@@ -22,7 +22,7 @@ type Configuration struct {
 // Configure performs the necessary steps
 // for server/app configuration.
 func Configure() Configuration {
-	port := os.Getenv("SECRET_GENERATOR_PORT")
+	port := os.Getenv("SECRET_GENERATOR_SERVICE_PORT")
 	if port == "" {
 		port = "3002"
 	}
