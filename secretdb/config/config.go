@@ -36,12 +36,12 @@ type Configuration struct {
 // Configure performs the necessary steps
 // for server/app configuration.
 func Configure() Configuration {
-	port := os.Getenv("SECRET_DB_PORT")
+	port := os.Getenv("SECRET_DB_SERVICE_PORT")
 	if port == "" {
 		port = "3001"
 	}
 
-	passphrase := os.Getenv("PASSPHRASE")
+	passphrase := os.Getenv("SECRET_DB_PASSPHRASE")
 
 	dbHost := os.Getenv("DB_HOST")
 	if dbHost == "" {
