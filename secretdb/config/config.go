@@ -1,7 +1,6 @@
 package config
 
 import (
-	"log"
 	"os"
 	"strconv"
 )
@@ -43,9 +42,6 @@ func Configure() Configuration {
 	}
 
 	passphrase := os.Getenv("PASSPHRASE")
-	if passphrase == "" {
-		log.Fatalln("error: environment variable PASSPHRASE must be set")
-	}
 
 	dbHost := os.Getenv("DB_HOST")
 	if dbHost == "" {
