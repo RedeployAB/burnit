@@ -7,4 +7,6 @@ release/
 *.env
 env.sh
 
+run.sh
+
 .DS_Store
