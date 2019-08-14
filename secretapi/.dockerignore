@@ -1,0 +1,11 @@
+api/*
+config/*
+internal/*
+middleware/*
+*.sh
+*.go
+*.md
+makefile
+
+.git
+.cache
