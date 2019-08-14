@@ -24,17 +24,17 @@ type Configuration struct {
 // Configure performs the necessary steps
 // for server/app configuration.
 func Configure() Configuration {
-	port := os.Getenv("GW_PORT")
+	port := os.Getenv("SECRET_API_SERVICE_PORT")
 	if port == "" {
 		port = "3000"
 	}
 
-	genBaseURL := os.Getenv("SECRET_GENERATOR_BASE_URL")
+	genBaseURL := os.Getenv("SECRET_GENERATOR_SERVICE_BASE_URL")
 	if genBaseURL == "" {
 		genBaseURL = "http://localhost:3002"
 	}
 
-	dbBaseURL := os.Getenv("DB_BASE_URL")
+	dbBaseURL := os.Getenv("SECRET_DB_SERVICE_BASE_URL")
 	if dbBaseURL == "" {
 		dbBaseURL = "http://localhost:3001"
 	}
