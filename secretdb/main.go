@@ -4,10 +4,10 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/RedeployAB/redeploy-secrets/common/middleware"
 	"github.com/RedeployAB/redeploy-secrets/secretdb/api"
 	"github.com/RedeployAB/redeploy-secrets/secretdb/config"
 	"github.com/RedeployAB/redeploy-secrets/secretdb/db"
-	"github.com/RedeployAB/redeploy-secrets/secretdb/middleware"
 	"github.com/gorilla/mux"
 )
 
