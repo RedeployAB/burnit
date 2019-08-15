@@ -13,13 +13,13 @@ import (
 )
 
 // NotFoundHandler handles all non used routes.
-func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
+func notFoundHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusNotFound)
 }
 
 // ReadSecretHandler reads a secret fron the database by ID.
-func ReadSecretHandler(collection *mgo.Collection) http.Handler {
+func readSecretHandler(collection *mgo.Collection) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		vars := mux.Vars(r)
@@ -51,7 +51,7 @@ func ReadSecretHandler(collection *mgo.Collection) http.Handler {
 }
 
 // CreateSecretHandler inserts a secret into the database.
-func CreateSecretHandler(collection *mgo.Collection) http.Handler {
+func createSecretHandler(collection *mgo.Collection) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		var s db.Secret
@@ -77,7 +77,7 @@ func CreateSecretHandler(collection *mgo.Collection) http.Handler {
 }
 
 // UpdateSecretHandler handler updates a secret in the database.
-func UpdateSecretHandler(collection *mgo.Collection) http.Handler {
+func updateSecretHandler(collection *mgo.Collection) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		httperror.Error(w, "not implemented", http.StatusNotImplemented)
@@ -85,7 +85,7 @@ func UpdateSecretHandler(collection *mgo.Collection) http.Handler {
 }
 
 // DeleteSecretHandler deletes a secret from the database.
-func DeleteSecretHandler(collection *mgo.Collection) http.Handler {
+func deleteSecretHandler(collection *mgo.Collection) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
