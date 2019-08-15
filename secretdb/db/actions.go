@@ -1,4 +1,4 @@
-package api
+package db
 
 import (
 	"errors"
@@ -30,29 +30,29 @@ func Find(id string, collection *mgo.Collection) (models.Secret, error) {
 }
 
 // Insert handles inserts into the database.
-func Insert(sb SecretBody, collection *mgo.Collection) (models.Secret, error) {
+func Insert(s Secret, collection *mgo.Collection) (models.Secret, error) {
 	id := bson.NewObjectId()
 	created := time.Now()
 	expires := created.AddDate(0, 0, 7)
 
-	secret := internal.Encrypt([]byte(sb.Secret), config.Config.Passphrase)
-	s := &models.Secret{
+	secret := internal.Encrypt([]byte(s.Secret), config.Config.Passphrase)
+	sm := &models.Secret{
 		ID:        id,
 		Secret:    string(secret),
 		CreatedAt: created,
 		ExpiresAt: expires,
 	}
 
-	if len(sb.Passphrase) > 0 {
-		s.Passphrase = internal.Hash(sb.Passphrase)
+	if len(s.Passphrase) > 0 {
+		sm.Passphrase = internal.Hash(s.Passphrase)
 	}
 
-	err := collection.Insert(s)
+	err := collection.Insert(sm)
 	if err != nil {
 		return models.Secret{}, err
 	}
 
-	return *s, nil
+	return *sm, nil
 }
 
 // Delete removes an entry from the collection by ID.
@@ -66,4 +66,11 @@ func Delete(id string, collection *mgo.Collection) error {
 		return err
 	}
 	return nil
+}
+
+// Secret represents a secret to be inserted into the
+// database collection.
+type Secret struct {
+	Secret     string
+	Passphrase string
 }

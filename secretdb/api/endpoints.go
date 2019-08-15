@@ -3,7 +3,10 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
+	"github.com/RedeployAB/redeploy-secrets/common/httperror"
+	"github.com/RedeployAB/redeploy-secrets/secretdb/db"
 	"github.com/RedeployAB/redeploy-secrets/secretdb/internal"
 	"github.com/gorilla/mux"
 	"gopkg.in/mgo.v2"
@@ -21,23 +24,23 @@ func ReadSecretHandler(collection *mgo.Collection) http.Handler {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		vars := mux.Vars(r)
 
-		s, err := Find(vars["id"], collection)
+		sm, err := db.Find(vars["id"], collection)
 		if err != nil {
-			w.WriteHeader(http.StatusNotFound)
+			httperror.Error(w, "not found", http.StatusNotFound)
 			return
 		}
 		// Handle if passphrase is set on the secret.
-		if len(s.Passphrase) > 0 && !internal.CompareHash(s.Passphrase, r.Header.Get("x-passphrase")) {
-			w.WriteHeader(http.StatusUnauthorized)
+		if len(sm.Passphrase) > 0 && !internal.CompareHash(sm.Passphrase, r.Header.Get("x-passphrase")) {
+			httperror.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
 
-		Delete(vars["id"], collection)
-		sr := SecretResponseBody{
+		db.Delete(vars["id"], collection)
+		sr := secretResponseBody{
 			Data: secretData{
-				Secret:    s.Secret,
-				CreatedAt: s.CreatedAt,
-				ExpiresAt: s.ExpiresAt,
+				Secret:    sm.Secret,
+				CreatedAt: sm.CreatedAt,
+				ExpiresAt: sm.ExpiresAt,
 			},
 		}
 		w.WriteHeader(http.StatusOK)
@@ -51,28 +54,21 @@ func ReadSecretHandler(collection *mgo.Collection) http.Handler {
 func CreateSecretHandler(collection *mgo.Collection) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		var sb SecretBody
-		if err := json.NewDecoder(r.Body).Decode(&sb); err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			if err := json.NewEncoder(w).Encode(&ErrorResponseBody{Error: "malformed request"}); err != nil {
-				panic(err)
-			}
+		var s db.Secret
+		if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
+			httperror.Error(w, "malformed JSON", http.StatusBadRequest)
 			return
 		}
 
-		s, err := Insert(sb, collection)
+		sm, err := db.Insert(s, collection)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			httperror.Error(w, "internal server error", http.StatusInternalServerError)
 			return
 		}
 
 		w.WriteHeader(http.StatusCreated)
-		sr := SecretResponseBody{
-			Data: secretData{
-				ID:        s.ID.Hex(),
-				CreatedAt: s.CreatedAt,
-				ExpiresAt: s.ExpiresAt,
-			},
+		sr := secretResponseBody{
+			Data: secretData{ID: sm.ID.Hex(), CreatedAt: sm.CreatedAt, ExpiresAt: sm.ExpiresAt},
 		}
 		if err := json.NewEncoder(w).Encode(&sr); err != nil {
 			panic(err)
@@ -84,10 +80,7 @@ func CreateSecretHandler(collection *mgo.Collection) http.Handler {
 func UpdateSecretHandler(collection *mgo.Collection) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusNotImplemented)
-		if err := json.NewEncoder(w).Encode(&ResponseBody{Data: "not implemented"}); err != nil {
-			panic(err)
-		}
+		httperror.Error(w, "not implemented", http.StatusNotImplemented)
 	})
 }
 
@@ -98,16 +91,28 @@ func DeleteSecretHandler(collection *mgo.Collection) http.Handler {
 
 		vars := mux.Vars(r)
 
-		err := Delete(vars["id"], collection)
+		err := db.Delete(vars["id"], collection)
 		if err != nil {
 			if err.Error() == "not found" || err.Error() == "not valid ObjectId" {
-				w.WriteHeader(http.StatusNotFound)
+				httperror.Error(w, "not found", http.StatusNotFound)
 			} else {
-				w.WriteHeader(http.StatusInternalServerError)
+				httperror.Error(w, "internal server error", http.StatusInternalServerError)
 			}
 			return
 		}
 
 		w.WriteHeader(http.StatusOK)
 	})
+}
+
+// SecretResponseBody represents a secret type response.
+type secretResponseBody struct {
+	Data secretData `json:"data"`
+}
+
+type secretData struct {
+	ID        string    `json:"id,omitempty"`
+	Secret    string    `json:"secret,omitempty"`
+	CreatedAt time.Time `json:"created_at"`
+	ExpiresAt time.Time `json:"expires_at"`
 }
