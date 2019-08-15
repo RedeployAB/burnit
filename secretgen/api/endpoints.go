@@ -6,14 +6,13 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/RedeployAB/redeploy-secrets/common/httperror"
 	"github.com/RedeployAB/redeploy-secrets/secretgen/secrets"
 )
 
 // NotFoundHandler handles all non used routes.
 func notFoundHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	httperror.Error(w, "not found", http.StatusNotFound)
+	w.WriteHeader(http.StatusNotFound)
 }
 
 // GenerateSecretHandler handles requests for secret generation.
