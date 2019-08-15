@@ -3,7 +3,6 @@ package api
 import (
 	"github.com/RedeployAB/redeploy-secrets/common/auth"
 	mw "github.com/RedeployAB/redeploy-secrets/common/middleware"
-	"github.com/RedeployAB/redeploy-secrets/secretapi/api"
 	"github.com/gorilla/mux"
 	"gopkg.in/mgo.v2"
 )
@@ -20,7 +19,7 @@ func NewRouter(ts auth.TokenStore, collection *mgo.Collection) *mux.Router {
 	s.Handle("/secrets/{id}", updateSecretHandler(collection)).Methods("PUT")
 	s.Handle("/secrets/{id}", deleteSecretHandler(collection)).Methods("DELETE")
 	// All other routes.
-	r.PathPrefix("/").HandlerFunc(api.NotFoundHandler)
+	r.PathPrefix("/").HandlerFunc(notFoundHandler)
 	// Attach middleware.
 	amw := mw.AuthenticationMiddleware{TokenStore: ts}
 	r.Use(mw.Logger, amw.Authenticate)
