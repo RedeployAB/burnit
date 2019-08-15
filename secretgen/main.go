@@ -4,22 +4,16 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/RedeployAB/redeploy-secrets/common/middleware"
 	"github.com/RedeployAB/redeploy-secrets/secretgen/api"
 	"github.com/RedeployAB/redeploy-secrets/secretgen/config"
-	"github.com/gorilla/mux"
 )
 
 var apiVer = "v1"
-var port = config.Config.Port
+var conf = config.Config
 
 func main() {
-	r := mux.NewRouter()
-	// Routes.
-	r.HandleFunc("/api/"+apiVer+"/secret", api.GenerateSecretHandler).Methods("GET")
-	r.PathPrefix("/").HandlerFunc(api.NotFoundHandler)
-	r.Use(middleware.Logger)
+	r := api.NewRouter(conf.Server)
 	// Start server.
-	log.Printf("server listening on: %s", port)
-	log.Fatal(http.ListenAndServe(":"+port, r))
+	log.Printf("server listening on: %s", conf.Port)
+	log.Fatal(http.ListenAndServe(":"+conf.Port, r))
 }
