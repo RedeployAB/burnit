@@ -2,6 +2,7 @@ package api
 
 import (
 	mw "github.com/RedeployAB/redeploy-secrets/common/middleware"
+	"github.com/RedeployAB/redeploy-secrets/secretapi/config"
 	"github.com/gorilla/mux"
 )
 
@@ -20,6 +21,9 @@ func NewRouter() *mux.Router {
 	d := r.PathPrefix("/api/" + dbAPIVer).Subrouter()
 	d.Handle("/secrets/{id}", readSecretHandler()).Methods("GET")
 	d.Handle("/secrets", createSecretHandler()).Methods("POST")
+	// Init middleware for db auth.
+	amw := mw.AuthHeaderMiddleware{Token: config.Config.DBAPIKey}
+	d.Use(amw.AddAuthHeader)
 	// All other routes.
 	r.PathPrefix("/").HandlerFunc(notFoundHandler)
 	// Attach logger.

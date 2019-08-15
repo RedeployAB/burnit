@@ -62,6 +62,7 @@ func readSecretHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		vars := mux.Vars(r)
+
 		header := handleHeaders(r.Header)
 
 		s, err := dbClient.Do("GET", vars["id"], header, nil)
@@ -84,7 +85,9 @@ func createSecretHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-		s, err := dbClient.Do("POST", "", nil, r.Body)
+		header := handleHeaders(r.Header)
+
+		s, err := dbClient.Do("POST", "", header, r.Body)
 		if err != nil {
 			status := internal.HandleHTTPError(err)
 			w.WriteHeader(status)
@@ -101,11 +104,9 @@ func createSecretHandler() http.Handler {
 // handleHeaders helps with parsing incomming header
 // for 'x-passphrase' header.
 func handleHeaders(rh http.Header) http.Header {
-	header := http.Header{}
 	passphrase := rh.Get("x-passphrase")
 	if passphrase != "" {
-		header.Add("x-passphrase", passphrase)
+		rh.Add("x-passphrase", passphrase)
 	}
-
-	return header
+	return rh
 }
