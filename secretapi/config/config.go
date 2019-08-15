@@ -14,6 +14,7 @@ type Server struct {
 	Port             string
 	GeneratorBaseURL string
 	DBBaseURL        string
+	DBAPIKey         string
 }
 
 // Configuration represents a configuration.
@@ -39,11 +40,14 @@ func Configure() Configuration {
 		dbBaseURL = "http://localhost:3001"
 	}
 
+	dbAPIKey := os.Getenv("SECRET_DB_SERVICE_API_KEY")
+
 	config := Configuration{
 		Server{
 			Port:             port,
 			GeneratorBaseURL: genBaseURL,
 			DBBaseURL:        dbBaseURL,
+			DBAPIKey:         dbAPIKey,
 		},
 	}
 
