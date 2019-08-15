@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	genAPIPath = "/api/v1/secret"
+	genAPIPath = "/api/v1/generate"
 	dbAPIPath  = "/api/v1/secrets"
 )
 
