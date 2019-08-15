@@ -21,9 +21,10 @@ func NewRouter() *mux.Router {
 	d := r.PathPrefix("/api/" + dbAPIVer).Subrouter()
 	d.Handle("/secrets/{id}", readSecretHandler()).Methods("GET")
 	d.Handle("/secrets", createSecretHandler()).Methods("POST")
-	// Init middleware for db auth.
-	amw := mw.AuthHeaderMiddleware{Token: config.Config.DBAPIKey}
-	d.Use(amw.AddAuthHeader)
+	// Init middleware for all db routes.
+	amw := mw.AuthHeader{Token: config.Config.DBAPIKey}
+	hmw := mw.HeaderStrip{Exceptions: []string{"X-Passphrase"}}
+	d.Use(mw.Logger, hmw.Strip, amw.AddAuthHeader)
 	// All other routes.
 	r.PathPrefix("/").HandlerFunc(notFoundHandler)
 	// Attach logger.
