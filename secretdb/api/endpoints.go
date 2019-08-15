@@ -30,7 +30,7 @@ func readSecretHandler(collection *mgo.Collection) http.Handler {
 			return
 		}
 		// Handle if passphrase is set on the secret.
-		if len(sm.Passphrase) > 0 && !internal.CompareHash(sm.Passphrase, r.Header.Get("x-passphrase")) {
+		if len(sm.Passphrase) > 0 && !internal.CompareHash(sm.Passphrase, r.Header.Get("X-Passphrase")) {
 			httperror.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
