@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/RedeployAB/redeploy-secrets/common/httperror"
 	"github.com/RedeployAB/redeploy-secrets/secretapi/config"
 	"github.com/RedeployAB/redeploy-secrets/secretapi/internal"
 	"github.com/gorilla/mux"
@@ -26,14 +27,14 @@ func init() {
 }
 
 // NotFoundHandler handles all non used routes.
-func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
+func notFoundHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusNotFound)
 }
 
 // GenerateSecretHandler makes calls to the secretgen service
 // to generate a secret.
-func GenerateSecretHandler() http.Handler {
+func generateSecretHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
@@ -44,7 +45,7 @@ func GenerateSecretHandler() http.Handler {
 
 		s, err := genClient.Fetch()
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			httperror.Error(w, "internal server error", http.StatusInternalServerError)
 			return
 		}
 
@@ -52,13 +53,12 @@ func GenerateSecretHandler() http.Handler {
 		if err := json.NewEncoder(w).Encode(&s); err != nil {
 			panic(err)
 		}
-
 	})
 }
 
 // ReadSecretHandler makes calls to the secretdb service to
 // get a secret.
-func ReadSecretHandler() http.Handler {
+func readSecretHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		vars := mux.Vars(r)
@@ -80,7 +80,7 @@ func ReadSecretHandler() http.Handler {
 
 // CreateSecretHandler makes calls to secretdb to
 // create a secret.
-func CreateSecretHandler() http.Handler {
+func createSecretHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
@@ -96,4 +96,16 @@ func CreateSecretHandler() http.Handler {
 			panic(err)
 		}
 	})
+}
+
+// handleHeaders helps with parsing incomming header
+// for 'x-passphrase' header.
+func handleHeaders(rh http.Header) http.Header {
+	header := http.Header{}
+	passphrase := rh.Get("x-passphrase")
+	if passphrase != "" {
+		header.Add("x-passphrase", passphrase)
+	}
+
+	return header
 }
