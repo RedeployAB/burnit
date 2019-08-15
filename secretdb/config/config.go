@@ -15,6 +15,7 @@ func init() {
 // Server represents server part of configuration.
 type Server struct {
 	Port       string
+	DBAPIKey   string
 	Passphrase string
 }
 
@@ -36,13 +37,15 @@ type Configuration struct {
 // Configure performs the necessary steps
 // for server/app configuration.
 func Configure() Configuration {
+	// Server variables.
 	port := os.Getenv("SECRET_DB_SERVICE_PORT")
 	if port == "" {
 		port = "3001"
 	}
-
+	dbAPIkey := os.Getenv("SECRET_DB_SERVICE_API_KEY")
 	passphrase := os.Getenv("SECRET_DB_PASSPHRASE")
 
+	// Database variables.
 	dbHost := os.Getenv("DB_HOST")
 	if dbHost == "" {
 		dbHost = "localhost"
@@ -63,6 +66,7 @@ func Configure() Configuration {
 	config := Configuration{
 		Server{
 			Port:       port,
+			DBAPIKey:   dbAPIkey,
 			Passphrase: passphrase,
 		},
 		Database{
