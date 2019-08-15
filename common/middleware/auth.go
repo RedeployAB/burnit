@@ -7,15 +7,15 @@ import (
 	"github.com/RedeployAB/redeploy-secrets/common/httperror"
 )
 
-// AuthenticationMiddleware is used to authenticate
+// Authentication is used to authenticate
 // requests against a stored application token.
-type AuthenticationMiddleware struct {
+type Authentication struct {
 	TokenStore auth.TokenStore
 }
 
 // Authenticate checks the incoming request for the header X-API-Key
 // and verifies it against the Token Store.
-func (amw *AuthenticationMiddleware) Authenticate(next http.Handler) http.Handler {
+func (amw *Authentication) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("X-API-Key")
 		if token == "" {
@@ -32,14 +32,14 @@ func (amw *AuthenticationMiddleware) Authenticate(next http.Handler) http.Handle
 	})
 }
 
-// AuthHeaderMiddleware adds the X-API-Key header for
+// AuthHeader adds the X-API-Key header for
 // each request.
-type AuthHeaderMiddleware struct {
+type AuthHeader struct {
 	Token string
 }
 
 // AddAuthHeader adds header containing API key/Token.
-func (amw *AuthHeaderMiddleware) AddAuthHeader(next http.Handler) http.Handler {
+func (amw *AuthHeader) AddAuthHeader(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		r.Header.Add("X-API-Key", amw.Token)
 		next.ServeHTTP(w, r)
