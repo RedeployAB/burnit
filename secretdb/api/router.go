@@ -21,7 +21,7 @@ func NewRouter(ts auth.TokenStore, collection *mgo.Collection) *mux.Router {
 	// All other routes.
 	r.PathPrefix("/").HandlerFunc(notFoundHandler)
 	// Attach middleware.
-	amw := mw.AuthenticationMiddleware{TokenStore: ts}
+	amw := mw.Authentication{TokenStore: ts}
 	r.Use(mw.Logger, amw.Authenticate)
 
 	return r
