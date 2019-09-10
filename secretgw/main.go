@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/RedeployAB/redeploy-secrets/secretapi/api"
-	"github.com/RedeployAB/redeploy-secrets/secretapi/config"
+	"github.com/RedeployAB/redeploy-secrets/secretgw/api"
+	"github.com/RedeployAB/redeploy-secrets/secretgw/config"
 )
 
 var conf = config.Config

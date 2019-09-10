@@ -14,7 +14,7 @@ $(GOLINT):
 lint: $(GOLINT)
 	$(GOLINT) ./...
 
-BINARY := secretapi
+BINARY := secretgw
 VERSION ?= vlatest
 PLATFORMS := windows linux darwin
 os = $(word 1, $@)

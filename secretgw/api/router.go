@@ -2,7 +2,7 @@ package api
 
 import (
 	mw "github.com/RedeployAB/redeploy-secrets/common/middleware"
-	"github.com/RedeployAB/redeploy-secrets/secretapi/config"
+	"github.com/RedeployAB/redeploy-secrets/secretgw/config"
 	"github.com/gorilla/mux"
 )
 

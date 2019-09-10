@@ -5,8 +5,8 @@ ARG PORT=3000
 
 WORKDIR /app
 
-COPY release/bin/secretapi /app/
+COPY release/bin/secretgw /app/
 
 EXPOSE ${PORT}
 
-ENTRYPOINT [ "./secretapi" ]
+ENTRYPOINT [ "./secretgw" ]

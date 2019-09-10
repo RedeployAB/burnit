@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/RedeployAB/redeploy-secrets/common/httperror"
-	"github.com/RedeployAB/redeploy-secrets/secretapi/config"
-	"github.com/RedeployAB/redeploy-secrets/secretapi/internal"
+	"github.com/RedeployAB/redeploy-secrets/secretgw/config"
+	"github.com/RedeployAB/redeploy-secrets/secretgw/internal"
 	"github.com/gorilla/mux"
 )
 
