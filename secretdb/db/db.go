@@ -1,53 +1,52 @@
 package db
 
 import (
-	"crypto/tls"
-	"errors"
-	"log"
-	"net"
+	"context"
+	"strings"
 	"time"
 
-	"github.com/RedeployAB/redeploy-secrets/secretdb/config"
-	"gopkg.in/mgo.v2"
-)
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
-var session *mgo.Session
+	"github.com/RedeployAB/redeploy-secrets/secretdb/config"
+)
 
 // Connect is used to connect to database with options
 // specified in the passed in options argument.
-func Connect(opts config.Database) {
-	dialInfo := &mgo.DialInfo{
-		Addrs:    []string{opts.Address},
-		Timeout:  60 * time.Second,
-		Database: opts.Database,
-		Username: opts.Username,
-		Password: opts.Password,
+func Connect(opts config.Database) (*mongo.Client, error) {
+	uri := opts.URI
+	if uri == "" {
+		uri = toConnectionURI(opts)
 	}
 
-	if opts.SSL == true {
-		dialInfo.DialServer = func(addr *mgo.ServerAddr) (net.Conn, error) {
-			return tls.Dial("tcp", addr.String(), &tls.Config{})
-		}
-	}
-	// Modify these later on.
-	dialInfo.Direct = true
-	dialInfo.FailFast = true
-
-	var err error
-	session, err = mgo.DialWithInfo(dialInfo)
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
 	if err != nil {
-		log.Fatalf("error: connection to database failed, error: %v\n", err)
+		return nil, err
 	}
-	session.SetSafe(&mgo.Safe{})
+
+	if err := client.Ping(ctx, nil); err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }
 
-// GetSession gets an active session if exists,
-// creates a new if not.
-func GetSession() (*mgo.Session, error) {
-	// Make modifications in the futures for setup of connection info.
-	// for now program will be terminated if no sessions are found.
-	if session == nil {
-		return nil, errors.New("db: no existing session")
+func toConnectionURI(opts config.Database) string {
+	var b strings.Builder
+
+	b.WriteString("mongodb://")
+	if opts.Username != "" {
+		b.WriteString(opts.Username)
+		if opts.Password != "" {
+			b.WriteString(":" + opts.Password)
+		}
+		b.WriteString("@")
 	}
-	return session.Clone(), nil
+	b.WriteString(opts.Address)
+	if opts.SSL != false {
+		b.WriteString("/?ssl=true")
+	}
+
+	return b.String()
 }
