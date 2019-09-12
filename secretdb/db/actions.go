@@ -1,76 +1,51 @@
 package db
 
 import (
-	"errors"
+	"context"
 	"time"
 
-	"github.com/RedeployAB/redeploy-secrets/secretdb/config"
-	"github.com/RedeployAB/redeploy-secrets/secretdb/internal"
 	"github.com/RedeployAB/redeploy-secrets/secretdb/models"
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // Find queries the collection for an entry by ID.
-func Find(id string, collection *mgo.Collection) (models.Secret, error) {
-	if !bson.IsObjectIdHex(id) {
-		return models.Secret{}, errors.New("not valid ObjectId")
-	}
+func Find(id string, client *mongo.Client) (Secret, error) {
 
-	s := models.Secret{}
-	err := collection.Find(bson.M{"_id": bson.ObjectIdHex(id)}).One(&s)
-	if err != nil {
-		return models.Secret{}, err
-	}
-
-	secret := internal.Decrypt([]byte(s.Secret), config.Config.Passphrase)
-	s.Secret = string(secret)
-
-	return s, nil
 }
 
 // Insert handles inserts into the database.
-func Insert(s Secret, collection *mgo.Collection) (models.Secret, error) {
-	id := bson.NewObjectId()
-	created := time.Now()
-	expires := created.AddDate(0, 0, 7)
+func Insert(s Secret, client *mongo.Client) (Secret, error) {
 
-	secret := internal.Encrypt([]byte(s.Secret), config.Config.Passphrase)
 	sm := &models.Secret{
-		ID:        id,
-		Secret:    string(secret),
-		CreatedAt: created,
-		ExpiresAt: expires,
+		Secret:    s.Secret,
+		CreatedAt: time.Now(),
+		ExpiresAt: time.Now().AddDate(0, 0, 7),
 	}
 
-	if len(s.Passphrase) > 0 {
-		sm.Passphrase = internal.Hash(s.Passphrase)
-	}
+	collection := client.Database("secretdb").Collection("secrets")
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 
-	err := collection.Insert(sm)
+	res, err := collection.InsertOne(ctx, sm)
 	if err != nil {
-		return models.Secret{}, err
+		return Secret{}, err
 	}
+	oid := res.InsertedID.(primitive.ObjectID).Hex()
 
-	return *sm, nil
+	return Secret{ID: oid, CreatedAt: sm.CreatedAt, ExpiresAt: sm.ExpiresAt}, nil
 }
 
 // Delete removes an entry from the collection by ID.
-func Delete(id string, collection *mgo.Collection) error {
-	if !bson.IsObjectIdHex(id) {
-		return errors.New("not valid ObjectId")
-	}
+func Delete(id string, client *mongo.Client) error {
 
-	err := collection.Remove(bson.M{"_id": bson.ObjectIdHex(id)})
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 // Secret represents a secret to be inserted into the
 // database collection.
 type Secret struct {
-	Secret     string
-	Passphrase string
+	ID         string    `json:"id,omitempty"`
+	Secret     string    `json:"secret,omitempty"`
+	Passphrase string    `json:"passphrase,omitempty"`
+	CreatedAt  time.Time `json:"created_at,omitempty"`
+	ExpiresAt  time.Time `json:"expires_at,omitempty"`
 }
