@@ -4,20 +4,20 @@ import (
 	"github.com/RedeployAB/redeploy-secrets/common/auth"
 	mw "github.com/RedeployAB/redeploy-secrets/common/middleware"
 	"github.com/gorilla/mux"
-	"gopkg.in/mgo.v2"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var apiVer = "v1"
 
 // NewRouter returns a mux Router.
-func NewRouter(ts auth.TokenStore, collection *mgo.Collection) *mux.Router {
+func NewRouter(ts auth.TokenStore, client *mongo.Client) *mux.Router {
 	r := mux.NewRouter()
 	s := r.PathPrefix("/api/" + apiVer).Subrouter()
 	// Routes.
-	s.Handle("/secrets/{id}", readSecretHandler(collection)).Methods("GET")
-	s.Handle("/secrets", createSecretHandler(collection)).Methods("POST")
-	s.Handle("/secrets/{id}", updateSecretHandler(collection)).Methods("PUT")
-	s.Handle("/secrets/{id}", deleteSecretHandler(collection)).Methods("DELETE")
+	s.Handle("/secrets/{id}", readSecretHandler(client)).Methods("GET")
+	s.Handle("/secrets", createSecretHandler(client)).Methods("POST")
+	s.Handle("/secrets/{id}", updateSecretHandler(client)).Methods("PUT")
+	s.Handle("/secrets/{id}", deleteSecretHandler(client)).Methods("DELETE")
 	// All other routes.
 	r.PathPrefix("/").HandlerFunc(notFoundHandler)
 	// Attach middleware.
