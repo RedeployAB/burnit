@@ -1,16 +1,11 @@
 package models
 
-import (
-	"time"
-
-	"gopkg.in/mgo.v2/bson"
-)
+import "time"
 
 // Secret represents a secret entry in database.
 type Secret struct {
-	ID         bson.ObjectId `bson:"_id,omitempty"`
-	Secret     string
-	Passphrase string
+	Secret     string    `bson:"secret"`
+	Passphrase string    `bson:"passphrase,omitempty"`
 	CreatedAt  time.Time `bson:"created_at"`
 	ExpiresAt  time.Time `bson:"expires_at"`
 }
