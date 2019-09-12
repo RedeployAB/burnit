@@ -26,6 +26,7 @@ type Database struct {
 	Username string
 	Password string
 	SSL      bool
+	URI      string
 }
 
 // Configuration represents a configuration.
@@ -63,6 +64,8 @@ func Configure() Configuration {
 		dbSSL, _ = strconv.ParseBool(dbSSLStr)
 	}
 
+	uri := os.Getenv("DB_CONNECTION_URI")
+
 	config := Configuration{
 		Server{
 			Port:       port,
@@ -75,6 +78,7 @@ func Configure() Configuration {
 			Username: dbUser,
 			Password: dbPassword,
 			SSL:      dbSSL,
+			URI:      uri,
 		},
 	}
 
