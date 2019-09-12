@@ -17,17 +17,13 @@ func main() {
 	// Setup TokenStore.
 	ts := auth.NewMemoryTokenStore()
 	ts.Set(conf.DBAPIKey, "app")
-	// Connect to db
-	db.Connect(conf.Database)
-	session, err := db.GetSession()
+
+	client, err := db.Connect(conf.Database)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
-	defer session.Close()
-	// Connect to collection.
-	collection := session.DB("secretdb").C("secrets")
-	// Create new router.
-	r := api.NewRouter(ts, collection)
+
+	r := api.NewRouter(ts, client)
 	// Start server.
 	log.Printf("server listening on: %s", conf.Port)
 	log.Fatal(http.ListenAndServe(":"+conf.Port, r))
