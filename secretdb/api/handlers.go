@@ -8,24 +8,26 @@ import (
 	"github.com/RedeployAB/redeploy-secrets/common/httperror"
 	"github.com/RedeployAB/redeploy-secrets/secretdb/db"
 	"github.com/RedeployAB/redeploy-secrets/secretdb/internal"
+	"github.com/RedeployAB/redeploy-secrets/secretdb/models"
 	"github.com/gorilla/mux"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // NotFoundHandler handles all non used routes.
-func notFoundHandler(w http.ResponseWriter, r *http.Request) {
+func notFound(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusNotFound)
 }
 
 // ReadSecretHandler reads a secret fron the database by ID.
-func readSecretHandler(client *mongo.Client) http.Handler {
+func getSecret(client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		vars := mux.Vars(r)
 
-		res, err := db.Find(vars["id"], collection)
+		res, err := db.Find(vars["id"], client)
 		if err != nil {
 			httperror.Error(w, "not found", http.StatusNotFound)
 			return
@@ -36,9 +38,14 @@ func readSecretHandler(client *mongo.Client) http.Handler {
 			return
 		}
 
-		db.Delete(vars["id"], client)
+		_, err = db.Delete(vars["id"], client)
+		if err != nil {
+			httperror.Error(w, "internal server error", http.StatusInternalServerError)
+		}
+
 		rb := ResponseBody{
 			Data: Data{
+				ID:        res.ID,
 				Secret:    res.Secret,
 				CreatedAt: res.CreatedAt,
 				ExpiresAt: res.ExpiresAt,
@@ -53,10 +60,10 @@ func readSecretHandler(client *mongo.Client) http.Handler {
 }
 
 // CreateSecretHandler inserts a secret into the database.
-func createSecretHandler(client *mongo.Client) http.Handler {
+func createSecret(client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		var s db.Secret
+		var s models.Secret
 		if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
 			httperror.Error(w, "malformed JSON", http.StatusBadRequest)
 			return
@@ -68,6 +75,7 @@ func createSecretHandler(client *mongo.Client) http.Handler {
 		}
 
 		w.WriteHeader(http.StatusCreated)
+
 		rb := &ResponseBody{
 			Data: Data{ID: res.ID, CreatedAt: res.CreatedAt, ExpiresAt: res.ExpiresAt},
 		}
@@ -78,7 +86,7 @@ func createSecretHandler(client *mongo.Client) http.Handler {
 }
 
 // UpdateSecretHandler handler updates a secret in the database.
-func updateSecretHandler(client *mongo.Client) http.Handler {
+func updateSecret(client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		httperror.Error(w, "not implemented", http.StatusNotImplemented)
@@ -86,22 +94,20 @@ func updateSecretHandler(client *mongo.Client) http.Handler {
 }
 
 // DeleteSecretHandler deletes a secret from the database.
-func deleteSecretHandler(client *mongo.Client) http.Handler {
+func deleteSecret(client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-		/* 		vars := mux.Vars(r)
-
-		   		err := db.Delete(vars["id"], collection)
-		   		if err != nil {
-		   			if err.Error() == "not found" || err.Error() == "not valid ObjectId" {
-		   				httperror.Error(w, "not found", http.StatusNotFound)
-		   			} else {
-		   				httperror.Error(w, "internal server error", http.StatusInternalServerError)
-		   			}
-		   			return
-		   		} */
-
+		vars := mux.Vars(r)
+		res, err := db.Delete(vars["id"], client)
+		if err != nil {
+			httperror.Error(w, "internal server error", http.StatusInternalServerError)
+			return
+		}
+		if res == 0 {
+			httperror.Error(w, "not found", http.StatusNotFound)
+			return
+		}
 		w.WriteHeader(http.StatusOK)
 	})
 }
@@ -113,10 +119,10 @@ type ResponseBody struct {
 
 // Data represents the data part of the response body.
 type Data struct {
-	ID        string    `json:"id,omitempty"`
-	Secret    string    `json:"secret,omitempty"`
-	CreatedAt time.Time `json:"created_at,omitempty"`
-	ExpiresAt time.Time `json:"expires_at,omitempty"`
+	ID        primitive.ObjectID `json:"id,omitempty"`
+	Secret    string             `json:"secret,omitempty"`
+	CreatedAt time.Time          `json:"created_at,omitempty"`
+	ExpiresAt time.Time          `json:"expires_at,omitempty"`
 }
 
 // RequestBody represents a secret request body.
@@ -124,10 +130,3 @@ type RequestBody struct {
 	Secret     string `json:"secret"`
 	Passphrase string `json:"passphrase,omitempty"`
 }
-
-/* type Secret struct {
-	Secret     string    `bson:"secret"`
-	Passphrase string    `bson:"passphrase,omitempty"`
-	CreatedAt  time.Time `bson:"created_at"`
-	ExpiresAt  time.Time `bson:"expires_at"`
-} */

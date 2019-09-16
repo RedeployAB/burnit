@@ -14,12 +14,12 @@ func NewRouter(ts auth.TokenStore, client *mongo.Client) *mux.Router {
 	r := mux.NewRouter()
 	s := r.PathPrefix("/api/" + apiVer).Subrouter()
 	// Routes.
-	s.Handle("/secrets/{id}", readSecretHandler(client)).Methods("GET")
-	s.Handle("/secrets", createSecretHandler(client)).Methods("POST")
-	s.Handle("/secrets/{id}", updateSecretHandler(client)).Methods("PUT")
-	s.Handle("/secrets/{id}", deleteSecretHandler(client)).Methods("DELETE")
+	s.Handle("/secrets/{id}", getSecret(client)).Methods("GET")
+	s.Handle("/secrets", createSecret(client)).Methods("POST")
+	s.Handle("/secrets/{id}", updateSecret(client)).Methods("PUT")
+	s.Handle("/secrets/{id}", deleteSecret(client)).Methods("DELETE")
 	// All other routes.
-	r.PathPrefix("/").HandlerFunc(notFoundHandler)
+	r.PathPrefix("/").HandlerFunc(notFound)
 	// Attach middleware.
 	amw := mw.Authentication{TokenStore: ts}
 	r.Use(mw.Logger, amw.Authenticate)
