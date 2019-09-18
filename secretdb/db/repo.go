@@ -43,6 +43,10 @@ func Insert(s models.Secret, client *mongo.Client) (models.Secret, error) {
 		ExpiresAt: time.Now().AddDate(0, 0, 7),
 	}
 
+	if len(s.Passphrase) > 0 {
+		sm.Passphrase = internal.Hash(s.Passphrase)
+	}
+
 	res, err := collection.InsertOne(ctx, sm)
 	if err != nil {
 		return models.Secret{}, err
