@@ -26,15 +26,15 @@ func init() {
 	dbClient = &internal.DBClient{BaseURL: config.Config.DBBaseURL, Path: dbAPIPath}
 }
 
-// NotFoundHandler handles all non used routes.
-func notFoundHandler(w http.ResponseWriter, r *http.Request) {
+// notFoundHandler handles all non used routes.
+func notFound(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusNotFound)
 }
 
-// GenerateSecretHandler makes calls to the secretgen service
+// generateSecret makes calls to the secretgen service
 // to generate a secret.
-func generateSecretHandler() http.Handler {
+func generateSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
@@ -56,9 +56,9 @@ func generateSecretHandler() http.Handler {
 	})
 }
 
-// ReadSecretHandler makes calls to the secretdb service to
+// getSecretHandler makes calls to the secretdb service to
 // get a secret.
-func readSecretHandler() http.Handler {
+func getSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		vars := mux.Vars(r)
@@ -77,9 +77,9 @@ func readSecretHandler() http.Handler {
 	})
 }
 
-// CreateSecretHandler makes calls to secretdb to
+// createSecret makes calls to secretdb to
 // create a secret.
-func createSecretHandler() http.Handler {
+func createSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 

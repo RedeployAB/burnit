@@ -15,18 +15,18 @@ func NewRouter() *mux.Router {
 
 	// Generator routes.
 	g := r.PathPrefix("/api/" + genAPIVer).Subrouter()
-	g.Handle("/generate", generateSecretHandler()).Methods("GET")
+	g.Handle("/generate", generateSecret()).Methods("GET")
 
 	// DB routes.
 	d := r.PathPrefix("/api/" + dbAPIVer).Subrouter()
-	d.Handle("/secrets/{id}", readSecretHandler()).Methods("GET")
-	d.Handle("/secrets", createSecretHandler()).Methods("POST")
+	d.Handle("/secrets/{id}", getSecret()).Methods("GET")
+	d.Handle("/secrets", createSecret()).Methods("POST")
 	// Init middleware for all db routes.
 	amw := mw.AuthHeader{Token: config.Config.DBAPIKey}
 	hmw := mw.HeaderStrip{Exceptions: []string{"X-Passphrase"}}
 	d.Use(mw.Logger, hmw.Strip, amw.AddAuthHeader)
 	// All other routes.
-	r.PathPrefix("/").HandlerFunc(notFoundHandler)
+	r.PathPrefix("/").HandlerFunc(notFound)
 	// Attach logger.
 	r.Use(mw.Logger)
 
