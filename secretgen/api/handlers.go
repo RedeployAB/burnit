@@ -9,16 +9,16 @@ import (
 	"github.com/RedeployAB/redeploy-secrets/secretgen/secrets"
 )
 
-// NotFoundHandler handles all non used routes.
-func notFoundHandler(w http.ResponseWriter, r *http.Request) {
+// notFound handles all non used routes.
+func notFound(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusNotFound)
 }
 
-// GenerateSecretHandler handles requests for secret generation.
-func generateSecretHandler(w http.ResponseWriter, r *http.Request) {
+// generateSecret handles requests for secret generation.
+func generateSecret(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
-	params := handleGenerateSecretQuery(query)
+	params := parseGenerateSecretQuery(query)
 	secret := secrets.GenerateRandomString(params.Length, params.SpecialCharacters)
 	// Set headers and response.
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -32,7 +32,7 @@ func generateSecretHandler(w http.ResponseWriter, r *http.Request) {
 
 // Handles query parameters to get length and special character
 // options.
-func handleGenerateSecretQuery(query url.Values) secretParams {
+func parseGenerateSecretQuery(query url.Values) secretParams {
 	lengthParam := query.Get("length")
 	spCharParam := query.Get("specialchars")
 

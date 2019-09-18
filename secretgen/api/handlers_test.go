@@ -14,7 +14,7 @@ import (
 
 func Router() *mux.Router {
 	router := mux.NewRouter()
-	router.HandleFunc("/generate", generateSecretHandler).Methods("GET")
+	router.HandleFunc("/generate", generateSecret).Methods("GET")
 	return router
 }
 

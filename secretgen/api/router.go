@@ -12,8 +12,8 @@ var apiVer = "v1"
 func NewRouter(config config.Server) *mux.Router {
 	r := mux.NewRouter()
 	// Routes.
-	r.HandleFunc("/api/"+apiVer+"/generate", generateSecretHandler).Methods("GET")
-	r.PathPrefix("/").HandlerFunc(notFoundHandler)
+	r.HandleFunc("/api/"+apiVer+"/generate", generateSecret).Methods("GET")
+	r.PathPrefix("/").HandlerFunc(notFound)
 	r.Use(middleware.Logger)
 
 	return r
