@@ -87,7 +87,7 @@ func TestHandleGenerateSecretQuery(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		params := handleGenerateSecretQuery(test.in)
+		params := parseGenerateSecretQuery(test.in)
 		if params != test.out {
 			t.Errorf("got: %v, want: %v", params, test.out)
 		}
