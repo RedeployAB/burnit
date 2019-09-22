@@ -1,5 +1,7 @@
 package auth
 
+import "github.com/RedeployAB/redeploy-secrets/common/security"
+
 // TokenStore is an interface that represents
 // a method of getting, setting and comparing tokens.
 type TokenStore interface {
@@ -21,7 +23,7 @@ type Token struct {
 
 // Get searchs the memory token store for a key.
 func (m *MemoryTokenStore) Get(token string) (string, bool) {
-	t, ok := m.Tokens[token]
+	t, ok := m.Tokens[security.ToMD5(token)]
 	if !ok {
 		return "", ok
 	}
@@ -30,7 +32,7 @@ func (m *MemoryTokenStore) Get(token string) (string, bool) {
 
 // Set sets a token in the TokenStore.
 func (m *MemoryTokenStore) Set(token, user string) {
-	m.Tokens[token] = Token{User: user}
+	m.Tokens[security.ToMD5(token)] = Token{User: user}
 }
 
 // Verify compares the key in the memory token store with
