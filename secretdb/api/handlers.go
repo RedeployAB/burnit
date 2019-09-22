@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/RedeployAB/redeploy-secrets/common/httperror"
+	"github.com/RedeployAB/redeploy-secrets/common/security"
 	"github.com/RedeployAB/redeploy-secrets/secretdb/db"
-	"github.com/RedeployAB/redeploy-secrets/secretdb/internal"
 	"github.com/RedeployAB/redeploy-secrets/secretdb/models"
 	"github.com/gorilla/mux"
 
@@ -33,7 +33,7 @@ func getSecret(client *mongo.Client) http.Handler {
 			return
 		}
 		// Handle if passphrase is set on the secret.
-		if len(res.Passphrase) > 0 && !internal.CompareHash(res.Passphrase, r.Header.Get("X-Passphrase")) {
+		if len(res.Passphrase) > 0 && !security.CompareHash(res.Passphrase, r.Header.Get("X-Passphrase")) {
 			httperror.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}

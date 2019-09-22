@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/RedeployAB/redeploy-secrets/common/security"
 	"github.com/RedeployAB/redeploy-secrets/secretdb/config"
-	"github.com/RedeployAB/redeploy-secrets/secretdb/internal"
 	"github.com/RedeployAB/redeploy-secrets/secretdb/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -44,7 +44,7 @@ func Insert(s models.Secret, client *mongo.Client) (models.Secret, error) {
 	}
 
 	if len(s.Passphrase) > 0 {
-		sm.Passphrase = internal.Hash(s.Passphrase)
+		sm.Passphrase = security.Hash(s.Passphrase)
 	}
 
 	res, err := collection.InsertOne(ctx, sm)
@@ -76,7 +76,7 @@ func Delete(id string, client *mongo.Client) (int64, error) {
 
 // Wrapper around internal.Encrypt to ease usage.
 func encrypt(plaintext, passphrase string) string {
-	encrypted, err := internal.Encrypt([]byte(plaintext), passphrase)
+	encrypted, err := security.Encrypt([]byte(plaintext), passphrase)
 	if err != nil {
 		panic(err)
 	}
@@ -85,7 +85,7 @@ func encrypt(plaintext, passphrase string) string {
 
 // Wrapper around internal.Decrupt to ease usage.
 func decrypt(ciphertext, passphrase string) string {
-	decrypted, err := internal.Decrypt([]byte(ciphertext), passphrase)
+	decrypted, err := security.Decrypt([]byte(ciphertext), passphrase)
 	if err != nil {
 		panic(err)
 	}
