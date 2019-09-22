@@ -18,10 +18,12 @@ func main() {
 	ts := auth.NewMemoryTokenStore()
 	ts.Set(conf.DBAPIKey, "app")
 
+	log.Printf("connecting to db server: %s...\n", conf.Database.Address)
 	client, err := db.Connect(conf.Database)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
+	log.Printf("connected.\n")
 
 	r := api.NewRouter(ts, client)
 	// Start server.
