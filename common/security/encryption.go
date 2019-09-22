@@ -3,10 +3,8 @@ package security
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/md5"
 	"crypto/rand"
 	"encoding/base64"
-	"encoding/hex"
 	"errors"
 	"io"
 )
@@ -66,13 +64,6 @@ func Decrypt(ciphertext []byte, key string) (plaintext []byte, err error) {
 		decodedCipher[gcm.NonceSize():],
 		nil,
 	)
-}
-
-// ToMD5 hashes a string to MD5.
-func ToMD5(key string) string {
-	hasher := md5.New()
-	hasher.Write([]byte(key))
-	return hex.EncodeToString(hasher.Sum(nil))
 }
 
 // Encodes a byte containing a string to base64.
