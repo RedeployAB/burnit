@@ -15,13 +15,13 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// NotFoundHandler handles all non used routes.
+// notFoundHandler handles all non used routes.
 func notFound(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusNotFound)
 }
 
-// ReadSecretHandler reads a secret fron the database by ID.
+// getSecretHandler reads a secret fron the database by ID.
 func getSecret(client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -43,8 +43,8 @@ func getSecret(client *mongo.Client) http.Handler {
 			httperror.Error(w, "internal server error", http.StatusInternalServerError)
 		}
 
-		rb := ResponseBody{
-			Data: Data{
+		rb := responseBody{
+			Data: data{
 				ID:        res.ID,
 				Secret:    res.Secret,
 				CreatedAt: res.CreatedAt,
@@ -59,7 +59,7 @@ func getSecret(client *mongo.Client) http.Handler {
 	})
 }
 
-// CreateSecretHandler inserts a secret into the database.
+// createSecretHandler inserts a secret into the database.
 func createSecret(client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -76,8 +76,8 @@ func createSecret(client *mongo.Client) http.Handler {
 
 		w.WriteHeader(http.StatusCreated)
 
-		rb := &ResponseBody{
-			Data: Data{ID: res.ID, CreatedAt: res.CreatedAt, ExpiresAt: res.ExpiresAt},
+		rb := &responseBody{
+			Data: data{ID: res.ID, CreatedAt: res.CreatedAt, ExpiresAt: res.ExpiresAt},
 		}
 		if err := json.NewEncoder(w).Encode(rb); err != nil {
 			panic(err)
@@ -85,7 +85,7 @@ func createSecret(client *mongo.Client) http.Handler {
 	})
 }
 
-// UpdateSecretHandler handler updates a secret in the database.
+// updateSecretHandler handler updates a secret in the database.
 func updateSecret(client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -93,7 +93,7 @@ func updateSecret(client *mongo.Client) http.Handler {
 	})
 }
 
-// DeleteSecretHandler deletes a secret from the database.
+// deleteSecretHandler deletes a secret from the database.
 func deleteSecret(client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -112,21 +112,29 @@ func deleteSecret(client *mongo.Client) http.Handler {
 	})
 }
 
-// ResponseBody represents a secret type response body.
-type ResponseBody struct {
-	Data Data `json:"data"`
+// deleteExpiredSecrets will delete all secrets where ExpiresAt has
+// passed.
+func deleteExpiredSecrets(client *mongo.Client) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Contente-Type", "application/json; charset=UTF-8")
+
+		err := db.DeleteExpired(client)
+		if err != nil {
+			httperror.Error(w, "internal server error", http.StatusInternalServerError)
+			return
+		}
+	})
 }
 
-// Data represents the data part of the response body.
-type Data struct {
+// responseBody represents a secret type response body.
+type responseBody struct {
+	Data data `json:"data"`
+}
+
+// data represents the data part of the response body.
+type data struct {
 	ID        primitive.ObjectID `json:"id,omitempty"`
 	Secret    string             `json:"secret,omitempty"`
-	CreatedAt time.Time          `json:"created_at,omitempty"`
-	ExpiresAt time.Time          `json:"expires_at,omitempty"`
-}
-
-// RequestBody represents a secret request body.
-type RequestBody struct {
-	Secret     string `json:"secret"`
-	Passphrase string `json:"passphrase,omitempty"`
+	CreatedAt time.Time          `json:"createdAt,omitempty"`
+	ExpiresAt time.Time          `json:"expiresAt,omitempty"`
 }
