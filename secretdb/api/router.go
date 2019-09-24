@@ -18,6 +18,7 @@ func NewRouter(ts auth.TokenStore, client *mongo.Client) *mux.Router {
 	s.Handle("/secrets", createSecret(client)).Methods("POST")
 	s.Handle("/secrets/{id}", updateSecret(client)).Methods("PUT")
 	s.Handle("/secrets/{id}", deleteSecret(client)).Methods("DELETE")
+	s.Handle("/maintenance/cleanup", deleteExpiredSecrets(client)).Methods("DELETE")
 	// All other routes.
 	r.PathPrefix("/").HandlerFunc(notFound)
 	// Attach middleware.
