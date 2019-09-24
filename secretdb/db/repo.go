@@ -74,6 +74,17 @@ func Delete(id string, client *mongo.Client) (int64, error) {
 	return res.DeletedCount, nil
 }
 
+func DeleteExpired(client *mongo.Client) error {
+	collection := client.Database("secretdb").Collection("secrets")
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+
+	_, err := collection.DeleteMany(ctx, bson.D{{"expiresAt", bson.D{{"$lt", time.Now()}}}})
+	if err != nil {
+		return nil
+	}
+	return nil
+}
+
 // Wrapper around internal.Encrypt to ease usage.
 func encrypt(plaintext, passphrase string) string {
 	encrypted, err := security.Encrypt([]byte(plaintext), passphrase)
