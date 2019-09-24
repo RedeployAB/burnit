@@ -21,8 +21,8 @@ type DBResponseBody struct {
 type dbData struct {
 	ID        string `json:"id,omitempty"`
 	Secret    string `json:"secret,omitempty"`
-	CreatedAt string `json:"created_at"`
-	ExpiresAt string `json:"expires_at"`
+	CreatedAt string `json:"createdAt"`
+	ExpiresAt string `json:"expiresAt"`
 }
 
 // DBRequestBody represents a request body for the
