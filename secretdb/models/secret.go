@@ -8,9 +8,12 @@ import (
 
 // Secret represents a secret entry in database.
 type Secret struct {
-	ID         primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	Secret     string             `bson:"secret" json:"secret,omitempty"`
-	Passphrase string             `bson:"passphrase,omitempty" json:"passphrase,omitempty"`
-	CreatedAt  time.Time          `bson:"created_at" json:"created_at,omitempty"`
-	ExpiresAt  time.Time          `bson:"expires_at" json:"expires_at,omitempty"`
+	ID         primitive.ObjectID `bson:"_id,omitempty"`
+	Secret     string             `bson:"secret"`
+	Passphrase string             `bson:"passphrase,omitempty"`
+	CreatedAt  time.Time          `bson:"createdAt"`
+	ExpiresAt  time.Time          `bson:"expiresAt"`
 }
+
+// Secrets is a slice of Secret(s).
+type Secrets []Secret
