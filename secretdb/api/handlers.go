@@ -29,7 +29,11 @@ func getSecret(client *mongo.Client) http.Handler {
 
 		res, err := db.Find(vars["id"], client)
 		if err != nil {
-			httperror.Error(w, "not found", http.StatusNotFound)
+			if err.Error() == "mongo: no documents in result" {
+				httperror.Error(w, "not found", http.StatusNotFound)
+			} else {
+				httperror.Error(w, "internal server error", http.StatusInternalServerError)
+			}
 			return
 		}
 		// Handle if passphrase is set on the secret.
@@ -104,7 +108,7 @@ func deleteSecret(client *mongo.Client) http.Handler {
 			httperror.Error(w, "internal server error", http.StatusInternalServerError)
 			return
 		}
-		if res == 0 {
+		if res == 0 || res == -1 {
 			httperror.Error(w, "not found", http.StatusNotFound)
 			return
 		}
@@ -118,11 +122,12 @@ func deleteExpiredSecrets(client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Contente-Type", "application/json; charset=UTF-8")
 
-		err := db.DeleteExpired(client)
+		_, err := db.DeleteExpired(client)
 		if err != nil {
 			httperror.Error(w, "internal server error", http.StatusInternalServerError)
 			return
 		}
+		w.WriteHeader(http.StatusOK)
 	})
 }
 
