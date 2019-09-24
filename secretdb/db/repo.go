@@ -13,10 +13,10 @@ import (
 )
 
 // Find queries the collection for an entry by ID.
-func Find(id string, client *mongo.Client) (models.Secret, error) {
+func Find(id string, client *mongo.Client) (*models.Secret, error) {
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return models.Secret{}, err
+		return &models.Secret{}, err
 	}
 
 	collection := client.Database("secretdb").Collection("secrets")
@@ -25,15 +25,15 @@ func Find(id string, client *mongo.Client) (models.Secret, error) {
 	var s models.Secret
 	err = collection.FindOne(ctx, bson.D{{"_id", oid}}).Decode(&s)
 	if err != nil {
-		return models.Secret{}, err
+		return &models.Secret{}, err
 	}
-	s.Secret = decrypt(s.Secret, config.Config.Passphrase)
 
-	return s, nil
+	s.Secret = decrypt(s.Secret, config.Config.Passphrase)
+	return &s, nil
 }
 
 // Insert handles inserts into the database.
-func Insert(s models.Secret, client *mongo.Client) (models.Secret, error) {
+func Insert(s models.Secret, client *mongo.Client) (*models.Secret, error) {
 	collection := client.Database("secretdb").Collection("secrets")
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 
@@ -49,11 +49,11 @@ func Insert(s models.Secret, client *mongo.Client) (models.Secret, error) {
 
 	res, err := collection.InsertOne(ctx, sm)
 	if err != nil {
-		return models.Secret{}, err
+		return &models.Secret{}, err
 	}
 	oid := res.InsertedID.(primitive.ObjectID)
 
-	return models.Secret{ID: oid, CreatedAt: sm.CreatedAt, ExpiresAt: sm.ExpiresAt}, nil
+	return &models.Secret{ID: oid, CreatedAt: sm.CreatedAt, ExpiresAt: sm.ExpiresAt}, nil
 }
 
 // Delete removes an entry from the collection by ID.
@@ -63,7 +63,7 @@ func Delete(id string, client *mongo.Client) (int64, error) {
 
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return 0, err
+		return -1, nil
 	}
 
 	res, err := collection.DeleteOne(ctx, bson.D{{"_id", oid}})
@@ -74,15 +74,17 @@ func Delete(id string, client *mongo.Client) (int64, error) {
 	return res.DeletedCount, nil
 }
 
-func DeleteExpired(client *mongo.Client) error {
+// DeleteExpired deletes all entries that has expiresAt
+// less than current time (time of invocation).
+func DeleteExpired(client *mongo.Client) (int64, error) {
 	collection := client.Database("secretdb").Collection("secrets")
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 
-	_, err := collection.DeleteMany(ctx, bson.D{{"expiresAt", bson.D{{"$lt", time.Now()}}}})
+	res, err := collection.DeleteMany(ctx, bson.D{{"expiresAt", bson.D{{"$lt", time.Now()}}}})
 	if err != nil {
-		return nil
+		return 0, err
 	}
-	return nil
+	return res.DeletedCount, nil
 }
 
 // Wrapper around internal.Encrypt to ease usage.
