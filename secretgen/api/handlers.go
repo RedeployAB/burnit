@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/RedeployAB/redeploy-secrets/secretgen/internal"
+	"github.com/RedeployAB/redeploy-secrets/secretgen/secret"
 )
 
 // notFound handles all non used routes.
@@ -19,7 +19,7 @@ func notFound(w http.ResponseWriter, r *http.Request) {
 func generateSecret(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	l, sc := parseGenerateSecretQuery(query)
-	s := internal.GenerateRandomString(l, sc)
+	s := secret.GenerateRandomString(l, sc)
 	// Set headers and response.
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
