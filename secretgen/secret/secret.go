@@ -1,4 +1,4 @@
-package internal
+package secret
 
 import (
 	"math/rand"
