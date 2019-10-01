@@ -27,7 +27,7 @@ func TestGenerateSecretHandler(t *testing.T) {
 		t.Errorf("Status code incorrect, got: %d, want: 200", res.Code)
 	}
 
-	var rb secretResponse
+	var rb secretResponseBody
 	b, err := ioutil.ReadAll(res.Body)
 
 	err = json.Unmarshal(b, &rb)
@@ -54,7 +54,7 @@ func TestGenerateSecretHandlerParams(t *testing.T) {
 		t.Errorf("Status code incorrect, got: %d, want: 200", res.Code)
 	}
 
-	var rb secretResponse
+	var rb secretResponseBody
 	b, err := ioutil.ReadAll(res.Body)
 
 	err = json.Unmarshal(b, &rb)
