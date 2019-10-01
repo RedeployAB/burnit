@@ -3,15 +3,13 @@ package api
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/RedeployAB/redeploy-secrets/common/httperror"
-	"github.com/RedeployAB/redeploy-secrets/common/security"
 	"github.com/RedeployAB/redeploy-secrets/secretdb/db"
+	"github.com/RedeployAB/redeploy-secrets/secretdb/internal"
 	"github.com/RedeployAB/redeploy-secrets/secretdb/models"
 	"github.com/gorilla/mux"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -37,7 +35,8 @@ func getSecret(client *mongo.Client) http.Handler {
 			return
 		}
 		// Handle if passphrase is set on the secret.
-		if len(res.Passphrase) > 0 && !security.CompareHash(res.Passphrase, r.Header.Get("X-Passphrase")) {
+		h, p := res.Passphrase, r.Header.Get("X-Passphrase")
+		if !internal.VerifyPassphrase(h, p) {
 			httperror.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
@@ -47,8 +46,8 @@ func getSecret(client *mongo.Client) http.Handler {
 			httperror.Error(w, "internal server error", http.StatusInternalServerError)
 		}
 
-		rb := responseBody{
-			Data: data{
+		sr := secretResponse{
+			Data: secret{
 				ID:        res.ID,
 				Secret:    res.Secret,
 				CreatedAt: res.CreatedAt,
@@ -56,7 +55,7 @@ func getSecret(client *mongo.Client) http.Handler {
 			},
 		}
 		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode(&rb); err != nil {
+		if err := json.NewEncoder(w).Encode(&sr); err != nil {
 			panic(err)
 		}
 
@@ -80,10 +79,10 @@ func createSecret(client *mongo.Client) http.Handler {
 
 		w.WriteHeader(http.StatusCreated)
 
-		rb := &responseBody{
-			Data: data{ID: res.ID, CreatedAt: res.CreatedAt, ExpiresAt: res.ExpiresAt},
+		sr := secretResponse{
+			Data: secret{ID: res.ID, CreatedAt: res.CreatedAt, ExpiresAt: res.ExpiresAt},
 		}
-		if err := json.NewEncoder(w).Encode(rb); err != nil {
+		if err := json.NewEncoder(w).Encode(&sr); err != nil {
 			panic(err)
 		}
 	})
@@ -129,17 +128,4 @@ func deleteExpiredSecrets(client *mongo.Client) http.Handler {
 		}
 		w.WriteHeader(http.StatusOK)
 	})
-}
-
-// responseBody represents a secret type response body.
-type responseBody struct {
-	Data data `json:"data"`
-}
-
-// data represents the data part of the response body.
-type data struct {
-	ID        primitive.ObjectID `json:"id,omitempty"`
-	Secret    string             `json:"secret,omitempty"`
-	CreatedAt time.Time          `json:"createdAt,omitempty"`
-	ExpiresAt time.Time          `json:"expiresAt,omitempty"`
 }
