@@ -6,8 +6,7 @@ import (
 
 	"github.com/RedeployAB/redeploy-secrets/common/httperror"
 	"github.com/RedeployAB/redeploy-secrets/secretdb/db"
-	"github.com/RedeployAB/redeploy-secrets/secretdb/internal"
-	"github.com/RedeployAB/redeploy-secrets/secretdb/models"
+	"github.com/RedeployAB/redeploy-secrets/secretdb/secret"
 	"github.com/gorilla/mux"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -25,7 +24,8 @@ func getSecret(client *mongo.Client) http.Handler {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		vars := mux.Vars(r)
 
-		res, err := db.Find(vars["id"], client)
+		repo := db.SecretRepository{Client: client}
+		res, err := repo.Find(vars["id"])
 		if err != nil {
 			if err.Error() == "mongo: no documents in result" {
 				httperror.Error(w, "not found", http.StatusNotFound)
@@ -36,18 +36,18 @@ func getSecret(client *mongo.Client) http.Handler {
 		}
 		// Handle if passphrase is set on the secret.
 		h, p := res.Passphrase, r.Header.Get("X-Passphrase")
-		if !internal.VerifyPassphrase(h, p) {
+		if !secret.VerifyPassphrase(h, p) {
 			httperror.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
 
-		_, err = db.Delete(vars["id"], client)
+		_, err = repo.Delete(vars["id"])
 		if err != nil {
 			httperror.Error(w, "internal server error", http.StatusInternalServerError)
 		}
 
-		sr := secretResponse{
-			Data: secret{
+		sr := secretResponseBody{
+			Data: secretResponse{
 				ID:        res.ID,
 				Secret:    res.Secret,
 				CreatedAt: res.CreatedAt,
@@ -66,21 +66,22 @@ func getSecret(client *mongo.Client) http.Handler {
 func createSecret(client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		var s models.Secret
+		var s secret.Secret
 		if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
 			httperror.Error(w, "malformed JSON", http.StatusBadRequest)
 			return
 		}
 
-		res, err := db.Insert(s, client)
+		repo := db.SecretRepository{Client: client}
+		res, err := repo.Insert(&s)
 		if err != nil {
 			httperror.Error(w, "internal server error", http.StatusInternalServerError)
 		}
 
 		w.WriteHeader(http.StatusCreated)
 
-		sr := secretResponse{
-			Data: secret{ID: res.ID, CreatedAt: res.CreatedAt, ExpiresAt: res.ExpiresAt},
+		sr := secretResponseBody{
+			Data: secretResponse{ID: res.ID, CreatedAt: res.CreatedAt, ExpiresAt: res.ExpiresAt},
 		}
 		if err := json.NewEncoder(w).Encode(&sr); err != nil {
 			panic(err)
@@ -102,7 +103,9 @@ func deleteSecret(client *mongo.Client) http.Handler {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 		vars := mux.Vars(r)
-		res, err := db.Delete(vars["id"], client)
+
+		repo := db.SecretRepository{Client: client}
+		res, err := repo.Delete(vars["id"])
 		if err != nil {
 			httperror.Error(w, "internal server error", http.StatusInternalServerError)
 			return
