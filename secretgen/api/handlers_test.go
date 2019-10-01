@@ -27,7 +27,7 @@ func TestGenerateSecretHandler(t *testing.T) {
 		t.Errorf("Status code incorrect, got: %d, want: 200", res.Code)
 	}
 
-	var rb secretResponseBody
+	var rb secretResponse
 	b, err := ioutil.ReadAll(res.Body)
 
 	err = json.Unmarshal(b, &rb)
@@ -54,7 +54,7 @@ func TestGenerateSecretHandlerParams(t *testing.T) {
 		t.Errorf("Status code incorrect, got: %d, want: 200", res.Code)
 	}
 
-	var rb secretResponseBody
+	var rb secretResponse
 	b, err := ioutil.ReadAll(res.Body)
 
 	err = json.Unmarshal(b, &rb)
@@ -79,17 +79,21 @@ func TestHandleGenerateSecretQuery(t *testing.T) {
 	query2.Set("specialchars", "true")
 
 	var tests = []struct {
-		in  url.Values
-		out secretParams
+		in           url.Values
+		length       int
+		specialChars bool
 	}{
-		{query1, secretParams{Length: 16, SpecialCharacters: false}},
-		{query2, secretParams{Length: 22, SpecialCharacters: true}},
+		{query1, 16, false},
+		{query2, 22, true},
 	}
 
 	for _, test := range tests {
-		params := parseGenerateSecretQuery(test.in)
-		if params != test.out {
-			t.Errorf("got: %v, want: %v", params, test.out)
+		l, sc := parseGenerateSecretQuery(test.in)
+		if l != test.length {
+			t.Errorf("got: %v, want: %v", l, test.length)
+		}
+		if sc != test.specialChars {
+			t.Errorf("got %v, want: %v", sc, test.specialChars)
 		}
 	}
 }

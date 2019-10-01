@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/RedeployAB/redeploy-secrets/secretgen/secrets"
+	"github.com/RedeployAB/redeploy-secrets/secretgen/internal"
 )
 
 // notFound handles all non used routes.
@@ -18,21 +18,21 @@ func notFound(w http.ResponseWriter, r *http.Request) {
 // generateSecret handles requests for secret generation.
 func generateSecret(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
-	params := parseGenerateSecretQuery(query)
-	secret := secrets.GenerateRandomString(params.Length, params.SpecialCharacters)
+	l, sc := parseGenerateSecretQuery(query)
+	s := internal.GenerateRandomString(l, sc)
 	// Set headers and response.
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	// Respond with JSON.
-	sr := secretResponseBody{Data: secretData{Secret: secret}}
+	sr := secretResponse{Data: secret{Secret: s}}
 	if err := json.NewEncoder(w).Encode(&sr); err != nil {
 		panic(err)
 	}
 }
 
-// Handles query parameters to get length and special character
+// parseGenerateSecretQuery parses query parameters to get length and special character
 // options.
-func parseGenerateSecretQuery(query url.Values) secretParams {
+func parseGenerateSecretQuery(query url.Values) (int, bool) {
 	lengthParam := query.Get("length")
 	spCharParam := query.Get("specialchars")
 
@@ -45,19 +45,5 @@ func parseGenerateSecretQuery(query url.Values) secretParams {
 		spChar = false
 	}
 
-	return secretParams{Length: length, SpecialCharacters: spChar}
-}
-
-type secretParams struct {
-	Length            int
-	SpecialCharacters bool
-}
-
-// SecretResponseBody represents a secret response.
-type secretResponseBody struct {
-	Data secretData `json:"data"`
-}
-
-type secretData struct {
-	Secret string `json:"secret"`
+	return length, spChar
 }
