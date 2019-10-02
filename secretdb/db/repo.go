@@ -54,7 +54,7 @@ func (r *SecretRepository) Insert(s *secret.Secret) (*secret.Secret, error) {
 	sm := &models.Secret{
 		Secret:    secret.Encrypt(s.Secret, config.Config.Passphrase),
 		CreatedAt: time.Now(),
-		ExpiresAt: time.Now().AddDate(0, 0, 7),
+		ExpiresAt: time.Now().Add(time.Minute * time.Duration(s.TTL)),
 	}
 
 	if len(s.Passphrase) > 0 {
