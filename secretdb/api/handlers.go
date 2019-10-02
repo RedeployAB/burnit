@@ -66,14 +66,18 @@ func getSecret(client *mongo.Client) http.Handler {
 func createSecret(client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		var s secret.Secret
-		if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
+		//var s secret.Secret
+		s, err := secret.NewSecret(r.Body)
+		if err != nil {
 			httperror.Error(w, "malformed JSON", http.StatusBadRequest)
 			return
 		}
-
+		/* 		if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
+			httperror.Error(w, "malformed JSON", http.StatusBadRequest)
+			return
+		} */
 		repo := db.SecretRepository{Client: client}
-		res, err := repo.Insert(&s)
+		res, err := repo.Insert(s)
 		if err != nil {
 			httperror.Error(w, "internal server error", http.StatusInternalServerError)
 		}
