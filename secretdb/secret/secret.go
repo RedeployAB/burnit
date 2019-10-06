@@ -22,9 +22,13 @@ type Secret struct {
 // NewSecret takes an io.Reader and attempt to decode it to
 // a Secret.
 func NewSecret(b io.ReadCloser) (*Secret, error) {
-	var s Secret
+	var s *Secret
 	if err := json.NewDecoder(b).Decode(&s); err != nil {
 		return &Secret{}, err
+	}
+
+	if len(s.Passphrase) > 0 {
+		s.HashPassphrase()
 	}
 
 	exp := time.Now().AddDate(0, 0, 7)
@@ -33,38 +37,20 @@ func NewSecret(b io.ReadCloser) (*Secret, error) {
 	}
 	s.ExpiresAt = exp
 
-	return &s, nil
+	return s, nil
 }
 
 // VerifyPassphrase compares a hash with a string,
 // if no hash is passed, it always return true.
-func VerifyPassphrase(hash, passphrase string) bool {
-	if len(hash) > 0 && !security.CompareHash(hash, passphrase) {
+func (s *Secret) VerifyPassphrase(hash string) bool {
+	if len(s.Passphrase) > 0 && !security.CompareHash(s.Passphrase, hash) {
 		return false
 	}
 	return true
 }
 
-// Hash creates a hash with the help of bcrypt and
-// returns it.
-func Hash(s string) string {
-	return security.Hash(s)
-}
-
-// Encrypt the field secret and return it.
-func Encrypt(plaintext, passphrase string) string {
-	encrypted, err := security.Encrypt([]byte(plaintext), passphrase)
-	if err != nil {
-		panic(err)
-	}
-	return string(encrypted)
-}
-
-// Decrypt the field secret end return it.
-func Decrypt(ciphertext, passphrase string) string {
-	decrypted, err := security.Decrypt([]byte(ciphertext), passphrase)
-	if err != nil {
-		panic(err)
-	}
-	return string(decrypted)
+// HashPassphrase hashes the field passphrase.
+func (s *Secret) HashPassphrase() *Secret {
+	s.Passphrase = security.Hash(s.Passphrase)
+	return s
 }
