@@ -55,6 +55,10 @@ func (r *SecretRepository) Insert(s *secret.Secret) (*secret.Secret, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	if s.TTL == 0 {
+		s.TTL = 10080
+	}
+
 	sm := &models.Secret{
 		Secret:    encrypt(s.Secret, config.Config.Passphrase),
 		CreatedAt: time.Now(),
