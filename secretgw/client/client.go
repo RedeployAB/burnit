@@ -9,9 +9,12 @@ import (
 )
 
 const (
-	GET  string = "GET"
+	// GET represents string GET.
+	GET string = "GET"
+	// POST represents string POST.
 	POST string = "POST"
-	PUT  string = "PUT"
+	// PUT represents string PUT.
+	PUT string = "PUT"
 )
 
 // APIClient reqpresents a HTTP/HTTPS client
@@ -27,6 +30,9 @@ func (c APIClient) Request(o RequestOptions) (ResponseBody, error) {
 	url := c.BaseURL + c.Path
 	if o.Params["id"] != "" {
 		url += "/" + o.Params["id"]
+	}
+	if o.Query != "" {
+		url += "?" + o.Query
 	}
 
 	var r ResponseBody
@@ -66,6 +72,7 @@ type RequestOptions struct {
 	Method string
 	Header http.Header
 	Params map[string]string
+	Query  string
 	Body   io.Reader
 }
 
