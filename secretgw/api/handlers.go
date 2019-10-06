@@ -37,21 +37,18 @@ func notFound(w http.ResponseWriter, r *http.Request) {
 // to generate a secret.
 func generateSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-
-		q := r.URL.RawQuery
-		if q != "" {
-			genSvc.Path += "?" + q
-		}
-
-		s, err := genSvc.Request(client.RequestOptions{Method: client.GET})
+		res, err := genSvc.Request(client.RequestOptions{
+			Method: client.GET,
+			Query:  r.URL.RawQuery,
+		})
 		if err != nil {
 			httperror.Error(w, "internal server error", http.StatusInternalServerError)
 			return
 		}
 
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode(&s); err != nil {
+		if err := json.NewEncoder(w).Encode(&res); err != nil {
 			panic(err)
 		}
 	})
@@ -64,7 +61,7 @@ func getSecret() http.Handler {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		vars := mux.Vars(r)
 
-		s, err := dbSvc.Request(client.RequestOptions{
+		res, err := dbSvc.Request(client.RequestOptions{
 			Method: client.GET,
 			Header: r.Header,
 			Params: vars,
@@ -76,7 +73,7 @@ func getSecret() http.Handler {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode(&s); err != nil {
+		if err := json.NewEncoder(w).Encode(&res); err != nil {
 			panic(err)
 		}
 	})
@@ -88,7 +85,7 @@ func createSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-		s, err := dbSvc.Request(client.RequestOptions{
+		res, err := dbSvc.Request(client.RequestOptions{
 			Method: client.POST,
 			Header: r.Header,
 			Body:   r.Body,
@@ -100,7 +97,7 @@ func createSecret() http.Handler {
 		}
 
 		w.WriteHeader(http.StatusCreated)
-		if err := json.NewEncoder(w).Encode(&s); err != nil {
+		if err := json.NewEncoder(w).Encode(&res); err != nil {
 			panic(err)
 		}
 	})
