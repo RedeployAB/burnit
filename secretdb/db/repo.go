@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/RedeployAB/redeploy-secrets/common/security"
 	"github.com/RedeployAB/redeploy-secrets/secretdb/config"
 	"github.com/RedeployAB/redeploy-secrets/secretdb/models"
 	"github.com/RedeployAB/redeploy-secrets/secretdb/secret"
@@ -32,12 +33,15 @@ func (r *SecretRepository) Find(id string) (*secret.Secret, error) {
 	var sm models.Secret
 	err = collection.FindOne(ctx, bson.D{{Key: "_id", Value: oid}}).Decode(&sm)
 	if err != nil {
+		if err.Error() == "mongo: no documents in result" {
+			return nil, nil
+		}
 		return &secret.Secret{}, err
 	}
 
 	return &secret.Secret{
 		ID:         oid.Hex(),
-		Secret:     secret.Decrypt(sm.Secret, config.Config.Passphrase),
+		Secret:     decrypt(sm.Secret, config.Config.Passphrase),
 		Passphrase: sm.Passphrase,
 		CreatedAt:  sm.CreatedAt,
 		ExpiresAt:  sm.ExpiresAt,
@@ -52,13 +56,13 @@ func (r *SecretRepository) Insert(s *secret.Secret) (*secret.Secret, error) {
 	defer cancel()
 
 	sm := &models.Secret{
-		Secret:    secret.Encrypt(s.Secret, config.Config.Passphrase),
+		Secret:    encrypt(s.Secret, config.Config.Passphrase),
 		CreatedAt: time.Now(),
 		ExpiresAt: time.Now().Add(time.Minute * time.Duration(s.TTL)),
 	}
 
 	if len(s.Passphrase) > 0 {
-		sm.Passphrase = secret.Hash(s.Passphrase)
+		sm.Passphrase = s.Passphrase
 	}
 
 	res, err := collection.InsertOne(ctx, sm)
@@ -106,4 +110,22 @@ func DeleteExpired(client *mongo.Client) (int64, error) {
 		return 0, err
 	}
 	return res.DeletedCount, nil
+}
+
+// encrypt encrypts the field Secret.
+func encrypt(plaintext, passphrase string) string {
+	encrypted, err := security.Encrypt([]byte(plaintext), passphrase)
+	if err != nil {
+		panic(err)
+	}
+	return string(encrypted)
+}
+
+// decrypt decrypts the field Secret.
+func decrypt(ciphertext, passphrase string) string {
+	decrypted, err := security.Decrypt([]byte(ciphertext), passphrase)
+	if err != nil {
+		panic(err)
+	}
+	return string(decrypted)
 }
