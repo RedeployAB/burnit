@@ -7,7 +7,6 @@ import (
 	"github.com/RedeployAB/redeploy-secrets/common/httperror"
 	"github.com/RedeployAB/redeploy-secrets/secretgw/client"
 	"github.com/RedeployAB/redeploy-secrets/secretgw/config"
-	"github.com/RedeployAB/redeploy-secrets/secretgw/internal"
 	"github.com/gorilla/mux"
 )
 
@@ -67,7 +66,7 @@ func getSecret() http.Handler {
 			Params: vars,
 		})
 		if err != nil {
-			status := internal.HandleHTTPError(err)
+			status := client.HandleHTTPError(err)
 			w.WriteHeader(status)
 			return
 		}
@@ -91,7 +90,7 @@ func createSecret() http.Handler {
 			Body:   r.Body,
 		})
 		if err != nil {
-			status := internal.HandleHTTPError(err)
+			status := client.HandleHTTPError(err)
 			w.WriteHeader(status)
 			return
 		}
