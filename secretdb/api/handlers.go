@@ -25,18 +25,17 @@ func getSecret(client *mongo.Client) http.Handler {
 		vars := mux.Vars(r)
 
 		repo := db.SecretRepository{Client: client}
-		res, err := repo.Find(vars["id"])
+		s, err := repo.Find(vars["id"])
 		if err != nil {
-			if err.Error() == "mongo: no documents in result" {
-				httperror.Error(w, "not found", http.StatusNotFound)
-			} else {
-				httperror.Error(w, "internal server error", http.StatusInternalServerError)
-			}
+			httperror.Error(w, "internal server error", http.StatusInternalServerError)
 			return
 		}
-		// Handle if passphrase is set on the secret.
-		h, p := res.Passphrase, r.Header.Get("X-Passphrase")
-		if !secret.VerifyPassphrase(h, p) {
+		if s == nil {
+			httperror.Error(w, "not found", http.StatusNotFound)
+			return
+		}
+
+		if !s.VerifyPassphrase(r.Header.Get("X-Passphrase")) {
 			httperror.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
@@ -48,10 +47,10 @@ func getSecret(client *mongo.Client) http.Handler {
 
 		sr := secretResponseBody{
 			Data: secretResponse{
-				ID:        res.ID,
-				Secret:    res.Secret,
-				CreatedAt: res.CreatedAt,
-				ExpiresAt: res.ExpiresAt,
+				ID:        s.ID,
+				Secret:    s.Secret,
+				CreatedAt: s.CreatedAt,
+				ExpiresAt: s.ExpiresAt,
 			},
 		}
 		w.WriteHeader(http.StatusOK)
@@ -65,28 +64,28 @@ func getSecret(client *mongo.Client) http.Handler {
 // createSecretHandler inserts a secret into the database.
 func createSecret(client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		//var s secret.Secret
 		s, err := secret.NewSecret(r.Body)
 		if err != nil {
 			httperror.Error(w, "malformed JSON", http.StatusBadRequest)
 			return
 		}
-		/* 		if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
-			httperror.Error(w, "malformed JSON", http.StatusBadRequest)
-			return
-		} */
+
 		repo := db.SecretRepository{Client: client}
-		res, err := repo.Insert(s)
+		s, err = repo.Insert(s)
 		if err != nil {
 			httperror.Error(w, "internal server error", http.StatusInternalServerError)
 		}
 
-		w.WriteHeader(http.StatusCreated)
-
 		sr := secretResponseBody{
-			Data: secretResponse{ID: res.ID, CreatedAt: res.CreatedAt, ExpiresAt: res.ExpiresAt},
+			Data: secretResponse{
+				ID:        s.ID,
+				CreatedAt: s.CreatedAt,
+				ExpiresAt: s.ExpiresAt,
+			},
 		}
+
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusCreated)
 		if err := json.NewEncoder(w).Encode(&sr); err != nil {
 			panic(err)
 		}
@@ -104,8 +103,6 @@ func updateSecret(client *mongo.Client) http.Handler {
 // deleteSecretHandler deletes a secret from the database.
 func deleteSecret(client *mongo.Client) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-
 		vars := mux.Vars(r)
 
 		repo := db.SecretRepository{Client: client}
@@ -118,6 +115,7 @@ func deleteSecret(client *mongo.Client) http.Handler {
 			httperror.Error(w, "not found", http.StatusNotFound)
 			return
 		}
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
 	})
 }
