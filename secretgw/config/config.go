@@ -11,10 +11,12 @@ func init() {
 
 // Server represents server part of configuration.
 type Server struct {
-	Port             string
-	GeneratorBaseURL string
-	DBBaseURL        string
-	DBAPIKey         string
+	Port                 string
+	GeneratorBaseURL     string
+	GeneratorServicePath string
+	DBBaseURL            string
+	DBServicePath        string
+	DBAPIKey             string
 }
 
 // Configuration represents a configuration.
@@ -34,20 +36,30 @@ func Configure() Configuration {
 	if genBaseURL == "" {
 		genBaseURL = "http://localhost:3002"
 	}
+	genSvcPath := os.Getenv("SECRET_GENERATOR_SERVICE_PATH")
+	if genSvcPath == "" {
+		genSvcPath = "/api/v1/generate"
+	}
 
 	dbBaseURL := os.Getenv("SECRET_DB_SERVICE_BASE_URL")
 	if dbBaseURL == "" {
 		dbBaseURL = "http://localhost:3001"
+	}
+	dbSvcPath := os.Getenv("SECRET_DB_SERVICE_PATH")
+	if dbSvcPath == "" {
+		dbSvcPath = "/api/v1/secrets"
 	}
 
 	dbAPIKey := os.Getenv("SECRET_DB_SERVICE_API_KEY")
 
 	config := Configuration{
 		Server{
-			Port:             port,
-			GeneratorBaseURL: genBaseURL,
-			DBBaseURL:        dbBaseURL,
-			DBAPIKey:         dbAPIKey,
+			Port:                 port,
+			GeneratorBaseURL:     genBaseURL,
+			GeneratorServicePath: genSvcPath,
+			DBBaseURL:            dbBaseURL,
+			DBServicePath:        dbSvcPath,
+			DBAPIKey:             dbAPIKey,
 		},
 	}
 

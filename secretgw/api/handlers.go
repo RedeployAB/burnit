@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/RedeployAB/redeploy-secrets/common/httperror"
+	"github.com/RedeployAB/redeploy-secrets/secretgw/client"
 	"github.com/RedeployAB/redeploy-secrets/secretgw/config"
 	"github.com/RedeployAB/redeploy-secrets/secretgw/internal"
 	"github.com/gorilla/mux"
@@ -17,13 +18,13 @@ var (
 
 // Define clients. These should be initialized and
 // ready at app start.
-var genClient *internal.GeneratorClient
-var dbClient *internal.DBClient
+var genSvc *client.APIClient
+var dbSvc *client.APIClient
 
 func init() {
 	// Inititalize clients.
-	genClient = &internal.GeneratorClient{BaseURL: config.Config.GeneratorBaseURL, Path: genAPIPath}
-	dbClient = &internal.DBClient{BaseURL: config.Config.DBBaseURL, Path: dbAPIPath}
+	genSvc = &client.APIClient{BaseURL: config.Config.GeneratorBaseURL, Path: config.Config.GeneratorServicePath}
+	dbSvc = &client.APIClient{BaseURL: config.Config.DBBaseURL, Path: config.Config.DBServicePath}
 }
 
 // notFoundHandler handles all non used routes.
@@ -40,10 +41,10 @@ func generateSecret() http.Handler {
 
 		q := r.URL.RawQuery
 		if q != "" {
-			genClient.Path += "?" + q
+			genSvc.Path += "?" + q
 		}
 
-		s, err := genClient.Fetch()
+		s, err := genSvc.Request(client.RequestOptions{Method: client.GET})
 		if err != nil {
 			httperror.Error(w, "internal server error", http.StatusInternalServerError)
 			return
@@ -56,14 +57,18 @@ func generateSecret() http.Handler {
 	})
 }
 
-// getSecretHandler makes calls to the secretdb service to
+// getSecret makes calls to the secretdb service to
 // get a secret.
 func getSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		vars := mux.Vars(r)
 
-		s, err := dbClient.Do("GET", vars["id"], r.Header, nil)
+		s, err := dbSvc.Request(client.RequestOptions{
+			Method: client.GET,
+			Header: r.Header,
+			Params: vars,
+		})
 		if err != nil {
 			status := internal.HandleHTTPError(err)
 			w.WriteHeader(status)
@@ -83,7 +88,11 @@ func createSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-		s, err := dbClient.Do("POST", "", r.Header, r.Body)
+		s, err := dbSvc.Request(client.RequestOptions{
+			Method: client.POST,
+			Header: r.Header,
+			Body:   r.Body,
+		})
 		if err != nil {
 			status := internal.HandleHTTPError(err)
 			w.WriteHeader(status)
