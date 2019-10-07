@@ -2,18 +2,24 @@ package main
 
 import (
 	"log"
-	"net/http"
 
 	"github.com/RedeployAB/redeploy-secrets/secretgen/api"
 	"github.com/RedeployAB/redeploy-secrets/secretgen/config"
+	"github.com/RedeployAB/redeploy-secrets/secretgen/server"
 )
 
 var apiVer = "v1"
-var conf = config.Config
 
 func main() {
-	r := api.NewRouter(conf.Server)
+	// Setup config.
+	conf := config.Configure()
+	r := api.NewRouter()
+	srv := server.NewServer(conf, r)
+
+	done := make(chan bool, 1)
+	go srv.AddShutdownHook(done)
 	// Start server.
-	log.Printf("server listening on: %s", conf.Port)
-	log.Fatal(http.ListenAndServe(":"+conf.Port, r))
+	srv.Start()
+	<-done
+	log.Println("server has been stopped")
 }

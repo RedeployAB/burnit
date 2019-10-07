@@ -2,21 +2,9 @@ package config
 
 import "os"
 
-// Config exports a configuration to be used by application.
-var Config Configuration
-
-func init() {
-	Config = Configure()
-}
-
-// Server represents server part of configuration.
-type Server struct {
-	Port string
-}
-
 // Configuration represents a configuration.
 type Configuration struct {
-	Server
+	Port string
 }
 
 // Configure performs the necessary steps
@@ -27,7 +15,7 @@ func Configure() Configuration {
 		port = "3002"
 	}
 
-	config := Configuration{Server{Port: port}}
+	config := Configuration{Port: port}
 
 	return config
 }
