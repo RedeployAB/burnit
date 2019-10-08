@@ -22,7 +22,7 @@ func (rt *Router) getSecret() http.Handler {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		vars := mux.Vars(r)
 
-		repo := db.SecretRepository{Client: rt.client}
+		repo := db.SecretRepository{DB: rt.DB}
 		s, err := repo.Find(vars["id"])
 		if err != nil {
 			httperror.Error(w, "internal server error", http.StatusInternalServerError)
@@ -68,7 +68,7 @@ func (rt *Router) createSecret() http.Handler {
 			return
 		}
 
-		repo := db.SecretRepository{Client: rt.client}
+		repo := db.SecretRepository{DB: rt.DB}
 		s, err = repo.Insert(s)
 		if err != nil {
 			httperror.Error(w, "internal server error", http.StatusInternalServerError)
@@ -103,7 +103,7 @@ func (rt *Router) deleteSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 
-		repo := db.SecretRepository{Client: rt.client}
+		repo := db.SecretRepository{DB: rt.DB}
 		res, err := repo.Delete(vars["id"])
 		if err != nil {
 			httperror.Error(w, "internal server error", http.StatusInternalServerError)
@@ -124,7 +124,8 @@ func (rt *Router) deleteExpiredSecrets() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Contente-Type", "application/json; charset=UTF-8")
 
-		_, err := db.DeleteExpired(rt.client)
+		repo := db.SecretRepository{DB: rt.DB}
+		_, err := repo.DeleteExpired()
 		if err != nil {
 			httperror.Error(w, "internal server error", http.StatusInternalServerError)
 			return

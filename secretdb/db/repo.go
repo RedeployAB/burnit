@@ -10,13 +10,12 @@ import (
 	"github.com/RedeployAB/redeploy-secrets/secretdb/secret"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // SecretRepository handles actions with the database and
 // collection.
 type SecretRepository struct {
-	Client *mongo.Client
+	DB     *DB
 	config config.Server
 }
 
@@ -27,7 +26,7 @@ func (r *SecretRepository) Find(id string) (*secret.Secret, error) {
 		return &secret.Secret{}, err
 	}
 
-	collection := r.Client.Database("secretdb").Collection("secrets")
+	collection := r.DB.Database("secretdb").Collection("secrets")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -52,7 +51,7 @@ func (r *SecretRepository) Find(id string) (*secret.Secret, error) {
 // Insert handles inserts into the database.
 func (r *SecretRepository) Insert(s *secret.Secret) (*secret.Secret, error) {
 
-	collection := r.Client.Database("secretdb").Collection("secrets")
+	collection := r.DB.Database("secretdb").Collection("secrets")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -86,7 +85,7 @@ func (r *SecretRepository) Insert(s *secret.Secret) (*secret.Secret, error) {
 
 // Delete removes an entry from the collection by ID.
 func (r *SecretRepository) Delete(id string) (int64, error) {
-	collection := r.Client.Database("secretdb").Collection("secrets")
+	collection := r.DB.Database("secretdb").Collection("secrets")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -105,8 +104,8 @@ func (r *SecretRepository) Delete(id string) (int64, error) {
 
 // DeleteExpired deletes all entries that has expiresAt
 // less than current time (time of invocation).
-func DeleteExpired(client *mongo.Client) (int64, error) {
-	collection := client.Database("secretdb").Collection("secrets")
+func (r *SecretRepository) DeleteExpired() (int64, error) {
+	collection := r.DB.Database("secretdb").Collection("secrets")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 

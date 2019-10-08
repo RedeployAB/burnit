@@ -8,24 +8,23 @@ import (
 	"os/signal"
 	"time"
 
-	"go.mongodb.org/mongo-driver/mongo"
-
 	"github.com/RedeployAB/redeploy-secrets/common/auth"
 	"github.com/RedeployAB/redeploy-secrets/secretdb/api"
 	"github.com/RedeployAB/redeploy-secrets/secretdb/config"
+	"github.com/RedeployAB/redeploy-secrets/secretdb/db"
 )
 
 // Server represents server with configuration.
 type Server struct {
 	*http.Server
-	Client *mongo.Client
-	Port   string
+	DB   *db.DB
+	Port string
 }
 
 // NewServer returns a configured Server.
-func NewServer(config config.Configuration, tokenStore auth.TokenStore, client *mongo.Client) *Server {
+func NewServer(config config.Configuration, tokenStore auth.TokenStore, db *db.DB) *Server {
 
-	r := api.NewRouter(tokenStore, client)
+	r := api.NewRouter(tokenStore, db)
 
 	srv := &http.Server{
 		Addr:         "0.0.0.0:" + config.Server.Port,
@@ -35,7 +34,7 @@ func NewServer(config config.Configuration, tokenStore auth.TokenStore, client *
 		Handler:      r,
 	}
 
-	return &Server{srv, client, config.Server.Port}
+	return &Server{srv, db, config.Server.Port}
 }
 
 // Start creates an http server and runs ListenAndServe().
@@ -56,7 +55,13 @@ func (s *Server) gracefulShutdown() {
 
 	signal.Notify(stop, os.Interrupt, os.Kill)
 	sig := <-stop
+
 	log.Printf("shutting down server. reason: %s\n", sig.String())
+	log.Println("closing connection to database...")
+	if err := s.DB.Close(); err != nil {
+		log.Printf("database: %v", err)
+	}
+	log.Println("disonnected from database.")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
