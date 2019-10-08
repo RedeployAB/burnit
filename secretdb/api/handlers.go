@@ -8,23 +8,21 @@ import (
 	"github.com/RedeployAB/redeploy-secrets/secretdb/db"
 	"github.com/RedeployAB/redeploy-secrets/secretdb/secret"
 	"github.com/gorilla/mux"
-
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // notFoundHandler handles all non used routes.
-func notFound(w http.ResponseWriter, r *http.Request) {
+func (rt *Router) notFound(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusNotFound)
 }
 
 // getSecretHandler reads a secret fron the database by ID.
-func getSecret(client *mongo.Client) http.Handler {
+func (rt *Router) getSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		vars := mux.Vars(r)
 
-		repo := db.SecretRepository{Client: client}
+		repo := db.SecretRepository{Client: rt.client}
 		s, err := repo.Find(vars["id"])
 		if err != nil {
 			httperror.Error(w, "internal server error", http.StatusInternalServerError)
@@ -62,7 +60,7 @@ func getSecret(client *mongo.Client) http.Handler {
 }
 
 // createSecretHandler inserts a secret into the database.
-func createSecret(client *mongo.Client) http.Handler {
+func (rt *Router) createSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		s, err := secret.NewSecret(r.Body)
 		if err != nil {
@@ -70,7 +68,7 @@ func createSecret(client *mongo.Client) http.Handler {
 			return
 		}
 
-		repo := db.SecretRepository{Client: client}
+		repo := db.SecretRepository{Client: rt.client}
 		s, err = repo.Insert(s)
 		if err != nil {
 			httperror.Error(w, "internal server error", http.StatusInternalServerError)
@@ -93,7 +91,7 @@ func createSecret(client *mongo.Client) http.Handler {
 }
 
 // updateSecretHandler handler updates a secret in the database.
-func updateSecret(client *mongo.Client) http.Handler {
+func (rt *Router) updateSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		httperror.Error(w, "not implemented", http.StatusNotImplemented)
@@ -101,11 +99,11 @@ func updateSecret(client *mongo.Client) http.Handler {
 }
 
 // deleteSecretHandler deletes a secret from the database.
-func deleteSecret(client *mongo.Client) http.Handler {
+func (rt *Router) deleteSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 
-		repo := db.SecretRepository{Client: client}
+		repo := db.SecretRepository{Client: rt.client}
 		res, err := repo.Delete(vars["id"])
 		if err != nil {
 			httperror.Error(w, "internal server error", http.StatusInternalServerError)
@@ -122,11 +120,11 @@ func deleteSecret(client *mongo.Client) http.Handler {
 
 // deleteExpiredSecrets will delete all secrets where ExpiresAt has
 // passed.
-func deleteExpiredSecrets(client *mongo.Client) http.Handler {
+func (rt *Router) deleteExpiredSecrets() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Contente-Type", "application/json; charset=UTF-8")
 
-		_, err := db.DeleteExpired(client)
+		_, err := db.DeleteExpired(rt.client)
 		if err != nil {
 			httperror.Error(w, "internal server error", http.StatusInternalServerError)
 			return

@@ -17,6 +17,7 @@ import (
 // collection.
 type SecretRepository struct {
 	Client *mongo.Client
+	config config.Server
 }
 
 // Find queries the collection for an entry by ID.
@@ -41,7 +42,7 @@ func (r *SecretRepository) Find(id string) (*secret.Secret, error) {
 
 	return &secret.Secret{
 		ID:         oid.Hex(),
-		Secret:     decrypt(sm.Secret, config.Config.Passphrase),
+		Secret:     decrypt(sm.Secret, r.config.Passphrase),
 		Passphrase: sm.Passphrase,
 		CreatedAt:  sm.CreatedAt,
 		ExpiresAt:  sm.ExpiresAt,
@@ -60,7 +61,7 @@ func (r *SecretRepository) Insert(s *secret.Secret) (*secret.Secret, error) {
 	}
 
 	sm := &models.Secret{
-		Secret:    encrypt(s.Secret, config.Config.Passphrase),
+		Secret:    encrypt(s.Secret, r.config.Passphrase),
 		CreatedAt: time.Now(),
 		ExpiresAt: time.Now().Add(time.Minute * time.Duration(s.TTL)),
 	}

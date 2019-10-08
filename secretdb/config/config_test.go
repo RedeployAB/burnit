@@ -7,14 +7,14 @@ import (
 
 func TestConfigure(t *testing.T) {
 	confDefault := Configure()
-	if confDefault.Port != "3001" {
-		t.Errorf("Default port value is incorrect, got %s, want: 3001", confDefault.Port)
+	if confDefault.Server.Port != "3001" {
+		t.Errorf("Default port value is incorrect, got %s, want: 3001", confDefault.Server.Port)
 	}
 
 	os.Setenv("SECRET_DB_SERVICE_PORT", "6000")
 	os.Setenv("SECRET_GENERATOR_BASE_URL", "http://generator:7000")
 	confEnv := Configure()
-	if confEnv.Port != "6000" {
-		t.Errorf("Port value is incorrect, got %s, want: 6000", confEnv.Port)
+	if confEnv.Server.Port != "6000" {
+		t.Errorf("Port value is incorrect, got %s, want: 6000", confEnv.Server.Port)
 	}
 }

@@ -5,13 +5,6 @@ import (
 	"strconv"
 )
 
-// Config exports a configuration to be used by application.
-var Config Configuration
-
-func init() {
-	Config = Configure()
-}
-
 // Server represents server part of configuration.
 type Server struct {
 	Port       string
@@ -31,8 +24,8 @@ type Database struct {
 
 // Configuration represents a configuration.
 type Configuration struct {
-	Server
-	Database
+	Server   Server
+	Database Database
 }
 
 // Configure performs the necessary steps
