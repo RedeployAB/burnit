@@ -8,8 +8,8 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/RedeployAB/redeploy-secrets/secretgen/api"
 	"github.com/RedeployAB/redeploy-secrets/secretgen/config"
-	"github.com/gorilla/mux"
 )
 
 // Server represents server with configuration.
@@ -19,7 +19,8 @@ type Server struct {
 }
 
 // NewServer returns a configured Server.
-func NewServer(config config.Configuration, r *mux.Router) *Server {
+func NewServer(config config.Configuration) *Server {
+	r := api.NewRouter()
 	srv := &http.Server{
 		Addr:         "0.0.0.0:" + config.Port,
 		WriteTimeout: time.Second * 15,

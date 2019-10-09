@@ -10,13 +10,13 @@ import (
 )
 
 // notFound handles all non used routes.
-func notFound(w http.ResponseWriter, r *http.Request) {
+func (rt *Router) notFound(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusNotFound)
 }
 
 // generateSecret handles requests for secret generation.
-func generateSecret(w http.ResponseWriter, r *http.Request) {
+func (rt *Router) generateSecret(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	l, sc := parseGenerateSecretQuery(query)
 	s := secret.GenerateRandomString(l, sc)

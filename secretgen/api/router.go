@@ -5,14 +5,19 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var apiVer = "v1"
+var apiVer = "v0"
+
+// Router represents a mux.Router.
+type Router struct {
+	*mux.Router
+}
 
 // NewRouter returns a mux Router.
-func NewRouter() *mux.Router {
-	r := mux.NewRouter()
+func NewRouter() *Router {
+	r := &Router{mux.NewRouter()}
 	// Routes.
-	r.HandleFunc("/api/"+apiVer+"/generate", generateSecret).Methods("GET")
-	r.PathPrefix("/").HandlerFunc(notFound)
+	r.HandleFunc("/api/"+apiVer+"/generate", r.generateSecret).Methods("GET")
+	r.PathPrefix("/").HandlerFunc(r.notFound)
 	r.Use(middleware.Logger)
 
 	return r
