@@ -24,7 +24,7 @@ type Server struct {
 // NewServer returns a configured Server.
 func NewServer(config config.Configuration, tokenStore auth.TokenStore, db *db.DB) *Server {
 
-	r := api.NewRouter(tokenStore, db)
+	r := api.NewRouter(config, tokenStore, db)
 
 	srv := &http.Server{
 		Addr:         "0.0.0.0:" + config.Server.Port,

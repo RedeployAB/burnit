@@ -3,21 +3,23 @@ package api
 import (
 	"github.com/RedeployAB/redeploy-secrets/common/auth"
 	mw "github.com/RedeployAB/redeploy-secrets/common/middleware"
+	"github.com/RedeployAB/redeploy-secrets/secretdb/config"
 	"github.com/RedeployAB/redeploy-secrets/secretdb/db"
 	"github.com/gorilla/mux"
 )
 
-var apiVer = "v1"
+var apiVer = "v0"
 
 // Router represents a mux.Router with a mongo client.
 type Router struct {
 	*mux.Router
-	DB *db.DB
+	Config config.Configuration
+	DB     *db.DB
 }
 
 // NewRouter returns a mux Router.
-func NewRouter(ts auth.TokenStore, db *db.DB) *Router {
-	r := &Router{mux.NewRouter(), db}
+func NewRouter(config config.Configuration, ts auth.TokenStore, db *db.DB) *Router {
+	r := &Router{mux.NewRouter(), config, db}
 	s := r.PathPrefix("/api/" + apiVer).Subrouter()
 	// Routes.
 	s.Handle("/secrets/{id}", r.getSecret()).Methods("GET")
