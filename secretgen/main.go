@@ -5,8 +5,6 @@ import (
 	"github.com/RedeployAB/redeploy-secrets/secretgen/server"
 )
 
-var apiVer = "v0"
-
 func main() {
 	// Setup config.
 	conf := config.Configure()
