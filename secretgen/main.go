@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/RedeployAB/redeploy-secrets/secretgen/config"
-	"github.com/RedeployAB/redeploy-secrets/secretgen/server"
+	"github.com/RedeployAB/burnit/secretgen/config"
+	"github.com/RedeployAB/burnit/secretgen/server"
 )
 
 func main() {

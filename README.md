@@ -1,4 +1,4 @@
-# redeploy-secrets
+# burnit
 
 > Repository for APIs and services for secret generation and sharing
 

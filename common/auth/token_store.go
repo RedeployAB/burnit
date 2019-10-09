@@ -1,6 +1,6 @@
 package auth
 
-import "github.com/RedeployAB/redeploy-secrets/common/security"
+import "github.com/RedeployAB/burnit/common/security"
 
 // TokenStore is an interface that represents
 // a method of getting, setting and comparing tokens.

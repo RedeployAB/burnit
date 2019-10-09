@@ -1,9 +1,9 @@
 package api
 
 import (
-	mw "github.com/RedeployAB/redeploy-secrets/common/middleware"
-	"github.com/RedeployAB/redeploy-secrets/secretgw/client"
-	"github.com/RedeployAB/redeploy-secrets/secretgw/config"
+	mw "github.com/RedeployAB/burnit/common/middleware"
+	"github.com/RedeployAB/burnit/secretgw/client"
+	"github.com/RedeployAB/burnit/secretgw/config"
 	"github.com/gorilla/mux"
 )
 

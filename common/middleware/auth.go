@@ -3,8 +3,8 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/RedeployAB/redeploy-secrets/common/auth"
-	"github.com/RedeployAB/redeploy-secrets/common/httperror"
+	"github.com/RedeployAB/burnit/common/auth"
+	"github.com/RedeployAB/burnit/common/httperror"
 )
 
 // Authentication is used to authenticate

@@ -5,7 +5,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/RedeployAB/redeploy-secrets/common/security"
+	"github.com/RedeployAB/burnit/common/security"
 )
 
 // Secret is to be used as the middle hand between

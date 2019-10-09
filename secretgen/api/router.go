@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/RedeployAB/redeploy-secrets/common/middleware"
+	"github.com/RedeployAB/burnit/common/middleware"
 	"github.com/gorilla/mux"
 )
 

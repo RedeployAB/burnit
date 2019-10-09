@@ -1,10 +1,10 @@
 package api
 
 import (
-	"github.com/RedeployAB/redeploy-secrets/common/auth"
-	mw "github.com/RedeployAB/redeploy-secrets/common/middleware"
-	"github.com/RedeployAB/redeploy-secrets/secretdb/config"
-	"github.com/RedeployAB/redeploy-secrets/secretdb/db"
+	"github.com/RedeployAB/burnit/common/auth"
+	mw "github.com/RedeployAB/burnit/common/middleware"
+	"github.com/RedeployAB/burnit/secretdb/config"
+	"github.com/RedeployAB/burnit/secretdb/db"
 	"github.com/gorilla/mux"
 )
 

@@ -8,10 +8,10 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/RedeployAB/redeploy-secrets/common/auth"
-	"github.com/RedeployAB/redeploy-secrets/secretdb/api"
-	"github.com/RedeployAB/redeploy-secrets/secretdb/config"
-	"github.com/RedeployAB/redeploy-secrets/secretdb/db"
+	"github.com/RedeployAB/burnit/common/auth"
+	"github.com/RedeployAB/burnit/secretdb/api"
+	"github.com/RedeployAB/burnit/secretdb/config"
+	"github.com/RedeployAB/burnit/secretdb/db"
 )
 
 // Server represents server with configuration.

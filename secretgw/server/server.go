@@ -8,8 +8,8 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/RedeployAB/redeploy-secrets/secretgw/api"
-	"github.com/RedeployAB/redeploy-secrets/secretgw/config"
+	"github.com/RedeployAB/burnit/secretgw/api"
+	"github.com/RedeployAB/burnit/secretgw/config"
 )
 
 // Server represents server with configuration.

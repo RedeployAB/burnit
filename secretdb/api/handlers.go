@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/RedeployAB/redeploy-secrets/common/httperror"
-	"github.com/RedeployAB/redeploy-secrets/secretdb/db"
-	"github.com/RedeployAB/redeploy-secrets/secretdb/secret"
+	"github.com/RedeployAB/burnit/common/httperror"
+	"github.com/RedeployAB/burnit/secretdb/db"
+	"github.com/RedeployAB/burnit/secretdb/secret"
 	"github.com/gorilla/mux"
 )
 

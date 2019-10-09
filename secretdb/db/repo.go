@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/RedeployAB/redeploy-secrets/common/security"
-	"github.com/RedeployAB/redeploy-secrets/secretdb/config"
-	"github.com/RedeployAB/redeploy-secrets/secretdb/models"
-	"github.com/RedeployAB/redeploy-secrets/secretdb/secret"
+	"github.com/RedeployAB/burnit/common/security"
+	"github.com/RedeployAB/burnit/secretdb/config"
+	"github.com/RedeployAB/burnit/secretdb/models"
+	"github.com/RedeployAB/burnit/secretdb/secret"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )

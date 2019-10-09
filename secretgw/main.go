@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/RedeployAB/redeploy-secrets/secretgw/config"
-	"github.com/RedeployAB/redeploy-secrets/secretgw/server"
+	"github.com/RedeployAB/burnit/secretgw/config"
+	"github.com/RedeployAB/burnit/secretgw/server"
 )
 
 func main() {

@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"github.com/RedeployAB/redeploy-secrets/secretdb/config"
+	"github.com/RedeployAB/burnit/secretdb/config"
 )
 
 // DB represent a DB connection and/or client.

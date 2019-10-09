@@ -3,10 +3,10 @@ package main
 import (
 	"log"
 
-	"github.com/RedeployAB/redeploy-secrets/common/auth"
-	"github.com/RedeployAB/redeploy-secrets/secretdb/config"
-	"github.com/RedeployAB/redeploy-secrets/secretdb/db"
-	"github.com/RedeployAB/redeploy-secrets/secretdb/server"
+	"github.com/RedeployAB/burnit/common/auth"
+	"github.com/RedeployAB/burnit/secretdb/config"
+	"github.com/RedeployAB/burnit/secretdb/db"
+	"github.com/RedeployAB/burnit/secretdb/server"
 )
 
 func main() {

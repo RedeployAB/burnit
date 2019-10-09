@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/RedeployAB/redeploy-secrets/common/httperror"
-	"github.com/RedeployAB/redeploy-secrets/secretgw/client"
+	"github.com/RedeployAB/burnit/common/httperror"
+	"github.com/RedeployAB/burnit/secretgw/client"
 	"github.com/gorilla/mux"
 )
 
