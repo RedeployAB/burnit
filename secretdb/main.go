@@ -9,8 +9,6 @@ import (
 	"github.com/RedeployAB/redeploy-secrets/secretdb/server"
 )
 
-var apiVer = "v0"
-
 func main() {
 	// Setup TokenStore.
 	conf := config.Configure()
