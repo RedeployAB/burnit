@@ -2,13 +2,6 @@ package config
 
 import "os"
 
-// Config exports a configuration to be used by application.
-var Config Configuration
-
-func init() {
-	Config = Configure()
-}
-
 // Server represents server part of configuration.
 type Server struct {
 	Port                 string
@@ -38,7 +31,7 @@ func Configure() Configuration {
 	}
 	genSvcPath := os.Getenv("SECRET_GENERATOR_SERVICE_PATH")
 	if genSvcPath == "" {
-		genSvcPath = "/api/v1/generate"
+		genSvcPath = "/api/v0/generate"
 	}
 
 	dbBaseURL := os.Getenv("SECRET_DB_SERVICE_BASE_URL")
@@ -47,7 +40,7 @@ func Configure() Configuration {
 	}
 	dbSvcPath := os.Getenv("SECRET_DB_SERVICE_PATH")
 	if dbSvcPath == "" {
-		dbSvcPath = "/api/v1/secrets"
+		dbSvcPath = "/api/v0/secrets"
 	}
 
 	dbAPIKey := os.Getenv("SECRET_DB_SERVICE_API_KEY")

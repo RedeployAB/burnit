@@ -1,18 +1,14 @@
 package main
 
 import (
-	"log"
-	"net/http"
-
-	"github.com/RedeployAB/redeploy-secrets/secretgw/api"
 	"github.com/RedeployAB/redeploy-secrets/secretgw/config"
+	"github.com/RedeployAB/redeploy-secrets/secretgw/server"
 )
 
-var conf = config.Config
-
 func main() {
-	r := api.NewRouter()
+	// Setup config.
+	conf := config.Configure()
+	srv := server.NewServer(conf)
 	// Start server.
-	log.Printf("server listening on: %s", conf.Port)
-	log.Fatal(http.ListenAndServe(":"+conf.Port, r))
+	srv.Start()
 }
