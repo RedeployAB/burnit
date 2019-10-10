@@ -34,7 +34,6 @@ type ServerOptions struct {
 
 // NewServer returns a configured Server.
 func NewServer(opts ServerOptions) *Server {
-
 	srv := &http.Server{
 		Addr:         "0.0.0.0:" + opts.Config.Server.Port,
 		WriteTimeout: time.Second * 15,
