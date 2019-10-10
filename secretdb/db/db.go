@@ -11,14 +11,14 @@ import (
 	"github.com/RedeployAB/burnit/secretdb/config"
 )
 
-// DB represent a DB connection and/or client.
-type DB struct {
+// Connection is a wrapper around *mongo.Client.
+type Connection struct {
 	*mongo.Client
 }
 
 // Connect is used to connect to database with options
 // specified in the passed in options argument.
-func Connect(opts config.Database) (*DB, error) {
+func Connect(opts config.Database) (*Connection, error) {
 	uri := opts.URI
 	if uri == "" {
 		uri = toConnectionURI(opts)
@@ -36,15 +36,15 @@ func Connect(opts config.Database) (*DB, error) {
 		return nil, err
 	}
 
-	return &DB{client}, nil
+	return &Connection{client}, nil
 }
 
 // Close disconnects the connection to the database.
-func (db *DB) Close() error {
+func Close(c *Connection) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	if err := db.Disconnect(ctx); err != nil && err != mongo.ErrClientDisconnected {
+	if err := c.Disconnect(ctx); err != nil && err != mongo.ErrClientDisconnected {
 		return err
 	}
 	return nil

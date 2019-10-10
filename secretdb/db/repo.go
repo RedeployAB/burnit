@@ -5,18 +5,34 @@ import (
 	"time"
 
 	"github.com/RedeployAB/burnit/common/security"
-	"github.com/RedeployAB/burnit/secretdb/config"
 	"github.com/RedeployAB/burnit/secretdb/models"
 	"github.com/RedeployAB/burnit/secretdb/secret"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
+
+// Repository is an interface to handle different
+// repository types.
+/* type Repository interface {
+	Find() (*secret.Secret, error)
+	Insert() (*secret.Secret, error)
+	Delete() (int64, error)
+} */
 
 // SecretRepository handles actions with the database and
 // collection.
 type SecretRepository struct {
-	DB     *DB
-	Config config.Server
+	collection *mongo.Collection
+	passphrase string
+}
+
+// NewSecretRepository creates a new SecretRepository.
+func NewSecretRepository(c *Connection, passphrase string) *SecretRepository {
+	return &SecretRepository{
+		collection: c.Database("secretdb").Collection("secrets"),
+		passphrase: passphrase,
+	}
 }
 
 // Find queries the collection for an entry by ID.
@@ -26,12 +42,11 @@ func (r *SecretRepository) Find(id string) (*secret.Secret, error) {
 		return &secret.Secret{}, err
 	}
 
-	collection := r.DB.Database("secretdb").Collection("secrets")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	var sm models.Secret
-	err = collection.FindOne(ctx, bson.D{{Key: "_id", Value: oid}}).Decode(&sm)
+	err = r.collection.FindOne(ctx, bson.D{{Key: "_id", Value: oid}}).Decode(&sm)
 	if err != nil {
 		if err.Error() == "mongo: no documents in result" {
 			return nil, nil
@@ -41,7 +56,7 @@ func (r *SecretRepository) Find(id string) (*secret.Secret, error) {
 
 	return &secret.Secret{
 		ID:         oid.Hex(),
-		Secret:     decrypt(sm.Secret, r.Config.Passphrase),
+		Secret:     decrypt(sm.Secret, r.passphrase),
 		Passphrase: sm.Passphrase,
 		CreatedAt:  sm.CreatedAt,
 		ExpiresAt:  sm.ExpiresAt,
@@ -50,17 +65,12 @@ func (r *SecretRepository) Find(id string) (*secret.Secret, error) {
 
 // Insert handles inserts into the database.
 func (r *SecretRepository) Insert(s *secret.Secret) (*secret.Secret, error) {
-
-	collection := r.DB.Database("secretdb").Collection("secrets")
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
 	if s.TTL == 0 {
 		s.TTL = 10080
 	}
 
 	sm := &models.Secret{
-		Secret:    encrypt(s.Secret, r.Config.Passphrase),
+		Secret:    encrypt(s.Secret, r.passphrase),
 		CreatedAt: time.Now(),
 		ExpiresAt: time.Now().Add(time.Minute * time.Duration(s.TTL)),
 	}
@@ -69,7 +79,10 @@ func (r *SecretRepository) Insert(s *secret.Secret) (*secret.Secret, error) {
 		sm.Passphrase = s.Passphrase
 	}
 
-	res, err := collection.InsertOne(ctx, sm)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	res, err := r.collection.InsertOne(ctx, sm)
 	if err != nil {
 		return &secret.Secret{}, err
 	}
@@ -85,16 +98,15 @@ func (r *SecretRepository) Insert(s *secret.Secret) (*secret.Secret, error) {
 
 // Delete removes an entry from the collection by ID.
 func (r *SecretRepository) Delete(id string) (int64, error) {
-	collection := r.DB.Database("secretdb").Collection("secrets")
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return -1, nil
 	}
 
-	res, err := collection.DeleteOne(ctx, bson.D{{Key: "_id", Value: oid}})
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	res, err := r.collection.DeleteOne(ctx, bson.D{{Key: "_id", Value: oid}})
 	if err != nil {
 		return 0, err
 	}
@@ -105,11 +117,10 @@ func (r *SecretRepository) Delete(id string) (int64, error) {
 // DeleteExpired deletes all entries that has expiresAt
 // less than current time (time of invocation).
 func (r *SecretRepository) DeleteExpired() (int64, error) {
-	collection := r.DB.Database("secretdb").Collection("secrets")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	res, err := collection.DeleteMany(ctx, bson.D{{Key: "expiresAt", Value: bson.D{{Key: "$lt", Value: time.Now()}}}})
+	res, err := r.collection.DeleteMany(ctx, bson.D{{Key: "expiresAt", Value: bson.D{{Key: "$lt", Value: time.Now()}}}})
 	if err != nil {
 		return 0, err
 	}
