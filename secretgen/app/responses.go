@@ -1,4 +1,4 @@
-package api
+package app
 
 // secretResponse represents a secret response.
 type secretResponseBody struct {

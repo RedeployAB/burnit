@@ -1,4 +1,4 @@
-package api
+package app
 
 import (
 	"encoding/json"
@@ -10,21 +10,21 @@ import (
 )
 
 // notFound handles all non used routes.
-func (rt *Router) notFound(w http.ResponseWriter, r *http.Request) {
+func (s *Server) notFound(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusNotFound)
 }
 
 // generateSecret handles requests for secret generation.
-func (rt *Router) generateSecret(w http.ResponseWriter, r *http.Request) {
+func (s *Server) generateSecret(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	l, sc := parseGenerateSecretQuery(query)
-	s := secret.GenerateRandomString(l, sc)
+	secret := secret.GenerateRandomString(l, sc)
 	// Set headers and response.
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	// Respond with JSON.
-	sr := secretResponseBody{Data: secretResponse{Secret: s}}
+	sr := secretResponseBody{Data: secretResponse{Secret: secret}}
 	if err := json.NewEncoder(w).Encode(&sr); err != nil {
 		panic(err)
 	}

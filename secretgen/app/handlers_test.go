@@ -1,4 +1,4 @@
-package api
+package app
 
 import (
 	"encoding/json"
@@ -8,18 +8,22 @@ import (
 	"net/url"
 	"testing"
 	"unicode/utf8"
+
+	"github.com/gorilla/mux"
 )
 
-func RouterMock() *Router {
-	r := NewRouter()
-	r.HandleFunc("/api/v0/generate", r.generateSecret).Methods("GET")
-	return r
+func SetupServer() Server {
+	srv := Server{
+		router: mux.NewRouter(),
+	}
+	srv.routes()
+	return srv
 }
 
 func TestGenerateSecret(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/api/v0/generate", nil)
 	res := httptest.NewRecorder()
-	RouterMock().ServeHTTP(res, req)
+	SetupServer().router.ServeHTTP(res, req)
 
 	if res.Code != 200 {
 		t.Errorf("Status code incorrect, got: %d, want: 200", res.Code)
@@ -46,7 +50,7 @@ func TestGenerateSecret(t *testing.T) {
 func TestGenerateSecretHandlerParams(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/api/v0/generate?length=22&specialshars=true", nil)
 	res := httptest.NewRecorder()
-	RouterMock().ServeHTTP(res, req)
+	SetupServer().router.ServeHTTP(res, req)
 
 	if res.Code != 200 {
 		t.Errorf("Status code incorrect, got: %d, want: 200", res.Code)

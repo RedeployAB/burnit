@@ -1,14 +1,17 @@
 package main
 
 import (
+	"github.com/RedeployAB/burnit/secretgen/app"
 	"github.com/RedeployAB/burnit/secretgen/config"
-	"github.com/RedeployAB/burnit/secretgen/server"
+	"github.com/gorilla/mux"
 )
 
 func main() {
 	// Setup config.
 	conf := config.Configure()
-	srv := server.NewServer(conf)
+
+	r := mux.NewRouter()
+	srv := app.NewServer(conf, r)
 	// Start server.
 	srv.Start()
 }
