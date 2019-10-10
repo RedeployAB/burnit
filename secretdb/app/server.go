@@ -1,4 +1,4 @@
-package server
+package app
 
 import (
 	"context"
@@ -8,43 +8,63 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/gorilla/mux"
+
 	"github.com/RedeployAB/burnit/common/auth"
-	"github.com/RedeployAB/burnit/secretdb/api"
 	"github.com/RedeployAB/burnit/secretdb/config"
 	"github.com/RedeployAB/burnit/secretdb/db"
 )
 
 // Server represents server with configuration.
 type Server struct {
-	*http.Server
-	DB   *db.DB
-	Port string
+	httpServer *http.Server
+	router     *mux.Router
+	connection *db.Connection
+	repository *db.SecretRepository
+	tokenStore auth.TokenStore
+}
+
+// ServerOptions represents options to be used with server.
+type ServerOptions struct {
+	Config     config.Configuration
+	Router     *mux.Router
+	Connection *db.Connection
+	TokenStore auth.TokenStore
 }
 
 // NewServer returns a configured Server.
-func NewServer(config config.Configuration, tokenStore auth.TokenStore, db *db.DB) *Server {
-
-	r := api.NewRouter(config, tokenStore, db)
+func NewServer(opts ServerOptions) *Server {
 
 	srv := &http.Server{
-		Addr:         "0.0.0.0:" + config.Server.Port,
+		Addr:         "0.0.0.0:" + opts.Config.Server.Port,
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
-		Handler:      r,
+		Handler:      opts.Router,
 	}
 
-	return &Server{srv, db, config.Server.Port}
+	repo := db.NewSecretRepository(opts.Connection, opts.Config.Server.Passphrase)
+
+	return &Server{
+		httpServer: srv,
+		router:     opts.Router,
+		connection: opts.Connection,
+		repository: repo,
+		tokenStore: opts.TokenStore,
+	}
 }
 
 // Start creates an http server and runs ListenAndServe().
 func (s *Server) Start() {
+	// Setup routes.
+	s.routes(s.tokenStore)
+	// Listen and Serve.
 	go func() {
-		if err := s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("server err: %v\n", err)
 		}
 	}()
-	log.Printf("server listening on: %s", s.Port)
+	log.Printf("server listening on: %s", s.httpServer.Addr)
 	s.gracefulShutdown()
 }
 
@@ -58,7 +78,7 @@ func (s *Server) gracefulShutdown() {
 
 	log.Printf("shutting down server. reason: %s\n", sig.String())
 	log.Println("closing connection to database...")
-	if err := s.DB.Close(); err != nil {
+	if err := db.Close(s.connection); err != nil {
 		log.Printf("database: %v", err)
 	}
 	log.Println("disonnected from database.")
@@ -66,8 +86,8 @@ func (s *Server) gracefulShutdown() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	// Turn of SetKeepAlive when awaiting shutdown.
-	s.SetKeepAlivesEnabled(false)
-	if err := s.Shutdown(ctx); err != nil {
+	s.httpServer.SetKeepAlivesEnabled(false)
+	if err := s.httpServer.Shutdown(ctx); err != nil {
 		log.Fatalf("could not shutdown server gracefully: %v", err)
 	}
 	log.Println("server has been stopped")
