@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/RedeployAB/burnit/secretgen/config"
+	"github.com/RedeployAB/burnit/secretgen/configs"
 	"github.com/gorilla/mux"
 )
 
@@ -19,7 +19,7 @@ type Server struct {
 }
 
 // NewServer returns a configured Server.
-func NewServer(config config.Configuration, r *mux.Router) *Server {
+func NewServer(config configs.Configuration, r *mux.Router) *Server {
 	srv := &http.Server{
 		Addr:         "0.0.0.0:" + config.Port,
 		WriteTimeout: time.Second * 15,

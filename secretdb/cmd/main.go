@@ -5,14 +5,14 @@ import (
 
 	"github.com/RedeployAB/burnit/common/auth"
 	"github.com/RedeployAB/burnit/secretdb/app"
-	"github.com/RedeployAB/burnit/secretdb/config"
+	"github.com/RedeployAB/burnit/secretdb/configs"
 	"github.com/RedeployAB/burnit/secretdb/db"
 	"github.com/gorilla/mux"
 )
 
 func main() {
 	// Setup configuration.
-	config := config.Configure()
+	config := configs.Configure()
 	ts := auth.NewMemoryTokenStore()
 	ts.Set(config.Server.DBAPIKey, "app")
 	// Connect to database.

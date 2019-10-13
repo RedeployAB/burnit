@@ -11,7 +11,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/RedeployAB/burnit/common/auth"
-	"github.com/RedeployAB/burnit/secretdb/config"
+	"github.com/RedeployAB/burnit/secretdb/configs"
 	"github.com/RedeployAB/burnit/secretdb/db"
 )
 
@@ -26,7 +26,7 @@ type Server struct {
 
 // ServerOptions represents options to be used with server.
 type ServerOptions struct {
-	Config     config.Configuration
+	Config     configs.Configuration
 	Router     *mux.Router
 	Connection *db.Connection
 	TokenStore auth.TokenStore
