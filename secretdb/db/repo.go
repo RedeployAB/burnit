@@ -6,7 +6,7 @@ import (
 
 	"github.com/RedeployAB/burnit/common/security"
 	"github.com/RedeployAB/burnit/secretdb/internal/models"
-	"github.com/RedeployAB/burnit/secretdb/internal/pkg/secret"
+	"github.com/RedeployAB/burnit/secretdb/internal/pkg/secrets"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -36,7 +36,7 @@ func NewSecretRepository(c *Connection, passphrase string) *SecretRepository {
 }
 
 // Find queries the collection for an entry by ID.
-func (r *SecretRepository) Find(id string) (*secret.Secret, error) {
+func (r *SecretRepository) Find(id string) (*secrets.Secret, error) {
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, nil
@@ -45,54 +45,54 @@ func (r *SecretRepository) Find(id string) (*secret.Secret, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	var sm models.Secret
-	err = r.collection.FindOne(ctx, bson.D{{Key: "_id", Value: oid}}).Decode(&sm)
+	var secretModel models.Secret
+	err = r.collection.FindOne(ctx, bson.D{{Key: "_id", Value: oid}}).Decode(&secretModel)
 	if err != nil {
 		if err.Error() == "mongo: no documents in result" {
 			return nil, nil
 		}
-		return &secret.Secret{}, err
+		return &secrets.Secret{}, err
 	}
 
-	return &secret.Secret{
+	return &secrets.Secret{
 		ID:         oid.Hex(),
-		Secret:     decrypt(sm.Secret, r.passphrase),
-		Passphrase: sm.Passphrase,
-		CreatedAt:  sm.CreatedAt,
-		ExpiresAt:  sm.ExpiresAt,
+		Secret:     decrypt(secretModel.Secret, r.passphrase),
+		Passphrase: secretModel.Passphrase,
+		CreatedAt:  secretModel.CreatedAt,
+		ExpiresAt:  secretModel.ExpiresAt,
 	}, nil
 }
 
 // Insert handles inserts into the database.
-func (r *SecretRepository) Insert(s *secret.Secret) (*secret.Secret, error) {
+func (r *SecretRepository) Insert(s *secrets.Secret) (*secrets.Secret, error) {
 	if s.TTL == 0 {
 		s.TTL = 10080
 	}
 
-	sm := &models.Secret{
+	secretModel := &models.Secret{
 		Secret:    encrypt(s.Secret, r.passphrase),
 		CreatedAt: time.Now(),
 		ExpiresAt: time.Now().Add(time.Minute * time.Duration(s.TTL)),
 	}
 
 	if len(s.Passphrase) > 0 {
-		sm.Passphrase = s.Passphrase
+		secretModel.Passphrase = s.Passphrase
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	res, err := r.collection.InsertOne(ctx, sm)
+	res, err := r.collection.InsertOne(ctx, secretModel)
 	if err != nil {
-		return &secret.Secret{}, err
+		return &secrets.Secret{}, err
 	}
 	oid := res.InsertedID.(primitive.ObjectID)
 
-	return &secret.Secret{
+	return &secrets.Secret{
 		ID:         oid.Hex(),
-		Passphrase: sm.Passphrase,
-		CreatedAt:  sm.CreatedAt,
-		ExpiresAt:  sm.ExpiresAt,
+		Passphrase: secretModel.Passphrase,
+		CreatedAt:  secretModel.CreatedAt,
+		ExpiresAt:  secretModel.ExpiresAt,
 	}, nil
 }
 

@@ -5,12 +5,12 @@ import (
 )
 
 // secretResponse Bodyrepresents a secret type response body.
-type secretResponseBody struct {
-	Data secretResponse `json:"data"`
+type secretResponse struct {
+	Data secretData `json:"data"`
 }
 
-// secretResponse represents the data part of the response body.
-type secretResponse struct {
+// secretData represents the data part of the response body.
+type secretData struct {
 	ID        string    `json:"id,omitempty"`
 	Secret    string    `json:"secret,omitempty"`
 	CreatedAt time.Time `json:"createdAt,omitempty"`

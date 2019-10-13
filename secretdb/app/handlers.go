@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/RedeployAB/burnit/common/httperror"
-	"github.com/RedeployAB/burnit/secretdb/internal/pkg/secret"
+	"github.com/RedeployAB/burnit/secretdb/internal/pkg/secrets"
 	"github.com/gorilla/mux"
 )
 
@@ -21,17 +21,16 @@ func (s *Server) getSecret() http.Handler {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		vars := mux.Vars(r)
 
-		sec, err := s.repository.Find(vars["id"])
+		secret, err := s.repository.Find(vars["id"])
 		if err != nil {
 			httperror.Error(w, "internal server error", http.StatusInternalServerError)
 			return
 		}
-		if sec == nil {
+		if secret == nil {
 			httperror.Error(w, "not found", http.StatusNotFound)
 			return
 		}
-
-		if !sec.VerifyPassphrase(r.Header.Get("X-Passphrase")) {
+		if !secret.VerifyPassphrase(r.Header.Get("X-Passphrase")) {
 			httperror.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
@@ -41,12 +40,12 @@ func (s *Server) getSecret() http.Handler {
 			httperror.Error(w, "internal server error", http.StatusInternalServerError)
 		}
 
-		sr := secretResponseBody{
-			Data: secretResponse{
-				ID:        sec.ID,
-				Secret:    sec.Secret,
-				CreatedAt: sec.CreatedAt,
-				ExpiresAt: sec.ExpiresAt,
+		sr := secretResponse{
+			Data: secretData{
+				ID:        secret.ID,
+				Secret:    secret.Secret,
+				CreatedAt: secret.CreatedAt,
+				ExpiresAt: secret.ExpiresAt,
 			},
 		}
 		w.WriteHeader(http.StatusOK)
@@ -59,22 +58,22 @@ func (s *Server) getSecret() http.Handler {
 // createSecret inserts a secret into the database.
 func (s *Server) createSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sec, err := secret.NewSecret(r.Body)
+		secret, err := secrets.NewSecret(r.Body)
 		if err != nil {
 			httperror.Error(w, "malformed JSON", http.StatusBadRequest)
 			return
 		}
 
-		sec, err = s.repository.Insert(sec)
+		secret, err = s.repository.Insert(secret)
 		if err != nil {
 			httperror.Error(w, "internal server error", http.StatusInternalServerError)
 		}
 
-		sr := secretResponseBody{
-			Data: secretResponse{
-				ID:        sec.ID,
-				CreatedAt: sec.CreatedAt,
-				ExpiresAt: sec.ExpiresAt,
+		sr := secretResponse{
+			Data: secretData{
+				ID:        secret.ID,
+				CreatedAt: secret.CreatedAt,
+				ExpiresAt: secret.ExpiresAt,
 			},
 		}
 
