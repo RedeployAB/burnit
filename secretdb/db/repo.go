@@ -39,7 +39,7 @@ func NewSecretRepository(c *Connection, passphrase string) *SecretRepository {
 func (r *SecretRepository) Find(id string) (*secret.Secret, error) {
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return &secret.Secret{}, err
+		return nil, nil
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
