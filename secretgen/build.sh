@@ -15,3 +15,9 @@ mkdir -p release/bin
 cp release/$BIN-$VERSION-$OS-amd64 release/bin/$BIN
 # Create docker image.
 docker build -t $BIN:$VERSION --build-arg VERSION=$VERSION .
+# Clean up dangling images.
+echo ""
+echo "Deleting dangling images..."
+docker image prune -f
+echo ""
+echo "Build complete."

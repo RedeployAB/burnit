@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/RedeployAB/burnit/secretgen/secret"
+	"github.com/RedeployAB/burnit/secretgen/internal/pkg/secret"
 )
 
 // notFound handles all non used routes.
@@ -18,14 +18,14 @@ func (s *Server) notFound(w http.ResponseWriter, r *http.Request) {
 // generateSecret handles requests for secret generation.
 func (s *Server) generateSecret(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
-	l, sc := parseGenerateSecretQuery(query)
-	secret := secret.GenerateRandomString(l, sc)
+	length, specialChars := parseGenerateSecretQuery(query)
+	secret := secret.GenerateRandomString(length, specialChars)
 	// Set headers and response.
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	// Respond with JSON.
-	sr := secretResponseBody{Data: secretResponse{Secret: secret}}
-	if err := json.NewEncoder(w).Encode(&sr); err != nil {
+	secretResponse := secretResponse{Data: secretData{Secret: secret}}
+	if err := json.NewEncoder(w).Encode(&secretResponse); err != nil {
 		panic(err)
 	}
 }
@@ -34,16 +34,16 @@ func (s *Server) generateSecret(w http.ResponseWriter, r *http.Request) {
 // options.
 func parseGenerateSecretQuery(query url.Values) (int, bool) {
 	lengthParam := query.Get("length")
-	spCharParam := query.Get("specialchars")
+	specialCharsParam := query.Get("specialchars")
 
 	length, err := strconv.Atoi(lengthParam)
 	if err != nil {
 		length = 16
 	}
-	spChar, err := strconv.ParseBool(spCharParam)
+	specialChars, err := strconv.ParseBool(specialCharsParam)
 	if err != nil {
-		spChar = false
+		specialChars = false
 	}
 
-	return length, spChar
+	return length, specialChars
 }

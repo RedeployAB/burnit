@@ -1,11 +1,11 @@
 package app
 
 // secretResponse represents a secret response.
-type secretResponseBody struct {
-	Data secretResponse `json:"data"`
+type secretResponse struct {
+	Data secretData `json:"data"`
 }
 
 // secret represents a secret.
-type secretResponse struct {
+type secretData struct {
 	Secret string `json:"secret"`
 }
