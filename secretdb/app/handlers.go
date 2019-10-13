@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/RedeployAB/burnit/common/httperror"
-	"github.com/RedeployAB/burnit/secretdb/secret"
+	"github.com/RedeployAB/burnit/secretdb/internal/pkg/secret"
 	"github.com/gorilla/mux"
 )
 

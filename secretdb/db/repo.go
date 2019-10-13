@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/RedeployAB/burnit/common/security"
-	"github.com/RedeployAB/burnit/secretdb/models"
-	"github.com/RedeployAB/burnit/secretdb/secret"
+	"github.com/RedeployAB/burnit/secretdb/internal/models"
+	"github.com/RedeployAB/burnit/secretdb/internal/pkg/secret"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
