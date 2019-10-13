@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/RedeployAB/burnit/secretgen/internal/pkg/secret"
+	"github.com/RedeployAB/burnit/secretgen/internal/pkg/secrets"
 )
 
 // notFound handles all non used routes.
@@ -19,7 +19,7 @@ func (s *Server) notFound(w http.ResponseWriter, r *http.Request) {
 func (s *Server) generateSecret(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	length, specialChars := parseGenerateSecretQuery(query)
-	secret := secret.GenerateRandomString(length, specialChars)
+	secret := secrets.GenerateRandomString(length, specialChars)
 	// Set headers and response.
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
