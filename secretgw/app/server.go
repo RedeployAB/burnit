@@ -8,10 +8,9 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/RedeployAB/burnit/secretgw/configs"
+	"github.com/RedeployAB/burnit/secretgw/internal/pkg/client"
 	"github.com/gorilla/mux"
-
-	"github.com/RedeployAB/burnit/secretgw/client"
-	"github.com/RedeployAB/burnit/secretgw/config"
 )
 
 // Server represents server with configuration.
@@ -28,7 +27,7 @@ type middlewareConfig struct {
 }
 
 // NewServer returns a configured Server.
-func NewServer(config config.Configuration, r *mux.Router) *Server {
+func NewServer(config configs.Configuration, r *mux.Router) *Server {
 	srv := &http.Server{
 		Addr:         "0.0.0.0:" + config.Port,
 		WriteTimeout: time.Second * 15,
