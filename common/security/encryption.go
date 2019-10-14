@@ -4,7 +4,6 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"encoding/base64"
 	"errors"
 	"io"
 )
@@ -36,7 +35,7 @@ func Encrypt(plaintext []byte, key string) (ciphertext []byte, err error) {
 		return nil, err
 	}
 
-	return []byte(encodeBase64(gcm.Seal(nonce, nonce, plaintext, nil))), nil
+	return []byte(ToBase64(gcm.Seal(nonce, nonce, plaintext, nil))), nil
 }
 
 // Decrypt decrypts data using 256-bit AES-GCM.  This both hides the content of
@@ -54,7 +53,7 @@ func Decrypt(ciphertext []byte, key string) (plaintext []byte, err error) {
 		return nil, err
 	}
 
-	decodedCipher := decodeBase64(ciphertext)
+	decodedCipher := FromBase64(ciphertext)
 	if len(decodedCipher) < gcm.NonceSize() {
 		return nil, errors.New("malformed ciphertext")
 	}
@@ -64,18 +63,4 @@ func Decrypt(ciphertext []byte, key string) (plaintext []byte, err error) {
 		decodedCipher[gcm.NonceSize():],
 		nil,
 	)
-}
-
-// Encodes a byte containing a string to base64.
-func encodeBase64(b []byte) string {
-	return base64.StdEncoding.EncodeToString(b)
-}
-
-// Decodes a byte slice containing a base64 value to a byte slice.
-func decodeBase64(b []byte) []byte {
-	data, err := base64.StdEncoding.DecodeString(string(b))
-	if err != nil {
-		panic(err)
-	}
-	return data
 }
