@@ -23,7 +23,7 @@ type Token struct {
 
 // Get searchs the memory token store for a key.
 func (m *MemoryTokenStore) Get(token string) (string, bool) {
-	t, ok := m.Tokens[security.ToMD5(token)]
+	t, ok := m.Tokens[security.ToBase64([]byte(token))]
 	if !ok {
 		return "", ok
 	}
@@ -32,7 +32,7 @@ func (m *MemoryTokenStore) Get(token string) (string, bool) {
 
 // Set sets a token in the TokenStore.
 func (m *MemoryTokenStore) Set(token, user string) {
-	m.Tokens[security.ToMD5(token)] = Token{User: user}
+	m.Tokens[security.ToBase64([]byte(token))] = Token{User: user}
 }
 
 // Verify compares the key in the memory token store with
