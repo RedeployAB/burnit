@@ -24,7 +24,7 @@ func main() {
 	// Setup repositories.
 	r := mux.NewRouter()
 	srv := app.NewServer(app.ServerOptions{
-		Config:     config,
+		Config:     conf,
 		Router:     r,
 		Connection: connection,
 		TokenStore: ts,
