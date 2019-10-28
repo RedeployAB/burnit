@@ -4,7 +4,7 @@ db/*
 internal/*
 middleware/*
 model/*
-secrets/*
+dto/*
 *.sh
 *.go
 *.md

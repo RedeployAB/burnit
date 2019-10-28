@@ -1,4 +1,4 @@
-package secrets
+package dto
 
 import (
 	"encoding/json"

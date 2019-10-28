@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/RedeployAB/burnit/common/security"
+	"github.com/RedeployAB/burnit/secretdb/internal/dto"
 	"github.com/RedeployAB/burnit/secretdb/internal/model"
-	"github.com/RedeployAB/burnit/secretdb/internal/pkg/secrets"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -36,7 +36,7 @@ func NewSecretRepository(c *Connection, passphrase string) *SecretRepository {
 }
 
 // Find queries the collection for an entry by ID.
-func (r *SecretRepository) Find(id string) (*secrets.Secret, error) {
+func (r *SecretRepository) Find(id string) (*dto.Secret, error) {
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, nil
@@ -51,10 +51,10 @@ func (r *SecretRepository) Find(id string) (*secrets.Secret, error) {
 		if err.Error() == "mongo: no documents in result" {
 			return nil, nil
 		}
-		return &secrets.Secret{}, err
+		return &dto.Secret{}, err
 	}
 
-	return &secrets.Secret{
+	return &dto.Secret{
 		ID:         oid.Hex(),
 		Secret:     decrypt(secretModel.Secret, r.passphrase),
 		Passphrase: secretModel.Passphrase,
@@ -64,7 +64,7 @@ func (r *SecretRepository) Find(id string) (*secrets.Secret, error) {
 }
 
 // Insert handles inserts into the database.
-func (r *SecretRepository) Insert(s *secrets.Secret) (*secrets.Secret, error) {
+func (r *SecretRepository) Insert(s *dto.Secret) (*dto.Secret, error) {
 	if s.TTL == 0 {
 		s.TTL = 10080
 	}
@@ -84,11 +84,11 @@ func (r *SecretRepository) Insert(s *secrets.Secret) (*secrets.Secret, error) {
 
 	res, err := r.collection.InsertOne(ctx, secretModel)
 	if err != nil {
-		return &secrets.Secret{}, err
+		return &dto.Secret{}, err
 	}
 	oid := res.InsertedID.(primitive.ObjectID)
 
-	return &secrets.Secret{
+	return &dto.Secret{
 		ID:         oid.Hex(),
 		Passphrase: secretModel.Passphrase,
 		CreatedAt:  secretModel.CreatedAt,

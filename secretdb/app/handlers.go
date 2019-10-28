@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/RedeployAB/burnit/common/httperror"
-	"github.com/RedeployAB/burnit/secretdb/internal/pkg/secrets"
+	"github.com/RedeployAB/burnit/secretdb/internal/dto"
 	"github.com/gorilla/mux"
 )
 
@@ -58,7 +58,7 @@ func (s *Server) getSecret() http.Handler {
 // createSecret inserts a secret into the database.
 func (s *Server) createSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		secret, err := secrets.NewSecret(r.Body)
+		secret, err := dto.NewSecret(r.Body)
 		if err != nil {
 			httperror.Error(w, "malformed JSON", http.StatusBadRequest)
 			return
