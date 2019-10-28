@@ -1,4 +1,4 @@
-package secrets
+package secret
 
 import (
 	"math/rand"
@@ -8,11 +8,11 @@ import (
 
 var stdLetters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUWXYZ_-"
 
-// GenerateRandomString generates a random string. Argument
+// Generate generates a random string. Argument
 // l determines amount of characters in the
 // resulting string. Argument sc determines if
 // special characters should be used.
-func GenerateRandomString(l int, sc bool) string {
+func Generate(l int, sc bool) string {
 	var strbld strings.Builder
 
 	strbld.WriteString(stdLetters)
