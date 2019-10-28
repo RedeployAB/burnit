@@ -1,8 +1,18 @@
 PKGS := $(shell go list ./... | grep -v /vendor)
 
 .PHONY: test
-test:
+test: lint
 	go test $(PKGS) -count=1
+
+BIN_DIR := $(GOPATH)/bin
+GOLINT := $(BIN_DIR)/golint
+
+$(GOLINT):
+	go get -u golang.org/x/lint/golint
+
+.PHONY: lint
+lint: $(GOLINT)
+	$(GOLINT) ./...
 
 BINARY := secretgw
 VERSION ?= vlatest

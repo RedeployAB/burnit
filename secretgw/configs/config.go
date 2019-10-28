@@ -20,30 +20,30 @@ type Configuration struct {
 // Configure performs the necessary steps
 // for server/app configuration.
 func Configure() Configuration {
-	port := os.Getenv("SECRET_GW_SERVICE_PORT")
+	port := os.Getenv("SECRET_GW_PORT")
 	if port == "" {
 		port = "3000"
 	}
 
-	genBaseURL := os.Getenv("SECRET_GENERATOR_SERVICE_BASE_URL")
+	genBaseURL := os.Getenv("SECRET_GEN_BASE_URL")
 	if genBaseURL == "" {
 		genBaseURL = "http://localhost:3002"
 	}
-	genSvcPath := os.Getenv("SECRET_GENERATOR_SERVICE_PATH")
+	genSvcPath := os.Getenv("SECRET_GEN_PATH")
 	if genSvcPath == "" {
 		genSvcPath = "/api/v0/generate"
 	}
 
-	dbBaseURL := os.Getenv("SECRET_DB_SERVICE_BASE_URL")
+	dbBaseURL := os.Getenv("SECRET_DB_BASE_URL")
 	if dbBaseURL == "" {
 		dbBaseURL = "http://localhost:3001"
 	}
-	dbSvcPath := os.Getenv("SECRET_DB_SERVICE_PATH")
+	dbSvcPath := os.Getenv("SECRET_DB_PATH")
 	if dbSvcPath == "" {
 		dbSvcPath = "/api/v0/secrets"
 	}
 
-	dbAPIKey := os.Getenv("SECRET_DB_SERVICE_API_KEY")
+	dbAPIKey := os.Getenv("SECRET_DB_API_KEY")
 
 	config := Configuration{
 		Server{
