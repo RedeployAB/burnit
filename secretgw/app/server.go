@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/RedeployAB/burnit/secretgw/configs"
-	"github.com/RedeployAB/burnit/secretgw/internal/pkg/client"
+	"github.com/RedeployAB/burnit/secretgw/internal/client"
 	"github.com/gorilla/mux"
 )
 
