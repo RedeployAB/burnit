@@ -32,11 +32,11 @@ type Configuration struct {
 // for server/app configuration.
 func Configure() Configuration {
 	// Server variables.
-	port := os.Getenv("SECRET_DB_SERVICE_PORT")
+	port := os.Getenv("SECRET_DB_PORT")
 	if port == "" {
 		port = "3001"
 	}
-	dbAPIkey := os.Getenv("SECRET_DB_SERVICE_API_KEY")
+	dbAPIkey := os.Getenv("SECRET_DB_API_KEY")
 	passphrase := os.Getenv("SECRET_DB_PASSPHRASE")
 
 	// Database variables.

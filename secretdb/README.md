@@ -8,8 +8,8 @@ The following environment variables needs to be set:
 
 **Service configuration**
 
-* `SECRET_DB_SERVICE_PORT` - Port the service listens to. Defaults to `3001`
-* `SECRET_DB_SERVICE_API_KEY` - API key/token to access the service endpoints
+* `SECRET_DB_PORT` - Port the service listens to. Defaults to `3001`
+* `SECRET_DB_API_KEY` - API key/token to access the service endpoints
 * `SECRET_DB_PASSPHRASE` - Passphrase for the hashes of the secret passphrases
 
 **Database configuration**
