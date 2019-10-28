@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/RedeployAB/burnit/secretgw/configs"
+	"github.com/RedeployAB/burnit/secretgw/config"
 	"github.com/RedeployAB/burnit/secretgw/internal/client"
 	"github.com/gorilla/mux"
 )
@@ -27,9 +27,9 @@ type middlewareConfig struct {
 }
 
 // NewServer returns a configured Server.
-func NewServer(config configs.Configuration, r *mux.Router) *Server {
+func NewServer(conf config.Configuration, r *mux.Router) *Server {
 	srv := &http.Server{
-		Addr:         "0.0.0.0:" + config.Port,
+		Addr:         "0.0.0.0:" + conf.Port,
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
@@ -40,15 +40,15 @@ func NewServer(config configs.Configuration, r *mux.Router) *Server {
 		httpServer: srv,
 		router:     r,
 		middlewareConfig: middlewareConfig{
-			dbAPIkey: config.Server.DBAPIKey,
+			dbAPIkey: conf.Server.DBAPIKey,
 		},
 		generatorService: client.APIClient{
-			BaseURL: config.GeneratorBaseURL,
-			Path:    config.GeneratorServicePath,
+			BaseURL: conf.GeneratorBaseURL,
+			Path:    conf.GeneratorServicePath,
 		},
 		dbService: client.APIClient{
-			BaseURL: config.DBBaseURL,
-			Path:    config.DBServicePath,
+			BaseURL: conf.DBBaseURL,
+			Path:    conf.DBServicePath,
 		},
 	}
 }
