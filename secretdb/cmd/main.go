@@ -5,19 +5,19 @@ import (
 
 	"github.com/RedeployAB/burnit/common/auth"
 	"github.com/RedeployAB/burnit/secretdb/app"
-	"github.com/RedeployAB/burnit/secretdb/configs"
+	"github.com/RedeployAB/burnit/secretdb/config"
 	"github.com/RedeployAB/burnit/secretdb/db"
 	"github.com/gorilla/mux"
 )
 
 func main() {
 	// Setup configuration.
-	config := configs.Configure()
+	conf := config.Configure()
 	ts := auth.NewMemoryTokenStore()
-	ts.Set(config.Server.DBAPIKey, "app")
+	ts.Set(conf.Server.DBAPIKey, "app")
 	// Connect to database.
-	log.Printf("connecting to db server: %s...\n", config.Database.Address)
-	connection, err := db.Connect(config.Database)
+	log.Printf("connecting to db server: %s...\n", conf.Database.Address)
+	connection, err := db.Connect(conf.Database)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}

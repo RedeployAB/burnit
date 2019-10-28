@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/RedeployAB/burnit/secretdb/configs"
+	"github.com/RedeployAB/burnit/secretdb/config"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -17,7 +17,7 @@ type Connection struct {
 
 // Connect is used to connect to database with options
 // specified in the passed in options argument.
-func Connect(opts configs.Database) (*Connection, error) {
+func Connect(opts config.Database) (*Connection, error) {
 	uri := opts.URI
 	if uri == "" {
 		uri = toConnectionURI(opts)
@@ -49,7 +49,7 @@ func Close(c *Connection) error {
 	return nil
 }
 
-func toConnectionURI(opts configs.Database) string {
+func toConnectionURI(opts config.Database) string {
 	var b strings.Builder
 
 	b.WriteString("mongodb://")
