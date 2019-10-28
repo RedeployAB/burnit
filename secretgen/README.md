@@ -6,4 +6,4 @@
 
 **Service configuration**
 
-* `SECRET_GENERATOR_SERVICE_PORT` - Port the service listens to. Defaults to `3002`
+* `SECRET_GENERATOR_PORT` - Port the service listens to. Defaults to `3002`
