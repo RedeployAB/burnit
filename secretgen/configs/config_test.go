@@ -11,7 +11,7 @@ func TestConfigure(t *testing.T) {
 		t.Errorf("Default port value is incorrect, got %s, want: 3002", confDefault.Port)
 	}
 
-	os.Setenv("SECRET_GENERATOR_PORT", "5000")
+	os.Setenv("SECRET_GEN_PORT", "5000")
 	confEnv := Configure()
 	if confEnv.Port != "5000" {
 		t.Errorf("Port value is incorrect, got %s, want: 5000", confEnv.Port)
