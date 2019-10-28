@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/RedeployAB/burnit/common/security"
-	"github.com/RedeployAB/burnit/secretdb/internal/models"
+	"github.com/RedeployAB/burnit/secretdb/internal/model"
 	"github.com/RedeployAB/burnit/secretdb/internal/pkg/secrets"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -45,7 +45,7 @@ func (r *SecretRepository) Find(id string) (*secrets.Secret, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	var secretModel models.Secret
+	var secretModel model.Secret
 	err = r.collection.FindOne(ctx, bson.D{{Key: "_id", Value: oid}}).Decode(&secretModel)
 	if err != nil {
 		if err.Error() == "mongo: no documents in result" {
@@ -69,7 +69,7 @@ func (r *SecretRepository) Insert(s *secrets.Secret) (*secrets.Secret, error) {
 		s.TTL = 10080
 	}
 
-	secretModel := &models.Secret{
+	secretModel := &model.Secret{
 		Secret:    encrypt(s.Secret, r.passphrase),
 		CreatedAt: time.Now(),
 		ExpiresAt: time.Now().Add(time.Minute * time.Duration(s.TTL)),
