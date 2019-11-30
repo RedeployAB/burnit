@@ -75,7 +75,6 @@ func configureFromEnv() Configuration {
 			DBAPIKey:             dbAPIKey,
 		},
 	}
-
 	return config
 }
 
@@ -83,9 +82,7 @@ func configureFromEnv() Configuration {
 // for server/app configuration from environment
 // variables.
 func configureFromFile(path string) (Configuration, error) {
-
 	var config = Configuration{}
-
 	f, err := os.Open(path)
 	if err != nil {
 		return config, err
@@ -101,6 +98,5 @@ func configureFromFile(path string) (Configuration, error) {
 	if err != nil {
 		return config, err
 	}
-
 	return config, nil
 }
