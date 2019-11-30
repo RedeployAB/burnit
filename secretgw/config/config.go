@@ -1,25 +1,45 @@
 package config
 
-import "os"
+import (
+	"io/ioutil"
+	"os"
+
+	"gopkg.in/yaml.v2"
+)
 
 // Server represents server part of configuration.
 type Server struct {
-	Port                 string
-	GeneratorBaseURL     string
-	GeneratorServicePath string
-	DBBaseURL            string
-	DBServicePath        string
-	DBAPIKey             string
+	Port                 string `yaml:"port"`
+	GeneratorBaseURL     string `yaml:"generatorBaseUrl"`
+	GeneratorServicePath string `yaml:"generatorServicePath"`
+	DBBaseURL            string `yaml:"dbBaseUrl"`
+	DBServicePath        string `yaml:"dbServicePath"`
+	DBAPIKey             string `yaml:"dbApiKey"`
 }
 
 // Configuration represents a configuration.
 type Configuration struct {
-	Server
+	Server `yaml:"server"`
 }
 
-// Configure performs the necessary steps
-// for server/app configuration.
-func Configure() Configuration {
+// Configure calls configureFromEnvor
+// configureFromFile depending on the parameters
+// passed  in.
+func Configure(path string) (Configuration, error) {
+	var config Configuration
+	var err error
+	if path == "" {
+		config = configureFromEnv()
+	} else {
+		config, err = configureFromFile(path)
+	}
+	return config, err
+}
+
+// configureFromEnv performs the necessary steps
+// for server/app configuration from environment
+// variables.
+func configureFromEnv() Configuration {
 	port := os.Getenv("SECRET_GW_PORT")
 	if port == "" {
 		port = "3000"
@@ -57,4 +77,30 @@ func Configure() Configuration {
 	}
 
 	return config
+}
+
+// configureFromFile performs the necessary steps
+// for server/app configuration from environment
+// variables.
+func configureFromFile(path string) (Configuration, error) {
+
+	var config = Configuration{}
+
+	f, err := os.Open(path)
+	if err != nil {
+		return config, err
+	}
+	defer f.Close()
+
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		return config, err
+	}
+
+	err = yaml.Unmarshal(b, &config)
+	if err != nil {
+		return config, err
+	}
+
+	return config, nil
 }
