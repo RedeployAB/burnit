@@ -1,0 +1,11 @@
+server:
+  port: 3003
+  dbApiKey: aabbcc
+  passphrase: secretstring
+database:
+  address: localhost:27017
+  database: secret_db
+  username: dbuser
+  password: dbpassword
+  ssl: true
+  uri: mongodb://localhost:27017
