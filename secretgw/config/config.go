@@ -32,8 +32,11 @@ func Configure(path string) (Configuration, error) {
 		config = configureFromEnv()
 	} else {
 		config, err = configureFromFile(path)
+		if err != nil {
+			return config, err
+		}
 	}
-	return config, err
+	return config, nil
 }
 
 // configureFromEnv performs the necessary steps
