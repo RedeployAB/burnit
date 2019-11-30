@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	configPath := flag.String("config", "", "path to configuration file")
+	configPath := flag.String("config", "", "Path to configuration file")
 	flag.Parse()
 
 	// Setup config.
