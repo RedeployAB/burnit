@@ -27,4 +27,5 @@ Pass `-config` with path when running service, like so:
 
 ```yaml
 port: 3002
+
 ```
