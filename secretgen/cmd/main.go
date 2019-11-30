@@ -16,7 +16,7 @@ func main() {
 	// Setup config.
 	conf, err := config.Configure(*configPath)
 	if err != nil {
-		log.Fatalf("%v", err)
+		log.Fatalf("configuration: %v", err)
 	}
 
 	r := mux.NewRouter()
