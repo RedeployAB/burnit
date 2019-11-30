@@ -46,10 +46,9 @@ func Configure(path string) (Configuration, error) {
 		}
 	}
 
-	if config.Server.DBAPIKey == "" || config.Server.Passphrase == "" {
-		return Configuration{}, errors.New("db api key and passphrase must be set")
+	if config.Server.Passphrase == "" {
+		return Configuration{}, errors.New("encryption passphrase must be set")
 	}
-
 	return config, nil
 }
 
