@@ -1,36 +1,62 @@
 package config
 
 import (
+	"errors"
+	"io/ioutil"
 	"os"
 	"strconv"
+
+	"gopkg.in/yaml.v2"
 )
 
 // Server represents server part of configuration.
 type Server struct {
-	Port       string
-	DBAPIKey   string
-	Passphrase string
+	Port       string `yaml:"port"`
+	DBAPIKey   string `yaml:"dbApiKey"`
+	Passphrase string `yaml:"passphrase"`
 }
 
 // Database represents database part of configuration.
 type Database struct {
-	Address  string
-	Database string
-	Username string
-	Password string
-	SSL      bool
-	URI      string
+	Address  string `yaml:"address"`
+	Database string `yaml:"database"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+	SSL      bool   `yaml:"ssl"`
+	URI      string `yaml:"uri"`
 }
 
 // Configuration represents a configuration.
 type Configuration struct {
-	Server   Server
-	Database Database
+	Server   Server   `yaml:"server"`
+	Database Database `yaml:"database"`
 }
 
 // Configure performs the necessary steps
 // for server/app configuration.
-func Configure() Configuration {
+func Configure(path string) (Configuration, error) {
+	var config Configuration
+	var err error
+	if path == "" {
+		config = configureFromEnv()
+	} else {
+		config, err = configureFromFile(path)
+		if err != nil {
+			return config, err
+		}
+	}
+
+	if config.Server.DBAPIKey == "" || config.Server.Passphrase == "" {
+		return Configuration{}, errors.New("db api key and passphrase must be set")
+	}
+
+	return config, nil
+}
+
+// configureFromEnv performs the necessary steps
+// for server/app configuration from environment
+// variables.
+func configureFromEnv() Configuration {
 	// Server variables.
 	port := os.Getenv("SECRET_DB_PORT")
 	if port == "" {
@@ -74,6 +100,34 @@ func Configure() Configuration {
 			URI:      uri,
 		},
 	}
-
 	return config
+}
+
+// configureFromFile performs the necessary steps
+// for server/app configuration from environment
+// variables.
+func configureFromFile(path string) (Configuration, error) {
+	var config = Configuration{}
+	f, err := os.Open(path)
+	if err != nil {
+		return config, err
+	}
+	defer f.Close()
+
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		return config, err
+	}
+
+	if err = yaml.Unmarshal(b, &config); err != nil {
+		return config, err
+	}
+
+	if config.Server.Port == "" {
+		config.Server.Port = "3001"
+	}
+	if config.Database.Address == "" && config.Database.URI == "" {
+		config.Database.URI = "mongodb://localhost"
+	}
+	return config, nil
 }

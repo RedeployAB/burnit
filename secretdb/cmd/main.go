@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 
 	"github.com/RedeployAB/burnit/common/auth"
@@ -11,17 +12,25 @@ import (
 )
 
 func main() {
+	configPath := flag.String("config", "", "Path to configuration file")
+	flag.Parse()
+
 	// Setup configuration.
-	conf := config.Configure()
+	conf, err := config.Configure(*configPath)
+	if err != nil {
+		log.Fatalf("configuration: %v", err)
+	}
+
 	ts := auth.NewMemoryTokenStore()
 	ts.Set(conf.Server.DBAPIKey, "app")
+
 	// Connect to database.
 	log.Printf("connecting to db server: %s...\n", conf.Database.Address)
 	connection, err := db.Connect(conf.Database)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
-	// Setup repositories.
+
 	r := mux.NewRouter()
 	srv := app.NewServer(app.ServerOptions{
 		Config:     conf,
