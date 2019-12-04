@@ -12,14 +12,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// Repository is an interface to handle different
-// repository types.
-/* type Repository interface {
-	Find() (*secret.Secret, error)
-	Insert() (*secret.Secret, error)
-	Delete() (int64, error)
-} */
-
 // SecretRepository handles actions with the database and
 // collection.
 type SecretRepository struct {
