@@ -29,7 +29,7 @@ type SecretRepository struct {
 }
 
 // NewSecretRepository creates a new SecretRepository.
-func NewSecretRepository(c *Connection, passphrase string) *SecretRepository {
+func NewSecretRepository(c Connector, passphrase string) *SecretRepository {
 	return &SecretRepository{
 		collection: c.Database("secretdb").Collection("secrets"),
 		passphrase: passphrase,

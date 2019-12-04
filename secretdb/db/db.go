@@ -15,19 +15,31 @@ type Connection struct {
 	*mongo.Client
 }
 
+// Connector is an interface that represents
+// Connect, Disconnect and a database connection.
+type Connector interface {
+	Connect(context.Context) error
+	Disconnect(ctx context.Context) error
+	Database(name string, opts ...*options.DatabaseOptions) *mongo.Database
+}
+
 // Connect is used to connect to database with options
 // specified in the passed in options argument.
-func Connect(opts config.Database) (*Connection, error) {
+func Connect(opts config.Database) (Connector, error) {
 	uri := opts.URI
 	if uri == "" {
 		uri = toConnectionURI(opts)
 	}
 
+	client, err := mongo.NewClient(options.Client().ApplyURI(uri))
+	if err != nil {
+		return nil, err
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
-	if err != nil {
+	if err := client.Connect(ctx); err != nil {
 		return nil, err
 	}
 
@@ -39,7 +51,7 @@ func Connect(opts config.Database) (*Connection, error) {
 }
 
 // Close disconnects the connection to the database.
-func Close(c *Connection) error {
+func Close(c Connector) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 

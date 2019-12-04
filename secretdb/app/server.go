@@ -19,7 +19,7 @@ import (
 type Server struct {
 	httpServer *http.Server
 	router     *mux.Router
-	connection *db.Connection
+	connection db.Connector
 	repository db.Repository
 	tokenStore auth.TokenStore
 }
@@ -28,7 +28,7 @@ type Server struct {
 type ServerOptions struct {
 	Config     config.Configuration
 	Router     *mux.Router
-	Connection *db.Connection
+	Connection db.Connector
 	TokenStore auth.TokenStore
 }
 
