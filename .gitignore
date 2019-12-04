@@ -11,3 +11,5 @@ env.sh
 run.sh
 
 .DS_Store
+
+deployments/
