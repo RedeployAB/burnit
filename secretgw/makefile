@@ -22,7 +22,7 @@ os = $(word 1, $@)
 .PHONY: $(PLATFORMS)
 $(PLATFORMS): test
 	mkdir -p release
-	GOOS=$(os) GOARCH=amd64 go build -o release/$(BINARY)-$(VERSION)-$(os)-amd64 -ldflags="-w -s" -trimpath cmd/main.go
+	GOOS=$(os) GOARCH=amd64 go build -o release/$(BINARY)-$(VERSION)-$(os)-amd64 -ldflags="-w -s" -trimpath cmd/secretgw/main.go
 
 .PHONY: release
 release: windows linux darwin
