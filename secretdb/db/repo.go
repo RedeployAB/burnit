@@ -12,6 +12,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+// Repository is an interface that represents
+// basuc CRUD operations.
+type Repository interface {
+	Find(id string) (*dto.Secret, error)
+	Insert(s *dto.Secret) (*dto.Secret, error)
+	Delete(id string) (int64, error)
+	DeleteExpired() (int64, error)
+}
+
 // SecretRepository handles actions with the database and
 // collection.
 type SecretRepository struct {

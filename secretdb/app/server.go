@@ -20,7 +20,7 @@ type Server struct {
 	httpServer *http.Server
 	router     *mux.Router
 	connection *db.Connection
-	repository *db.SecretRepository
+	repository db.Repository
 	tokenStore auth.TokenStore
 }
 
