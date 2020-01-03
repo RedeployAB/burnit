@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/RedeployAB/burnit/common/httperror"
-	"github.com/RedeployAB/burnit/secretgw/internal/client"
+	"github.com/RedeployAB/burnit/secretgw/internal/request"
 	"github.com/gorilla/mux"
 )
 
@@ -19,8 +19,8 @@ func (s *Server) notFound(w http.ResponseWriter, r *http.Request) {
 // to generate a secret.
 func (s *Server) generateSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		res, err := s.generatorService.Request(client.RequestOptions{
-			Method: client.GET,
+		res, err := s.generatorService.Request(request.Options{
+			Method: request.GET,
 			Query:  r.URL.RawQuery,
 		})
 		if err != nil {
@@ -43,13 +43,13 @@ func (s *Server) getSecret() http.Handler {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		vars := mux.Vars(r)
 
-		res, err := s.dbService.Request(client.RequestOptions{
-			Method: client.GET,
+		res, err := s.dbService.Request(request.Options{
+			Method: request.GET,
 			Header: r.Header,
 			Params: vars,
 		})
 		if err != nil {
-			status := client.HandleHTTPError(err)
+			status := request.HandleHTTPError(err)
 			w.WriteHeader(status)
 			return
 		}
@@ -67,13 +67,13 @@ func (s *Server) createSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-		res, err := s.dbService.Request(client.RequestOptions{
-			Method: client.POST,
+		res, err := s.dbService.Request(request.Options{
+			Method: request.POST,
 			Header: r.Header,
 			Body:   r.Body,
 		})
 		if err != nil {
-			status := client.HandleHTTPError(err)
+			status := request.HandleHTTPError(err)
 			w.WriteHeader(status)
 			return
 		}

@@ -1,4 +1,4 @@
-package client
+package request
 
 import (
 	"encoding/json"
@@ -17,6 +17,11 @@ const (
 	PUT string = "PUT"
 )
 
+// Client is an interface for HTTP requests.
+type Client interface {
+	Request(o Options) (ResponseBody, error)
+}
+
 // APIClient reqpresents a HTTP/HTTPS client
 // to be used against other services.
 type APIClient struct {
@@ -25,7 +30,7 @@ type APIClient struct {
 }
 
 // Request performs a request against the target URL.
-func (c APIClient) Request(o RequestOptions) (ResponseBody, error) {
+func (c APIClient) Request(o Options) (ResponseBody, error) {
 	// Get the Base URL and Path from the struct.
 	url := c.BaseURL + c.Path
 	if o.Params["id"] != "" {
@@ -37,7 +42,7 @@ func (c APIClient) Request(o RequestOptions) (ResponseBody, error) {
 
 	var r ResponseBody
 	if (o.Method == POST || o.Method == PUT) && o.Body == nil {
-		return r, &RequestError{code: 400, err: "bad request"}
+		return r, &Error{code: 400, err: "bad request"}
 	}
 
 	client := &http.Client{}
@@ -55,7 +60,7 @@ func (c APIClient) Request(o RequestOptions) (ResponseBody, error) {
 	defer res.Body.Close()
 
 	if res.StatusCode < http.StatusOK || res.StatusCode > http.StatusNoContent {
-		return r, &RequestError{code: res.StatusCode, err: res.Status}
+		return r, &Error{code: res.StatusCode, err: res.Status}
 	}
 
 	b, err := ioutil.ReadAll(res.Body)
@@ -66,9 +71,9 @@ func (c APIClient) Request(o RequestOptions) (ResponseBody, error) {
 	return r, nil
 }
 
-// RequestOptions is options for an HTTP/HTTPs request.
+// Options is options for an HTTP/HTTPs request.
 // Method, header, params (URL params) and body.
-type RequestOptions struct {
+type Options struct {
 	Method string
 	Header http.Header
 	Params map[string]string
@@ -82,14 +87,14 @@ type ResponseBody struct {
 	Data interface{} `json:"data"`
 }
 
-// RequestError implements error interface
+// Error implements error interface
 // and represents errors encountered with Client
 // requests.
-type RequestError struct {
+type Error struct {
 	err  string
 	code int
 }
 
-func (e *RequestError) Error() string {
+func (e *Error) Error() string {
 	return fmt.Sprintf("code %d: %s", e.code, e.err)
 }

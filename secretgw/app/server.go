@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/RedeployAB/burnit/secretgw/config"
-	"github.com/RedeployAB/burnit/secretgw/internal/client"
+	"github.com/RedeployAB/burnit/secretgw/internal/request"
 	"github.com/gorilla/mux"
 )
 
@@ -18,8 +18,8 @@ type Server struct {
 	httpServer       *http.Server
 	router           *mux.Router
 	middlewareConfig middlewareConfig
-	generatorService client.APIClient
-	dbService        client.APIClient
+	generatorService request.Client
+	dbService        request.Client
 }
 
 type middlewareConfig struct {
@@ -42,11 +42,11 @@ func NewServer(conf config.Configuration, r *mux.Router) *Server {
 		middlewareConfig: middlewareConfig{
 			dbAPIkey: conf.Server.DBAPIKey,
 		},
-		generatorService: client.APIClient{
+		generatorService: request.APIClient{
 			BaseURL: conf.GeneratorBaseURL,
 			Path:    conf.GeneratorServicePath,
 		},
-		dbService: client.APIClient{
+		dbService: request.APIClient{
 			BaseURL: conf.DBBaseURL,
 			Path:    conf.DBServicePath,
 		},
