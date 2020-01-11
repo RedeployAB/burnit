@@ -5,9 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gorilla/mux"
-
 	"github.com/RedeployAB/burnit/secretgen/config"
+	"github.com/gorilla/mux"
 )
 
 func TestNewServer(t *testing.T) {
@@ -20,7 +19,7 @@ func TestNewServer(t *testing.T) {
 	}
 }
 
-func TestStart(t *testing.T) {
+func TestStartAndShutdown(t *testing.T) {
 	conf := config.Configuration{Port: "5000"}
 	r := mux.NewRouter()
 	srv := NewServer(conf, r)
@@ -44,5 +43,4 @@ func TestStart(t *testing.T) {
 	if exitCode != -1 {
 		t.Errorf("Incorrect value, got: %d, want: -1", exitCode)
 	}
-
 }
