@@ -22,15 +22,24 @@ type Client interface {
 	Request(o Options) (ResponseBody, error)
 }
 
-// APIClient reqpresents a HTTP/HTTPS client
+// HTTPClient reqpresents a HTTP/HTTPS client
 // to be used against other services.
-type APIClient struct {
+type HTTPClient struct {
 	BaseURL string
 	Path    string
 }
 
+// NewHTTPClient creates and returns a new
+// HTTPClient with the provided BaseURL and Path.
+func NewHTTPClient(baseURL, path string) *HTTPClient {
+	return &HTTPClient{
+		BaseURL: baseURL,
+		Path:    path,
+	}
+}
+
 // Request performs a request against the target URL.
-func (c APIClient) Request(o Options) (ResponseBody, error) {
+func (c HTTPClient) Request(o Options) (ResponseBody, error) {
 	// Get the Base URL and Path from the struct.
 	url := c.BaseURL + c.Path
 	if o.Params["id"] != "" {
