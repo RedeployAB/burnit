@@ -42,11 +42,11 @@ func NewServer(conf config.Configuration, r *mux.Router) *Server {
 		middlewareConfig: middlewareConfig{
 			dbAPIkey: conf.Server.DBAPIKey,
 		},
-		generatorService: request.APIClient{
+		generatorService: request.HTTPClient{
 			BaseURL: conf.GeneratorBaseURL,
 			Path:    conf.GeneratorServicePath,
 		},
-		dbService: request.APIClient{
+		dbService: request.HTTPClient{
 			BaseURL: conf.DBBaseURL,
 			Path:    conf.DBServicePath,
 		},
