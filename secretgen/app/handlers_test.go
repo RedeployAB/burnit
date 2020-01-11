@@ -72,6 +72,16 @@ func TestGenerateSecretHandlerParams(t *testing.T) {
 	}
 }
 
+func TestNotFound(t *testing.T) {
+	req, _ := http.NewRequest("GET", "/test", nil)
+	res := httptest.NewRecorder()
+	SetupServer().router.ServeHTTP(res, req)
+
+	if res.Code != 404 {
+		t.Errorf("Status code incorrect, got: %d, want: 404", res.Code)
+	}
+}
+
 func TestHandleGenerateSecretQuery(t *testing.T) {
 	query1 := url.Values{}
 	query2 := url.Values{}
