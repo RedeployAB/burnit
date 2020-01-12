@@ -112,3 +112,21 @@ func TestConfigureFromFile(t *testing.T) {
 		t.Errorf("Default uri value is incorrect, got %v, want: mongodb://localhost:27017", conf.Database.URI)
 	}
 }
+
+func TestConfigure(t *testing.T) {
+	// Test Configure from environment.
+	_, err := Configure("")
+	if err != nil {
+		t.Errorf("Error: %v", err)
+	}
+	// Test Configure from file.
+	_, err = Configure("../test/config.yaml")
+	if err != nil {
+		t.Errorf("Error: %v", err)
+	}
+	// Handle whene no configuration exists.
+	_, err = Configure("../test/nofile.yml")
+	if err == nil {
+		t.Errorf("Incorrect, should have returned an error")
+	}
+}
