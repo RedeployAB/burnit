@@ -80,3 +80,21 @@ func TestConfigureFromFile(t *testing.T) {
 		t.Errorf("DB API Key is incorrect, got %s, want: aabbcc", conf.DBAPIKey)
 	}
 }
+
+func TestConfigure(t *testing.T) {
+	// Test Configure from environment.
+	_, err := Configure("")
+	if err != nil {
+		t.Errorf("Error: %v", err)
+	}
+	// Test Configure from file.
+	_, err = Configure("../test/config.yaml")
+	if err != nil {
+		t.Errorf("Error: %v", err)
+	}
+	// Handle whene no configuration exists.
+	_, err = Configure("../test/nofile.yml")
+	if err == nil {
+		t.Errorf("Incorrect, should have returned an error")
+	}
+}
