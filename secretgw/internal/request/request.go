@@ -51,7 +51,7 @@ func (c HTTPClient) Request(o Options) (ResponseBody, error) {
 
 	var r ResponseBody
 	if (o.Method == POST || o.Method == PUT) && o.Body == nil {
-		return r, &Error{code: 400, err: "bad request"}
+		return r, &Error{code: 400, err: "400 Bad Request"}
 	}
 
 	client := &http.Client{}
