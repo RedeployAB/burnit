@@ -31,27 +31,19 @@ func TestConfigureFromFile(t *testing.T) {
 }
 
 func TestConfigure(t *testing.T) {
-
-	// First test configuration from file.
-	configPath := "../test/config.yaml"
-	conf, err := Configure(configPath)
+	// Test Configure from environment.
+	_, err := Configure("")
 	if err != nil {
-		t.Errorf("%v", err)
+		t.Errorf("Error: %v", err)
 	}
-
-	if conf.Port != "3003" {
-		t.Errorf("Port value is incorrect, got %s, want: 3003", conf.Port)
-	}
-
-	// Test from set environment variable.
-	os.Setenv("SECRET_GEN_PORT", "5000")
-	configPath = ""
-	conf, err = Configure(configPath)
+	// Test Configure from file.
+	_, err = Configure("../test/config.yaml")
 	if err != nil {
-		t.Errorf("%v", err)
+		t.Errorf("Error: %v", err)
 	}
-
-	if conf.Port != "5000" {
-		t.Errorf("Port value is incorrect, got %s, want: 5000", conf.Port)
+	// Handle whene no configuration exists.
+	_, err = Configure("../test/nofile.yml")
+	if err == nil {
+		t.Errorf("Incorrect, should have returned an error")
 	}
 }
