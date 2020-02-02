@@ -7,7 +7,7 @@ import (
 	"github.com/RedeployAB/burnit/common/auth"
 	"github.com/RedeployAB/burnit/secretdb/app"
 	"github.com/RedeployAB/burnit/secretdb/config"
-	"github.com/RedeployAB/burnit/secretdb/db2"
+	"github.com/RedeployAB/burnit/secretdb/db"
 	"github.com/gorilla/mux"
 )
 
@@ -26,11 +26,11 @@ func main() {
 
 	// Connect to database.
 	log.Printf("connecting to db server: %s...\n", conf.Database.Address)
-	connection, err := db2.Connect(conf.Database)
+	connection, err := db.Connect(conf.Database)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
-	repo := db2.NewSecretRepository(connection, conf.Server.Passphrase)
+	repo := db.NewSecretRepository(connection, conf.Server.Passphrase)
 
 	r := mux.NewRouter()
 	srv := app.NewServer(app.ServerOptions{

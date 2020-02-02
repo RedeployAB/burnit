@@ -8,20 +8,18 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/RedeployAB/burnit/secretdb/db2"
-
-	"github.com/gorilla/mux"
-
 	"github.com/RedeployAB/burnit/common/auth"
 	"github.com/RedeployAB/burnit/secretdb/config"
+	"github.com/RedeployAB/burnit/secretdb/db"
+	"github.com/gorilla/mux"
 )
 
 // Server represents server with configuration.
 type Server struct {
 	httpServer *http.Server
 	router     *mux.Router
-	connection db2.Connection
-	repository db2.Repository
+	connection db.Connection
+	repository db.Repository
 	tokenStore auth.TokenStore
 }
 
@@ -29,8 +27,8 @@ type Server struct {
 type ServerOptions struct {
 	Config     config.Configuration
 	Router     *mux.Router
-	Connection db2.Connection
-	Repository db2.Repository
+	Connection db.Connection
+	Repository db.Repository
 	TokenStore auth.TokenStore
 }
 
@@ -79,7 +77,7 @@ func (s *Server) gracefulShutdown() {
 
 	log.Printf("shutting down server. reason: %s\n", sig.String())
 	log.Println("closing connection to database...")
-	if err := db2.Close(s.connection); err != nil {
+	if err := db.Close(s.connection); err != nil {
 		log.Printf("database: %v", err)
 	}
 	log.Println("disonnected from database.")

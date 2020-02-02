@@ -12,24 +12,24 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// Repository is an interface that represents
-// basuc CRUD operations.
+// Repository represents a repository containing methods
+// to interact with a database and collection.
 type Repository interface {
 	Find(id string) (*dto.Secret, error)
 	Insert(s *dto.Secret) (*dto.Secret, error)
 	Delete(id string) (int64, error)
-	DeleteExpired() (int64, error)
 }
 
-// SecretRepository handles actions with the database and
-// collection.
+// SecretRepository handles interactions with the database
+// and collection.
 type SecretRepository struct {
 	collection *mongo.Collection
 	passphrase string
 }
 
-// NewSecretRepository creates a new SecretRepository.
-func NewSecretRepository(c Connector, passphrase string) *SecretRepository {
+// NewSecretRepository creates and returns a SecretRepository
+// object.
+func NewSecretRepository(c *Client, passphrase string) *SecretRepository {
 	return &SecretRepository{
 		collection: c.Database("secretdb").Collection("secrets"),
 		passphrase: passphrase,
@@ -40,6 +40,7 @@ func NewSecretRepository(c Connector, passphrase string) *SecretRepository {
 func (r *SecretRepository) Find(id string) (*dto.Secret, error) {
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
+		// Revisit this scenario.
 		return nil, nil
 	}
 
@@ -47,8 +48,8 @@ func (r *SecretRepository) Find(id string) (*dto.Secret, error) {
 	defer cancel()
 
 	var secretModel model.Secret
-	err = r.collection.FindOne(ctx, bson.D{{Key: "_id", Value: oid}}).Decode(&secretModel)
-	if err != nil {
+	bsonQ := bson.D{{Key: "_id", Value: oid}}
+	if err = r.collection.FindOne(ctx, bsonQ).Decode(&secretModel); err != nil {
 		if err.Error() == "mongo: no documents in result" {
 			return nil, nil
 		}

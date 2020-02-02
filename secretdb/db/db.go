@@ -10,22 +10,25 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// Connection is a wrapper around *mongo.Client.
-type Connection struct {
+// Connection represents a connection to a database.
+type Connection interface {
+	Connect(context.Context) error
+	Disconnect(context.Context) error
+}
+
+// Client is a wrapper around mongo.Client.
+type Client struct {
 	*mongo.Client
 }
 
-// Connector is an interface that represents
-// Connect, Disconnect and a database connection.
-type Connector interface {
-	Connect(context.Context) error
-	Disconnect(ctx context.Context) error
-	Database(name string, opts ...*options.DatabaseOptions) *mongo.Database
+// Collection is a wrapper around mongo.Collection.
+type Collection struct {
+	*mongo.Collection
 }
 
 // Connect is used to connect to database with options
 // specified in the passed in options argument.
-func Connect(opts config.Database) (Connector, error) {
+func Connect(opts config.Database) (*Client, error) {
 	uri := opts.URI
 	if uri == "" {
 		uri = toConnectionURI(opts)
@@ -47,11 +50,11 @@ func Connect(opts config.Database) (Connector, error) {
 		return nil, err
 	}
 
-	return &Connection{client}, nil
+	return &Client{client}, nil
 }
 
 // Close disconnects the connection to the database.
-func Close(c Connector) error {
+func Close(c Connection) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 

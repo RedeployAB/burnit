@@ -18,26 +18,25 @@ func (s *Server) notFound(w http.ResponseWriter, r *http.Request) {
 // getSecret reads a secret fron the database by ID.
 func (s *Server) getSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		vars := mux.Vars(r)
 
 		secret, err := s.repository.Find(vars["id"])
 		if err != nil {
-			httperror.Error(w, "internal server error", http.StatusInternalServerError)
+			httperror.Error(w, http.StatusInternalServerError)
 			return
 		}
 		if secret == nil {
-			httperror.Error(w, "not found", http.StatusNotFound)
+			httperror.Error(w, http.StatusNotFound)
 			return
 		}
 		if !secret.VerifyPassphrase(r.Header.Get("X-Passphrase")) {
-			httperror.Error(w, "unauthorized", http.StatusUnauthorized)
+			httperror.Error(w, http.StatusUnauthorized)
 			return
 		}
 
 		_, err = s.repository.Delete(vars["id"])
 		if err != nil {
-			httperror.Error(w, "internal server error", http.StatusInternalServerError)
+			httperror.Error(w, http.StatusInternalServerError)
 		}
 
 		sr := secretResponse{
@@ -48,6 +47,8 @@ func (s *Server) getSecret() http.Handler {
 				ExpiresAt: secret.ExpiresAt,
 			},
 		}
+
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
 		if err := json.NewEncoder(w).Encode(&sr); err != nil {
 			panic(err)
@@ -60,13 +61,13 @@ func (s *Server) createSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		secret, err := dto.NewSecret(r.Body)
 		if err != nil {
-			httperror.Error(w, "malformed JSON", http.StatusBadRequest)
+			httperror.Error(w, http.StatusBadRequest)
 			return
 		}
 
 		secret, err = s.repository.Insert(secret)
 		if err != nil {
-			httperror.Error(w, "internal server error", http.StatusInternalServerError)
+			httperror.Error(w, http.StatusInternalServerError)
 		}
 
 		sr := secretResponse{
@@ -85,32 +86,33 @@ func (s *Server) createSecret() http.Handler {
 	})
 }
 
-// updateSecretHandler handler updates a secret in the database.
+// updateSecret handler updates a secret in the database.
 func (s *Server) updateSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		httperror.Error(w, "not implemented", http.StatusNotImplemented)
+		httperror.Error(w, http.StatusNotImplemented)
 	})
 }
 
 // deleteSecretHandler deletes a secret from the database.
-/* func (s *Server) deleteSecret() http.Handler {
+func (s *Server) deleteSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 
 		res, err := s.repository.Delete(vars["id"])
 		if err != nil {
-			httperror.Error(w, "internal server error", http.StatusInternalServerError)
+			httperror.Error(w, http.StatusInternalServerError)
 			return
 		}
 		if res == 0 || res == -1 {
-			httperror.Error(w, "not found", http.StatusNotFound)
+			httperror.Error(w, http.StatusNotFound)
 			return
 		}
+
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
 	})
-} */
+}
 
 // deleteExpiredSecrets will delete all secrets where ExpiresAt has
 // passed.
