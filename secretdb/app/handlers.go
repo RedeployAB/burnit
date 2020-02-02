@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/RedeployAB/burnit/common/httperror"
-	"github.com/RedeployAB/burnit/secretdb/internal/dto"
 	"github.com/gorilla/mux"
 )
 
@@ -56,7 +55,7 @@ func (s *Server) getSecret() http.Handler {
 }
 
 // createSecret inserts a secret into the database.
-func (s *Server) createSecret() http.Handler {
+/* func (s *Server) createSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		secret, err := dto.NewSecret(r.Body)
 		if err != nil {
@@ -110,11 +109,11 @@ func (s *Server) deleteSecret() http.Handler {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
 	})
-}
+} */
 
 // deleteExpiredSecrets will delete all secrets where ExpiresAt has
 // passed.
-func (s *Server) deleteExpiredSecrets() http.Handler {
+/* func (s *Server) deleteExpiredSecrets() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Contente-Type", "application/json; charset=UTF-8")
 
@@ -125,4 +124,4 @@ func (s *Server) deleteExpiredSecrets() http.Handler {
 		}
 		w.WriteHeader(http.StatusOK)
 	})
-}
+} */
