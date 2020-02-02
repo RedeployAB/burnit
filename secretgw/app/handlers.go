@@ -24,7 +24,7 @@ func (s *Server) generateSecret() http.Handler {
 			Query:  r.URL.RawQuery,
 		})
 		if err != nil {
-			httperror.Error(w, "internal server error", http.StatusInternalServerError)
+			httperror.Error(w, http.StatusInternalServerError)
 			return
 		}
 
@@ -40,9 +40,7 @@ func (s *Server) generateSecret() http.Handler {
 // get a secret.
 func (s *Server) getSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		vars := mux.Vars(r)
-
 		res, err := s.dbService.Request(request.Options{
 			Method: request.GET,
 			Header: r.Header,
@@ -54,6 +52,7 @@ func (s *Server) getSecret() http.Handler {
 			return
 		}
 
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
 		if err := json.NewEncoder(w).Encode(&res); err != nil {
 			panic(err)
@@ -65,8 +64,6 @@ func (s *Server) getSecret() http.Handler {
 // create a secret.
 func (s *Server) createSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-
 		res, err := s.dbService.Request(request.Options{
 			Method: request.POST,
 			Header: r.Header,
@@ -78,6 +75,7 @@ func (s *Server) createSecret() http.Handler {
 			return
 		}
 
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusCreated)
 		if err := json.NewEncoder(w).Encode(&res); err != nil {
 			panic(err)
