@@ -2,7 +2,9 @@ package app
 
 import (
 	"context"
+	"os"
 	"testing"
+	"time"
 
 	"github.com/RedeployAB/burnit/common/auth"
 	"github.com/RedeployAB/burnit/secretdb/config"
@@ -29,6 +31,10 @@ type mockRepository struct {
 }
 
 func (r *mockRepository) Find(id string) (*dto.Secret, error) {
+	return &dto.Secret{}, nil
+}
+
+func (r *mockRepository) Insert(s *dto.Secret) (*dto.Secret, error) {
 	return &dto.Secret{}, nil
 }
 
@@ -77,5 +83,30 @@ func TestNewServer(t *testing.T) {
 
 	if srv.httpServer.Addr != "0.0.0.0:5000" {
 		t.Errorf("incorrect value, got: %s, want: 0.0.0.0:5000", srv.httpServer.Addr)
+	}
+}
+
+func TestStartAndShutdown(t *testing.T) {
+	srvOpts := SetupOptions()
+	srv := NewServer(srvOpts)
+
+	proc, err := os.FindProcess(os.Getpid())
+	if err != nil {
+		t.Fatal("error in getting running process")
+	}
+
+	var result *os.ProcessState
+
+	go func() {
+		srv.Start()
+		result, _ = proc.Wait()
+	}()
+
+	time.Sleep(3 * time.Second)
+	proc.Signal(os.Interrupt)
+
+	exitCode := result.ExitCode()
+	if exitCode != -1 {
+		t.Errorf("incorrect value, got %d, want: -1", exitCode)
 	}
 }

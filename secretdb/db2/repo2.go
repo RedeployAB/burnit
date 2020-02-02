@@ -17,6 +17,7 @@ import (
 // to interact with a database and collection.
 type Repository interface {
 	Find(id string) (*dto.Secret, error)
+	Insert(s *dto.Secret) (*dto.Secret, error)
 	Delete(id string) (int64, error)
 	/* 	Insert(m *interface{}) (interface{}, error)
 	   	Delete(id string) (int64, error) */
@@ -59,6 +60,66 @@ func (r *SecretRepository) Find(id string) (*dto.Secret, error) {
 		CreatedAt:  secretModel.CreatedAt,
 		ExpiresAt:  secretModel.ExpiresAt,
 	}, nil
+}
+
+// Insert handles inserts into the database.
+func (r *SecretRepository) Insert(s *dto.Secret) (*dto.Secret, error) {
+	if s.TTL == 0 {
+		s.TTL = 10080
+	}
+
+	secretModel := &model.Secret{
+		Secret:    encrypt(s.Secret, r.passphrase),
+		CreatedAt: time.Now(),
+		ExpiresAt: time.Now().Add(time.Minute * time.Duration(s.TTL)),
+	}
+
+	if len(s.Passphrase) > 0 {
+		secretModel.Passphrase = s.Passphrase
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	res, err := r.collection.InsertOne(ctx, secretModel)
+	if err != nil {
+		return &dto.Secret{}, err
+	}
+	oid := res.InsertedID.(primitive.ObjectID)
+
+	return &dto.Secret{
+		ID:         oid.Hex(),
+		Passphrase: secretModel.Passphrase,
+		CreatedAt:  secretModel.CreatedAt,
+		ExpiresAt:  secretModel.ExpiresAt,
+	}, nil
+}
+
+// Delete removes an entry from the collection by ID.
+func (r *SecretRepository) Delete(id string) (int64, error) {
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return -1, nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	res, err := r.collection.DeleteOne(ctx, bson.D{{Key: "_id", Value: oid}})
+	if err != nil {
+		return 0, err
+	}
+
+	return res.DeletedCount, nil
+}
+
+// NewSecretRepository creates and returns a SecretRepository
+// object.
+func NewSecretRepository(c *mongo.Client, passphrase string) *SecretRepository {
+	return &SecretRepository{
+		collection: c.Database("secretdb").Collection("secrets"),
+		passphrase: passphrase,
+	}
 }
 
 // encrypt encrypts the field Secret.

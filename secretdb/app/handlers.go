@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/RedeployAB/burnit/common/httperror"
+	"github.com/RedeployAB/burnit/secretdb/internal/dto"
 	"github.com/gorilla/mux"
 )
 
@@ -55,7 +56,7 @@ func (s *Server) getSecret() http.Handler {
 }
 
 // createSecret inserts a secret into the database.
-/* func (s *Server) createSecret() http.Handler {
+func (s *Server) createSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		secret, err := dto.NewSecret(r.Body)
 		if err != nil {
@@ -93,7 +94,7 @@ func (s *Server) updateSecret() http.Handler {
 }
 
 // deleteSecretHandler deletes a secret from the database.
-func (s *Server) deleteSecret() http.Handler {
+/* func (s *Server) deleteSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 
