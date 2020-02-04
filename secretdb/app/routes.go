@@ -16,7 +16,6 @@ func (s *Server) routes(ts auth.TokenStore) {
 	sr.Handle("/secrets", s.createSecret()).Methods("POST")
 	sr.Handle("/secrets/{id}", s.updateSecret()).Methods("PUT")
 	sr.Handle("/secrets/{id}", s.deleteSecret()).Methods("DELETE")
-	//sr.Handle("/maintenance/cleanup", s.deleteExpiredSecrets()).Methods("DELETE")
 
 	// All other routes.
 	s.router.PathPrefix("/").HandlerFunc(s.notFound)

@@ -80,7 +80,7 @@ func (s *Server) gracefulShutdown() {
 	if err := db.Close(s.connection); err != nil {
 		log.Printf("database: %v", err)
 	}
-	log.Println("disonnected from database.")
+	log.Println("disonnected from database")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()

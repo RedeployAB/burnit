@@ -5,7 +5,9 @@ import (
 	"net/http"
 
 	"github.com/RedeployAB/burnit/common/httperror"
+	"github.com/RedeployAB/burnit/secretdb/db"
 	"github.com/RedeployAB/burnit/secretdb/internal/dto"
+	"github.com/RedeployAB/burnit/secretdb/internal/mappers"
 	"github.com/gorilla/mux"
 )
 
@@ -20,37 +22,30 @@ func (s *Server) getSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 
-		secret, err := s.repository.Find(vars["id"])
+		secretModel, err := s.repository.Find(vars["id"])
 		if err != nil {
+			if err.(*db.QueryError).Code == 0 || err.(*db.QueryError).Code == -1 {
+				httperror.Error(w, http.StatusNotFound)
+				return
+			}
 			httperror.Error(w, http.StatusInternalServerError)
 			return
 		}
-		if secret == nil {
-			httperror.Error(w, http.StatusNotFound)
-			return
-		}
-		if !secret.VerifyPassphrase(r.Header.Get("X-Passphrase")) {
+
+		secretDTO := mappers.Secret{}.ToDTO(secretModel)
+		if !secretDTO.Verify(r.Header.Get("X-Passphrase")) {
 			httperror.Error(w, http.StatusUnauthorized)
 			return
 		}
 
-		_, err = s.repository.Delete(vars["id"])
+		_, err = s.repository.Delete(secretDTO.ID)
 		if err != nil {
 			httperror.Error(w, http.StatusInternalServerError)
 		}
 
-		sr := secretResponse{
-			Data: secretData{
-				ID:        secret.ID,
-				Secret:    secret.Secret,
-				CreatedAt: secret.CreatedAt,
-				ExpiresAt: secret.ExpiresAt,
-			},
-		}
-
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode(&sr); err != nil {
+		if err := json.NewEncoder(w).Encode(response(secretDTO)); err != nil {
 			panic(err)
 		}
 	})
@@ -59,28 +54,20 @@ func (s *Server) getSecret() http.Handler {
 // createSecret inserts a secret into the database.
 func (s *Server) createSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		secret, err := dto.NewSecret(r.Body)
+		secretDTO, err := dto.NewSecret(r.Body)
 		if err != nil {
 			httperror.Error(w, http.StatusBadRequest)
 			return
 		}
 
-		secret, err = s.repository.Insert(secret)
+		secretModel, err := s.repository.Insert(mappers.Secret{}.ToPersistance(secretDTO))
 		if err != nil {
 			httperror.Error(w, http.StatusInternalServerError)
 		}
 
-		sr := secretResponse{
-			Data: secretData{
-				ID:        secret.ID,
-				CreatedAt: secret.CreatedAt,
-				ExpiresAt: secret.ExpiresAt,
-			},
-		}
-
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusCreated)
-		if err := json.NewEncoder(w).Encode(&sr); err != nil {
+		if err := json.NewEncoder(w).Encode(response(mappers.Secret{}.ToDTO(secretModel))); err != nil {
 			panic(err)
 		}
 	})
@@ -94,7 +81,7 @@ func (s *Server) updateSecret() http.Handler {
 	})
 }
 
-// deleteSecretHandler deletes a secret from the database.
+// deleteSecret deletes a secret from the database.
 func (s *Server) deleteSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -113,18 +100,3 @@ func (s *Server) deleteSecret() http.Handler {
 		w.WriteHeader(http.StatusOK)
 	})
 }
-
-// deleteExpiredSecrets will delete all secrets where ExpiresAt has
-// passed.
-/* func (s *Server) deleteExpiredSecrets() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Contente-Type", "application/json; charset=UTF-8")
-
-		_, err := s.repository.DeleteExpired()
-		if err != nil {
-			httperror.Error(w, "internal server error", http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-	})
-} */

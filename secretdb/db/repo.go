@@ -2,11 +2,11 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/RedeployAB/burnit/common/security"
-	"github.com/RedeployAB/burnit/secretdb/internal/dto"
-	"github.com/RedeployAB/burnit/secretdb/internal/model"
+	"github.com/RedeployAB/burnit/secretdb/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -15,8 +15,8 @@ import (
 // Repository represents a repository containing methods
 // to interact with a database and collection.
 type Repository interface {
-	Find(id string) (*dto.Secret, error)
-	Insert(s *dto.Secret) (*dto.Secret, error)
+	Find(id string) (*models.Secret, error)
+	Insert(s *models.Secret) (*models.Secret, error)
 	Delete(id string) (int64, error)
 }
 
@@ -37,64 +37,51 @@ func NewSecretRepository(c *Client, passphrase string) *SecretRepository {
 }
 
 // Find queries the collection for an entry by ID.
-func (r *SecretRepository) Find(id string) (*dto.Secret, error) {
+func (r *SecretRepository) Find(id string) (*models.Secret, error) {
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		// Revisit this scenario.
-		return nil, nil
+		return nil, &QueryError{err.Error(), -1}
 	}
+
+	var s models.Secret
+	bsonQ := bson.D{{Key: "_id", Value: oid}}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	var secretModel model.Secret
-	bsonQ := bson.D{{Key: "_id", Value: oid}}
-	if err = r.collection.FindOne(ctx, bsonQ).Decode(&secretModel); err != nil {
+	if err = r.collection.FindOne(ctx, bsonQ).Decode(&s); err != nil {
 		if err.Error() == "mongo: no documents in result" {
-			return nil, nil
+			return nil, &QueryError{err.Error(), 0}
 		}
-		return &dto.Secret{}, err
+		return &models.Secret{}, err
 	}
 
-	return &dto.Secret{
-		ID:         oid.Hex(),
-		Secret:     decrypt(secretModel.Secret, r.passphrase),
-		Passphrase: secretModel.Passphrase,
-		CreatedAt:  secretModel.CreatedAt,
-		ExpiresAt:  secretModel.ExpiresAt,
-	}, nil
+	s.Secret = decrypt(s.Secret, r.passphrase)
+
+	return &s, nil
 }
 
 // Insert handles inserts into the database.
-func (r *SecretRepository) Insert(s *dto.Secret) (*dto.Secret, error) {
-	if s.TTL == 0 {
-		s.TTL = 10080
-	}
-
-	secretModel := &model.Secret{
-		Secret:    encrypt(s.Secret, r.passphrase),
-		CreatedAt: time.Now(),
-		ExpiresAt: time.Now().Add(time.Minute * time.Duration(s.TTL)),
-	}
-
+func (r *SecretRepository) Insert(s *models.Secret) (*models.Secret, error) {
+	s.Secret = encrypt(s.Secret, r.passphrase)
 	if len(s.Passphrase) > 0 {
-		secretModel.Passphrase = s.Passphrase
+		s.Passphrase = hash(s.Passphrase)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	res, err := r.collection.InsertOne(ctx, secretModel)
+	res, err := r.collection.InsertOne(ctx, s)
 	if err != nil {
-		return &dto.Secret{}, err
+		return &models.Secret{}, err
 	}
 	oid := res.InsertedID.(primitive.ObjectID)
 
-	return &dto.Secret{
-		ID:         oid.Hex(),
-		Passphrase: secretModel.Passphrase,
-		CreatedAt:  secretModel.CreatedAt,
-		ExpiresAt:  secretModel.ExpiresAt,
+	return &models.Secret{
+		ID:         oid,
+		Passphrase: s.Passphrase,
+		CreatedAt:  s.CreatedAt,
+		ExpiresAt:  s.ExpiresAt,
 	}, nil
 }
 
@@ -129,6 +116,18 @@ func (r *SecretRepository) DeleteExpired() (int64, error) {
 	return res.DeletedCount, nil
 }
 
+// QueryError wraps database related errors with
+// Error, containing error message, and code
+// that holds error code.
+type QueryError struct {
+	Message string
+	Code    int
+}
+
+func (e *QueryError) Error() string {
+	return fmt.Sprintf("query: %s, code: %d", e.Message, e.Code)
+}
+
 // encrypt encrypts the field Secret.
 func encrypt(plaintext, passphrase string) string {
 	encrypted, err := security.Encrypt([]byte(plaintext), passphrase)
@@ -145,4 +144,9 @@ func decrypt(ciphertext, passphrase string) string {
 		panic(err)
 	}
 	return string(decrypted)
+}
+
+// hash hashes the incmong string with bcrypt.
+func hash(s string) string {
+	return security.Hash(s)
 }

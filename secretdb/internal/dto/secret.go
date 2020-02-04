@@ -27,10 +27,6 @@ func NewSecret(b io.ReadCloser) (*Secret, error) {
 		return &Secret{}, err
 	}
 
-	if len(s.Passphrase) > 0 {
-		s.HashPassphrase()
-	}
-
 	exp := time.Now().AddDate(0, 0, 7)
 	if s.TTL != 0 {
 		exp = time.Now().Add(time.Minute * time.Duration(s.TTL))
@@ -40,17 +36,11 @@ func NewSecret(b io.ReadCloser) (*Secret, error) {
 	return s, nil
 }
 
-// VerifyPassphrase compares a hash with a string,
+// Verify compares a hash with a string,
 // if no hash is passed, it always return true.
-func (s *Secret) VerifyPassphrase(hash string) bool {
-	if len(s.Passphrase) > 0 && !security.CompareHash(s.Passphrase, hash) {
+func (s *Secret) Verify(str string) bool {
+	if len(s.Passphrase) > 0 && !security.CompareHash(s.Passphrase, str) {
 		return false
 	}
 	return true
-}
-
-// HashPassphrase hashes the field passphrase.
-func (s *Secret) HashPassphrase() *Secret {
-	s.Passphrase = security.Hash(s.Passphrase)
-	return s
 }

@@ -8,7 +8,7 @@ import (
 
 	"github.com/RedeployAB/burnit/common/auth"
 	"github.com/RedeployAB/burnit/secretdb/config"
-	"github.com/RedeployAB/burnit/secretdb/internal/dto"
+	"github.com/RedeployAB/burnit/secretdb/internal/models"
 	"github.com/gorilla/mux"
 )
 
@@ -30,12 +30,12 @@ func (c *mockConnection) Close(context.Context) error {
 type mockRepository struct {
 }
 
-func (r *mockRepository) Find(id string) (*dto.Secret, error) {
-	return &dto.Secret{}, nil
+func (r *mockRepository) Find(id string) (*models.Secret, error) {
+	return &models.Secret{}, nil
 }
 
-func (r *mockRepository) Insert(s *dto.Secret) (*dto.Secret, error) {
-	return &dto.Secret{}, nil
+func (r *mockRepository) Insert(s *models.Secret) (*models.Secret, error) {
+	return &models.Secret{}, nil
 }
 
 func (r *mockRepository) Delete(id string) (int64, error) {
