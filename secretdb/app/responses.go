@@ -6,12 +6,12 @@ import (
 	"github.com/RedeployAB/burnit/secretdb/internal/dto"
 )
 
-// secretResponse Bodyrepresents a secret type response body.
+// responseBody represents a secret type response body.
 type responseBody struct {
 	Data data `json:"data"`
 }
 
-// secretData represents the data part of the response body.
+// data represents the data part of the response body.
 type data struct {
 	ID        string    `json:"id,omitempty"`
 	Secret    string    `json:"secret,omitempty"`
