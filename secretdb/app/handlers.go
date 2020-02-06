@@ -42,6 +42,7 @@ func (s *Server) getSecret() http.Handler {
 		_, err = s.repository.Delete(secretDTO.ID)
 		if err != nil {
 			httperror.Error(w, http.StatusInternalServerError)
+			return
 		}
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
