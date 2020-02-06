@@ -15,6 +15,7 @@ import (
 func (s *Server) notFound(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusNotFound)
+	httperror.Error(w, http.StatusNotFound)
 }
 
 // getSecret reads a secret fron the database by ID.
@@ -63,6 +64,7 @@ func (s *Server) createSecret() http.Handler {
 		secretModel, err := s.repository.Insert(mappers.Secret{}.ToPersistance(secretDTO))
 		if err != nil {
 			httperror.Error(w, http.StatusInternalServerError)
+			return
 		}
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
