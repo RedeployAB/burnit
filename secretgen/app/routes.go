@@ -2,9 +2,10 @@ package app
 
 import (
 	"github.com/RedeployAB/burnit/common/middleware"
+	"github.com/RedeployAB/burnit/secretgen/config"
 )
 
-var apiVer = "v0"
+var apiVer = config.Version
 
 func (s *Server) routes() {
 	// Routes.
