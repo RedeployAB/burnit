@@ -59,8 +59,8 @@ func SetupOptions() ServerOptions {
 		},
 	}
 
-	mockConnection := &mockConnection{}
-	mockRepoository := &mockRepository{}
+	connection := &mockConnection{}
+	repo := &mockRepository{}
 	ts := auth.NewMemoryTokenStore()
 	ts.Set(conf.Server.DBAPIKey, "app")
 
@@ -68,8 +68,8 @@ func SetupOptions() ServerOptions {
 	srvOpts := ServerOptions{
 		Config:     conf,
 		Router:     r,
-		Connection: mockConnection,
-		Repository: mockRepoository,
+		Connection: connection,
+		Repository: repo,
 		TokenStore: ts,
 	}
 
