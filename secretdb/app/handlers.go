@@ -25,7 +25,7 @@ func (s *Server) getSecret() http.Handler {
 
 		secretModel, err := s.repository.Find(vars["id"])
 		if err != nil {
-			if err.(*db.QueryError).Code == 0 || err.(*db.QueryError).Code == -1 {
+			if err == err.(*db.QueryError) && (err.(*db.QueryError).Code == 0 || err.(*db.QueryError).Code == -1) {
 				httperror.Error(w, http.StatusNotFound)
 				return
 			}
