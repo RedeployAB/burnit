@@ -13,13 +13,13 @@ var stdLetters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUWXYZ_-"
 // resulting string. Argument sc determines if
 // special characters should be used.
 func Generate(l int, sc bool) string {
-	var strbld strings.Builder
+	var strb strings.Builder
 
-	strbld.WriteString(stdLetters)
+	strb.WriteString(stdLetters)
 	if sc == true {
-		strbld.WriteString("!?=()&%")
+		strb.WriteString("!?=()&%")
 	}
-	bltrs := []byte(strbld.String())
+	bltrs := []byte(strb.String())
 
 	rand.Seed(time.Now().UnixNano())
 	b := make([]byte, l)
