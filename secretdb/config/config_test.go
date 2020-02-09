@@ -16,7 +16,6 @@ func TestConfigureFromEnv(t *testing.T) {
 	if confDefault.Server.Passphrase != "" {
 		t.Errorf("default passphrase value is incorrect, got %s, want: \"\"", confDefault.Server.Passphrase)
 	}
-
 	if confDefault.Database.Address != "localhost" {
 		t.Errorf("default address value is incorrect, got %s, want: localhost", confDefault.Database.Address)
 	}
