@@ -1,6 +1,7 @@
 package app
 
 import (
+	"bytes"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -18,6 +19,7 @@ import (
 var correctPassphrase = security.Hash("passphrase")
 var id1 = "507f1f77bcf86cd799439011"
 var oid1, _ = primitive.ObjectIDFromHex(id1)
+var apiKey = "ABCDEF"
 
 // Mock to handle repository answers in handler tests.
 type mockHandlerRepository struct {
@@ -46,7 +48,7 @@ func (r *mockHandlerRepository) Find(id string) (*models.Secret, error) {
 		err = nil
 	case "find-error":
 		model = nil
-		err = errors.New("db error")
+		err = errors.New("find error")
 	case "find-delete-error":
 		model = &models.Secret{ID: oid1, Secret: "values"}
 		err = nil
@@ -55,7 +57,18 @@ func (r *mockHandlerRepository) Find(id string) (*models.Secret, error) {
 }
 
 func (r *mockHandlerRepository) Insert(s *models.Secret) (*models.Secret, error) {
-	return &models.Secret{}, nil
+	var model *models.Secret
+	var err error
+
+	switch r.mode {
+	case "insert-success":
+		model = &models.Secret{ID: oid1, Secret: "value"}
+		err = nil
+	case "insert-error":
+		model = &models.Secret{}
+		err = errors.New("insert error")
+	}
+	return model, err
 }
 
 func (r *mockHandlerRepository) Delete(id string) (int64, error) {
@@ -65,6 +78,18 @@ func (r *mockHandlerRepository) Delete(id string) (int64, error) {
 	if r.action == "find" && r.mode == "find-delete-error" {
 		result = 0
 		err = errors.New("delete error")
+	} else if r.action == "delete" {
+		switch r.mode {
+		case "delete-success":
+			result = 1
+			err = nil
+		case "delete-not-found":
+			result = 0
+			err = nil
+		case "delete-error":
+			result = -10
+			err = errors.New("db delete error")
+		}
 	}
 	return result, err
 }
@@ -105,7 +130,6 @@ func SetupServer(action, mode string) Server {
 }
 
 func TestGetSecretSuccess(t *testing.T) {
-	apiKey := "ABCDEF"
 	req, _ := http.NewRequest("GET", "/api/v0/secrets/"+id1, nil)
 	req.Header.Add("x-api-key", apiKey)
 	res := httptest.NewRecorder()
@@ -117,75 +141,174 @@ func TestGetSecretSuccess(t *testing.T) {
 }
 
 func TestGetSecretInvalidOID(t *testing.T) {
-	apiKey := "ABCDEF"
 	req, _ := http.NewRequest("GET", "/api/v0/secrets/1234", nil)
 	req.Header.Add("x-api-key", apiKey)
 	res := httptest.NewRecorder()
 	SetupServer("find", "find-invalid-oid").router.ServeHTTP(res, req)
 
-	if res.Code != 404 {
-		t.Errorf("status code incorrect, got: %d, want 404", res.Code)
+	expectedCode := 404
+	if res.Code != expectedCode {
+		t.Errorf("status code incorrect, got: %d, want: %d", res.Code, expectedCode)
 	}
 }
 
 func TestGetSecretNotFound(t *testing.T) {
-	apiKey := "ABCDEF"
 	req, _ := http.NewRequest("GET", "/api/v0/secrets/"+id1, nil)
 	req.Header.Add("x-api-key", apiKey)
 	res := httptest.NewRecorder()
 	SetupServer("find", "find-not-found").router.ServeHTTP(res, req)
 
-	if res.Code != 404 {
-		t.Errorf("status code incorrect, got: %d, want 404", res.Code)
+	expectedCode := 404
+	if res.Code != expectedCode {
+		t.Errorf("status code incorrect, got: %d, want: %d ", res.Code, expectedCode)
 	}
 }
 
 func TestGetSecretDBError(t *testing.T) {
-	apiKey := "ABCDEF"
 	req, _ := http.NewRequest("GET", "/api/v0/secrets/"+id1, nil)
 	req.Header.Add("x-api-key", apiKey)
 	res := httptest.NewRecorder()
 	SetupServer("find", "find-error").router.ServeHTTP(res, req)
 
+	expectedCode := 500
 	if res.Code != 500 {
-		t.Errorf("status code incorrect, got: %d, want 404", res.Code)
+		t.Errorf("status code incorrect, got: %d, want: %d", res.Code, expectedCode)
 	}
 }
 
 func TestGetSecretDeleteError(t *testing.T) {
-	apiKey := "ABCDEF"
 	req, _ := http.NewRequest("GET", "/api/v0/secrets/"+id1, nil)
 	req.Header.Add("x-api-key", apiKey)
 	res := httptest.NewRecorder()
 	SetupServer("find", "find-delete-error").router.ServeHTTP(res, req)
 
-	if res.Code != 500 {
-		t.Errorf("status code incorrect, got: %d, want 404", res.Code)
+	expectedCode := 500
+	if res.Code != expectedCode {
+		t.Errorf("status code incorrect, got: %d, want: %d", res.Code, expectedCode)
 	}
 }
 
 func TestGetSecretWithPassphraseSuccess(t *testing.T) {
-	apiKey := "ABCDEF"
 	req, _ := http.NewRequest("GET", "/api/v0/secrets/"+id1, nil)
 	req.Header.Add("x-api-key", apiKey)
 	req.Header.Add("x-passphrase", "passphrase")
 	res := httptest.NewRecorder()
 	SetupServer("find", "find-success-passphrase").router.ServeHTTP(res, req)
 
-	if res.Code != 200 {
-		t.Errorf("status code incorrect, got: %d, want 200", res.Code)
+	expectedCode := 200
+	if res.Code != expectedCode {
+		t.Errorf("status code incorrect, got: %d, want: %d", res.Code, expectedCode)
 	}
 }
 
 func TestGetSecretWithInvalidPassphrase(t *testing.T) {
-	apiKey := "ABCDEF"
 	req, _ := http.NewRequest("GET", "/api/v0/secrets/"+id1, nil)
 	req.Header.Add("x-api-key", apiKey)
 	req.Header.Add("x-passphrase", "notpassphrase")
 	res := httptest.NewRecorder()
 	SetupServer("find", "find-success-passphrase").router.ServeHTTP(res, req)
 
-	if res.Code != 401 {
-		t.Errorf("status code incorrect, got: %d, want 401", res.Code)
+	expectedCode := 401
+	if res.Code != expectedCode {
+		t.Errorf("status code incorrect, got: %d, want: %d", res.Code, expectedCode)
+	}
+}
+
+func TestCreateSecretSuccess(t *testing.T) {
+	jsonStr := []byte(`{"secret":"value"}`)
+	req, _ := http.NewRequest("POST", "/api/v0/secrets", bytes.NewBuffer(jsonStr))
+	req.Header.Add("x-api-key", apiKey)
+	res := httptest.NewRecorder()
+	SetupServer("create", "insert-success").router.ServeHTTP(res, req)
+
+	expectedCode := 201
+	if res.Code != expectedCode {
+		t.Errorf("status code incorrect, got: %d, want: %d", res.Code, expectedCode)
+	}
+}
+
+func TestCreateSecretParseBodyError(t *testing.T) {
+	// Creating faulty JSON.
+	jsonStr := []byte(`{"secret":"value}`)
+	req, _ := http.NewRequest("POST", "/api/v0/secrets", bytes.NewBuffer(jsonStr))
+	req.Header.Add("x-api-key", apiKey)
+	res := httptest.NewRecorder()
+	SetupServer("insert", "insert-success").router.ServeHTTP(res, req)
+
+	expectedCode := 400
+	if res.Code != expectedCode {
+		t.Errorf("status code incorrect, got: %d, want: %d", res.Code, expectedCode)
+	}
+}
+
+func TestCreateSecretCreateError(t *testing.T) {
+	jsonStr := []byte(`{"secret":"value"}`)
+	req, _ := http.NewRequest("POST", "/api/v0/secrets", bytes.NewBuffer(jsonStr))
+	req.Header.Add("x-api-key", apiKey)
+	res := httptest.NewRecorder()
+	SetupServer("insert", "insert-error").router.ServeHTTP(res, req)
+
+	expectedCode := 500
+	if res.Code != expectedCode {
+		t.Errorf("status code incorrect, got: %d, want: %d", res.Code, expectedCode)
+	}
+}
+
+func TestUpdateSecret(t *testing.T) {
+	req, _ := http.NewRequest("PUT", "/api/v0/secrets/"+id1, nil)
+	req.Header.Add("x-api-key", apiKey)
+	res := httptest.NewRecorder()
+	SetupServer("", "").router.ServeHTTP(res, req)
+
+	expectedCode := 501
+	if res.Code != expectedCode {
+		t.Errorf("status code incorrect, got: %d, want: %d", res.Code, expectedCode)
+	}
+}
+
+func TestDeleteSecretSuccess(t *testing.T) {
+	req, _ := http.NewRequest("DELETE", "/api/v0/secrets/"+id1, nil)
+	req.Header.Add("x-api-key", apiKey)
+	res := httptest.NewRecorder()
+	SetupServer("delete", "delete-success").router.ServeHTTP(res, req)
+
+	expectedCode := 200
+	if res.Code != expectedCode {
+		t.Errorf("status code incorrect, got: %d, want: %d", res.Code, expectedCode)
+	}
+}
+
+func TestDeleteSecretNotFound(t *testing.T) {
+	req, _ := http.NewRequest("DELETE", "/api/v0/secrets/"+id1, nil)
+	req.Header.Add("x-api-key", apiKey)
+	res := httptest.NewRecorder()
+	SetupServer("delete", "delete-not-found").router.ServeHTTP(res, req)
+
+	expectedCode := 404
+	if res.Code != expectedCode {
+		t.Errorf("status code incorrect, got: %d, want: %d", res.Code, expectedCode)
+	}
+}
+
+func TestDeleteSecretError(t *testing.T) {
+	req, _ := http.NewRequest("DELETE", "/api/v0/secrets/"+id1, nil)
+	req.Header.Add("x-api-key", apiKey)
+	res := httptest.NewRecorder()
+	SetupServer("delete", "delete-error").router.ServeHTTP(res, req)
+
+	expectedCode := 500
+	if res.Code != expectedCode {
+		t.Errorf("status code incorrect, got: %d, want: %d", res.Code, expectedCode)
+	}
+}
+
+func TestNotFound(t *testing.T) {
+	req, _ := http.NewRequest("GET", "/", nil)
+	req.Header.Add("x-api-key", apiKey)
+	res := httptest.NewRecorder()
+	SetupServer("", "").router.ServeHTTP(res, req)
+
+	if res.Code != 404 {
+		t.Errorf("Status code incorrect, got: %d, want: 404", res.Code)
 	}
 }

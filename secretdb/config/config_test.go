@@ -8,32 +8,32 @@ import (
 func TestConfigureFromEnv(t *testing.T) {
 	confDefault := configureFromEnv()
 	if confDefault.Server.Port != "3001" {
-		t.Errorf("Default port value is incorrect, got %s, want: 3001", confDefault.Server.Port)
+		t.Errorf("default port value is incorrect, got %s, want: 3001", confDefault.Server.Port)
 	}
 	if confDefault.Server.DBAPIKey != "" {
-		t.Errorf("Default passphrase value is incorrect, got %s, want: \"\"", confDefault.Server.DBAPIKey)
+		t.Errorf("default passphrase value is incorrect, got %s, want: \"\"", confDefault.Server.DBAPIKey)
 	}
 	if confDefault.Server.Passphrase != "" {
-		t.Errorf("Default passphrase value is incorrect, got %s, want: \"\"", confDefault.Server.Passphrase)
+		t.Errorf("default passphrase value is incorrect, got %s, want: \"\"", confDefault.Server.Passphrase)
 	}
 
 	if confDefault.Database.Address != "localhost" {
-		t.Errorf("Default address value is incorrect, got %s, want: localhost", confDefault.Database.Address)
+		t.Errorf("default address value is incorrect, got %s, want: localhost", confDefault.Database.Address)
 	}
 	if confDefault.Database.Database != "" {
-		t.Errorf("Default database value is incorrect, got %s, want: \"\"", confDefault.Database.Database)
+		t.Errorf("default database value is incorrect, got %s, want: \"\"", confDefault.Database.Database)
 	}
 	if confDefault.Database.Username != "" {
-		t.Errorf("Default username value is incorrect, got %s, want: \"\"", confDefault.Database.Username)
+		t.Errorf("default username value is incorrect, got %s, want: \"\"", confDefault.Database.Username)
 	}
 	if confDefault.Database.Password != "" {
-		t.Errorf("Default password value is incorrect, got %s, want: \"\"", confDefault.Database.Password)
+		t.Errorf("default password value is incorrect, got %s, want: \"\"", confDefault.Database.Password)
 	}
 	if confDefault.Database.SSL != false {
-		t.Errorf("Default ssl value is incorrect, got %v, want: false", confDefault.Database.SSL)
+		t.Errorf("default ssl value is incorrect, got %v, want: false", confDefault.Database.SSL)
 	}
 	if confDefault.Database.URI != "" {
-		t.Errorf("Default uri value is incorrect, got %v, want: \"\"", confDefault.Database.URI)
+		t.Errorf("default uri value is incorrect, got %v, want: \"\"", confDefault.Database.URI)
 	}
 
 	os.Setenv("SECRET_DB_PORT", "6000")
@@ -47,32 +47,32 @@ func TestConfigureFromEnv(t *testing.T) {
 	os.Setenv("DB_CONNECTION_URI", "mongodb://localhost:27017")
 	confEnv := configureFromEnv()
 	if confEnv.Server.Port != "6000" {
-		t.Errorf("Port value is incorrect, got %s, want: 6000", confEnv.Server.Port)
+		t.Errorf("port value is incorrect, got %s, want: 6000", confEnv.Server.Port)
 	}
 	if confEnv.Server.DBAPIKey != "aabbcc" {
-		t.Errorf("Default passphrase value is incorrect, got %s, want: aabbcc", confEnv.Server.DBAPIKey)
+		t.Errorf("passphrase value is incorrect, got %s, want: aabbcc", confEnv.Server.DBAPIKey)
 	}
 	if confEnv.Server.Passphrase != "secretstring" {
-		t.Errorf("Default passphrase value is incorrect, got %s, want: secretstring", confEnv.Server.Passphrase)
+		t.Errorf("passphrase value is incorrect, got %s, want: secretstring", confEnv.Server.Passphrase)
 	}
 
 	if confEnv.Database.Address != "localhost:27017" {
-		t.Errorf("Default address value is incorrect, got %s, want: localhost:27017", confEnv.Database.Address)
+		t.Errorf("address value is incorrect, got %s, want: localhost:27017", confEnv.Database.Address)
 	}
 	if confEnv.Database.Database != "secret_db" {
-		t.Errorf("Default database value is incorrect, got %s, want: secret_db", confEnv.Database.Database)
+		t.Errorf("database value is incorrect, got %s, want: secret_db", confEnv.Database.Database)
 	}
 	if confEnv.Database.Username != "dbuser" {
-		t.Errorf("Default username value is incorrect, got %s, want: dbuser", confEnv.Database.Username)
+		t.Errorf("username value is incorrect, got %s, want: dbuser", confEnv.Database.Username)
 	}
 	if confEnv.Database.Password != "dbpassword" {
-		t.Errorf("Default password value is incorrect, got %s, want: dbpassword", confEnv.Database.Password)
+		t.Errorf("password value is incorrect, got %s, want: dbpassword", confEnv.Database.Password)
 	}
 	if confEnv.Database.SSL != true {
-		t.Errorf("Default ssl value is incorrect, got %v, want: true", confEnv.Database.SSL)
+		t.Errorf("ssl value is incorrect, got %v, want: true", confEnv.Database.SSL)
 	}
 	if confEnv.Database.URI != "mongodb://localhost:27017" {
-		t.Errorf("Default uri value is incorrect, got %v, want: mongodb://localhost:27017", confEnv.Database.URI)
+		t.Errorf("uri value is incorrect, got %v, want: mongodb://localhost:27017", confEnv.Database.URI)
 	}
 }
 
@@ -84,32 +84,32 @@ func TestConfigureFromFile(t *testing.T) {
 	}
 
 	if conf.Server.Port != "3003" {
-		t.Errorf("Port value is incorrect, got %s, want: 3003", conf.Server.Port)
+		t.Errorf("port value is incorrect, got %s, want: 3003", conf.Server.Port)
 	}
 	if conf.Server.DBAPIKey != "aabbcc" {
-		t.Errorf("Default passphrase value is incorrect, got %s, want: aabbcc", conf.Server.DBAPIKey)
+		t.Errorf("passphrase value is incorrect, got %s, want: aabbcc", conf.Server.DBAPIKey)
 	}
 	if conf.Server.Passphrase != "secretstring" {
-		t.Errorf("Default passphrase value is incorrect, got %s, want: secretstring", conf.Server.Passphrase)
+		t.Errorf("passphrase value is incorrect, got %s, want: secretstring", conf.Server.Passphrase)
 	}
 
 	if conf.Database.Address != "localhost:27017" {
-		t.Errorf("Default address value is incorrect, got %s, want: localhost:27017", conf.Database.Address)
+		t.Errorf("address value is incorrect, got %s, want: localhost:27017", conf.Database.Address)
 	}
 	if conf.Database.Database != "secret_db" {
-		t.Errorf("Default database value is incorrect, got %s, want: secret_db", conf.Database.Database)
+		t.Errorf("database value is incorrect, got %s, want: secret_db", conf.Database.Database)
 	}
 	if conf.Database.Username != "dbuser" {
-		t.Errorf("Default username value is incorrect, got %s, want: dbuser", conf.Database.Username)
+		t.Errorf("username value is incorrect, got %s, want: dbuser", conf.Database.Username)
 	}
 	if conf.Database.Password != "dbpassword" {
-		t.Errorf("Default password value is incorrect, got %s, want: dbpassword", conf.Database.Password)
+		t.Errorf("password value is incorrect, got %s, want: dbpassword", conf.Database.Password)
 	}
 	if conf.Database.SSL != true {
-		t.Errorf("Default ssl value is incorrect, got %v, want: true", conf.Database.SSL)
+		t.Errorf("ssl value is incorrect, got %v, want: true", conf.Database.SSL)
 	}
 	if conf.Database.URI != "mongodb://localhost:27017" {
-		t.Errorf("Default uri value is incorrect, got %v, want: mongodb://localhost:27017", conf.Database.URI)
+		t.Errorf("uri value is incorrect, got %v, want: mongodb://localhost:27017", conf.Database.URI)
 	}
 }
 
@@ -117,16 +117,16 @@ func TestConfigure(t *testing.T) {
 	// Test Configure from environment.
 	_, err := Configure("")
 	if err != nil {
-		t.Errorf("Error: %v", err)
+		t.Errorf("error: %v", err)
 	}
 	// Test Configure from file.
 	_, err = Configure("../test/config.yaml")
 	if err != nil {
-		t.Errorf("Error: %v", err)
+		t.Errorf("eerror: %v", err)
 	}
 	// Handle whene no configuration exists.
 	_, err = Configure("../test/nofile.yml")
 	if err == nil {
-		t.Errorf("Incorrect, should have returned an error")
+		t.Errorf("incorrect, should return an error")
 	}
 }

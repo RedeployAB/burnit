@@ -9,25 +9,38 @@ import (
 
 // Mapper is an interface that covers the mapping
 // between DTO and Model, and from Model to DTO.
-type Mapper interface {
+/* type Mapper interface {
 	ToPersistance(interface{}) interface{}
 	ToDTO(interface{}) interface{}
-}
+} */
 
 // Secret implements Mapper interface
 // and provides methods ToPersistance and ToDTO.
 type Secret struct{}
 
 // ToPersistance transforms a Secret (DTO) to Secret (Model).
+// It is the responsibility of the objects implementing
+// Repository to handle ID setting and creating.
 func (m Secret) ToPersistance(s *dto.Secret) *models.Secret {
-	if s.TTL == 0 {
-		s.TTL = 10080
+	// Fallback for setting CreatedAt and ExpiresAt
+	// if those are not set in incoming DTO object.
+	var createdAt, expiresAt time.Time
+	if s.CreatedAt.IsZero() {
+		createdAt = time.Now()
+	} else {
+		createdAt = s.CreatedAt
+	}
+
+	if s.ExpiresAt.IsZero() {
+		expiresAt = time.Now()
+	} else {
+		expiresAt = s.ExpiresAt
 	}
 
 	secretModel := &models.Secret{
 		Secret:    s.Secret,
-		CreatedAt: time.Now(),
-		ExpiresAt: time.Now().Add(time.Minute * time.Duration(s.TTL)),
+		CreatedAt: createdAt,
+		ExpiresAt: expiresAt,
 	}
 
 	if len(s.Passphrase) > 0 {
