@@ -61,6 +61,7 @@ func (s *Server) createSecret() http.Handler {
 			httperror.Error(w, http.StatusBadRequest)
 			return
 		}
+		defer r.Body.Close()
 
 		secretModel, err := s.repository.Insert(mappers.Secret{}.ToPersistance(secretDTO))
 		if err != nil {

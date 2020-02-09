@@ -75,6 +75,7 @@ func (s *Server) createSecret() http.Handler {
 			w.WriteHeader(status)
 			return
 		}
+		defer r.Body.Close()
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusCreated)
