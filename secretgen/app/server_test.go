@@ -15,7 +15,7 @@ func TestNewServer(t *testing.T) {
 	srv := NewServer(conf, r)
 
 	if srv.httpServer.Addr != "0.0.0.0:5000" {
-		t.Errorf("Incorrect value, got: %s, want: 0.0.0.0:5000", srv.httpServer.Addr)
+		t.Errorf("incorrect value, got: %s, want: 0.0.0.0:5000", srv.httpServer.Addr)
 	}
 }
 
@@ -41,6 +41,6 @@ func TestStartAndShutdown(t *testing.T) {
 
 	exitCode := result.ExitCode()
 	if exitCode != -1 {
-		t.Errorf("Incorrect value, got: %d, want: -1", exitCode)
+		t.Errorf("incorrect value, got: %d, want: -1", exitCode)
 	}
 }

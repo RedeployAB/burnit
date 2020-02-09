@@ -19,7 +19,7 @@ func TestGenerate(t *testing.T) {
 		secret := Generate(test.x, test.y)
 		count := utf8.RuneCountInString(secret)
 		if count != test.n {
-			t.Errorf("Number of characters in generated string incorrect, got: %d, want: %d", count, test.n)
+			t.Errorf("number of characters in generated string incorrect, got: %d, want: %d", count, test.n)
 		}
 	}
 }

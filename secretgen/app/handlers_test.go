@@ -26,23 +26,23 @@ func TestGenerateSecret(t *testing.T) {
 	SetupServer().router.ServeHTTP(res, req)
 
 	if res.Code != 200 {
-		t.Errorf("Status code incorrect, got: %d, want: 200", res.Code)
+		t.Errorf("status code incorrect, got: %d, want: 200", res.Code)
 	}
 
-	var rb secretResponse
+	var rb responseBody
 	b, err := ioutil.ReadAll(res.Body)
 
 	if err = json.Unmarshal(b, &rb); err != nil {
-		t.Errorf("Unmarshal failed.")
+		t.Errorf("error in test: %v", err)
 	}
 
 	if rb.Data.Secret == "" {
-		t.Errorf("Response incorrect, got: empty string, want: %s", rb.Data.Secret)
+		t.Errorf("response incorrect, got: empty string, want: %s", rb.Data.Secret)
 	}
 
 	runeCount := utf8.RuneCountInString(rb.Data.Secret)
 	if runeCount != 16 {
-		t.Errorf("Response secret length incorrect, got: %d, want: 16", runeCount)
+		t.Errorf("response secret length incorrect, got: %d, want: 16", runeCount)
 	}
 }
 
@@ -52,23 +52,23 @@ func TestGenerateSecretHandlerParams(t *testing.T) {
 	SetupServer().router.ServeHTTP(res, req)
 
 	if res.Code != 200 {
-		t.Errorf("Status code incorrect, got: %d, want: 200", res.Code)
+		t.Errorf("status code incorrect, got: %d, want: 200", res.Code)
 	}
 
-	var rb secretResponse
+	var rb responseBody
 	b, err := ioutil.ReadAll(res.Body)
 
 	if err = json.Unmarshal(b, &rb); err != nil {
-		t.Errorf("Unmarshal failed.")
+		t.Errorf("error in test: %v", err)
 	}
 
 	if rb.Data.Secret == "" {
-		t.Errorf("Response incorrect, got: empty string, want: %s", rb.Data.Secret)
+		t.Errorf("response incorrect, got: empty string, want: %s", rb.Data.Secret)
 	}
 
 	runeCount := utf8.RuneCountInString(rb.Data.Secret)
 	if runeCount != 22 {
-		t.Errorf("Response secret length incorrect, got: %d, want: 22", runeCount)
+		t.Errorf("response secret length incorrect, got: %d, want: 22", runeCount)
 	}
 }
 
@@ -78,7 +78,7 @@ func TestNotFound(t *testing.T) {
 	SetupServer().router.ServeHTTP(res, req)
 
 	if res.Code != 404 {
-		t.Errorf("Status code incorrect, got: %d, want: 404", res.Code)
+		t.Errorf("status code incorrect, got: %d, want: 404", res.Code)
 	}
 }
 
