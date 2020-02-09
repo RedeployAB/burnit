@@ -25,8 +25,9 @@ func TestGenerateSecret(t *testing.T) {
 	res := httptest.NewRecorder()
 	SetupServer().router.ServeHTTP(res, req)
 
-	if res.Code != 200 {
-		t.Errorf("status code incorrect, got: %d, want: 200", res.Code)
+	expectedCode := 200
+	if res.Code != expectedCode {
+		t.Errorf("status code incorrect, got: %d, want: %d", res.Code, expectedCode)
 	}
 
 	var rb responseBody
@@ -40,9 +41,10 @@ func TestGenerateSecret(t *testing.T) {
 		t.Errorf("response incorrect, got: empty string, want: %s", rb.Data.Secret)
 	}
 
-	runeCount := utf8.RuneCountInString(rb.Data.Secret)
-	if runeCount != 16 {
-		t.Errorf("response secret length incorrect, got: %d, want: 16", runeCount)
+	c := utf8.RuneCountInString(rb.Data.Secret)
+	expected := 16
+	if c != expected {
+		t.Errorf("response secret length incorrect, got: %d, want: %d", c, expected)
 	}
 }
 
@@ -51,8 +53,9 @@ func TestGenerateSecretHandlerParams(t *testing.T) {
 	res := httptest.NewRecorder()
 	SetupServer().router.ServeHTTP(res, req)
 
-	if res.Code != 200 {
-		t.Errorf("status code incorrect, got: %d, want: 200", res.Code)
+	expectedCode := 200
+	if res.Code != expectedCode {
+		t.Errorf("status code incorrect, got: %d, want: %d", res.Code, expectedCode)
 	}
 
 	var rb responseBody
@@ -66,9 +69,10 @@ func TestGenerateSecretHandlerParams(t *testing.T) {
 		t.Errorf("response incorrect, got: empty string, want: %s", rb.Data.Secret)
 	}
 
-	runeCount := utf8.RuneCountInString(rb.Data.Secret)
-	if runeCount != 22 {
-		t.Errorf("response secret length incorrect, got: %d, want: 22", runeCount)
+	c := utf8.RuneCountInString(rb.Data.Secret)
+	expected := 22
+	if c != 22 {
+		t.Errorf("response secret length incorrect, got: %d, want: %d", c, expected)
 	}
 }
 
@@ -77,8 +81,9 @@ func TestNotFound(t *testing.T) {
 	res := httptest.NewRecorder()
 	SetupServer().router.ServeHTTP(res, req)
 
-	if res.Code != 404 {
-		t.Errorf("status code incorrect, got: %d, want: 404", res.Code)
+	expectedCode := 404
+	if res.Code != expectedCode {
+		t.Errorf("status code incorrect, got: %d, want: %d", res.Code, expectedCode)
 	}
 }
 

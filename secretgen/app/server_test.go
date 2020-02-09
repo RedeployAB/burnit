@@ -14,8 +14,9 @@ func TestNewServer(t *testing.T) {
 	r := mux.NewRouter()
 	srv := NewServer(conf, r)
 
-	if srv.httpServer.Addr != "0.0.0.0:5000" {
-		t.Errorf("incorrect value, got: %s, want: 0.0.0.0:5000", srv.httpServer.Addr)
+	expected := "0.0.0.0:5000"
+	if srv.httpServer.Addr != expected {
+		t.Errorf("incorrect value, got: %s, want: %s", srv.httpServer.Addr, expected)
 	}
 }
 
@@ -40,7 +41,8 @@ func TestStartAndShutdown(t *testing.T) {
 	proc.Signal(os.Interrupt)
 
 	exitCode := result.ExitCode()
-	if exitCode != -1 {
-		t.Errorf("incorrect value, got: %d, want: -1", exitCode)
+	expected := -1
+	if exitCode != expected {
+		t.Errorf("incorrect value, got: %d, want: %d", exitCode, expected)
 	}
 }

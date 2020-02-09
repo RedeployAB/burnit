@@ -7,14 +7,16 @@ import (
 
 func TestConfigureFromEnv(t *testing.T) {
 	confDefault := configureFromEnv()
-	if confDefault.Port != "3002" {
-		t.Errorf("default port value is incorrect, got %s, want: 3002", confDefault.Port)
+	expected := "3002"
+	if confDefault.Port != expected {
+		t.Errorf("default port value is incorrect, got %s, want: %s", confDefault.Port, expected)
 	}
 
-	os.Setenv("SECRET_GEN_PORT", "5000")
+	expected = "5000"
+	os.Setenv("SECRET_GEN_PORT", expected)
 	confEnv := configureFromEnv()
-	if confEnv.Port != "5000" {
-		t.Errorf("port value is incorrect, got %s, want: 5000", confEnv.Port)
+	if confEnv.Port != expected {
+		t.Errorf("port value is incorrect, got %s, want: %s", confEnv.Port, expected)
 	}
 }
 
@@ -25,8 +27,9 @@ func TestConfigureFromFile(t *testing.T) {
 		t.Errorf("%v", err)
 	}
 
-	if conf.Port != "3003" {
-		t.Errorf("port value is incorrect, got %s, want: 3003", conf.Port)
+	expected := "3003"
+	if conf.Port != expected {
+		t.Errorf("port value is incorrect, got %s, want: %s", conf.Port, expected)
 	}
 }
 
