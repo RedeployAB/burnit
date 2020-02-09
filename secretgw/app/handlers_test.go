@@ -90,18 +90,18 @@ func TestCallSecretGenSuccess(t *testing.T) {
 	SetupServer("gen-success").router.ServeHTTP(res, req)
 
 	if res.Code != 200 {
-		t.Errorf("Status code incorrect, got: %d, want: 200", res.Code)
+		t.Errorf("status code incorrect, got: %d, want: 200", res.Code)
 	}
 
 	var rb mockGenerateFullResponse
 	b, err := ioutil.ReadAll(res.Body)
 
 	if err = json.Unmarshal(b, &rb); err != nil {
-		t.Errorf("Unmarshal failed.")
+		t.Errorf("error in test: %v", err)
 	}
 
 	if rb.Data.Secret != "secretvalue" {
-		t.Errorf("Response incorrect, got: %s, want: secretvalue", rb.Data.Secret)
+		t.Errorf("response incorrect, got: %s, want: secretvalue", rb.Data.Secret)
 	}
 }
 
@@ -111,7 +111,7 @@ func TestCallSecretGenFail(t *testing.T) {
 	SetupServer("gen-fail").router.ServeHTTP(res, req)
 
 	if res.Code != 500 {
-		t.Errorf("Status code incorrect, got: %d, want: 500", res.Code)
+		t.Errorf("status code incorrect, got: %d, want: 500", res.Code)
 	}
 }
 
@@ -121,7 +121,7 @@ func TestCallGetSecretSuccess(t *testing.T) {
 	SetupServer("db-get-success").router.ServeHTTP(res, req)
 
 	if res.Code != 200 {
-		t.Errorf("Status code incorrect, got: %d, want: 200", res.Code)
+		t.Errorf("status code incorrect, got: %d, want: 200", res.Code)
 	}
 
 	var rb mockDBFullResponse
