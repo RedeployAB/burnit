@@ -1,6 +1,7 @@
 package app
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -45,7 +46,7 @@ func (c mockClient) Request(o request.Options) (request.ResponseBody, error) {
 
 	switch c.mode {
 	case "gen-success":
-		resBody.Data = mockGenerateResponse{Secret: "secretvalue"}
+		resBody.Data = mockGenerateResponse{Secret: "value"}
 		err = nil
 	case "gen-fail":
 		resBody.Data = mockGenerateResponse{Secret: "fail"}
@@ -53,7 +54,7 @@ func (c mockClient) Request(o request.Options) (request.ResponseBody, error) {
 	case "db-get-success":
 		resBody.Data = mockDBResponse{
 			ID:     "1234",
-			Secret: "secretvalue",
+			Secret: "value",
 		}
 		err = nil
 	case "db-get-fail":
@@ -62,7 +63,7 @@ func (c mockClient) Request(o request.Options) (request.ResponseBody, error) {
 	case "db-create-success":
 		resBody.Data = mockDBResponse{
 			ID:     "4321",
-			Secret: "secretvalue",
+			Secret: "value",
 		}
 		err = nil
 	case "db-create-fail":
@@ -84,7 +85,7 @@ func SetupServer(mode string) Server {
 	return srv
 }
 
-func TestCallSecretGenSuccess(t *testing.T) {
+func TestGenerateSecretSuccess(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/api/v0/generate", nil)
 	res := httptest.NewRecorder()
 	SetupServer("gen-success").router.ServeHTTP(res, req)
@@ -100,97 +101,110 @@ func TestCallSecretGenSuccess(t *testing.T) {
 		t.Errorf("error in test: %v", err)
 	}
 
-	if rb.Data.Secret != "secretvalue" {
-		t.Errorf("response incorrect, got: %s, want: secretvalue", rb.Data.Secret)
+	expectedVale := "value"
+	if rb.Data.Secret != expectedVale {
+		t.Errorf("response incorrect, got: %s, want: %s", rb.Data.Secret, expectedVale)
 	}
 }
 
-func TestCallSecretGenFail(t *testing.T) {
+func TestGenerateSecretError(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/api/v0/generate", nil)
 	res := httptest.NewRecorder()
 	SetupServer("gen-fail").router.ServeHTTP(res, req)
 
-	if res.Code != 500 {
-		t.Errorf("status code incorrect, got: %d, want: 500", res.Code)
+	expectedCode := 500
+	if res.Code != expectedCode {
+		t.Errorf("status code incorrect, got: %d, want: %d", res.Code, expectedCode)
 	}
 }
 
-func TestCallGetSecretSuccess(t *testing.T) {
+func TestGetSecretSuccess(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/api/v0/secrets/1234", nil)
 	res := httptest.NewRecorder()
 	SetupServer("db-get-success").router.ServeHTTP(res, req)
 
-	if res.Code != 200 {
-		t.Errorf("status code incorrect, got: %d, want: 200", res.Code)
+	expectedCode := 200
+	if res.Code != expectedCode {
+		t.Errorf("status code incorrect, got: %d, want: %d", res.Code, expectedCode)
 	}
 
 	var rb mockDBFullResponse
 	b, err := ioutil.ReadAll(res.Body)
 
 	if err = json.Unmarshal(b, &rb); err != nil {
-		t.Errorf("Unmarshal failed")
+		t.Errorf("error in test: %v", err)
 	}
 
-	if rb.Data.ID != "1234" {
-		t.Errorf("Response incorrect, got: %s, want: 1234", rb.Data.ID)
+	expectedID := "1234"
+	if rb.Data.ID != expectedID {
+		t.Errorf("response incorrect, got: %s, want: %s", rb.Data.ID, expectedID)
 	}
 
-	if rb.Data.Secret != "secretvalue" {
-		t.Errorf("Response incorrect, got: %s, want: secretvalue", rb.Data.Secret)
+	expectedValue := "value"
+	if rb.Data.Secret != expectedValue {
+		t.Errorf("response incorrect, got: %s, want: %s", rb.Data.Secret, expectedValue)
 	}
 }
 
-func TestCallGetSecretFail(t *testing.T) {
+func TestGetSecretError(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/api/v0/secrets/1234", nil)
 	res := httptest.NewRecorder()
 	SetupServer("db-get-fail").router.ServeHTTP(res, req)
 
-	if res.Code != 500 {
-		t.Errorf("Status code incorrect, got: %d, want: 500", res.Code)
+	expectedCode := 500
+	if res.Code != expectedCode {
+		t.Errorf("status code incorrect, got: %d, want: %d", res.Code, expectedCode)
 	}
 }
 
-func TestCallCreateSecretSuccess(t *testing.T) {
-	req, _ := http.NewRequest("POST", "/api/v0/secrets", nil)
+func TestCreateSecretSuccess(t *testing.T) {
+	jsonStr := []byte(`{"secret":"value"}`)
+	req, _ := http.NewRequest("POST", "/api/v0/secrets", bytes.NewBuffer(jsonStr))
 	res := httptest.NewRecorder()
 	SetupServer("db-create-success").router.ServeHTTP(res, req)
 
-	if res.Code != 201 {
-		t.Errorf("Status code incorrect, got: %d, want: 200", res.Code)
+	expectedCode := 201
+	if res.Code != expectedCode {
+		t.Errorf("status code incorrect, got: %d, want: %d", res.Code, expectedCode)
 	}
 
 	var rb mockDBFullResponse
 	b, err := ioutil.ReadAll(res.Body)
 
 	if err = json.Unmarshal(b, &rb); err != nil {
-		t.Errorf("Unmarshal failed")
+		t.Errorf("error in test: %v", err)
 	}
 
-	if rb.Data.ID != "4321" {
-		t.Errorf("Response incorrect, got: %s, want: 4321", rb.Data.ID)
+	expectedID := "4321"
+	if rb.Data.ID != expectedID {
+		t.Errorf("response incorrect, got: %s, want: %s", rb.Data.ID, expectedID)
 	}
 
-	if rb.Data.Secret != "secretvalue" {
-		t.Errorf("Response incorrect, got: %s, want: secretvalue", rb.Data.Secret)
+	expectedValue := "value"
+	if rb.Data.Secret != expectedValue {
+		t.Errorf("response incorrect, got: %s, want: %s", rb.Data.Secret, expectedValue)
 	}
 }
 
-func TestCallCreateSecretFail(t *testing.T) {
-	req, _ := http.NewRequest("POST", "/api/v0/secrets", nil)
+func TestCreateSecretError(t *testing.T) {
+	jsonStr := []byte(`{"secret}`)
+	req, _ := http.NewRequest("POST", "/api/v0/secrets", bytes.NewBuffer(jsonStr))
 	res := httptest.NewRecorder()
 	SetupServer("db-create-fail").router.ServeHTTP(res, req)
 
-	if res.Code != 500 {
-		t.Errorf("Status code incorrect, got: %d, want: 500", res.Code)
+	expectedCode := 500
+	if res.Code != expectedCode {
+		t.Errorf("Status code incorrect, got: %d, want: %d", res.Code, expectedCode)
 	}
 }
 
-func TestCallNotFound(t *testing.T) {
+func TestNotFound(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)
 	res := httptest.NewRecorder()
 	SetupServer("").router.ServeHTTP(res, req)
 
-	if res.Code != 404 {
-		t.Errorf("Status code incorrect, got: %d, want: 404", res.Code)
+	expectedCode := 404
+	if res.Code != expectedCode {
+		t.Errorf("Status code incorrect, got: %d, want: %d", res.Code, expectedCode)
 	}
 }
