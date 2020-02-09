@@ -23,9 +23,3 @@ func TestGenerate(t *testing.T) {
 		}
 	}
 }
-
-func BenchmarkGenerateSecret(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		Generate(8, true)
-	}
-}
