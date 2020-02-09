@@ -31,7 +31,7 @@ type Collection struct {
 func Connect(opts config.Database) (*Client, error) {
 	uri := opts.URI
 	if uri == "" {
-		uri = toConnectionURI(opts)
+		uri = toURI(opts)
 	}
 
 	client, err := mongo.NewClient(options.Client().ApplyURI(uri))
@@ -64,7 +64,7 @@ func Close(c Connection) error {
 	return nil
 }
 
-func toConnectionURI(opts config.Database) string {
+func toURI(opts config.Database) string {
 	var b strings.Builder
 
 	b.WriteString("mongodb://")
