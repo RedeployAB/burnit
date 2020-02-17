@@ -7,23 +7,29 @@ import (
 
 func TestConfigureFromEnv(t *testing.T) {
 	confDefault := configureFromEnv()
-	if confDefault.Port != "3000" {
-		t.Errorf("Default port value is incorrect, got %s, want: 3000", confDefault.Port)
+	expectedPort := "3000"
+	if confDefault.Port != expectedPort {
+		t.Errorf("default port value is incorrect, got: %s, want: %s", confDefault.Port, expectedPort)
 	}
-	if confDefault.GeneratorBaseURL != "http://localhost:3002" {
-		t.Errorf("Generator Base URL is incorrect, got %s, want: http://localhost:3002", confDefault.GeneratorBaseURL)
+	expectedGenBaseURL := "http://localhost:3002"
+	if confDefault.GeneratorBaseURL != expectedGenBaseURL {
+		t.Errorf("Generator Base URL is incorrect, got: %s, want: %s", confDefault.GeneratorBaseURL, expectedGenBaseURL)
 	}
-	if confDefault.GeneratorServicePath != "/api/v0/generate" {
-		t.Errorf("Generator Service  Path is incorrect, got %s, want: /api/v0/generate", confDefault.GeneratorServicePath)
+	expectedGenPath := "/api/v0/generate"
+	if confDefault.GeneratorServicePath != expectedGenPath {
+		t.Errorf("Generator Service  Path is incorrect, got: %s, want: %s", confDefault.GeneratorServicePath, expectedGenPath)
 	}
-	if confDefault.DBBaseURL != "http://localhost:3001" {
-		t.Errorf("DB Base URL is incorrect, got %s, want http://localhost:3001", confDefault.DBBaseURL)
+	expectedDBBaseURL := "http://localhost:3001"
+	if confDefault.DBBaseURL != expectedDBBaseURL {
+		t.Errorf("DB Base URL is incorrect, got: %s, want: %s", confDefault.DBBaseURL, expectedDBBaseURL)
 	}
-	if confDefault.DBServicePath != "/api/v0/secrets" {
-		t.Errorf("DB Service Path is incorrect, got %s, want /api/v0/secrets", confDefault.DBServicePath)
+	expectedDBPath := "/api/v0/secrets"
+	if confDefault.DBServicePath != expectedDBPath {
+		t.Errorf("DB Service Path is incorrect, got: %s, want: %s", confDefault.DBServicePath, expectedDBPath)
 	}
-	if confDefault.DBAPIKey != "" {
-		t.Errorf("DB API Key is incorrect, got %s, want empty string", confDefault.DBAPIKey)
+	expectedDBAPIKey := ""
+	if confDefault.DBAPIKey != expectedDBAPIKey {
+		t.Errorf("DB API Key is incorrect, got: %s, want: %s", confDefault.DBAPIKey, expectedDBAPIKey)
 	}
 
 	os.Setenv("SECRET_GW_PORT", "5000")
@@ -34,23 +40,29 @@ func TestConfigureFromEnv(t *testing.T) {
 	os.Setenv("SECRET_DB_API_KEY", "AAAA")
 	confEnv := configureFromEnv()
 
-	if confEnv.Port != "5000" {
-		t.Errorf("Port value is incorrect, got %s, want: 5000", confEnv.Port)
+	expectedPort = "5000"
+	if confEnv.Port != expectedPort {
+		t.Errorf("Port value is incorrect, got: %s, want: %s", confEnv.Port, expectedPort)
 	}
-	if confEnv.GeneratorBaseURL != "http://someurl:3000" {
-		t.Errorf("Generator Base URL is incorrect, got %s, want: http://someurl:3000", confEnv.GeneratorBaseURL)
+	expectedGenBaseURL = "http://someurl:3000"
+	if confEnv.GeneratorBaseURL != expectedGenBaseURL {
+		t.Errorf("Generator Base URL is incorrect, got %s, want: %s", confEnv.GeneratorBaseURL, expectedGenBaseURL)
 	}
-	if confEnv.GeneratorServicePath != "/api/v1/generate" {
-		t.Errorf("Generator Service  Path is incorrect, got %s, want: /api/v1/generate", confEnv.GeneratorServicePath)
+	expectedGenPath = "/api/v1/generate"
+	if confEnv.GeneratorServicePath != expectedGenPath {
+		t.Errorf("Generator Service  Path is incorrect, got %s, want: %s", confEnv.GeneratorServicePath, expectedGenPath)
 	}
-	if confEnv.DBBaseURL != "http://someurl:3001" {
-		t.Errorf("DB Base URL is incorrect, got %s, want: http://someurl:3001", confEnv.DBBaseURL)
+	expectedDBBaseURL = "http://someurl:3001"
+	if confEnv.DBBaseURL != expectedDBBaseURL {
+		t.Errorf("DB Base URL is incorrect, got %s, want: %s", confEnv.DBBaseURL, expectedDBBaseURL)
 	}
-	if confEnv.DBServicePath != "/api/v1/secrets" {
-		t.Errorf("DB Service Path is incorrect, got %s, want: /api/v1/secrets", confEnv.DBServicePath)
+	expectedDBPath = "/api/v1/secrets"
+	if confEnv.DBServicePath != expectedDBPath {
+		t.Errorf("DB Service Path is incorrect, got %s, want: %s", confEnv.DBServicePath, expectedDBPath)
 	}
-	if confEnv.DBAPIKey != "AAAA" {
-		t.Errorf("DB API Key is incorrect, got %s, want: AAAA", confEnv.DBAPIKey)
+	expectedDBAPIKey = "AAAA"
+	if confEnv.DBAPIKey != expectedDBAPIKey {
+		t.Errorf("DB API Key is incorrect, got %s, want: %s", confEnv.DBAPIKey, expectedDBAPIKey)
 	}
 }
 
@@ -61,23 +73,29 @@ func TestConfigureFromFile(t *testing.T) {
 		t.Errorf("%v", err)
 	}
 
-	if conf.Port != "3003" {
-		t.Errorf("Port value is incorrect, got %s, want: 3003", conf.Port)
+	expectedPort := "3003"
+	if conf.Port != expectedPort {
+		t.Errorf("Port value is incorrect, got %s, want: %s", conf.Port, expectedPort)
 	}
-	if conf.GeneratorBaseURL != "http://localhost:3003" {
-		t.Errorf("Generator Base URL is incorrect, got %s, want: http://localhost:3003", conf.GeneratorBaseURL)
+	expectedGenBaseURL := "http://localhost:3003"
+	if conf.GeneratorBaseURL != expectedGenBaseURL {
+		t.Errorf("Generator Base URL is incorrect, got %s, want: %s", conf.GeneratorBaseURL, expectedGenBaseURL)
 	}
-	if conf.GeneratorServicePath != "/api/v1/generate" {
-		t.Errorf("Generator Service Path is incorrect, got %s, want: /api/v1/generate", conf.GeneratorServicePath)
+	expectedGenPath := "/api/v1/generate"
+	if conf.GeneratorServicePath != expectedGenPath {
+		t.Errorf("Generator Service Path is incorrect, got %s, want: %s", conf.GeneratorServicePath, expectedGenPath)
 	}
-	if conf.DBBaseURL != "http://localhost:3003" {
-		t.Errorf("DB Base URL is incorrect, got %s, want: http://localhost:3003", conf.DBBaseURL)
+	expectedDBBaseURL := "http://localhost:3003"
+	if conf.DBBaseURL != expectedDBBaseURL {
+		t.Errorf("DB Base URL is incorrect, got %s, want: %s", conf.DBBaseURL, expectedDBBaseURL)
 	}
-	if conf.DBServicePath != "/api/v1/secrets" {
-		t.Errorf("DB Service Path is incorrect, got %s, want: /api/v1/secrets", conf.DBServicePath)
+	expectedDBPath := "/api/v1/secrets"
+	if conf.DBServicePath != expectedDBPath {
+		t.Errorf("DB Service Path is incorrect, got %s, want: %s", conf.DBServicePath, expectedDBPath)
 	}
-	if conf.DBAPIKey != "aabbcc" {
-		t.Errorf("DB API Key is incorrect, got %s, want: aabbcc", conf.DBAPIKey)
+	expectedDBAPIKey := "aabbcc"
+	if conf.DBAPIKey != expectedDBAPIKey {
+		t.Errorf("DB API Key is incorrect, got %s, want: %s", conf.DBAPIKey, expectedDBAPIKey)
 	}
 }
 
