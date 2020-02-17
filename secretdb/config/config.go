@@ -37,7 +37,7 @@ type Configuration struct {
 func Configure(path string) (Configuration, error) {
 	var config Configuration
 	var err error
-	if path == "" {
+	if len(path) == 0 {
 		config = configureFromEnv()
 	} else {
 		config, err = configureFromFile(path)
@@ -46,7 +46,7 @@ func Configure(path string) (Configuration, error) {
 		}
 	}
 
-	if config.Server.Passphrase == "" {
+	if len(config.Server.Passphrase) == 0 {
 		return Configuration{}, errors.New("encryption passphrase must be set")
 	}
 	return config, nil
@@ -58,7 +58,7 @@ func Configure(path string) (Configuration, error) {
 func configureFromEnv() Configuration {
 	// Server variables.
 	port := os.Getenv("SECRET_DB_PORT")
-	if port == "" {
+	if len(port) == 0 {
 		port = "3001"
 	}
 	dbAPIkey := os.Getenv("SECRET_DB_API_KEY")
@@ -66,7 +66,7 @@ func configureFromEnv() Configuration {
 
 	// Database variables.
 	dbHost := os.Getenv("DB_HOST")
-	if dbHost == "" {
+	if len(dbHost) == 0 {
 		dbHost = "localhost"
 	}
 
@@ -76,7 +76,7 @@ func configureFromEnv() Configuration {
 
 	var dbSSL bool
 	dbSSLStr := os.Getenv("DB_SSL")
-	if dbSSLStr == "" {
+	if len(dbSSLStr) == 0 {
 		dbSSL = false
 	} else {
 		dbSSL, _ = strconv.ParseBool(dbSSLStr)
@@ -122,10 +122,10 @@ func configureFromFile(path string) (Configuration, error) {
 		return config, err
 	}
 
-	if config.Server.Port == "" {
+	if len(config.Server.Port) == 0 {
 		config.Server.Port = "3001"
 	}
-	if config.Database.Address == "" && config.Database.URI == "" {
+	if len(config.Database.Address) == 0 && len(config.Database.URI) == 0 {
 		config.Database.URI = "mongodb://localhost"
 	}
 	return config, nil

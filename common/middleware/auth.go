@@ -18,7 +18,7 @@ type Authentication struct {
 func (amw *Authentication) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("X-API-Key")
-		if token == "" {
+		if len(token) == 0 {
 			httperror.Error(w, http.StatusUnauthorized)
 			return
 		}

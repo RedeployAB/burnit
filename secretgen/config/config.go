@@ -18,7 +18,7 @@ type Configuration struct {
 func Configure(path string) (Configuration, error) {
 	var config Configuration
 	var err error
-	if path == "" {
+	if len(path) == 0 {
 		config = configureFromEnv()
 	} else {
 		config, err = configureFromFile(path)
@@ -34,7 +34,7 @@ func Configure(path string) (Configuration, error) {
 // variables.
 func configureFromEnv() Configuration {
 	port := os.Getenv("SECRET_GEN_PORT")
-	if port == "" {
+	if len(port) == 0 {
 		port = "3002"
 	}
 	return Configuration{Port: port}

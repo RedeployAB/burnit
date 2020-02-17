@@ -30,7 +30,7 @@ type Collection struct {
 // specified in the passed in options argument.
 func Connect(opts config.Database) (*Client, error) {
 	uri := opts.URI
-	if uri == "" {
+	if len(uri) == 0 {
 		uri = toURI(opts)
 	}
 
