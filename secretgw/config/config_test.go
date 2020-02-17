@@ -15,7 +15,7 @@ func TestConfigureFromEnv(t *testing.T) {
 	if confDefault.GeneratorBaseURL != expectedGenBaseURL {
 		t.Errorf("Generator Base URL is incorrect, got: %s, want: %s", confDefault.GeneratorBaseURL, expectedGenBaseURL)
 	}
-	expectedGenPath := "/api/v0/generate"
+	expectedGenPath := "/api/generate"
 	if confDefault.GeneratorServicePath != expectedGenPath {
 		t.Errorf("Generator Service  Path is incorrect, got: %s, want: %s", confDefault.GeneratorServicePath, expectedGenPath)
 	}
@@ -23,7 +23,7 @@ func TestConfigureFromEnv(t *testing.T) {
 	if confDefault.DBBaseURL != expectedDBBaseURL {
 		t.Errorf("DB Base URL is incorrect, got: %s, want: %s", confDefault.DBBaseURL, expectedDBBaseURL)
 	}
-	expectedDBPath := "/api/v0/secrets"
+	expectedDBPath := "/api/secrets"
 	if confDefault.DBServicePath != expectedDBPath {
 		t.Errorf("DB Service Path is incorrect, got: %s, want: %s", confDefault.DBServicePath, expectedDBPath)
 	}

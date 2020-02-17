@@ -86,7 +86,7 @@ func SetupServer(mode string) Server {
 }
 
 func TestGenerateSecretSuccess(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/api/v0/generate", nil)
+	req, _ := http.NewRequest("GET", "/api/generate", nil)
 	res := httptest.NewRecorder()
 	SetupServer("gen-success").router.ServeHTTP(res, req)
 
@@ -108,7 +108,7 @@ func TestGenerateSecretSuccess(t *testing.T) {
 }
 
 func TestGenerateSecretError(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/api/v0/generate", nil)
+	req, _ := http.NewRequest("GET", "/api/generate", nil)
 	res := httptest.NewRecorder()
 	SetupServer("gen-fail").router.ServeHTTP(res, req)
 
@@ -119,7 +119,7 @@ func TestGenerateSecretError(t *testing.T) {
 }
 
 func TestGetSecretSuccess(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/api/v0/secrets/1234", nil)
+	req, _ := http.NewRequest("GET", "/api/secrets/1234", nil)
 	res := httptest.NewRecorder()
 	SetupServer("db-get-success").router.ServeHTTP(res, req)
 
@@ -147,7 +147,7 @@ func TestGetSecretSuccess(t *testing.T) {
 }
 
 func TestGetSecretError(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/api/v0/secrets/1234", nil)
+	req, _ := http.NewRequest("GET", "/api/secrets/1234", nil)
 	res := httptest.NewRecorder()
 	SetupServer("db-get-fail").router.ServeHTTP(res, req)
 
@@ -159,7 +159,7 @@ func TestGetSecretError(t *testing.T) {
 
 func TestCreateSecretSuccess(t *testing.T) {
 	jsonStr := []byte(`{"secret":"value"}`)
-	req, _ := http.NewRequest("POST", "/api/v0/secrets", bytes.NewBuffer(jsonStr))
+	req, _ := http.NewRequest("POST", "/api/secrets", bytes.NewBuffer(jsonStr))
 	res := httptest.NewRecorder()
 	SetupServer("db-create-success").router.ServeHTTP(res, req)
 
@@ -188,7 +188,7 @@ func TestCreateSecretSuccess(t *testing.T) {
 
 func TestCreateSecretError(t *testing.T) {
 	jsonStr := []byte(`{"secret}`)
-	req, _ := http.NewRequest("POST", "/api/v0/secrets", bytes.NewBuffer(jsonStr))
+	req, _ := http.NewRequest("POST", "/api/secrets", bytes.NewBuffer(jsonStr))
 	res := httptest.NewRecorder()
 	SetupServer("db-create-fail").router.ServeHTTP(res, req)
 

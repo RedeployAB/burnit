@@ -2,18 +2,15 @@ package app
 
 import (
 	"github.com/RedeployAB/burnit/common/middleware"
-	"github.com/RedeployAB/burnit/secretgw/config"
 )
-
-var apiVer = config.Version
 
 func (s *Server) routes() {
 	// Generator routes.
-	g := s.router.PathPrefix("/api/" + apiVer).Subrouter()
+	g := s.router.PathPrefix("/api").Subrouter()
 	g.Handle("/generate", s.generateSecret()).Methods("GET")
 
 	// DB routes.
-	d := s.router.PathPrefix("/api/" + apiVer).Subrouter()
+	d := s.router.PathPrefix("/api").Subrouter()
 	d.Handle("/secrets/{id}", s.getSecret()).Methods("GET")
 	d.Handle("/secrets", s.createSecret()).Methods("POST")
 	// Init middleware for all db routes.

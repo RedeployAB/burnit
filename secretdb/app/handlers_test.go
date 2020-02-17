@@ -130,7 +130,7 @@ func SetupServer(action, mode string) Server {
 }
 
 func TestGetSecretSuccess(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/api/v0/secrets/"+id1, nil)
+	req, _ := http.NewRequest("GET", "/api/secrets/"+id1, nil)
 	req.Header.Add("x-api-key", apiKey)
 	res := httptest.NewRecorder()
 	SetupServer("find", "find-success").router.ServeHTTP(res, req)
@@ -141,7 +141,7 @@ func TestGetSecretSuccess(t *testing.T) {
 }
 
 func TestGetSecretInvalidOID(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/api/v0/secrets/1234", nil)
+	req, _ := http.NewRequest("GET", "/api/secrets/1234", nil)
 	req.Header.Add("x-api-key", apiKey)
 	res := httptest.NewRecorder()
 	SetupServer("find", "find-invalid-oid").router.ServeHTTP(res, req)
@@ -153,7 +153,7 @@ func TestGetSecretInvalidOID(t *testing.T) {
 }
 
 func TestGetSecretNotFound(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/api/v0/secrets/"+id1, nil)
+	req, _ := http.NewRequest("GET", "/api/secrets/"+id1, nil)
 	req.Header.Add("x-api-key", apiKey)
 	res := httptest.NewRecorder()
 	SetupServer("find", "find-not-found").router.ServeHTTP(res, req)
@@ -165,7 +165,7 @@ func TestGetSecretNotFound(t *testing.T) {
 }
 
 func TestGetSecretDBError(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/api/v0/secrets/"+id1, nil)
+	req, _ := http.NewRequest("GET", "/api/secrets/"+id1, nil)
 	req.Header.Add("x-api-key", apiKey)
 	res := httptest.NewRecorder()
 	SetupServer("find", "find-error").router.ServeHTTP(res, req)
@@ -177,7 +177,7 @@ func TestGetSecretDBError(t *testing.T) {
 }
 
 func TestGetSecretDeleteError(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/api/v0/secrets/"+id1, nil)
+	req, _ := http.NewRequest("GET", "/api/secrets/"+id1, nil)
 	req.Header.Add("x-api-key", apiKey)
 	res := httptest.NewRecorder()
 	SetupServer("find", "find-delete-error").router.ServeHTTP(res, req)
@@ -189,7 +189,7 @@ func TestGetSecretDeleteError(t *testing.T) {
 }
 
 func TestGetSecretWithPassphraseSuccess(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/api/v0/secrets/"+id1, nil)
+	req, _ := http.NewRequest("GET", "/api/secrets/"+id1, nil)
 	req.Header.Add("x-api-key", apiKey)
 	req.Header.Add("x-passphrase", "passphrase")
 	res := httptest.NewRecorder()
@@ -202,7 +202,7 @@ func TestGetSecretWithPassphraseSuccess(t *testing.T) {
 }
 
 func TestGetSecretWithInvalidPassphrase(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/api/v0/secrets/"+id1, nil)
+	req, _ := http.NewRequest("GET", "/api/secrets/"+id1, nil)
 	req.Header.Add("x-api-key", apiKey)
 	req.Header.Add("x-passphrase", "notpassphrase")
 	res := httptest.NewRecorder()
@@ -216,7 +216,7 @@ func TestGetSecretWithInvalidPassphrase(t *testing.T) {
 
 func TestCreateSecretSuccess(t *testing.T) {
 	jsonStr := []byte(`{"secret":"value"}`)
-	req, _ := http.NewRequest("POST", "/api/v0/secrets", bytes.NewBuffer(jsonStr))
+	req, _ := http.NewRequest("POST", "/api/secrets", bytes.NewBuffer(jsonStr))
 	req.Header.Add("x-api-key", apiKey)
 	res := httptest.NewRecorder()
 	SetupServer("create", "insert-success").router.ServeHTTP(res, req)
@@ -230,7 +230,7 @@ func TestCreateSecretSuccess(t *testing.T) {
 func TestCreateSecretParseBodyError(t *testing.T) {
 	// Creating faulty JSON.
 	jsonStr := []byte(`{"secret":"value}`)
-	req, _ := http.NewRequest("POST", "/api/v0/secrets", bytes.NewBuffer(jsonStr))
+	req, _ := http.NewRequest("POST", "/api/secrets", bytes.NewBuffer(jsonStr))
 	req.Header.Add("x-api-key", apiKey)
 	res := httptest.NewRecorder()
 	SetupServer("insert", "insert-success").router.ServeHTTP(res, req)
@@ -243,7 +243,7 @@ func TestCreateSecretParseBodyError(t *testing.T) {
 
 func TestCreateSecretCreateError(t *testing.T) {
 	jsonStr := []byte(`{"secret":"value"}`)
-	req, _ := http.NewRequest("POST", "/api/v0/secrets", bytes.NewBuffer(jsonStr))
+	req, _ := http.NewRequest("POST", "/api/secrets", bytes.NewBuffer(jsonStr))
 	req.Header.Add("x-api-key", apiKey)
 	res := httptest.NewRecorder()
 	SetupServer("insert", "insert-error").router.ServeHTTP(res, req)
@@ -255,7 +255,7 @@ func TestCreateSecretCreateError(t *testing.T) {
 }
 
 func TestUpdateSecret(t *testing.T) {
-	req, _ := http.NewRequest("PUT", "/api/v0/secrets/"+id1, nil)
+	req, _ := http.NewRequest("PUT", "/api/secrets/"+id1, nil)
 	req.Header.Add("x-api-key", apiKey)
 	res := httptest.NewRecorder()
 	SetupServer("", "").router.ServeHTTP(res, req)
@@ -267,7 +267,7 @@ func TestUpdateSecret(t *testing.T) {
 }
 
 func TestDeleteSecretSuccess(t *testing.T) {
-	req, _ := http.NewRequest("DELETE", "/api/v0/secrets/"+id1, nil)
+	req, _ := http.NewRequest("DELETE", "/api/secrets/"+id1, nil)
 	req.Header.Add("x-api-key", apiKey)
 	res := httptest.NewRecorder()
 	SetupServer("delete", "delete-success").router.ServeHTTP(res, req)
@@ -279,7 +279,7 @@ func TestDeleteSecretSuccess(t *testing.T) {
 }
 
 func TestDeleteSecretNotFound(t *testing.T) {
-	req, _ := http.NewRequest("DELETE", "/api/v0/secrets/"+id1, nil)
+	req, _ := http.NewRequest("DELETE", "/api/secrets/"+id1, nil)
 	req.Header.Add("x-api-key", apiKey)
 	res := httptest.NewRecorder()
 	SetupServer("delete", "delete-not-found").router.ServeHTTP(res, req)
@@ -291,7 +291,7 @@ func TestDeleteSecretNotFound(t *testing.T) {
 }
 
 func TestDeleteSecretError(t *testing.T) {
-	req, _ := http.NewRequest("DELETE", "/api/v0/secrets/"+id1, nil)
+	req, _ := http.NewRequest("DELETE", "/api/secrets/"+id1, nil)
 	req.Header.Add("x-api-key", apiKey)
 	res := httptest.NewRecorder()
 	SetupServer("delete", "delete-error").router.ServeHTTP(res, req)

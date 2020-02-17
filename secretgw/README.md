@@ -14,9 +14,9 @@ have default values.
 
 * `SECRET_GW_PORT` - Port the service listens to. Defaults to `3000`
 * `SECRET_GEN_BASE_URL` - URL with port to `secretgen`. Defaults to `http://localhost:3002`
-* `SECRET_GEN_PATH` - Path for service calls. Defaults to `/api/v0/generate`
+* `SECRET_GEN_PATH` - Path for service calls. Defaults to `/api/generate`
 * `SECRET_DB_BASE_URL` - URL with port to `secretdb`. Defaults to `http://localhost:3001`
-* `SECRET_DB_PATH`- Path for service alls. Defaults to `/api/v0/secrets`
+* `SECRET_DB_PATH`- Path for service alls. Defaults to `/api/secrets`
 * `SECRET_DB_API_KEY` - API key/token to `secretdb` endpoints
 
 **Configuration file**
@@ -32,8 +32,8 @@ Pass `-config` with path when running service, like so:
 server:
   port: 3000
   generatorBaseUrl: "http://localhost:3002"
-  generatorServicePath: "/api/v0/generate"
+  generatorServicePath: "/api/generate"
   dbBaseUrl: "http://localhost:3001"
-  dbServicePath: "/api/v0/secrets"
+  dbServicePath: "/api/secrets"
   dbApiKey: "<DB-API-KEY>"
 ```

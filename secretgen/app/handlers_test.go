@@ -21,7 +21,7 @@ func SetupServer() Server {
 }
 
 func TestGenerateSecret(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/api/v0/generate", nil)
+	req, _ := http.NewRequest("GET", "/api/generate", nil)
 	res := httptest.NewRecorder()
 	SetupServer().router.ServeHTTP(res, req)
 
@@ -37,7 +37,7 @@ func TestGenerateSecret(t *testing.T) {
 		t.Errorf("error in test: %v", err)
 	}
 
-	if rb.Data.Secret == "" {
+	if len(rb.Data.Secret) == 0 {
 		t.Errorf("response incorrect, got: empty string, want: %s", rb.Data.Secret)
 	}
 
@@ -49,7 +49,7 @@ func TestGenerateSecret(t *testing.T) {
 }
 
 func TestGenerateSecretHandlerParams(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/api/v0/generate?length=22&specialshars=true", nil)
+	req, _ := http.NewRequest("GET", "/api/generate?length=22&specialshars=true", nil)
 	res := httptest.NewRecorder()
 	SetupServer().router.ServeHTTP(res, req)
 
@@ -65,7 +65,7 @@ func TestGenerateSecretHandlerParams(t *testing.T) {
 		t.Errorf("error in test: %v", err)
 	}
 
-	if rb.Data.Secret == "" {
+	if len(rb.Data.Secret) == 0 {
 		t.Errorf("response incorrect, got: empty string, want: %s", rb.Data.Secret)
 	}
 

@@ -12,8 +12,8 @@ This is a collection of three services:
 
 These endpoints are available:
 
-* `/api/v0/generate`
-* `/api/v0/secrets`
+* `/api/generate`
+* `/api/secrets`
 
 ### Generating secrets
 
@@ -21,35 +21,35 @@ These endpoints are available:
 // NOTE: special characters are: (!?=()&%)
 
 // Generating a secret with default length (16).
-GET /api/v0/generate
+GET /api/generate
 
 // Generating a secret with specified length of 24.
-GET /api/v0/generate?length=24
+GET /api/generate?length=24
 
 // Generating a secret with special characters.
-GET /api/v0/generate?specialchars=true
+GET /api/generate?specialchars=true
 
 // Generating a secret with specified length and special characters.
-GET /api/v0/generate?length=24&specialchars=true
+GET /api/generate?length=24&specialchars=true
 ```
 
 ### Creating and fetching secrets
 
 ```
 // Creating a secret with no passphrase, and default TTL (7 days).
-POST /api/v0/secrets
+POST /api/secrets
 Body: {"secret":"<value>"}
 
 // Creating a secret with a passphrase.
-POST /api/v0/secrets
+POST /api/secrets
 Body: {"secret":"<value>","passphrase":"<value>"}
 
 // Creating a secret with a specified TTL in minutes.
-POST /api/v0/secrets
+POST /api/secrets
 Body: {"secret":"<value>","ttl":<value>}
 
 // Creating a secret with a passphrase and a specified TTL in minutes.
-POST /api/v0/secrets
+POST /api/secrets
 Body: {"secret":"<value>","passphrase":"<value>","ttl":<value>}
 ```
 
