@@ -28,7 +28,7 @@ type Configuration struct {
 func Configure(path string) (Configuration, error) {
 	var config Configuration
 	var err error
-	if path == "" {
+	if len(path) == 0 {
 		config = configureFromEnv()
 	} else {
 		config, err = configureFromFile(path)
@@ -44,26 +44,26 @@ func Configure(path string) (Configuration, error) {
 // variables.
 func configureFromEnv() Configuration {
 	port := os.Getenv("SECRET_GW_PORT")
-	if port == "" {
+	if len(port) == 0 {
 		port = "3000"
 	}
 
 	genBaseURL := os.Getenv("SECRET_GEN_BASE_URL")
-	if genBaseURL == "" {
+	if len(genBaseURL) == 0 {
 		genBaseURL = "http://localhost:3002"
 	}
 	genSvcPath := os.Getenv("SECRET_GEN_PATH")
-	if genSvcPath == "" {
-		genSvcPath = "/api/v0/generate"
+	if len(genSvcPath) == 0 {
+		genSvcPath = "/api/generate"
 	}
 
 	dbBaseURL := os.Getenv("SECRET_DB_BASE_URL")
-	if dbBaseURL == "" {
+	if len(dbBaseURL) == 0 {
 		dbBaseURL = "http://localhost:3001"
 	}
 	dbSvcPath := os.Getenv("SECRET_DB_PATH")
-	if dbSvcPath == "" {
-		dbSvcPath = "/api/v0/secrets"
+	if len(dbSvcPath) == 0 {
+		dbSvcPath = "/api/secrets"
 	}
 
 	dbAPIKey := os.Getenv("SECRET_DB_API_KEY")
