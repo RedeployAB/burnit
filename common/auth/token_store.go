@@ -36,7 +36,7 @@ func (m *MemoryTokenStore) Set(token, user string) {
 }
 
 // Verify compares the key in the memory token store with
-// the key passed in as inKey.
+// the provided token.
 func (m *MemoryTokenStore) Verify(token string) bool {
 	_, ok := m.Get(token)
 	if ok {
