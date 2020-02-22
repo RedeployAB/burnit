@@ -64,12 +64,13 @@ func (s *Server) Start() {
 		}
 	}()
 	log.Printf("server listening on: %s", s.httpServer.Addr)
-	s.gracefulShutdown()
+	s.shutdown()
+	log.Println("server has been stopped")
 }
 
-// gracefulShutdown will shutdown server when interrupt or
+// shutdown will shutdown server when interrupt or
 // kill is received.
-func (s *Server) gracefulShutdown() {
+func (s *Server) shutdown() {
 	stop := make(chan os.Signal, 1)
 
 	signal.Notify(stop, os.Interrupt, os.Kill)
@@ -89,5 +90,4 @@ func (s *Server) gracefulShutdown() {
 	if err := s.httpServer.Shutdown(ctx); err != nil {
 		log.Fatalf("could not shutdown server gracefully: %v", err)
 	}
-	log.Println("server has been stopped")
 }
