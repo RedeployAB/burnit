@@ -10,14 +10,14 @@ import (
 func Error(w http.ResponseWriter, code int) {
 	var err string
 	switch code {
-	case http.StatusNotFound:
-		err = "not found"
 	case http.StatusBadRequest:
 		err = "malformed JSON"
 	case http.StatusUnauthorized:
 		err = "unauthorized"
 	case http.StatusForbidden:
 		err = "forbidden"
+	case http.StatusNotFound:
+		err = "not found"
 	case http.StatusInternalServerError:
 		err = "internal server error"
 	case http.StatusNotImplemented:
