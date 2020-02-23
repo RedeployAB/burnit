@@ -1,8 +1,8 @@
-# secretgen
+# burnitgen
 
 > Service with API to generate random character strings
 
-`secretgen` provides an API to generate random character strings of varying
+`burnitgen` provides an API to generate random character strings of varying
 lengths, with or without special characters.
 
 ## Configuration
@@ -14,13 +14,13 @@ or use defaults.
 
 **Environment variables**
 
-* `SECRET_GEN_PORT` - Port the service listens to. Defaults to `3002`
+* `BURNITGEN_PORT` - Port the service listens to. Defaults to `3002`
 
 **Configuration file**
 
 Pass `-config` with path when running service, like so:
 ```
-./secretgen -config config.yaml
+./burnitgen -config config.yaml
 ```
 
 *Example `config.yaml`*

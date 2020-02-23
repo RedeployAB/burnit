@@ -1,4 +1,4 @@
-module github.com/RedeployAB/burnit/secretgen
+module github.com/RedeployAB/burnit/burnitgen
 
 go 1.13
 

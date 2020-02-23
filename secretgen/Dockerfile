@@ -12,9 +12,9 @@ ARG PORT=3002
 COPY --from=builder /etc/passwd /etc/passwd
 
 WORKDIR /app
-COPY release/bin/secretgen /app/
+COPY release/bin/burnitgen /app/
 
 EXPOSE ${PORT}
 
 USER app
-ENTRYPOINT [ "./secretgen" ]
+ENTRYPOINT [ "./burnitgen" ]

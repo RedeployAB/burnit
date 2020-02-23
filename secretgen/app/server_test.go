@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/RedeployAB/burnit/secretgen/config"
+	"github.com/RedeployAB/burnit/burnitgen/config"
 	"github.com/gorilla/mux"
 )
 

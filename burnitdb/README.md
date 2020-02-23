@@ -40,7 +40,7 @@ server:
   passphrase: secretstring # Mandatory
 database:
   address: localhost:27017
-  database: secret_db
+  database: burnit_db
   username: dbuser
   password: dbpassword
   ssl: true

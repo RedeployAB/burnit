@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/RedeployAB/burnit/burnitgen/internal/secret"
 	"github.com/RedeployAB/burnit/common/httperror"
-	"github.com/RedeployAB/burnit/secretgen/internal/secret"
 )
 
 // notFound handles all non used routes.

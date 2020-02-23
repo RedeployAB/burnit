@@ -58,8 +58,8 @@ func TestConfigureFromEnv(t *testing.T) {
 	if confEnv.Database.Address != "localhost:27017" {
 		t.Errorf("address value is incorrect, got %s, want: localhost:27017", confEnv.Database.Address)
 	}
-	if confEnv.Database.Database != "secret_db" {
-		t.Errorf("database value is incorrect, got %s, want: secret_db", confEnv.Database.Database)
+	if confEnv.Database.Database != "burnit_db" {
+		t.Errorf("database value is incorrect, got %s, want: burnit_db", confEnv.Database.Database)
 	}
 	if confEnv.Database.Username != "dbuser" {
 		t.Errorf("username value is incorrect, got %s, want: dbuser", confEnv.Database.Username)
@@ -95,8 +95,8 @@ func TestConfigureFromFile(t *testing.T) {
 	if conf.Database.Address != "localhost:27017" {
 		t.Errorf("address value is incorrect, got %s, want: localhost:27017", conf.Database.Address)
 	}
-	if conf.Database.Database != "secret_db" {
-		t.Errorf("database value is incorrect, got %s, want: secret_db", conf.Database.Database)
+	if conf.Database.Database != "burnit_db" {
+		t.Errorf("database value is incorrect, got %s, want: burnit_db", conf.Database.Database)
 	}
 	if conf.Database.Username != "dbuser" {
 		t.Errorf("username value is incorrect, got %s, want: dbuser", conf.Database.Username)

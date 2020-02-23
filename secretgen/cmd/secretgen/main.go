@@ -4,8 +4,8 @@ import (
 	"flag"
 	"log"
 
-	"github.com/RedeployAB/burnit/secretgen/app"
-	"github.com/RedeployAB/burnit/secretgen/config"
+	"github.com/RedeployAB/burnit/burnitgen/app"
+	"github.com/RedeployAB/burnit/burnitgen/config"
 	"github.com/gorilla/mux"
 )
 
