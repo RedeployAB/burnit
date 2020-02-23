@@ -18,6 +18,7 @@ type Repository interface {
 	Find(id string) (*models.Secret, error)
 	Insert(s *models.Secret) (*models.Secret, error)
 	Delete(id string) (int64, error)
+	DeleteExpired() (int64, error)
 }
 
 // SecretRepository handles interactions with the database

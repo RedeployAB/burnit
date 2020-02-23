@@ -94,6 +94,10 @@ func (r *mockHandlerRepository) Delete(id string) (int64, error) {
 	return result, err
 }
 
+func (r *mockHandlerRepository) DeleteExpired() (int64, error) {
+	return 0, nil
+}
+
 // The different methods on the handler will require
 // states. When creating
 func SetupServer(action, mode string) Server {

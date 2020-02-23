@@ -42,6 +42,10 @@ func (r *mockRepository) Delete(id string) (int64, error) {
 	return 0, nil
 }
 
+func (r *mockRepository) DeleteExpired() (int64, error) {
+	return 0, nil
+}
+
 func SetupOptions() ServerOptions {
 	conf := config.Configuration{
 		Server: config.Server{
