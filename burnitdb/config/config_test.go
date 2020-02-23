@@ -35,11 +35,11 @@ func TestConfigureFromEnv(t *testing.T) {
 		t.Errorf("default uri value is incorrect, got %v, want: \"\"", confDefault.Database.URI)
 	}
 
-	os.Setenv("SECRET_DB_PORT", "6000")
-	os.Setenv("SECRET_DB_API_KEY", "aabbcc")
-	os.Setenv("SECRET_DB_PASSPHRASE", "secretstring")
+	os.Setenv("BURNITDB_PORT", "6000")
+	os.Setenv("BURNITDB_API_KEY", "aabbcc")
+	os.Setenv("BURNITDB_PASSPHRASE", "secretstring")
 	os.Setenv("DB_HOST", "localhost:27017")
-	os.Setenv("DB", "secret_db")
+	os.Setenv("DB", "burnit_db")
 	os.Setenv("DB_USER", "dbuser")
 	os.Setenv("DB_PASSWORD", "dbpassword")
 	os.Setenv("DB_SSL", "true")

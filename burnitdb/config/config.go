@@ -57,12 +57,12 @@ func Configure(path string) (Configuration, error) {
 // variables.
 func configureFromEnv() Configuration {
 	// Server variables.
-	port := os.Getenv("SECRET_DB_PORT")
+	port := os.Getenv("BURNITDB_PORT")
 	if len(port) == 0 {
 		port = "3001"
 	}
-	dbAPIkey := os.Getenv("SECRET_DB_API_KEY")
-	passphrase := os.Getenv("SECRET_DB_PASSPHRASE")
+	dbAPIkey := os.Getenv("BURNITDB_API_KEY")
+	passphrase := os.Getenv("BURNITDB_PASSPHRASE")
 
 	// Database variables.
 	dbHost := os.Getenv("DB_HOST")
