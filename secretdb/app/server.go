@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"time"
 
 	"github.com/RedeployAB/burnit/common/auth"
@@ -55,6 +56,9 @@ func NewServer(opts ServerOptions) *Server {
 
 // Start creates an http server and runs ListenAndServe().
 func (s *Server) Start() {
+	// Setup WaitGroup and channel for cleanup job.
+	var wg sync.WaitGroup
+	cleanup := make(chan bool, 1)
 	// Setup routes.
 	s.routes(s.tokenStore)
 	// Listen and Serve.
@@ -63,20 +67,27 @@ func (s *Server) Start() {
 			log.Fatalf("server err: %v\n", err)
 		}
 	}()
+	// Start cleanup expired entries go routine.
+	go s.cleanup(&wg, cleanup)
+	wg.Add(1)
+
 	log.Printf("server listening on: %s", s.httpServer.Addr)
-	s.shutdown()
+	s.shutdown(&wg, cleanup)
 	log.Println("server has been stopped")
 }
 
 // shutdown will shutdown server when interrupt or
 // kill is received.
-func (s *Server) shutdown() {
+func (s *Server) shutdown(wg *sync.WaitGroup, cleanup chan<- bool) {
 	stop := make(chan os.Signal, 1)
-
 	signal.Notify(stop, os.Interrupt, os.Kill)
 	sig := <-stop
 
 	log.Printf("shutting down server. reason: %s\n", sig.String())
+	// Awaiting cleanup job to stop before proceeding.
+	cleanup <- true
+	wg.Wait()
+
 	log.Println("closing connection to database...")
 	if err := db.Close(s.connection); err != nil {
 		log.Printf("database: %v", err)
@@ -89,5 +100,24 @@ func (s *Server) shutdown() {
 	s.httpServer.SetKeepAlivesEnabled(false)
 	if err := s.httpServer.Shutdown(ctx); err != nil {
 		log.Fatalf("could not shutdown server gracefully: %v", err)
+	}
+}
+
+// cleanup runs the repository's DeleteExpired() to delete
+// expited entries. Listens on bool receive channel and
+// marks WaitGroup as done.
+func (s *Server) cleanup(wg *sync.WaitGroup, stop <-chan bool) {
+	for {
+		select {
+		case <-stop:
+			log.Println("stopping cleanup task")
+			wg.Done()
+			return
+		case <-time.After(5 * time.Second):
+			_, err := s.repository.DeleteExpired()
+			if err != nil {
+				log.Printf("error in db expired cleanup: %v\n", err)
+			}
+		}
 	}
 }
