@@ -8,6 +8,7 @@ import (
 
 	"github.com/RedeployAB/burnit/common/auth"
 	"github.com/RedeployAB/burnit/secretdb/config"
+	"github.com/RedeployAB/burnit/secretdb/db"
 	"github.com/RedeployAB/burnit/secretdb/internal/models"
 	"github.com/gorilla/mux"
 )
@@ -24,6 +25,10 @@ func (c *mockConnection) Disconnect(context.Context) error {
 }
 
 func (c *mockConnection) Close(context.Context) error {
+	return nil
+}
+
+func (c *mockConnection) Database(name string) db.Database {
 	return nil
 }
 
