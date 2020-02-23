@@ -12,7 +12,7 @@ have default values.
 
 **Environment variables**
 
-* `BURNITDB_PORT` - Port the service listens to. Defaults to `3001`
+* `BURNITDB_LISTEN_PORT` - Port the service listens to. Defaults to `3001`
 * `BURNITDB_API_KEY` - API key/token to access the service endpoints (**mandatory**)
 * `BURNITDB_PASSPHRASE` - Passphrase for the hashes of the secret passphrases (**mandatory**)
 

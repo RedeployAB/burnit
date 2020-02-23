@@ -57,7 +57,7 @@ func Configure(path string) (Configuration, error) {
 // variables.
 func configureFromEnv() Configuration {
 	// Server variables.
-	port := os.Getenv("BURNITDB_PORT")
+	port := os.Getenv("BURNITDB_LISTEN_PORT")
 	if len(port) == 0 {
 		port = "3001"
 	}
