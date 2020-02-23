@@ -14,6 +14,3 @@ type Secret struct {
 	CreatedAt  time.Time          `bson:"createdAt"`
 	ExpiresAt  time.Time          `bson:"expiresAt"`
 }
-
-// Secrets is a slice of Secret(s).
-type Secrets []Secret
