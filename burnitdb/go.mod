@@ -1,4 +1,4 @@
-module github.com/RedeployAB/burnit/secretdb
+module github.com/RedeployAB/burnit/burnitdb
 
 go 1.13
 

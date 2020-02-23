@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/RedeployAB/burnit/secretdb/internal/dto"
-	"github.com/RedeployAB/burnit/secretdb/internal/models"
+	"github.com/RedeployAB/burnit/burnitdb/internal/dto"
+	"github.com/RedeployAB/burnit/burnitdb/internal/models"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 

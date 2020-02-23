@@ -3,7 +3,7 @@ package app
 import (
 	"time"
 
-	"github.com/RedeployAB/burnit/secretdb/internal/dto"
+	"github.com/RedeployAB/burnit/burnitdb/internal/dto"
 )
 
 // responseBody represents a secret type response body.

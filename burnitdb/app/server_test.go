@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/RedeployAB/burnit/burnitdb/config"
+	"github.com/RedeployAB/burnit/burnitdb/db"
+	"github.com/RedeployAB/burnit/burnitdb/internal/models"
 	"github.com/RedeployAB/burnit/common/auth"
-	"github.com/RedeployAB/burnit/secretdb/config"
-	"github.com/RedeployAB/burnit/secretdb/db"
-	"github.com/RedeployAB/burnit/secretdb/internal/models"
 	"github.com/gorilla/mux"
 )
 

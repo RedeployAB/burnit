@@ -7,7 +7,7 @@ fi
 
 VERSION=$1
 OS=linux
-BIN=secretdb
+BIN=burnitdb
 # Test and build with make.
 make VERSION=$VERSION release -j3 || { echo 'FAILURE: test/build failed'; exit 1;}
 # Rename and copy file

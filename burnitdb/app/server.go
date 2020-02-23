@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/RedeployAB/burnit/burnitdb/config"
+	"github.com/RedeployAB/burnit/burnitdb/db"
 	"github.com/RedeployAB/burnit/common/auth"
-	"github.com/RedeployAB/burnit/secretdb/config"
-	"github.com/RedeployAB/burnit/secretdb/db"
 	"github.com/gorilla/mux"
 )
 

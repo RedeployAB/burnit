@@ -12,9 +12,9 @@ ARG PORT=3001
 COPY --from=builder /etc/passwd /etc/passwd
 
 WORKDIR /app
-COPY release/bin/secretdb /app/
+COPY release/bin/burnitdb /app/
 
 EXPOSE ${PORT}
 
 USER app
-ENTRYPOINT [ "./secretdb" ]
+ENTRYPOINT [ "./burnitdb" ]

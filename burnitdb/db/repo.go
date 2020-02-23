@@ -1,8 +1,8 @@
 package db
 
 import (
+	"github.com/RedeployAB/burnit/burnitdb/internal/models"
 	"github.com/RedeployAB/burnit/common/security"
-	"github.com/RedeployAB/burnit/secretdb/internal/models"
 )
 
 // Repository defined the methods needed for interact
@@ -25,7 +25,7 @@ type SecretRepository struct {
 // object.
 func NewSecretRepository(c Client, passphrase string) *SecretRepository {
 	return &SecretRepository{
-		collection: c.Database("secretdb").Collection("secrets"),
+		collection: c.Database("burnitdb").Collection("secrets"),
 		passphrase: passphrase,
 	}
 }

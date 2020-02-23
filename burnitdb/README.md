@@ -1,4 +1,4 @@
-# secretdb
+# burnitdb
 
 > Service with API to handling secret requests for database
 
@@ -28,7 +28,7 @@ have default values.
 
 Pass `-config` with path when running service, like so:
 ```
-./secretdb -config config.yaml
+./burnitdb -config config.yaml
 ```
 
 *Example `config.yaml`*

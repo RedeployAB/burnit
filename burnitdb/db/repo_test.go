@@ -4,8 +4,8 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/RedeployAB/burnit/burnitdb/internal/models"
 	"github.com/RedeployAB/burnit/common/security"
-	"github.com/RedeployAB/burnit/secretdb/internal/models"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 

@@ -4,10 +4,10 @@ import (
 	"flag"
 	"log"
 
+	"github.com/RedeployAB/burnit/burnitdb/app"
+	"github.com/RedeployAB/burnit/burnitdb/config"
+	"github.com/RedeployAB/burnit/burnitdb/db"
 	"github.com/RedeployAB/burnit/common/auth"
-	"github.com/RedeployAB/burnit/secretdb/app"
-	"github.com/RedeployAB/burnit/secretdb/config"
-	"github.com/RedeployAB/burnit/secretdb/db"
 	"github.com/gorilla/mux"
 )
 

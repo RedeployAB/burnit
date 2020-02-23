@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/RedeployAB/burnit/secretdb/config"
-	"github.com/RedeployAB/burnit/secretdb/internal/models"
+	"github.com/RedeployAB/burnit/burnitdb/config"
+	"github.com/RedeployAB/burnit/burnitdb/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"

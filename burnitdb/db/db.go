@@ -6,7 +6,7 @@ package db
 import (
 	"context"
 
-	"github.com/RedeployAB/burnit/secretdb/internal/models"
+	"github.com/RedeployAB/burnit/burnitdb/internal/models"
 )
 
 // Connection provides methods Connect and Disconnect.

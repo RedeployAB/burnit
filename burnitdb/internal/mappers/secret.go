@@ -3,8 +3,8 @@ package mappers
 import (
 	"time"
 
-	"github.com/RedeployAB/burnit/secretdb/internal/dto"
-	"github.com/RedeployAB/burnit/secretdb/internal/models"
+	"github.com/RedeployAB/burnit/burnitdb/internal/dto"
+	"github.com/RedeployAB/burnit/burnitdb/internal/models"
 )
 
 // Mapper is an interface that covers the mapping

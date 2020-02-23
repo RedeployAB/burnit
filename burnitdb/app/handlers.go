@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/RedeployAB/burnit/burnitdb/internal/dto"
+	"github.com/RedeployAB/burnit/burnitdb/internal/mappers"
 	"github.com/RedeployAB/burnit/common/httperror"
-	"github.com/RedeployAB/burnit/secretdb/internal/dto"
-	"github.com/RedeployAB/burnit/secretdb/internal/mappers"
 	"github.com/gorilla/mux"
 )
 
