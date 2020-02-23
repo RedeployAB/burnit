@@ -1,4 +1,4 @@
-module github.com/RedeployAB/burnit/secretgw
+module github.com/RedeployAB/burnit/burnitgw
 
 go 1.13
 

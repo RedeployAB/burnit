@@ -8,8 +8,8 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/RedeployAB/burnit/secretgw/config"
-	"github.com/RedeployAB/burnit/secretgw/internal/request"
+	"github.com/RedeployAB/burnit/burnitgw/config"
+	"github.com/RedeployAB/burnit/burnitgw/internal/request"
 	"github.com/gorilla/mux"
 )
 

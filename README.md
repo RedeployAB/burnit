@@ -4,9 +4,9 @@
 
 This is a collection of three services:
 
-* [`secretgw`](/secretgw/README.md) - Serves as a gateway and API endpoint for the other services
-* [`secretgen`](/secretgen/README.md) - Generates random strings (secrets)
-* [`secretdb`](/secretdb/README.md) - Stores random strings (secrets)
+* [`burnitgw`](/burnitgw/README.md) - Serves as a gateway and API endpoint for the other services
+* [`burnitgen`](/burnitgen/README.md) - Generates random strings (secrets)
+* [`burnitdb`](/burnitdb/README.md) - Stores random strings (secrets)
 
 ## API
 

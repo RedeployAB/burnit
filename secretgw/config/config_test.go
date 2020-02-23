@@ -32,12 +32,12 @@ func TestConfigureFromEnv(t *testing.T) {
 		t.Errorf("DB API Key is incorrect, got: %s, want: %s", confDefault.DBAPIKey, expectedDBAPIKey)
 	}
 
-	os.Setenv("SECRET_GW_PORT", "5000")
-	os.Setenv("SECRET_GEN_BASE_URL", "http://someurl:3000")
-	os.Setenv("SECRET_GEN_PATH", "/api/v1/generate")
-	os.Setenv("SECRET_DB_BASE_URL", "http://someurl:3001")
-	os.Setenv("SECRET_DB_PATH", "/api/v1/secrets")
-	os.Setenv("SECRET_DB_API_KEY", "AAAA")
+	os.Setenv("BURNITGW_PORT", "5000")
+	os.Setenv("BURNITGEN_BASE_URL", "http://someurl:3000")
+	os.Setenv("BURNITGEN_PATH", "/api/v1/generate")
+	os.Setenv("BURNITDB_BASE_URL", "http://someurl:3001")
+	os.Setenv("BURNITDB_PATH", "/api/v1/secrets")
+	os.Setenv("BURNITDB_API_KEY", "AAAA")
 	confEnv := configureFromEnv()
 
 	expectedPort = "5000"

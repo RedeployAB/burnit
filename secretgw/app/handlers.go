@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/RedeployAB/burnit/burnitgw/internal/request"
 	"github.com/RedeployAB/burnit/common/httperror"
-	"github.com/RedeployAB/burnit/secretgw/internal/request"
 	"github.com/gorilla/mux"
 )
 
@@ -16,7 +16,7 @@ func (s *Server) notFound(w http.ResponseWriter, r *http.Request) {
 	httperror.Error(w, http.StatusNotFound)
 }
 
-// generateSecret makes calls to the secretgen service
+// generateSecret makes calls to the burnitgen service
 // to generate a secret.
 func (s *Server) generateSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +37,7 @@ func (s *Server) generateSecret() http.Handler {
 	})
 }
 
-// getSecret makes calls to the secretdb service to
+// getSecret makes calls to the burnitdb service to
 // get a secret.
 func (s *Server) getSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -61,7 +61,7 @@ func (s *Server) getSecret() http.Handler {
 	})
 }
 
-// createSecret makes calls to secretdb to
+// createSecret makes calls to burnitdb to
 // create a secret.
 func (s *Server) createSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

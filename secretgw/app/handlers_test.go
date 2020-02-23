@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/RedeployAB/burnit/secretgw/internal/request"
+	"github.com/RedeployAB/burnit/burnitgw/internal/request"
 	"github.com/gorilla/mux"
 )
 
