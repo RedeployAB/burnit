@@ -9,10 +9,10 @@ import (
 
 // Mapper is an interface that covers the mapping
 // between DTO and Model, and from Model to DTO.
-/* type Mapper interface {
+type Mapper interface {
 	ToPersistance(interface{}) interface{}
 	ToDTO(interface{}) interface{}
-} */
+}
 
 // Secret implements Mapper interface
 // and provides methods ToPersistance and ToDTO.
