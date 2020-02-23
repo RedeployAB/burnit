@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/RedeployAB/burnit/common/httperror"
-	"github.com/RedeployAB/burnit/secretdb/db"
 	"github.com/RedeployAB/burnit/secretdb/internal/dto"
 	"github.com/RedeployAB/burnit/secretdb/internal/mappers"
 	"github.com/gorilla/mux"
@@ -25,11 +24,12 @@ func (s *Server) getSecret() http.Handler {
 
 		secretModel, err := s.repository.Find(vars["id"])
 		if err != nil {
-			if err == err.(*db.QueryError) && (err.(*db.QueryError).Code == 0 || err.(*db.QueryError).Code == -1) {
-				httperror.Error(w, http.StatusNotFound)
-				return
-			}
 			httperror.Error(w, http.StatusInternalServerError)
+			return
+		}
+
+		if secretModel == nil {
+			httperror.Error(w, http.StatusNotFound)
 			return
 		}
 
@@ -95,7 +95,7 @@ func (s *Server) deleteSecret() http.Handler {
 			httperror.Error(w, http.StatusInternalServerError)
 			return
 		}
-		if res == 0 || res == -1 {
+		if res == 0 {
 			httperror.Error(w, http.StatusNotFound)
 			return
 		}

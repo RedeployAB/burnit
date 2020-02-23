@@ -10,7 +10,6 @@ import (
 	"github.com/RedeployAB/burnit/common/auth"
 	"github.com/RedeployAB/burnit/common/security"
 	"github.com/RedeployAB/burnit/secretdb/config"
-	"github.com/RedeployAB/burnit/secretdb/db"
 	"github.com/RedeployAB/burnit/secretdb/internal/models"
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -37,12 +36,9 @@ func (r *mockHandlerRepository) Find(id string) (*models.Secret, error) {
 	case "find-success":
 		model = &models.Secret{ID: oid1, Secret: "values"}
 		err = nil
-	case "find-invalid-oid":
-		model = nil
-		err = &db.QueryError{Message: "invalid oid", Code: -1}
 	case "find-not-found":
 		model = nil
-		err = &db.QueryError{Message: "not found", Code: 0}
+		err = nil
 	case "find-success-passphrase":
 		model = &models.Secret{ID: oid1, Secret: "values", Passphrase: correctPassphrase}
 		err = nil
@@ -65,7 +61,7 @@ func (r *mockHandlerRepository) Insert(s *models.Secret) (*models.Secret, error)
 		model = &models.Secret{ID: oid1, Secret: "value"}
 		err = nil
 	case "insert-error":
-		model = &models.Secret{}
+		model = nil
 		err = errors.New("insert error")
 	}
 	return model, err
