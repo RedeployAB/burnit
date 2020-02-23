@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/RedeployAB/burnit/secretdb/internal/dto"
-
 	"github.com/RedeployAB/burnit/secretdb/internal/models"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
