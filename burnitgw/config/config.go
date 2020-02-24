@@ -43,7 +43,7 @@ func Configure(path string) (Configuration, error) {
 // for server/app configuration from environment
 // variables.
 func configureFromEnv() Configuration {
-	port := os.Getenv("BURNITGW_PORT")
+	port := os.Getenv("BURNITGW_LISTEN_PORT")
 	if len(port) == 0 {
 		port = "3000"
 	}

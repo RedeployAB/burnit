@@ -32,7 +32,7 @@ func TestConfigureFromEnv(t *testing.T) {
 		t.Errorf("DB API Key is incorrect, got: %s, want: %s", confDefault.DBAPIKey, expectedDBAPIKey)
 	}
 
-	os.Setenv("BURNITGW_PORT", "5000")
+	os.Setenv("BURNITGW_LISTEN_PORT", "5000")
 	os.Setenv("BURNITGEN_BASE_URL", "http://someurl:3000")
 	os.Setenv("BURNITGEN_PATH", "/api/v1/generate")
 	os.Setenv("BURNITDB_BASE_URL", "http://someurl:3001")

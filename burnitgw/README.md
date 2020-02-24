@@ -12,7 +12,7 @@ have default values.
 
 **Environment variables**
 
-* `BURNITGW_PORT` - Port the service listens to. Defaults to `3000`
+* `BURNITGW_LISTEN_PORT` - Port the service listens to. Defaults to `3000`
 * `BURNITGEN_BASE_URL` - URL with port to `burnitgen`. Defaults to `http://localhost:3002`
 * `BURNITGEN_PATH` - Path for service calls. Defaults to `/api/generate`
 * `BURNITDB_BASE_URL` - URL with port to `burnitdb`. Defaults to `http://localhost:3001`
