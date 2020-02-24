@@ -13,7 +13,7 @@ func TestConfigureFromEnv(t *testing.T) {
 	}
 
 	expected = "5000"
-	os.Setenv("BURNITGEN_PORT", expected)
+	os.Setenv("BURNITGEN_LISTEN_PORT", expected)
 	confEnv := configureFromEnv()
 	if confEnv.Port != expected {
 		t.Errorf("port value is incorrect, got %s, want: %s", confEnv.Port, expected)

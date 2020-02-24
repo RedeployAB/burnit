@@ -14,7 +14,7 @@ or use defaults.
 
 **Environment variables**
 
-* `BURNITGEN_PORT` - Port the service listens to. Defaults to `3002`
+* `BURNITGEN_LISTEN_PORT` - Port the service listens to. Defaults to `3002`
 
 **Configuration file**
 
