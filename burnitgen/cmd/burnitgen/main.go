@@ -4,8 +4,8 @@ import (
 	"flag"
 	"log"
 
-	"github.com/RedeployAB/burnit/burnitgen/app"
 	"github.com/RedeployAB/burnit/burnitgen/config"
+	"github.com/RedeployAB/burnit/burnitgen/server"
 	"github.com/gorilla/mux"
 )
 
@@ -20,7 +20,7 @@ func main() {
 	}
 
 	r := mux.NewRouter()
-	srv := app.NewServer(conf, r)
+	srv := server.New(conf, r)
 	// Start server.
 	srv.Start()
 }

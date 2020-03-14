@@ -1,4 +1,4 @@
-package app
+package server
 
 // responseBody represents a secret response.
 type responseBody struct {
