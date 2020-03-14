@@ -1,4 +1,4 @@
-package app
+package server
 
 import (
 	"context"
@@ -26,8 +26,8 @@ type middlewareConfig struct {
 	dbAPIkey string
 }
 
-// NewServer returns a configured Server.
-func NewServer(conf config.Configuration, r *mux.Router) *Server {
+// New returns a configured Server.
+func New(conf config.Configuration, r *mux.Router) *Server {
 	srv := &http.Server{
 		Addr:         "0.0.0.0:" + conf.Port,
 		WriteTimeout: time.Second * 15,

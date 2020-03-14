@@ -1,4 +1,4 @@
-package app
+package server
 
 import (
 	"os"
@@ -13,7 +13,7 @@ func TestNewServer(t *testing.T) {
 
 	conf := config.Configuration{Server: config.Server{Port: "5000"}}
 	r := mux.NewRouter()
-	srv := NewServer(conf, r)
+	srv := New(conf, r)
 
 	expected := "0.0.0.0:5000"
 	if srv.httpServer.Addr != expected {
@@ -24,7 +24,7 @@ func TestNewServer(t *testing.T) {
 func TestStartAndShutdown(t *testing.T) {
 	conf := config.Configuration{Server: config.Server{Port: "5000"}}
 	r := mux.NewRouter()
-	srv := NewServer(conf, r)
+	srv := New(conf, r)
 
 	proc, err := os.FindProcess(os.Getpid())
 	if err != nil {

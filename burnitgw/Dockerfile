@@ -1,6 +1,6 @@
 FROM golang:alpine AS builder
 # Create a user.
-RUN adduser -D -g '' app
+RUN adduser -D -g '' burnitgw
 
 # Add compilation further on...
 
@@ -11,10 +11,9 @@ ARG PORT=3000
 # Get user settings.
 COPY --from=builder /etc/passwd /etc/passwd
 
-WORKDIR /app
-COPY release/bin/burnitgw /app/
+COPY release/bin/burnitgw /usr/bin/burnitgw
 
 EXPOSE ${PORT}
 
-USER app
-ENTRYPOINT [ "./burnitgw" ]
+USER burnitgw
+ENTRYPOINT [ "/usr/bin/burnitgw" ]

@@ -40,7 +40,7 @@ func Configure(path string) (Configuration, error) {
 }
 
 // configureFromEnv performs the necessary steps
-// for server/app configuration from environment
+// for server configuration from environment
 // variables.
 func configureFromEnv() Configuration {
 	port := os.Getenv("BURNITGW_LISTEN_PORT")
@@ -82,7 +82,7 @@ func configureFromEnv() Configuration {
 }
 
 // configureFromFile performs the necessary steps
-// for server/app configuration from environment
+// for server configuration from environment
 // variables.
 func configureFromFile(path string) (Configuration, error) {
 	var config = Configuration{}
