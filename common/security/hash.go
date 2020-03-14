@@ -7,9 +7,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// Hash creates a hash with the help of bcrypt.
-func Hash(str string) string {
-	h, err := bcrypt.GenerateFromPassword([]byte(str), bcrypt.DefaultCost)
+// Bcrypt creates a hash with the help of bcrypt.
+func Bcrypt(s string) string {
+	h, err := bcrypt.GenerateFromPassword([]byte(s), bcrypt.DefaultCost)
 	if err != nil {
 		panic(err)
 	}
@@ -18,8 +18,8 @@ func Hash(str string) string {
 
 // CompareHash compares a hash with a string. Returns true if match,
 // false otherwise.
-func CompareHash(hash string, str string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(str))
+func CompareHash(hash, s string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(s))
 	if err != nil {
 		return false
 	}
@@ -27,8 +27,8 @@ func CompareHash(hash string, str string) bool {
 }
 
 // ToMD5 hashes a string to MD5.
-func ToMD5(key string) string {
+func ToMD5(s string) string {
 	hasher := md5.New()
-	hasher.Write([]byte(key))
+	hasher.Write([]byte(s))
 	return hex.EncodeToString(hasher.Sum(nil))
 }
