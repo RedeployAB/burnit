@@ -44,7 +44,7 @@ type Configuration struct {
 }
 
 // Configure performs the necessary steps
-// for server/app configuration.
+// for server configuration.
 func Configure(path string) (Configuration, error) {
 	var config Configuration
 	var err error
@@ -64,7 +64,7 @@ func Configure(path string) (Configuration, error) {
 }
 
 // configureFromEnv performs the necessary steps
-// for server/app configuration from environment
+// for server configuration from environment
 // variables.
 func configureFromEnv() Configuration {
 	// Server variables.
@@ -122,7 +122,7 @@ func configureFromEnv() Configuration {
 }
 
 // configureFromFile performs the necessary steps
-// for server/app configuration from environment
+// for server configuration from environment
 // variables.
 func configureFromFile(path string) (Configuration, error) {
 	var config = Configuration{}

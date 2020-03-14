@@ -1,6 +1,6 @@
 FROM golang:alpine AS builder
 # Create a user.
-RUN adduser -D -g '' app
+RUN adduser -D -g '' burnitdb
 
 # Add compilation further on...
 
@@ -11,10 +11,9 @@ ARG PORT=3001
 # Get user settings.
 COPY --from=builder /etc/passwd /etc/passwd
 
-WORKDIR /app
-COPY release/bin/burnitdb /app/
+COPY release/bin/burnitdb /usr/bin/burnitdb
 
 EXPOSE ${PORT}
 
-USER app
-ENTRYPOINT [ "./burnitdb" ]
+USER burnitdb
+ENTRYPOINT [ "/usr/bin/burnitdb" ]

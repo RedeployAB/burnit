@@ -4,9 +4,9 @@ import (
 	"flag"
 	"log"
 
-	"github.com/RedeployAB/burnit/burnitdb/app"
 	"github.com/RedeployAB/burnit/burnitdb/config"
 	"github.com/RedeployAB/burnit/burnitdb/db"
+	"github.com/RedeployAB/burnit/burnitdb/server"
 	"github.com/RedeployAB/burnit/common/auth"
 	"github.com/gorilla/mux"
 )
@@ -22,7 +22,7 @@ func main() {
 	}
 
 	ts := auth.NewMemoryTokenStore()
-	ts.Set(conf.Server.DBAPIKey, "app")
+	ts.Set(conf.Server.DBAPIKey, "server")
 
 	// Connect to database.
 	log.Printf("connecting to db server: %s...\n", conf.Database.Address)
@@ -33,7 +33,7 @@ func main() {
 	repo := db.NewSecretRepository(connection, &db.SecretRepositoryOptions{EncryptionKey: conf.Server.Security.Encryption.Key, HashMethod: conf.Server.Security.HashMethod})
 
 	r := mux.NewRouter()
-	srv := app.NewServer(app.ServerOptions{
+	srv := server.New(server.Options{
 		Config:     conf,
 		Router:     r,
 		Connection: connection,

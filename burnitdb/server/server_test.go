@@ -1,4 +1,4 @@
-package app
+package server
 
 import (
 	"context"
@@ -51,7 +51,7 @@ func (r *mockRepository) DeleteExpired() (int64, error) {
 	return 0, nil
 }
 
-func SetupOptions() ServerOptions {
+func SetupOptions() Options {
 	conf := config.Configuration{
 		Server: config.Server{
 			Port:     "5000",
@@ -76,10 +76,10 @@ func SetupOptions() ServerOptions {
 	connection := &mockConnection{}
 	repo := &mockRepository{}
 	ts := auth.NewMemoryTokenStore()
-	ts.Set(conf.Server.DBAPIKey, "app")
+	ts.Set(conf.Server.DBAPIKey, "server")
 
 	r := mux.NewRouter()
-	srvOpts := ServerOptions{
+	srvOpts := Options{
 		Config:     conf,
 		Router:     r,
 		Connection: connection,
@@ -90,10 +90,10 @@ func SetupOptions() ServerOptions {
 	return srvOpts
 }
 
-func TestNewServer(t *testing.T) {
+func TestNew(t *testing.T) {
 
 	srvOpts := SetupOptions()
-	srv := NewServer(srvOpts)
+	srv := New(srvOpts)
 
 	if srv.httpServer.Addr != "0.0.0.0:5000" {
 		t.Errorf("incorrect value, got: %s, want: 0.0.0.0:5000", srv.httpServer.Addr)
@@ -102,7 +102,7 @@ func TestNewServer(t *testing.T) {
 
 func TestStartAndShutdown(t *testing.T) {
 	srvOpts := SetupOptions()
-	srv := NewServer(srvOpts)
+	srv := New(srvOpts)
 
 	proc, err := os.FindProcess(os.Getpid())
 	if err != nil {

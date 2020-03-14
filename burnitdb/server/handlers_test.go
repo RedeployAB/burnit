@@ -1,4 +1,4 @@
-package app
+package server
 
 import (
 	"bytes"
@@ -121,7 +121,7 @@ func SetupServer(action, mode string) Server {
 	connection := &mockConnection{}
 	repo := &mockHandlerRepository{action: action, mode: mode}
 	ts := auth.NewMemoryTokenStore()
-	ts.Set(conf.Server.DBAPIKey, "app")
+	ts.Set(conf.Server.DBAPIKey, "server")
 
 	r := mux.NewRouter()
 	srv := &Server{

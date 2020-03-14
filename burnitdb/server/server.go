@@ -1,4 +1,4 @@
-package app
+package server
 
 import (
 	"context"
@@ -26,8 +26,8 @@ type Server struct {
 	hashMethod string
 }
 
-// ServerOptions represents options to be used with server.
-type ServerOptions struct {
+// Options represents options to be used with server.
+type Options struct {
 	Config     config.Configuration
 	Router     *mux.Router
 	Connection db.Connection
@@ -35,8 +35,8 @@ type ServerOptions struct {
 	TokenStore auth.TokenStore
 }
 
-// NewServer returns a configured Server.
-func NewServer(opts ServerOptions) *Server {
+// New returns a configured Server.
+func New(opts Options) *Server {
 	srv := &http.Server{
 		Addr:         "0.0.0.0:" + opts.Config.Server.Port,
 		WriteTimeout: time.Second * 15,
