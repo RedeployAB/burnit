@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/RedeployAB/burnit/burnitdb/config"
@@ -81,7 +82,7 @@ func (s *Server) Start() {
 // kill is received.
 func (s *Server) shutdown(wg *sync.WaitGroup, cleanup chan<- bool) {
 	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt, os.Kill)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM, os.Kill)
 	sig := <-stop
 
 	log.Printf("shutting down server. reason: %s\n", sig.String())

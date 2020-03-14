@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/RedeployAB/burnit/burnitgw/config"
@@ -72,9 +73,9 @@ func (s *Server) Start() {
 // kill is received.
 func (s *Server) shutdown() {
 	stop := make(chan os.Signal, 1)
-
-	signal.Notify(stop, os.Interrupt, os.Kill)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM, os.Kill)
 	sig := <-stop
+
 	log.Printf("shutting down server. reason: %s\n", sig.String())
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
