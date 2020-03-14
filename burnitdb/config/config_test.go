@@ -11,10 +11,10 @@ func TestConfigureFromEnv(t *testing.T) {
 		t.Errorf("default port value is incorrect, got %s, want: 3001", confDefault.Server.Port)
 	}
 	if confDefault.Server.DBAPIKey != "" {
-		t.Errorf("default passphrase value is incorrect, got %s, want: \"\"", confDefault.Server.DBAPIKey)
+		t.Errorf("default db api key value is incorrect, got %s, want: \"\"", confDefault.Server.DBAPIKey)
 	}
-	if confDefault.Server.Passphrase != "" {
-		t.Errorf("default passphrase value is incorrect, got %s, want: \"\"", confDefault.Server.Passphrase)
+	if confDefault.Server.Security.Encryption.Key != "" {
+		t.Errorf("default encryption key value is incorrect, got %s, want: \"\"", confDefault.Server.Security.Encryption.Key)
 	}
 	if confDefault.Database.Address != "localhost" {
 		t.Errorf("default address value is incorrect, got %s, want: localhost", confDefault.Database.Address)
@@ -37,7 +37,7 @@ func TestConfigureFromEnv(t *testing.T) {
 
 	os.Setenv("BURNITDB_LISTEN_PORT", "6000")
 	os.Setenv("BURNITDB_API_KEY", "aabbcc")
-	os.Setenv("BURNITDB_PASSPHRASE", "secretstring")
+	os.Setenv("BURNITDB_ENCRYPTION_KEY", "secretstring")
 	os.Setenv("DB_HOST", "localhost:27017")
 	os.Setenv("DB", "burnit_db")
 	os.Setenv("DB_USER", "dbuser")
@@ -49,10 +49,10 @@ func TestConfigureFromEnv(t *testing.T) {
 		t.Errorf("port value is incorrect, got %s, want: 6000", confEnv.Server.Port)
 	}
 	if confEnv.Server.DBAPIKey != "aabbcc" {
-		t.Errorf("passphrase value is incorrect, got %s, want: aabbcc", confEnv.Server.DBAPIKey)
+		t.Errorf("api key value is incorrect, got %s, want: aabbcc", confEnv.Server.DBAPIKey)
 	}
-	if confEnv.Server.Passphrase != "secretstring" {
-		t.Errorf("passphrase value is incorrect, got %s, want: secretstring", confEnv.Server.Passphrase)
+	if confEnv.Server.Security.Encryption.Key != "secretstring" {
+		t.Errorf("encryption key value is incorrect, got %s, want: secretstring", confEnv.Server.Security.Encryption.Key)
 	}
 
 	if confEnv.Database.Address != "localhost:27017" {
@@ -86,10 +86,10 @@ func TestConfigureFromFile(t *testing.T) {
 		t.Errorf("port value is incorrect, got %s, want: 3003", conf.Server.Port)
 	}
 	if conf.Server.DBAPIKey != "aabbcc" {
-		t.Errorf("passphrase value is incorrect, got %s, want: aabbcc", conf.Server.DBAPIKey)
+		t.Errorf("api key value is incorrect, got %s, want: aabbcc", conf.Server.DBAPIKey)
 	}
-	if conf.Server.Passphrase != "secretstring" {
-		t.Errorf("passphrase value is incorrect, got %s, want: secretstring", conf.Server.Passphrase)
+	if conf.Server.Security.Encryption.Key != "secretstring" {
+		t.Errorf("encryption key value is incorrect, got %s, want: secretstring", conf.Server.Security.Encryption.Key)
 	}
 
 	if conf.Database.Address != "localhost:27017" {

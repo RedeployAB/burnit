@@ -30,7 +30,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
-	repo := db.NewSecretRepository(connection, conf.Server.Passphrase)
+	repo := db.NewSecretRepository(connection, &db.SecretRepositoryOptions{EncryptionKey: conf.Server.Security.Encryption.Key, HashMethod: conf.Server.Security.HashMethod})
 
 	r := mux.NewRouter()
 	srv := app.NewServer(app.ServerOptions{

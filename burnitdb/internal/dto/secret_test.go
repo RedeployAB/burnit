@@ -54,18 +54,18 @@ func TestNewSecretFail(t *testing.T) {
 
 func TestVerify(t *testing.T) {
 	passphrase := "passphrase"
-	hash := security.Hash(passphrase)
+	hash := security.Bcrypt(passphrase)
 
 	dto := &Secret{
 		Passphrase: hash,
 	}
 
-	verify1 := dto.Verify(passphrase)
+	verify1 := dto.Verify(passphrase, "bcrypt")
 	if !verify1 {
 		t.Errorf("incorrect result, got: %v, want: true", verify1)
 	}
 
-	verify2 := dto.Verify("notpassphrase")
+	verify2 := dto.Verify("notpassphrase", "bcrypt")
 	if verify2 {
 		t.Errorf("incorrect result, got: %v, want: false", verify2)
 	}

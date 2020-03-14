@@ -1,7 +1,11 @@
 server:
   port: 3003
   dbApiKey: aabbcc
-  passphrase: secretstring
+  security:
+    encryption:
+      key: secretstring
+    hashMethod: bcrypt
+
 database:
   address: localhost:27017
   database: burnit_db

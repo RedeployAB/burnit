@@ -27,8 +27,8 @@ type mockCollection struct {
 
 var id1 = "507f1f77bcf86cd799439011"
 var oid1, _ = primitive.ObjectIDFromHex(id1)
-var passphrase = "abcdefg"
-var encrypted, _ = security.Encrypt([]byte("value"), passphrase)
+var encryptionKey = "abcdefg"
+var encrypted, _ = security.Encrypt([]byte("value"), encryptionKey)
 
 func (c *mockCollection) FindOne(id string) (*models.Secret, error) {
 	var model *models.Secret
@@ -105,9 +105,13 @@ func (c *mockCollection) DeleteMany() (int64, error) {
 }
 
 func SetupRepository(mode string) *SecretRepository {
+	opts := &SecretRepositoryOptions{
+		EncryptionKey: encryptionKey,
+		HashMethod:    "bcrypt",
+	}
 	return &SecretRepository{
 		collection: &mockCollection{mode: mode},
-		passphrase: passphrase,
+		options:    opts,
 	}
 }
 

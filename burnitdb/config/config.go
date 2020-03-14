@@ -9,11 +9,22 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// Server represents server part of configuration.
+// Server defines server part of configuration.
 type Server struct {
-	Port       string `yaml:"port"`
-	DBAPIKey   string `yaml:"dbApiKey"`
-	Passphrase string `yaml:"passphrase"`
+	Port     string   `yaml:"port"`
+	DBAPIKey string   `yaml:"dbApiKey"`
+	Security Security `yaml:"security"`
+}
+
+// Security defines security part of server configuration.
+type Security struct {
+	Encryption Encryption `yaml:"encryption"`
+	HashMethod string     `yaml:"hashMethod"`
+}
+
+// Encryption defines encryption pat of security configuration.
+type Encryption struct {
+	Key string `yaml:"key"`
 }
 
 // Database represents database part of configuration.
@@ -46,8 +57,8 @@ func Configure(path string) (Configuration, error) {
 		}
 	}
 
-	if len(config.Server.Passphrase) == 0 {
-		return Configuration{}, errors.New("encryption passphrase must be set")
+	if len(config.Server.Security.Encryption.Key) == 0 {
+		return Configuration{}, errors.New("encryption key must be set")
 	}
 	return config, nil
 }
@@ -62,8 +73,11 @@ func configureFromEnv() Configuration {
 		port = "3001"
 	}
 	dbAPIkey := os.Getenv("BURNITDB_API_KEY")
-	passphrase := os.Getenv("BURNITDB_PASSPHRASE")
-
+	encryptionKey := os.Getenv("BURNITDB_ENCRYPTION_KEY")
+	hashMethod := os.Getenv("BURNITDB_HASH_METHOD")
+	if len(hashMethod) == 0 {
+		hashMethod = "md5"
+	}
 	// Database variables.
 	dbHost := os.Getenv("DB_HOST")
 	if len(dbHost) == 0 {
@@ -86,9 +100,14 @@ func configureFromEnv() Configuration {
 
 	config := Configuration{
 		Server{
-			Port:       port,
-			DBAPIKey:   dbAPIkey,
-			Passphrase: passphrase,
+			Port:     port,
+			DBAPIKey: dbAPIkey,
+			Security: Security{
+				Encryption: Encryption{
+					Key: encryptionKey,
+				},
+				HashMethod: hashMethod,
+			},
 		},
 		Database{
 			Address:  dbHost,

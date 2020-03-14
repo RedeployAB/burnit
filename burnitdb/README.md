@@ -14,7 +14,7 @@ have default values.
 
 * `BURNITDB_LISTEN_PORT` - Port the service listens to. Defaults to `3001`
 * `BURNITDB_API_KEY` - API key/token to access the service endpoints (**mandatory**)
-* `BURNITDB_PASSPHRASE` - Passphrase for the hashes of the secret passphrases (**mandatory**)
+* `BURNITDB_ENCRYPTION_KEY` - Encryption key for the secrets in the database (**mandatory**)
 
 *Database configuration*
 
@@ -37,7 +37,10 @@ Pass `-config` with path when running service, like so:
 server:
   port: 3001
   dbApiKey: <db-api-key> # Mandatory
-  passphrase: secretstring # Mandatory
+  security:
+    encryption:
+      key: secretstring # Mandatory
+    hashMethod: bcrypt|md5
 database:
   address: localhost:27017
   database: burnit_db

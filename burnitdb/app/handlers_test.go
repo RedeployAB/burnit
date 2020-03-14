@@ -15,7 +15,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-var correctPassphrase = security.Hash("passphrase")
+var correctPassphrase = security.Bcrypt("passphrase")
 var id1 = "507f1f77bcf86cd799439011"
 var oid1, _ = primitive.ObjectIDFromHex(id1)
 var apiKey = "ABCDEF"
@@ -99,9 +99,14 @@ func (r *mockHandlerRepository) DeleteExpired() (int64, error) {
 func SetupServer(action, mode string) Server {
 	conf := config.Configuration{
 		Server: config.Server{
-			Port:       "5000",
-			DBAPIKey:   "ABCDEF",
-			Passphrase: "testphrase",
+			Port:     "5000",
+			DBAPIKey: "ABCDEF",
+			Security: config.Security{
+				Encryption: config.Encryption{
+					Key: "testphrase",
+				},
+				HashMethod: "bcrypt",
+			},
 		},
 		Database: config.Database{
 			Address:  "mongo://db",
@@ -124,6 +129,7 @@ func SetupServer(action, mode string) Server {
 		connection: connection,
 		repository: repo,
 		tokenStore: ts,
+		hashMethod: "bcrypt",
 	}
 	srv.routes(ts)
 	return *srv

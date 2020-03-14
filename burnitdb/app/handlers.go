@@ -34,7 +34,7 @@ func (s *Server) getSecret() http.Handler {
 		}
 
 		secretDTO := mappers.Secret{}.ToDTO(secretModel)
-		if !secretDTO.Verify(r.Header.Get("X-Passphrase")) {
+		if !secretDTO.Verify(r.Header.Get("X-Passphrase"), s.hashMethod) {
 			httperror.Error(w, http.StatusUnauthorized)
 			return
 		}

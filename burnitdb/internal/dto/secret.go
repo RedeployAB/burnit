@@ -38,8 +38,17 @@ func NewSecret(b io.ReadCloser) (*Secret, error) {
 
 // Verify compares a hash with a string,
 // if no hash is passed, it always return true.
-func (s *Secret) Verify(str string) bool {
-	if len(s.Passphrase) > 0 && !security.CompareHash(s.Passphrase, str) {
+func (s *Secret) Verify(str, m string) bool {
+	switch m {
+	case "bcrypt":
+		if len(s.Passphrase) > 0 && !security.CompareHash(s.Passphrase, str) {
+			return false
+		}
+	case "md5":
+		if len(s.Passphrase) > 0 && security.ToMD5(str) != s.Passphrase {
+			return false
+		}
+	default:
 		return false
 	}
 	return true

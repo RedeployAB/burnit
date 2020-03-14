@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"time"
 
@@ -22,6 +23,7 @@ type Server struct {
 	connection db.Connection
 	repository db.Repository
 	tokenStore auth.TokenStore
+	hashMethod string
 }
 
 // ServerOptions represents options to be used with server.
@@ -43,14 +45,13 @@ func NewServer(opts ServerOptions) *Server {
 		Handler:      opts.Router,
 	}
 
-	//repo := db.NewSecretRepository(opts.Connection, opts.Config.Server.Passphrase)
-
 	return &Server{
 		httpServer: srv,
 		router:     opts.Router,
 		connection: opts.Connection,
 		repository: opts.Repository,
 		tokenStore: opts.TokenStore,
+		hashMethod: strings.ToLower(opts.Config.Server.Security.HashMethod),
 	}
 }
 

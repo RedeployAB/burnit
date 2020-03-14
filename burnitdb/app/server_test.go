@@ -54,9 +54,14 @@ func (r *mockRepository) DeleteExpired() (int64, error) {
 func SetupOptions() ServerOptions {
 	conf := config.Configuration{
 		Server: config.Server{
-			Port:       "5000",
-			DBAPIKey:   "ABCDEF",
-			Passphrase: "testphrase",
+			Port:     "5000",
+			DBAPIKey: "ABCDEF",
+			Security: config.Security{
+				Encryption: config.Encryption{
+					Key: "testphrase",
+				},
+				HashMethod: "bcrypt",
+			},
 		},
 		Database: config.Database{
 			Address:  "mongo://db",

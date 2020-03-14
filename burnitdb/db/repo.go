@@ -18,16 +18,24 @@ type Repository interface {
 // and collection.
 type SecretRepository struct {
 	collection Collection
-	passphrase string
+	options    *SecretRepositoryOptions
 }
 
 // NewSecretRepository creates and returns a SecretRepository
 // object.
-func NewSecretRepository(c Client, passphrase string) *SecretRepository {
+func NewSecretRepository(c Client, opts *SecretRepositoryOptions) *SecretRepository {
 	return &SecretRepository{
 		collection: c.Database("burnitdb").Collection("secrets"),
-		passphrase: passphrase,
+		options:    opts,
 	}
+}
+
+// SecretRepositoryOptions provides additional options
+// for the repository. It contains: encryptionKey and
+// hashMethod.
+type SecretRepositoryOptions struct {
+	EncryptionKey string
+	HashMethod    string
 }
 
 // Find queries the collection for an entry by ID.
@@ -36,15 +44,15 @@ func (r *SecretRepository) Find(id string) (*models.Secret, error) {
 	if err != nil || s == nil {
 		return s, err
 	}
-	s.Secret = decrypt(s.Secret, r.passphrase)
+	s.Secret = decrypt(s.Secret, r.options.EncryptionKey)
 	return s, nil
 }
 
 // Insert handles inserts into the database.
 func (r *SecretRepository) Insert(s *models.Secret) (*models.Secret, error) {
-	s.Secret = encrypt(s.Secret, r.passphrase)
+	s.Secret = encrypt(s.Secret, r.options.EncryptionKey)
 	if len(s.Passphrase) > 0 {
-		s.Passphrase = hash(s.Passphrase)
+		s.Passphrase = hash(s.Passphrase, r.options.HashMethod)
 	}
 
 	s, err := r.collection.InsertOne(s)
@@ -74,8 +82,8 @@ func (r *SecretRepository) DeleteExpired() (int64, error) {
 }
 
 // encrypt encrypts the field Secret.
-func encrypt(plaintext, passphrase string) string {
-	encrypted, err := security.Encrypt([]byte(plaintext), passphrase)
+func encrypt(plaintext, key string) string {
+	encrypted, err := security.Encrypt([]byte(plaintext), key)
 	if err != nil {
 		panic(err)
 	}
@@ -83,15 +91,22 @@ func encrypt(plaintext, passphrase string) string {
 }
 
 // decrypt decrypts the field Secret.
-func decrypt(ciphertext, passphrase string) string {
-	decrypted, err := security.Decrypt([]byte(ciphertext), passphrase)
+func decrypt(ciphertext, key string) string {
+	decrypted, err := security.Decrypt([]byte(ciphertext), key)
 	if err != nil {
 		panic(err)
 	}
 	return string(decrypted)
 }
 
-// hash hashes the incmong string with bcrypt.
-func hash(s string) string {
-	return security.Hash(s)
+// hash hashes the incoming string with bcrypt.
+func hash(s, m string) string {
+	switch m {
+	case "bcrypt":
+		return security.Bcrypt(s)
+	case "md5":
+		return security.ToMD5(s)
+	default:
+		return security.Bcrypt(s)
+	}
 }
