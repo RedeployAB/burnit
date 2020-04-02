@@ -125,11 +125,11 @@ func SetupServer(action, mode string) Server {
 
 	r := mux.NewRouter()
 	srv := &Server{
-		router:     r,
-		connection: connection,
-		repository: repo,
-		tokenStore: ts,
-		hashMethod: "bcrypt",
+		router:      r,
+		connection:  connection,
+		repository:  repo,
+		tokenStore:  ts,
+		compareHash: security.CompareBcryptHash,
 	}
 	srv.routes(ts)
 	return *srv

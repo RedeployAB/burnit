@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -14,17 +13,18 @@ import (
 	"github.com/RedeployAB/burnit/burnitdb/config"
 	"github.com/RedeployAB/burnit/burnitdb/db"
 	"github.com/RedeployAB/burnit/common/auth"
+	"github.com/RedeployAB/burnit/common/security"
 	"github.com/gorilla/mux"
 )
 
 // Server represents server with configuration.
 type Server struct {
-	httpServer *http.Server
-	router     *mux.Router
-	connection db.Connection
-	repository db.Repository
-	tokenStore auth.TokenStore
-	hashMethod string
+	httpServer  *http.Server
+	router      *mux.Router
+	connection  db.Connection
+	repository  db.Repository
+	tokenStore  auth.TokenStore
+	compareHash func(hash, s string) bool
 }
 
 // Options represents options to be used with server.
@@ -46,13 +46,21 @@ func New(opts Options) *Server {
 		Handler:      opts.Router,
 	}
 
+	var compareHash func(hash, s string) bool
+	switch opts.Config.Server.Security.HashMethod {
+	case "md5":
+		compareHash = security.CompareMD5Hash
+	case "bcrypt":
+		compareHash = security.CompareBcryptHash
+	}
+
 	return &Server{
-		httpServer: srv,
-		router:     opts.Router,
-		connection: opts.Connection,
-		repository: opts.Repository,
-		tokenStore: opts.TokenStore,
-		hashMethod: strings.ToLower(opts.Config.Server.Security.HashMethod),
+		httpServer:  srv,
+		router:      opts.Router,
+		connection:  opts.Connection,
+		repository:  opts.Repository,
+		tokenStore:  opts.TokenStore,
+		compareHash: compareHash,
 	}
 }
 
