@@ -20,7 +20,7 @@ import (
 
 // Connect is used to connect to database with options
 // specified in the passed in options argument.
-func Connect(opts config.Database) (Client, error) {
+func Connect(opts config.Database) (Connection, error) {
 	client, err := mongoConnect(opts)
 	if err != nil {
 		return nil, err
