@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"io"
 	"time"
-
-	"github.com/RedeployAB/burnit/common/security"
 )
 
 // Secret is to be used as the middle hand between
@@ -34,22 +32,4 @@ func NewSecret(b io.ReadCloser) (*Secret, error) {
 	s.ExpiresAt = exp
 
 	return s, nil
-}
-
-// Verify compares a hash with a string,
-// if no hash is passed, it always return true.
-func (s *Secret) Verify(str, m string) bool {
-	switch m {
-	case "bcrypt":
-		if len(s.Passphrase) > 0 && !security.CompareHash(s.Passphrase, str) {
-			return false
-		}
-	case "md5":
-		if len(s.Passphrase) > 0 && security.ToMD5(str) != s.Passphrase {
-			return false
-		}
-	default:
-		return false
-	}
-	return true
 }

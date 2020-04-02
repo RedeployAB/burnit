@@ -5,8 +5,6 @@ import (
 	"io/ioutil"
 	"testing"
 	"time"
-
-	"github.com/RedeployAB/burnit/common/security"
 )
 
 func TestNewSecret(t *testing.T) {
@@ -49,24 +47,5 @@ func TestNewSecretFail(t *testing.T) {
 	_, err := NewSecret(ioutil.NopCloser(b))
 	if err == nil {
 		t.Errorf("error in test, test should fail.")
-	}
-}
-
-func TestVerify(t *testing.T) {
-	passphrase := "passphrase"
-	hash := security.Bcrypt(passphrase)
-
-	dto := &Secret{
-		Passphrase: hash,
-	}
-
-	verify1 := dto.Verify(passphrase, "bcrypt")
-	if !verify1 {
-		t.Errorf("incorrect result, got: %v, want: true", verify1)
-	}
-
-	verify2 := dto.Verify("notpassphrase", "bcrypt")
-	if verify2 {
-		t.Errorf("incorrect result, got: %v, want: false", verify2)
 	}
 }
