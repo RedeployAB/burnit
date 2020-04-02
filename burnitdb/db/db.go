@@ -9,18 +9,11 @@ import (
 	"github.com/RedeployAB/burnit/burnitdb/internal/models"
 )
 
-// Connection provides methods Connect and Disconnect.
+// Connection provides methods Connect, Disconnect and Database.
 type Connection interface {
 	Connect(context.Context) error
 	Disconnect(context.Context) error
-}
-
-// Client provides methods Database, Connect,
-// and Disconnect().
-type Client interface {
 	Database(name string) Database
-	Connect(context.Context) error
-	Disconnect(context.Context) error
 }
 
 // Database provides method Collection.
