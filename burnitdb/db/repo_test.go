@@ -38,9 +38,6 @@ func (c *mockCollection) FindOne(id string) (*models.Secret, error) {
 	case "find-success":
 		model = &models.Secret{ID: oid1, Secret: string(encrypted)}
 		err = nil
-		/* 	case "find-invaloid-oid":
-		model = nil
-		err = errors.New("invalid oid") */
 	case "find-not-found":
 		model = nil
 		err = nil
@@ -112,6 +109,7 @@ func SetupRepository(mode string) *SecretRepository {
 	return &SecretRepository{
 		collection: &mockCollection{mode: mode},
 		options:    opts,
+		hash:       security.Bcrypt,
 	}
 }
 

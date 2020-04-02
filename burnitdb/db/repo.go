@@ -19,14 +19,25 @@ type Repository interface {
 type SecretRepository struct {
 	collection Collection
 	options    *SecretRepositoryOptions
+	hash       func(s string) string
 }
 
 // NewSecretRepository creates and returns a SecretRepository
 // object.
-func NewSecretRepository(c Client, opts *SecretRepositoryOptions) *SecretRepository {
+func NewSecretRepository(c Connection, opts *SecretRepositoryOptions) *SecretRepository {
+
+	var hash func(s string) string
+	switch opts.HashMethod {
+	case "md5":
+		hash = security.ToMD5
+	case "bcrypt":
+		hash = security.Bcrypt
+	}
+
 	return &SecretRepository{
 		collection: c.Database("burnitdb").Collection("secrets"),
 		options:    opts,
+		hash:       hash,
 	}
 }
 
@@ -52,7 +63,7 @@ func (r *SecretRepository) Find(id string) (*models.Secret, error) {
 func (r *SecretRepository) Insert(s *models.Secret) (*models.Secret, error) {
 	s.Secret = encrypt(s.Secret, r.options.EncryptionKey)
 	if len(s.Passphrase) > 0 {
-		s.Passphrase = hash(s.Passphrase, r.options.HashMethod)
+		s.Passphrase = r.hash(s.Passphrase)
 	}
 
 	s, err := r.collection.InsertOne(s)
@@ -97,16 +108,4 @@ func decrypt(ciphertext, key string) string {
 		panic(err)
 	}
 	return string(decrypted)
-}
-
-// hash hashes the incoming string with bcrypt.
-func hash(s, m string) string {
-	switch m {
-	case "bcrypt":
-		return security.Bcrypt(s)
-	case "md5":
-		return security.ToMD5(s)
-	default:
-		return security.Bcrypt(s)
-	}
 }
