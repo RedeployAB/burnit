@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strconv"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 )
@@ -74,7 +75,7 @@ func configureFromEnv() Configuration {
 	}
 	dbAPIkey := os.Getenv("BURNITDB_API_KEY")
 	encryptionKey := os.Getenv("BURNITDB_ENCRYPTION_KEY")
-	hashMethod := os.Getenv("BURNITDB_HASH_METHOD")
+	hashMethod := strings.ToLower(os.Getenv("BURNITDB_HASH_METHOD"))
 	if len(hashMethod) == 0 {
 		hashMethod = "md5"
 	}
@@ -144,6 +145,12 @@ func configureFromFile(path string) (Configuration, error) {
 	if len(config.Server.Port) == 0 {
 		config.Server.Port = "3001"
 	}
+	if len(config.Server.Security.HashMethod) == 0 {
+		config.Server.Security.HashMethod = "md5"
+	} else {
+		config.Server.Security.HashMethod = strings.ToLower(config.Server.Security.HashMethod)
+	}
+
 	if len(config.Database.Address) == 0 && len(config.Database.URI) == 0 {
 		config.Database.URI = "mongodb://localhost"
 	}
