@@ -16,9 +16,9 @@ func Bcrypt(s string) string {
 	return string(h)
 }
 
-// CompareHash compares a hash with a string. Returns true if match,
+// CompareBcryptHash compares a hash with a string. Returns true if match,
 // false otherwise.
-func CompareHash(hash, s string) bool {
+func CompareBcryptHash(hash, s string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(s))
 	if err != nil {
 		return false
@@ -31,4 +31,13 @@ func ToMD5(s string) string {
 	hasher := md5.New()
 	hasher.Write([]byte(s))
 	return hex.EncodeToString(hasher.Sum(nil))
+}
+
+// CompareMD5Hash compares a hash with a string. Returns true if match
+// false otherwise.
+func CompareMD5Hash(hash, s string) bool {
+	if ToMD5(s) == hash {
+		return true
+	}
+	return false
 }
