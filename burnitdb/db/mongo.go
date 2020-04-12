@@ -197,11 +197,11 @@ func toURI(opts config.Database) string {
 		if opts.Password != "" {
 			b.WriteString(":" + opts.Password)
 		}
-		b.WriteString("@")
 	}
-	b.WriteString(opts.Address)
+
+	b.WriteString("@" + opts.Address + "/" + opts.Database)
 	if opts.SSL != false {
-		b.WriteString("/?ssl=true")
+		b.WriteString("?ssl=true")
 	}
 
 	return b.String()
