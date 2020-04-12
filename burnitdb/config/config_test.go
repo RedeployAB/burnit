@@ -19,8 +19,8 @@ func TestConfigureFromEnv(t *testing.T) {
 	if confDefault.Database.Address != "localhost" {
 		t.Errorf("default address value is incorrect, got %s, want: localhost", confDefault.Database.Address)
 	}
-	if confDefault.Database.Database != "" {
-		t.Errorf("default database value is incorrect, got %s, want: \"\"", confDefault.Database.Database)
+	if confDefault.Database.Database != "burnitdb" {
+		t.Errorf("default database value is incorrect, got %s, want: %s", confDefault.Database.Database, "burnitdb")
 	}
 	if confDefault.Database.Username != "" {
 		t.Errorf("default username value is incorrect, got %s, want: \"\"", confDefault.Database.Username)

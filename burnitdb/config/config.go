@@ -10,6 +10,13 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+var (
+	defaultDB         = "burnitdb"
+	defaultDBURI      = "mongodb://localhost"
+	defaultHashMethod = "md5"
+	defaultListenPort = "3001"
+)
+
 // Server defines server part of configuration.
 type Server struct {
 	Port     string   `yaml:"port"`
@@ -71,13 +78,13 @@ func configureFromEnv() Configuration {
 	// Server variables.
 	port := os.Getenv("BURNITDB_LISTEN_PORT")
 	if len(port) == 0 {
-		port = "3001"
+		port = defaultListenPort
 	}
 	dbAPIkey := os.Getenv("BURNITDB_API_KEY")
 	encryptionKey := os.Getenv("BURNITDB_ENCRYPTION_KEY")
 	hashMethod := strings.ToLower(os.Getenv("BURNITDB_HASH_METHOD"))
 	if len(hashMethod) == 0 {
-		hashMethod = "md5"
+		hashMethod = defaultHashMethod
 	}
 	// Database variables.
 	dbHost := os.Getenv("DB_HOST")
@@ -86,6 +93,10 @@ func configureFromEnv() Configuration {
 	}
 
 	db := os.Getenv("DB")
+	if len(db) == 0 {
+		db = defaultDB
+	}
+
 	dbUser := os.Getenv("DB_USER")
 	dbPassword := os.Getenv("DB_PASSWORD")
 
@@ -143,16 +154,20 @@ func configureFromFile(path string) (Configuration, error) {
 	}
 
 	if len(config.Server.Port) == 0 {
-		config.Server.Port = "3001"
+		config.Server.Port = defaultListenPort
 	}
 	if len(config.Server.Security.HashMethod) == 0 {
-		config.Server.Security.HashMethod = "md5"
+		config.Server.Security.HashMethod = defaultHashMethod
 	} else {
 		config.Server.Security.HashMethod = strings.ToLower(config.Server.Security.HashMethod)
 	}
 
+	if len(config.Database.Database) == 0 {
+		config.Database.Database = defaultDB
+	}
+
 	if len(config.Database.Address) == 0 && len(config.Database.URI) == 0 {
-		config.Database.URI = "mongodb://localhost"
+		config.Database.URI = defaultDBURI
 	}
 	return config, nil
 }
