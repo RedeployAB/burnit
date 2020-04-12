@@ -13,7 +13,6 @@ import (
 // notFound handles all non used routes.
 func (s *Server) notFound(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusNotFound)
 	httperror.Error(w, http.StatusNotFound)
 }
 
