@@ -6,7 +6,6 @@ import (
 
 	"github.com/RedeployAB/burnit/burnitdb/internal/models"
 	"github.com/RedeployAB/burnit/common/security"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type mockClient struct{}
@@ -25,8 +24,7 @@ type mockCollection struct {
 	mode string
 }
 
-var id1 = "507f1f77bcf86cd799439011"
-var oid1, _ = primitive.ObjectIDFromHex(id1)
+var oid1 = "507f1f77bcf86cd799439011"
 var encryptionKey = "abcdefg"
 var encrypted, _ = security.Encrypt([]byte("value"), encryptionKey)
 
@@ -120,10 +118,10 @@ func TestSecretRepositoryFind(t *testing.T) {
 		wanted    *models.Secret
 		wantedErr error
 	}{
-		{inputMode: "find-success", input: id1, wanted: &models.Secret{ID: oid1, Secret: "value"}, wantedErr: nil},
-		{inputMode: "find-not-found", input: id1, wanted: nil, wantedErr: nil},
+		{inputMode: "find-success", input: oid1, wanted: &models.Secret{ID: oid1, Secret: "value"}, wantedErr: nil},
+		{inputMode: "find-not-found", input: oid1, wanted: nil, wantedErr: nil},
 		{inputMode: "find-invalid-oid", input: "1234", wanted: nil, wantedErr: nil},
-		{inputMode: "find-error", input: id1, wanted: nil, wantedErr: errors.New("error in db")},
+		{inputMode: "find-error", input: oid1, wanted: nil, wantedErr: errors.New("error in db")},
 	}
 
 	for _, test := range tests {
@@ -174,9 +172,9 @@ func TestSecretRepositoryDelete(t *testing.T) {
 		wanted    int64
 		wantedErr error
 	}{
-		{inputMode: "delete-success", input: id1, wanted: 1, wantedErr: nil},
-		{inputMode: "delete-not-found", input: id1, wanted: 0, wantedErr: nil},
-		{inputMode: "delete-error", input: id1, wanted: 0, wantedErr: errors.New("error in db")},
+		{inputMode: "delete-success", input: oid1, wanted: 1, wantedErr: nil},
+		{inputMode: "delete-not-found", input: oid1, wanted: 0, wantedErr: nil},
+		{inputMode: "delete-error", input: oid1, wanted: 0, wantedErr: errors.New("error in db")},
 	}
 
 	for _, test := range tests {

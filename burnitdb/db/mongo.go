@@ -115,7 +115,7 @@ func (c *mongoCollection) InsertOne(s *models.Secret) (*models.Secret, error) {
 	if err != nil {
 		return nil, err
 	}
-	oid := res.InsertedID.(primitive.ObjectID)
+	oid := res.InsertedID.(primitive.ObjectID).Hex()
 
 	return &models.Secret{
 		ID:         oid,

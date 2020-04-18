@@ -53,7 +53,7 @@ func (m Secret) ToPersistance(s *dto.Secret) *models.Secret {
 // ToDTO transforms a Secret (Model) to Secret (DTO).
 func (m Secret) ToDTO(s *models.Secret) *dto.Secret {
 	return &dto.Secret{
-		ID:         s.ID.Hex(),
+		ID:         s.ID,
 		Secret:     s.Secret,
 		Passphrase: s.Passphrase,
 		CreatedAt:  s.CreatedAt,

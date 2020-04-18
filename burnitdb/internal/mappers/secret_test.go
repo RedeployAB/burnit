@@ -6,11 +6,9 @@ import (
 
 	"github.com/RedeployAB/burnit/burnitdb/internal/dto"
 	"github.com/RedeployAB/burnit/burnitdb/internal/models"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-var id1 = "507f1f77bcf86cd799439011"
-var oid1, _ = primitive.ObjectIDFromHex(id1)
+var oid1 = "507f1f77bcf86cd799439011"
 
 func TestSecretToPersistance(t *testing.T) {
 
@@ -69,8 +67,8 @@ func TestSecretToDTO(t *testing.T) {
 
 	dto := Secret{}.ToDTO(model)
 
-	if dto.ID != model.ID.Hex() {
-		t.Errorf("incoorect value, got: %s, want: %s", dto.Secret, model.ID.Hex())
+	if dto.ID != model.ID {
+		t.Errorf("incoorect value, got: %s, want: %s", dto.Secret, model.ID)
 	}
 	if dto.Secret != model.Secret {
 		t.Errorf("incorrect value, got: %s, want: %s", dto.Secret, model.Secret)
