@@ -30,7 +30,16 @@ type Database interface {
 // Connect is used to connect to database with options
 // specified in the passed in options argument.
 func Connect(opts config.Database) (Client, error) {
-	client, err := mongoConnect(opts)
+	var client Client
+	var err error
+
+	switch opts.Driver {
+	case "mongo":
+		client, err = mongoConnect(opts)
+	case "redis":
+		client, err = redisConnect(opts)
+	}
+
 	if err != nil {
 		return nil, err
 	}
