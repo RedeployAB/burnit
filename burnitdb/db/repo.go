@@ -17,6 +17,7 @@ type Repository interface {
 	Insert(s *models.Secret) (*models.Secret, error)
 	Delete(id string) (int64, error)
 	DeleteExpired() (int64, error)
+	GetDriver() string
 }
 
 // SecretRepository handles interactions with the database
@@ -43,6 +44,8 @@ func NewSecretRepository(c Client, opts *SecretRepositoryOptions) *SecretReposit
 	switch c.(type) {
 	case *mongoClient:
 		db = c.(*mongoClient).Database(database).Collection(collection)
+	case *redisClient:
+		db = c.(*redisClient)
 	}
 
 	return &SecretRepository{
@@ -56,6 +59,7 @@ func NewSecretRepository(c Client, opts *SecretRepositoryOptions) *SecretReposit
 // for the repository. It contains: encryptionKey and
 // hashMethod.
 type SecretRepositoryOptions struct {
+	Driver        string
 	EncryptionKey string
 	HashMethod    string
 }
@@ -101,6 +105,12 @@ func (r *SecretRepository) DeleteExpired() (int64, error) {
 		return 0, err
 	}
 	return deleted, nil
+}
+
+// GetDriver gets the configured driver for
+// the repository.
+func (r *SecretRepository) GetDriver() string {
+	return r.options.Driver
 }
 
 // encrypt encrypts the field Secret.
