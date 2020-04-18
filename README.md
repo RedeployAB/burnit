@@ -52,8 +52,3 @@ Body: {"secret":"<value>","ttl":<value>}
 POST /api/secrets
 Body: {"secret":"<value>","passphrase":"<value>","ttl":<value>}
 ```
-
-**TODO**
-Add more tests.
-Determine on how to delete expired. Internal job in service, or side car.
-Add date requirement on find.
