@@ -77,9 +77,12 @@ func (s *Server) Start() {
 			log.Fatalf("server err: %v\n", err)
 		}
 	}()
-	// Start cleanup expired entries go routine.
-	go s.cleanup(&wg, cleanup)
-	wg.Add(1)
+
+	if s.repository.GetDriver() == "mongo" {
+		// Start cleanup expired entries go routine.
+		go s.cleanup(&wg, cleanup)
+		wg.Add(1)
+	}
 
 	log.Printf("server listening on: %s", s.httpServer.Addr)
 	s.shutdown(&wg, cleanup)
