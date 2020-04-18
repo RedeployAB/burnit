@@ -15,7 +15,6 @@ func main() {
 	configPath := flag.String("config", "", "Path to configuration file")
 	flag.Parse()
 
-	// Setup configuration.
 	conf, err := config.Configure(*configPath)
 	if err != nil {
 		log.Fatalf("configuration: %v", err)
@@ -24,8 +23,27 @@ func main() {
 	ts := auth.NewMemoryTokenStore()
 	ts.Set(conf.Server.DBAPIKey, "server")
 
-	// Connect to database.
-	log.Printf("connecting to db server: %s...\n", conf.Database.Address)
+	conn := connect(conf)
+
+	r := mux.NewRouter()
+	srv := server.New(server.Options{
+		Config:     conf,
+		Router:     r,
+		DBClient:   conn.client,
+		Repository: conn.repository,
+		TokenStore: ts,
+	})
+
+	srv.Start()
+}
+
+type connection struct {
+	client     db.Client
+	repository db.Repository
+}
+
+func connect(conf config.Configuration) *connection {
+	log.Printf("connecting to db (driver: %s) server: %s...\n", conf.Database.Driver, conf.Database.Address)
 	client, err := db.Connect(conf.Database)
 	if err != nil {
 		log.Fatalf("error: %v", err)
@@ -33,19 +51,11 @@ func main() {
 	repo := db.NewSecretRepository(
 		client,
 		&db.SecretRepositoryOptions{
+			Driver:        conf.Database.Driver,
 			EncryptionKey: conf.Server.Security.Encryption.Key,
 			HashMethod:    conf.Server.Security.HashMethod,
 		},
 	)
 
-	r := mux.NewRouter()
-	srv := server.New(server.Options{
-		Config:     conf,
-		Router:     r,
-		DBClient:   client,
-		Repository: repo,
-		TokenStore: ts,
-	})
-	// Listen and serve.
-	srv.Start()
+	return &connection{client: client, repository: repo}
 }
