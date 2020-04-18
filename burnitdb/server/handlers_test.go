@@ -92,6 +92,10 @@ func (r *mockHandlerRepository) DeleteExpired() (int64, error) {
 	return 0, nil
 }
 
+func (r *mockHandlerRepository) GetDriver() string {
+	return "mongo"
+}
+
 // The different methods on the handler will require
 // states. When creating
 func SetupServer(action, mode string) Server {
