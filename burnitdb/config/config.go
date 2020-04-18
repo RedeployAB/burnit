@@ -11,10 +11,11 @@ import (
 )
 
 var (
+	defaultListenPort = "3001"
+	defaultHashMethod = "md5"
 	defaultDB         = "burnitdb"
 	defaultDBURI      = "mongodb://localhost"
-	defaultHashMethod = "md5"
-	defaultListenPort = "3001"
+	defaultDriver     = "mongo"
 )
 
 // Server defines server part of configuration.
@@ -43,6 +44,7 @@ type Database struct {
 	Password string `yaml:"password"`
 	SSL      bool   `yaml:"ssl"`
 	URI      string `yaml:"uri"`
+	Driver   string `yaml:"driver"`
 }
 
 // Configuration represents a configuration.
@@ -108,6 +110,11 @@ func configureFromEnv() Configuration {
 		dbSSL, _ = strconv.ParseBool(dbSSLStr)
 	}
 
+	driver := strings.ToLower(os.Getenv("DB_DRIVER"))
+	if len(driver) == 0 {
+		driver = "mongo"
+	}
+
 	uri := os.Getenv("DB_CONNECTION_URI")
 
 	config := Configuration{
@@ -128,6 +135,7 @@ func configureFromEnv() Configuration {
 			Password: dbPassword,
 			SSL:      dbSSL,
 			URI:      uri,
+			Driver:   driver,
 		},
 	}
 	return config
@@ -168,6 +176,12 @@ func configureFromFile(path string) (Configuration, error) {
 
 	if len(config.Database.Address) == 0 && len(config.Database.URI) == 0 {
 		config.Database.URI = defaultDBURI
+	}
+
+	if len(config.Database.Driver) == 0 {
+		config.Database.Driver = defaultDriver
+	} else {
+		config.Database.Driver = strings.ToLower(config.Database.Driver)
 	}
 	return config, nil
 }
