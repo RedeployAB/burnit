@@ -26,12 +26,12 @@ func main() {
 
 	// Connect to database.
 	log.Printf("connecting to db server: %s...\n", conf.Database.Address)
-	connection, err := db.Connect(conf.Database)
+	client, err := db.Connect(conf.Database)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
 	repo := db.NewSecretRepository(
-		connection,
+		client,
 		&db.SecretRepositoryOptions{
 			EncryptionKey: conf.Server.Security.Encryption.Key,
 			HashMethod:    conf.Server.Security.HashMethod,
@@ -42,7 +42,7 @@ func main() {
 	srv := server.New(server.Options{
 		Config:     conf,
 		Router:     r,
-		Connection: connection,
+		DBClient:   client,
 		Repository: repo,
 		TokenStore: ts,
 	})

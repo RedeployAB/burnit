@@ -24,7 +24,7 @@ type SecretRepository struct {
 
 // NewSecretRepository creates and returns a SecretRepository
 // object.
-func NewSecretRepository(c Connection, opts *SecretRepositoryOptions) *SecretRepository {
+func NewSecretRepository(c Client, opts *SecretRepositoryOptions) *SecretRepository {
 
 	var hash func(s string) string
 	switch opts.HashMethod {

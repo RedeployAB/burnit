@@ -8,7 +8,7 @@ import (
 	"github.com/RedeployAB/burnit/burnitdb/internal/models"
 )
 
-var oid1 = "507f1f77bcf86cd799439011"
+var id1 = "507f1f77bcf86cd799439011"
 
 func TestSecretToPersistance(t *testing.T) {
 
@@ -58,7 +58,7 @@ func TestSecretToPersistance(t *testing.T) {
 
 func TestSecretToDTO(t *testing.T) {
 	model := &models.Secret{
-		ID:         oid1,
+		ID:         id1,
 		Secret:     "secret",
 		Passphrase: "passphrase",
 		CreatedAt:  time.Now(),

@@ -13,22 +13,22 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type mockConnection struct {
+type mockClient struct {
 }
 
-func (c *mockConnection) Connect(context.Context) error {
+func (c *mockClient) Connect(context.Context) error {
 	return nil
 }
 
-func (c *mockConnection) Disconnect(context.Context) error {
+func (c *mockClient) Disconnect(context.Context) error {
 	return nil
 }
 
-func (c *mockConnection) Close(context.Context) error {
+func (c *mockClient) Close(context.Context) error {
 	return nil
 }
 
-func (c *mockConnection) Database(name string) db.Database {
+func (c *mockClient) Database(name string) db.Database {
 	return nil
 }
 
@@ -73,7 +73,7 @@ func SetupOptions() Options {
 		},
 	}
 
-	connection := &mockConnection{}
+	client := &mockClient{}
 	repo := &mockRepository{}
 	ts := auth.NewMemoryTokenStore()
 	ts.Set(conf.Server.DBAPIKey, "server")
@@ -82,7 +82,7 @@ func SetupOptions() Options {
 	srvOpts := Options{
 		Config:     conf,
 		Router:     r,
-		Connection: connection,
+		DBClient:   client,
 		Repository: repo,
 		TokenStore: ts,
 	}

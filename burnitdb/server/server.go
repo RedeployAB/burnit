@@ -21,7 +21,7 @@ import (
 type Server struct {
 	httpServer  *http.Server
 	router      *mux.Router
-	connection  db.Connection
+	dbClient    db.Client
 	repository  db.Repository
 	tokenStore  auth.TokenStore
 	compareHash func(hash, s string) bool
@@ -31,7 +31,7 @@ type Server struct {
 type Options struct {
 	Config     config.Configuration
 	Router     *mux.Router
-	Connection db.Connection
+	DBClient   db.Client
 	Repository db.Repository
 	TokenStore auth.TokenStore
 }
@@ -57,7 +57,7 @@ func New(opts Options) *Server {
 	return &Server{
 		httpServer:  srv,
 		router:      opts.Router,
-		connection:  opts.Connection,
+		dbClient:    opts.DBClient,
 		repository:  opts.Repository,
 		tokenStore:  opts.TokenStore,
 		compareHash: compareHash,
@@ -99,7 +99,7 @@ func (s *Server) shutdown(wg *sync.WaitGroup, cleanup chan<- bool) {
 	wg.Wait()
 
 	log.Println("closing connection to database...")
-	if err := db.Close(s.connection); err != nil {
+	if err := db.Close(s.dbClient); err != nil {
 		log.Printf("database: %v", err)
 	}
 	log.Println("disonnected from database")

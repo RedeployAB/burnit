@@ -24,7 +24,7 @@ type mockCollection struct {
 	mode string
 }
 
-var oid1 = "507f1f77bcf86cd799439011"
+var id1 = "507f1f77bcf86cd799439011"
 var encryptionKey = "abcdefg"
 var encrypted, _ = security.Encrypt([]byte("value"), encryptionKey)
 
@@ -34,7 +34,7 @@ func (c *mockCollection) FindOne(id string) (*models.Secret, error) {
 
 	switch c.mode {
 	case "find-success":
-		model = &models.Secret{ID: oid1, Secret: string(encrypted)}
+		model = &models.Secret{ID: id1, Secret: string(encrypted)}
 		err = nil
 	case "find-not-found":
 		model = nil
@@ -52,7 +52,7 @@ func (c *mockCollection) InsertOne(m *models.Secret) (*models.Secret, error) {
 
 	switch c.mode {
 	case "insert-success":
-		model = &models.Secret{ID: oid1}
+		model = &models.Secret{ID: id1}
 		err = nil
 	case "insert-error":
 		model = nil
@@ -118,10 +118,10 @@ func TestSecretRepositoryFind(t *testing.T) {
 		wanted    *models.Secret
 		wantedErr error
 	}{
-		{inputMode: "find-success", input: oid1, wanted: &models.Secret{ID: oid1, Secret: "value"}, wantedErr: nil},
-		{inputMode: "find-not-found", input: oid1, wanted: nil, wantedErr: nil},
+		{inputMode: "find-success", input: id1, wanted: &models.Secret{ID: id1, Secret: "value"}, wantedErr: nil},
+		{inputMode: "find-not-found", input: id1, wanted: nil, wantedErr: nil},
 		{inputMode: "find-invalid-oid", input: "1234", wanted: nil, wantedErr: nil},
-		{inputMode: "find-error", input: oid1, wanted: nil, wantedErr: errors.New("error in db")},
+		{inputMode: "find-error", input: id1, wanted: nil, wantedErr: errors.New("error in db")},
 	}
 
 	for _, test := range tests {
@@ -144,8 +144,8 @@ func TestSecretRepositoryInsert(t *testing.T) {
 		wanted    *models.Secret
 		wantedErr error
 	}{
-		{inputMode: "insert-success", input: &models.Secret{Secret: "value"}, wanted: &models.Secret{ID: oid1}, wantedErr: nil},
-		{inputMode: "insert-success", input: &models.Secret{Secret: "value", Passphrase: "passphrase"}, wanted: &models.Secret{ID: oid1, Passphrase: security.ToMD5("passphrase")}, wantedErr: nil},
+		{inputMode: "insert-success", input: &models.Secret{Secret: "value"}, wanted: &models.Secret{ID: id1}, wantedErr: nil},
+		{inputMode: "insert-success", input: &models.Secret{Secret: "value", Passphrase: "passphrase"}, wanted: &models.Secret{ID: id1, Passphrase: security.ToMD5("passphrase")}, wantedErr: nil},
 		{inputMode: "insert-error", input: &models.Secret{Secret: "value"}, wanted: nil, wantedErr: errors.New("error in db")},
 	}
 
@@ -153,8 +153,8 @@ func TestSecretRepositoryInsert(t *testing.T) {
 		repo := SetupRepository(test.inputMode)
 
 		res, err := repo.Insert(test.input)
-		if res != nil && res.ID != oid1 {
-			t.Errorf("incorrect value, got: %v, want: %v", res.ID, oid1)
+		if res != nil && res.ID != id1 {
+			t.Errorf("incorrect value, got: %v, want: %v", res.ID, id1)
 		}
 		if res != nil && res.Passphrase != "" && res.Passphrase != security.ToMD5("passphrase") {
 			t.Errorf("incorrect value, got: %s, want: %s", res.Passphrase, security.ToMD5("passphrase"))
@@ -172,9 +172,9 @@ func TestSecretRepositoryDelete(t *testing.T) {
 		wanted    int64
 		wantedErr error
 	}{
-		{inputMode: "delete-success", input: oid1, wanted: 1, wantedErr: nil},
-		{inputMode: "delete-not-found", input: oid1, wanted: 0, wantedErr: nil},
-		{inputMode: "delete-error", input: oid1, wanted: 0, wantedErr: errors.New("error in db")},
+		{inputMode: "delete-success", input: id1, wanted: 1, wantedErr: nil},
+		{inputMode: "delete-not-found", input: id1, wanted: 0, wantedErr: nil},
+		{inputMode: "delete-error", input: id1, wanted: 0, wantedErr: errors.New("error in db")},
 	}
 
 	for _, test := range tests {

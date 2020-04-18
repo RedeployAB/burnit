@@ -12,12 +12,10 @@ import (
 	"github.com/RedeployAB/burnit/common/auth"
 	"github.com/RedeployAB/burnit/common/security"
 	"github.com/gorilla/mux"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var correctPassphrase = security.Bcrypt("passphrase")
 var id1 = "507f1f77bcf86cd799439011"
-var oid1, _ = primitive.ObjectIDFromHex(id1)
 var apiKey = "ABCDEF"
 
 // Mock to handle repository answers in handler tests.
@@ -34,19 +32,19 @@ func (r *mockHandlerRepository) Find(id string) (*models.Secret, error) {
 
 	switch r.mode {
 	case "find-success":
-		model = &models.Secret{ID: oid1, Secret: "values"}
+		model = &models.Secret{ID: id1, Secret: "values"}
 		err = nil
 	case "find-not-found":
 		model = nil
 		err = nil
 	case "find-success-passphrase":
-		model = &models.Secret{ID: oid1, Secret: "values", Passphrase: correctPassphrase}
+		model = &models.Secret{ID: id1, Secret: "values", Passphrase: correctPassphrase}
 		err = nil
 	case "find-error":
 		model = nil
 		err = errors.New("find error")
 	case "find-delete-error":
-		model = &models.Secret{ID: oid1, Secret: "values"}
+		model = &models.Secret{ID: id1, Secret: "values"}
 		err = nil
 	}
 	return model, err
@@ -58,7 +56,7 @@ func (r *mockHandlerRepository) Insert(s *models.Secret) (*models.Secret, error)
 
 	switch r.mode {
 	case "insert-success":
-		model = &models.Secret{ID: oid1, Secret: "value"}
+		model = &models.Secret{ID: id1, Secret: "value"}
 		err = nil
 	case "insert-error":
 		model = nil
@@ -118,7 +116,7 @@ func SetupServer(action, mode string) Server {
 		},
 	}
 
-	connection := &mockConnection{}
+	client := &mockClient{}
 	repo := &mockHandlerRepository{action: action, mode: mode}
 	ts := auth.NewMemoryTokenStore()
 	ts.Set(conf.Server.DBAPIKey, "server")
@@ -126,7 +124,7 @@ func SetupServer(action, mode string) Server {
 	r := mux.NewRouter()
 	srv := &Server{
 		router:      r,
-		connection:  connection,
+		dbClient:    client,
 		repository:  repo,
 		tokenStore:  ts,
 		compareHash: security.CompareBcryptHash,

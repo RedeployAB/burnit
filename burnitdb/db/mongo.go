@@ -20,7 +20,7 @@ import (
 
 // Connect is used to connect to database with options
 // specified in the passed in options argument.
-func Connect(opts config.Database) (Connection, error) {
+func Connect(opts config.Database) (Client, error) {
 	client, err := mongoConnect(opts)
 	if err != nil {
 		return nil, err
@@ -29,7 +29,7 @@ func Connect(opts config.Database) (Connection, error) {
 }
 
 // Close disconnects a connection to a database.
-func Close(c Connection) error {
+func Close(c Client) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
