@@ -2,6 +2,11 @@
 
 > Service with API to handling secret requests for database
 
+`burnitdb` is a service for handling database access for
+storing and handling secrets.
+
+It supports two different databases: `mongodb` and `redis`.
+
 ## Configuration
 
 There are two ways of configuring the service. Either use environment
@@ -23,6 +28,7 @@ have default values.
 * `DB_USER` - Database user with read/write access
 * `DB_PASSWORD` - Password for the database user
 * `DB_SSL` - True/False. If true, use SSL for DB communication. Defaults to `false`
+* `DB_DRIVER` - `mongo`/`redis`. The database engine to use for the service. Defaults to `mongo`
 
 **Configuration file**
 
@@ -47,5 +53,6 @@ database:
   username: dbuser
   password: dbpassword
   ssl: true
-  uri: mongodb://localhost:27017 # Can be used instead of address, database, username, password and ssl.
+  uri: mongodb://localhost:27017|localhost:6379 # Can be used instead of address, database, username, password and ssl.
+  driver: mongo|redis
 ```
