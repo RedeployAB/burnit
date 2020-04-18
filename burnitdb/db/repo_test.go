@@ -105,9 +105,9 @@ func SetupRepository(mode string) *SecretRepository {
 		HashMethod:    "bcrypt",
 	}
 	return &SecretRepository{
-		collection: &mockCollection{mode: mode},
-		options:    opts,
-		hash:       security.Bcrypt,
+		db:      &mockCollection{mode: mode},
+		options: opts,
+		hash:    security.Bcrypt,
 	}
 }
 

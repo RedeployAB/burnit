@@ -5,6 +5,11 @@ import (
 	"github.com/RedeployAB/burnit/common/security"
 )
 
+var (
+	database   = "burnitdb"
+	collection = "secrets"
+)
+
 // Repository defined the methods needed for interact
 // with a database and collection.
 type Repository interface {
@@ -17,9 +22,9 @@ type Repository interface {
 // SecretRepository handles interactions with the database
 // and collection.
 type SecretRepository struct {
-	collection Collection
-	options    *SecretRepositoryOptions
-	hash       func(s string) string
+	db      Database
+	options *SecretRepositoryOptions
+	hash    func(s string) string
 }
 
 // NewSecretRepository creates and returns a SecretRepository
@@ -34,10 +39,16 @@ func NewSecretRepository(c Client, opts *SecretRepositoryOptions) *SecretReposit
 		hash = security.Bcrypt
 	}
 
+	var db Database
+	switch c.(type) {
+	case *mongoClient:
+		db = c.(*mongoClient).Database(database).Collection(collection)
+	}
+
 	return &SecretRepository{
-		collection: c.Database("burnitdb").Collection("secrets"),
-		options:    opts,
-		hash:       hash,
+		db:      db,
+		options: opts,
+		hash:    hash,
 	}
 }
 
@@ -51,7 +62,7 @@ type SecretRepositoryOptions struct {
 
 // Find queries the collection for an entry by ID.
 func (r *SecretRepository) Find(id string) (*models.Secret, error) {
-	s, err := r.collection.FindOne(id)
+	s, err := r.db.FindOne(id)
 	if err != nil || s == nil {
 		return s, err
 	}
@@ -66,7 +77,7 @@ func (r *SecretRepository) Insert(s *models.Secret) (*models.Secret, error) {
 		s.Passphrase = r.hash(s.Passphrase)
 	}
 
-	s, err := r.collection.InsertOne(s)
+	s, err := r.db.InsertOne(s)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +86,7 @@ func (r *SecretRepository) Insert(s *models.Secret) (*models.Secret, error) {
 
 // Delete removes an entry from the collection by ID.
 func (r *SecretRepository) Delete(id string) (int64, error) {
-	deleted, err := r.collection.DeleteOne(id)
+	deleted, err := r.db.DeleteOne(id)
 	if err != nil {
 		return 0, err
 	}
@@ -85,7 +96,7 @@ func (r *SecretRepository) Delete(id string) (int64, error) {
 // DeleteExpired deletes all entries that has expiresAt
 // less than current time (time of invocation).
 func (r *SecretRepository) DeleteExpired() (int64, error) {
-	deleted, err := r.collection.DeleteMany()
+	deleted, err := r.db.DeleteMany()
 	if err != nil {
 		return 0, err
 	}

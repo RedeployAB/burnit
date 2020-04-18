@@ -6,9 +6,9 @@ import (
 
 // Secret represents a secret entry in database.
 type Secret struct {
-	ID         string    `bson:"_id,omitempty"`
-	Secret     string    `bson:"secret"`
-	Passphrase string    `bson:"passphrase,omitempty"`
-	CreatedAt  time.Time `bson:"createdAt"`
-	ExpiresAt  time.Time `bson:"expiresAt"`
+	ID         string    `json:"id,omitempty" bson:"_id,omitempty"`
+	Secret     string    `json:"secret" bson:"secret"`
+	Passphrase string    `json:"passphrase,omitempty" bson:"passphrase,omitempty"`
+	CreatedAt  time.Time `json:"createdAt" bson:"createdAt"`
+	ExpiresAt  time.Time `json:"expiresAt" bson:"expiresAt"`
 }

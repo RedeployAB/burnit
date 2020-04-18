@@ -18,25 +18,18 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// Connect is used to connect to database with options
-// specified in the passed in options argument.
-func Connect(opts config.Database) (Client, error) {
-	client, err := mongoConnect(opts)
-	if err != nil {
-		return nil, err
-	}
-	return client, nil
+// MongoDatabase provides method Collection.
+type MongoDatabase interface {
+	Collection(name string) MongoCollection
 }
 
-// Close disconnects a connection to a database.
-func Close(c Client) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	defer cancel()
-
-	if err := c.Disconnect(ctx); err != nil && err != mongo.ErrClientDisconnected {
-		return err
-	}
-	return nil
+// MongoCollection provides methods FindOne, InsertOne,
+// DeleteOne and DeleteMany.
+type MongoCollection interface {
+	FindOne(id string) (*models.Secret, error)
+	InsertOne(s *models.Secret) (*models.Secret, error)
+	DeleteOne(id string) (int64, error)
+	DeleteMany() (int64, error)
 }
 
 // mongoClient wraps around mongo.Client to assist with
@@ -47,7 +40,7 @@ type mongoClient struct {
 
 // Database wraps around mongoClients (mongo.Client)
 // Database method.
-func (c *mongoClient) Database(name string) Database {
+func (c *mongoClient) Database(name string) MongoDatabase {
 	return &mongoDatabase{database: c.client.Database(name)}
 }
 
@@ -71,7 +64,7 @@ type mongoDatabase struct {
 
 // Collection wraps around mongoDatabases (mongo.Datbase)
 // Collection method.
-func (db *mongoDatabase) Collection(name string) Collection {
+func (db *mongoDatabase) Collection(name string) MongoCollection {
 	return &mongoCollection{collection: db.database.Collection(name)}
 }
 
