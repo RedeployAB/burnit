@@ -21,7 +21,7 @@ func main() {
 	}
 
 	ts := auth.NewMemoryTokenStore()
-	ts.Set(conf.Server.DBAPIKey, "server")
+	ts.Set(conf.Server.Security.APIKey, "server")
 
 	conn := connect(conf)
 

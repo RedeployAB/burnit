@@ -21,12 +21,12 @@ var (
 // Server defines server part of configuration.
 type Server struct {
 	Port     string   `yaml:"port"`
-	DBAPIKey string   `yaml:"dbApiKey"`
 	Security Security `yaml:"security"`
 }
 
 // Security defines security part of server configuration.
 type Security struct {
+	APIKey     string     `yaml:"apiKey"`
 	Encryption Encryption `yaml:"encryption"`
 	HashMethod string     `yaml:"hashMethod"`
 }
@@ -82,7 +82,7 @@ func configureFromEnv() Configuration {
 	if len(port) == 0 {
 		port = defaultListenPort
 	}
-	dbAPIkey := os.Getenv("BURNITDB_API_KEY")
+	apiKey := os.Getenv("BURNITDB_API_KEY")
 	encryptionKey := os.Getenv("BURNITDB_ENCRYPTION_KEY")
 	hashMethod := strings.ToLower(os.Getenv("BURNITDB_HASH_METHOD"))
 	if len(hashMethod) == 0 {
@@ -119,9 +119,9 @@ func configureFromEnv() Configuration {
 
 	config := Configuration{
 		Server{
-			Port:     port,
-			DBAPIKey: dbAPIkey,
+			Port: port,
 			Security: Security{
+				APIKey: apiKey,
 				Encryption: Encryption{
 					Key: encryptionKey,
 				},

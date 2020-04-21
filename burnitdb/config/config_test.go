@@ -10,8 +10,8 @@ func TestConfigureFromEnv(t *testing.T) {
 	if confDefault.Server.Port != "3001" {
 		t.Errorf("default port value is incorrect, got %s, want: 3001", confDefault.Server.Port)
 	}
-	if confDefault.Server.DBAPIKey != "" {
-		t.Errorf("default db api key value is incorrect, got %s, want: \"\"", confDefault.Server.DBAPIKey)
+	if confDefault.Server.Security.APIKey != "" {
+		t.Errorf("default db api key value is incorrect, got %s, want: \"\"", confDefault.Server.Security.APIKey)
 	}
 	if confDefault.Server.Security.Encryption.Key != "" {
 		t.Errorf("default encryption key value is incorrect, got %s, want: \"\"", confDefault.Server.Security.Encryption.Key)
@@ -48,8 +48,8 @@ func TestConfigureFromEnv(t *testing.T) {
 	if confEnv.Server.Port != "6000" {
 		t.Errorf("port value is incorrect, got %s, want: 6000", confEnv.Server.Port)
 	}
-	if confEnv.Server.DBAPIKey != "aabbcc" {
-		t.Errorf("api key value is incorrect, got %s, want: aabbcc", confEnv.Server.DBAPIKey)
+	if confEnv.Server.Security.APIKey != "aabbcc" {
+		t.Errorf("api key value is incorrect, got %s, want: aabbcc", confEnv.Server.Security.APIKey)
 	}
 	if confEnv.Server.Security.Encryption.Key != "secretstring" {
 		t.Errorf("encryption key value is incorrect, got %s, want: secretstring", confEnv.Server.Security.Encryption.Key)
@@ -85,8 +85,8 @@ func TestConfigureFromFile(t *testing.T) {
 	if conf.Server.Port != "3003" {
 		t.Errorf("port value is incorrect, got %s, want: 3003", conf.Server.Port)
 	}
-	if conf.Server.DBAPIKey != "aabbcc" {
-		t.Errorf("api key value is incorrect, got %s, want: aabbcc", conf.Server.DBAPIKey)
+	if conf.Server.Security.APIKey != "aabbcc" {
+		t.Errorf("api key value is incorrect, got %s, want: aabbcc", conf.Server.Security.APIKey)
 	}
 	if conf.Server.Security.Encryption.Key != "secretstring" {
 		t.Errorf("encryption key value is incorrect, got %s, want: secretstring", conf.Server.Security.Encryption.Key)

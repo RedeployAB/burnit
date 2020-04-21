@@ -1,7 +1,7 @@
 server:
   port: 3003
-  dbApiKey: aabbcc
   security:
+    apiKey: aabbcc
     encryption:
       key: secretstring
     hashMethod: bcrypt

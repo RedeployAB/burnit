@@ -101,9 +101,9 @@ func (r *mockHandlerRepository) GetDriver() string {
 func SetupServer(action, mode string) Server {
 	conf := config.Configuration{
 		Server: config.Server{
-			Port:     "5000",
-			DBAPIKey: "ABCDEF",
+			Port: "5000",
 			Security: config.Security{
+				APIKey: "ABCDEF",
 				Encryption: config.Encryption{
 					Key: "testphrase",
 				},
@@ -123,7 +123,7 @@ func SetupServer(action, mode string) Server {
 	client := &mockClient{}
 	repo := &mockHandlerRepository{action: action, mode: mode}
 	ts := auth.NewMemoryTokenStore()
-	ts.Set(conf.Server.DBAPIKey, "server")
+	ts.Set(conf.Server.Security.APIKey, "server")
 
 	r := mux.NewRouter()
 	srv := &Server{
