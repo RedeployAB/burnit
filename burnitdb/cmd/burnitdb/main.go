@@ -23,7 +23,7 @@ func main() {
 	ts := auth.NewMemoryTokenStore()
 	ts.Set(conf.Server.Security.APIKey, "server")
 
-	conn := connect(conf)
+	conn := connectToDB(conf)
 
 	r := mux.NewRouter()
 	srv := server.New(server.Options{
@@ -37,12 +37,12 @@ func main() {
 	srv.Start()
 }
 
-type connection struct {
+type dbConnection struct {
 	client     db.Client
 	repository db.Repository
 }
 
-func connect(conf config.Configuration) *connection {
+func connectToDB(conf config.Configuration) *dbConnection {
 	log.Printf("connecting to db (driver: %s) server: %s...\n", conf.Database.Driver, conf.Database.Address)
 	client, err := db.Connect(conf.Database)
 	if err != nil {
@@ -57,5 +57,5 @@ func connect(conf config.Configuration) *connection {
 		},
 	)
 
-	return &connection{client: client, repository: repo}
+	return &dbConnection{client: client, repository: repo}
 }
