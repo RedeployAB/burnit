@@ -7,8 +7,14 @@ lengths, with or without special characters.
 
 ## Configuration
 
-There are three ways of configuring the service. Either use environment variables, provide a config file
-or use defaults.
+There are four ways of configuring the service. Either provide a config file, use environment variables, pass command line arguments or use defaults.
+
+Order of precedence:
+
+* Defaults
+* File
+* Environment variables
+* Command line arguments
 
 **Service configuration**
 
@@ -28,4 +34,11 @@ Pass `-config` with path when running service, like so:
 ```yaml
 port: 3002
 
+```
+
+**Command line arguments**
+
+Pass `-port` with port number when running the service, like so:
+```
+./burnitgen -port 3002
 ```

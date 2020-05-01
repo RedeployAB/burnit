@@ -1,11 +1,34 @@
 package config
 
 import (
+	"flag"
 	"io/ioutil"
 	"os"
 
 	"gopkg.in/yaml.v2"
 )
+
+var (
+	defaultListenPort = "3002"
+)
+
+// Flags is parsed flags.
+type Flags struct {
+	ConfigPath string
+	Port       string
+}
+
+// ParseFlags runs flag.Parse and returns a flag object.
+func ParseFlags() Flags {
+	configPath := flag.String("config", "", "Path to configuration file")
+	listenPort := flag.String("port", "", "Port to listen on")
+	flag.Parse()
+
+	return Flags{
+		ConfigPath: *configPath,
+		Port:       *listenPort,
+	}
+}
 
 // Configuration represents a configuration.
 type Configuration struct {
@@ -15,50 +38,68 @@ type Configuration struct {
 // Configure calls configureFromEnv or
 // configureFromFile depending on the parameters
 // passed in.
-func Configure(path string) (Configuration, error) {
-	var config Configuration
-	var err error
-	if len(path) == 0 {
-		config = configureFromEnv()
-	} else {
-		config, err = configureFromFile(path)
-		if err != nil {
-			return config, err
+func Configure(f Flags) (*Configuration, error) {
+	// Set default configuration.
+	config := &Configuration{
+		Port: defaultListenPort,
+	}
+
+	if len(f.ConfigPath) > 0 {
+		if err := configureFromFile(config, f.ConfigPath); err != nil {
+			return nil, err
 		}
 	}
+
+	configureFromEnv(config)
+	configureFromFlags(config, f)
+
 	return config, nil
+}
+
+func configureFromFlags(config *Configuration, f Flags) {
+	cfg := Configuration{
+		Port: f.Port,
+	}
+	mergeConfig(config, cfg)
 }
 
 // configureFromEnv performs the necessary steps
 // for server configuration from environment
 // variables.
-func configureFromEnv() Configuration {
-	port := os.Getenv("BURNITGEN_LISTEN_PORT")
-	if len(port) == 0 {
-		port = "3002"
+func configureFromEnv(config *Configuration) {
+	cfg := Configuration{
+		Port: os.Getenv("BURNITGEN_LISTEN_PORT"),
 	}
-	return Configuration{Port: port}
+	mergeConfig(config, cfg)
 }
 
 // configureFromFile performs the necessary steps
 // for server configuration from environment
 // variables.
-func configureFromFile(path string) (Configuration, error) {
-	var config = Configuration{}
+func configureFromFile(config *Configuration, path string) error {
 	f, err := os.Open(path)
 	if err != nil {
-		return config, err
+		return err
 	}
 	defer f.Close()
 
 	b, err := ioutil.ReadAll(f)
 	if err != nil {
-		return config, err
+		return err
 	}
 
+	var cfg Configuration
 	err = yaml.Unmarshal(b, &config)
 	if err != nil {
-		return config, err
+		return err
 	}
-	return config, nil
+	// Merge configurations.
+	mergeConfig(config, cfg)
+	return nil
+}
+
+func mergeConfig(config *Configuration, srcCfg Configuration) {
+	if len(srcCfg.Port) > 0 {
+		config.Port = srcCfg.Port
+	}
 }
