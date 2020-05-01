@@ -5,114 +5,314 @@ import (
 	"testing"
 )
 
-func TestConfigureFromEnv(t *testing.T) {
-	confDefault := configureFromEnv()
+func TestConfigureDefault(t *testing.T) {
 	expectedPort := "3000"
-	if confDefault.Port != expectedPort {
-		t.Errorf("default port value is incorrect, got: %s, want: %s", confDefault.Port, expectedPort)
-	}
 	expectedGenBaseURL := "http://localhost:3002"
-	if confDefault.GeneratorBaseURL != expectedGenBaseURL {
-		t.Errorf("Generator Base URL is incorrect, got: %s, want: %s", confDefault.GeneratorBaseURL, expectedGenBaseURL)
-	}
-	expectedGenPath := "/api/generate"
-	if confDefault.GeneratorServicePath != expectedGenPath {
-		t.Errorf("Generator Service  Path is incorrect, got: %s, want: %s", confDefault.GeneratorServicePath, expectedGenPath)
-	}
+	expectedGenSvcPath := "/api/generate"
 	expectedDBBaseURL := "http://localhost:3001"
-	if confDefault.DBBaseURL != expectedDBBaseURL {
-		t.Errorf("DB Base URL is incorrect, got: %s, want: %s", confDefault.DBBaseURL, expectedDBBaseURL)
-	}
-	expectedDBPath := "/api/secrets"
-	if confDefault.DBServicePath != expectedDBPath {
-		t.Errorf("DB Service Path is incorrect, got: %s, want: %s", confDefault.DBServicePath, expectedDBPath)
-	}
+	expectedDBSvcPath := "/api/secrets"
 	expectedDBAPIKey := ""
-	if confDefault.DBAPIKey != expectedDBAPIKey {
-		t.Errorf("DB API Key is incorrect, got: %s, want: %s", confDefault.DBAPIKey, expectedDBAPIKey)
+
+	var flags Flags
+	config, err := Configure(flags)
+	if err != nil {
+		t.Fatalf("error in test: %v", err)
 	}
 
-	os.Setenv("BURNITGW_LISTEN_PORT", "5000")
-	os.Setenv("BURNITGEN_BASE_URL", "http://someurl:3000")
-	os.Setenv("BURNITGEN_PATH", "/api/v1/generate")
-	os.Setenv("BURNITDB_BASE_URL", "http://someurl:3001")
-	os.Setenv("BURNITDB_PATH", "/api/v1/secrets")
-	os.Setenv("BURNITDB_API_KEY", "AAAA")
-	confEnv := configureFromEnv()
-
-	expectedPort = "5000"
-	if confEnv.Port != expectedPort {
-		t.Errorf("Port value is incorrect, got: %s, want: %s", confEnv.Port, expectedPort)
+	if config.Port != expectedPort {
+		t.Errorf("Port was incorrect, got: %s, want: %s", config.Port, expectedPort)
 	}
-	expectedGenBaseURL = "http://someurl:3000"
-	if confEnv.GeneratorBaseURL != expectedGenBaseURL {
-		t.Errorf("Generator Base URL is incorrect, got %s, want: %s", confEnv.GeneratorBaseURL, expectedGenBaseURL)
+	if config.GeneratorBaseURL != expectedGenBaseURL {
+		t.Errorf("Generator Base URL is incorrect, got: %s, want: %s", config.GeneratorBaseURL, expectedGenBaseURL)
 	}
-	expectedGenPath = "/api/v1/generate"
-	if confEnv.GeneratorServicePath != expectedGenPath {
-		t.Errorf("Generator Service  Path is incorrect, got %s, want: %s", confEnv.GeneratorServicePath, expectedGenPath)
+	if config.GeneratorServicePath != expectedGenSvcPath {
+		t.Errorf("Generator Service Path is incorrect, got: %s, want: %s", config.GeneratorServicePath, expectedGenSvcPath)
 	}
-	expectedDBBaseURL = "http://someurl:3001"
-	if confEnv.DBBaseURL != expectedDBBaseURL {
-		t.Errorf("DB Base URL is incorrect, got %s, want: %s", confEnv.DBBaseURL, expectedDBBaseURL)
+	if config.DBBaseURL != expectedDBBaseURL {
+		t.Errorf("DB Base URL is incorrect, got: %s, want: %s", config.DBBaseURL, expectedDBBaseURL)
 	}
-	expectedDBPath = "/api/v1/secrets"
-	if confEnv.DBServicePath != expectedDBPath {
-		t.Errorf("DB Service Path is incorrect, got %s, want: %s", confEnv.DBServicePath, expectedDBPath)
+	if config.DBServicePath != expectedDBSvcPath {
+		t.Errorf("DB Service Path is incorrect, got: %s, want: %s", config.DBServicePath, expectedDBSvcPath)
 	}
-	expectedDBAPIKey = "AAAA"
-	if confEnv.DBAPIKey != expectedDBAPIKey {
-		t.Errorf("DB API Key is incorrect, got %s, want: %s", confEnv.DBAPIKey, expectedDBAPIKey)
+	if config.DBAPIKey != expectedDBAPIKey {
+		t.Errorf("DB API Key is incorrect, got :%s, want: %s", config.DBAPIKey, expectedDBAPIKey)
 	}
 }
 
 func TestConfigureFromFile(t *testing.T) {
+	expectedPort := "3003"
+	expectedGenBaseURL := "http://localhost:3003"
+	expectedGenSvcPath := "/api/v1/generate"
+	expectedDBBaseURL := "http://localhost:3003"
+	expectedDBSvcPath := "/api/v1/secrets"
+	expectedDBAPIKey := "aabbcc"
 	configPath := "../test/config.yaml"
-	conf, err := configureFromFile(configPath)
-	if err != nil {
-		t.Errorf("%v", err)
+
+	config := &Configuration{}
+	if err := configureFromFile(config, configPath); err != nil {
+		t.Fatalf("error in test: %v", err)
 	}
 
+	if config.Port != expectedPort {
+		t.Errorf("Port was incorrect, got: %s, want: %s", config.Port, expectedPort)
+	}
+	if config.GeneratorBaseURL != expectedGenBaseURL {
+		t.Errorf("Generator Base URL is incorrect, got: %s, want: %s", config.GeneratorBaseURL, expectedGenBaseURL)
+	}
+	if config.GeneratorServicePath != expectedGenSvcPath {
+		t.Errorf("Generator Service Path is incorrect, got: %s, want: %s", config.GeneratorServicePath, expectedGenSvcPath)
+	}
+	if config.DBBaseURL != expectedDBBaseURL {
+		t.Errorf("DB Base URL is incorrect, got: %s, want: %s", config.DBBaseURL, expectedDBBaseURL)
+	}
+	if config.DBServicePath != expectedDBSvcPath {
+		t.Errorf("DB Service Path is incorrect, got: %s, want: %s", config.DBServicePath, expectedDBSvcPath)
+	}
+	if config.DBAPIKey != expectedDBAPIKey {
+		t.Errorf("DB API Key is incorrect, got :%s, want: %s", config.DBAPIKey, expectedDBAPIKey)
+	}
+
+	if err := configureFromFile(config, "nonexisting.yml"); err == nil {
+		t.Errorf("should return error if file does not exist")
+	}
+}
+
+func TestConfigureFromEnv(t *testing.T) {
 	expectedPort := "3003"
-	if conf.Port != expectedPort {
-		t.Errorf("Port value is incorrect, got %s, want: %s", conf.Port, expectedPort)
+	expectedGenBaseURL := "http://someurl:3002"
+	expectedGenSvcPath := "/api/v1/generate"
+	expectedDBBaseURL := "http://someurl:3001"
+	expectedDBSvcPath := "/api/v1/secrets"
+	expectedDBAPIKey := "AAAA"
+
+	config := &Configuration{}
+	os.Setenv("BURNITGW_LISTEN_PORT", expectedPort)
+	os.Setenv("BURNITGEN_BASE_URL", expectedGenBaseURL)
+	os.Setenv("BURNITGEN_PATH", expectedGenSvcPath)
+	os.Setenv("BURNITDB_BASE_URL", expectedDBBaseURL)
+	os.Setenv("BURNITDB_PATH", expectedDBSvcPath)
+	os.Setenv("BURNITDB_API_KEY", expectedDBAPIKey)
+	configureFromEnv(config)
+
+	if config.Port != expectedPort {
+		t.Errorf("Port was incorrect, got: %s, want: %s", config.Port, expectedPort)
 	}
-	expectedGenBaseURL := "http://localhost:3003"
-	if conf.GeneratorBaseURL != expectedGenBaseURL {
-		t.Errorf("Generator Base URL is incorrect, got %s, want: %s", conf.GeneratorBaseURL, expectedGenBaseURL)
+	if config.GeneratorBaseURL != expectedGenBaseURL {
+		t.Errorf("Generator Base URL is incorrect, got: %s, want: %s", config.GeneratorBaseURL, expectedGenBaseURL)
 	}
-	expectedGenPath := "/api/v1/generate"
-	if conf.GeneratorServicePath != expectedGenPath {
-		t.Errorf("Generator Service Path is incorrect, got %s, want: %s", conf.GeneratorServicePath, expectedGenPath)
+	if config.GeneratorServicePath != expectedGenSvcPath {
+		t.Errorf("Generator Service Path is incorrect, got: %s, want: %s", config.GeneratorServicePath, expectedGenSvcPath)
 	}
-	expectedDBBaseURL := "http://localhost:3003"
-	if conf.DBBaseURL != expectedDBBaseURL {
-		t.Errorf("DB Base URL is incorrect, got %s, want: %s", conf.DBBaseURL, expectedDBBaseURL)
+	if config.DBBaseURL != expectedDBBaseURL {
+		t.Errorf("DB Base URL is incorrect, got: %s, want: %s", config.DBBaseURL, expectedDBBaseURL)
 	}
-	expectedDBPath := "/api/v1/secrets"
-	if conf.DBServicePath != expectedDBPath {
-		t.Errorf("DB Service Path is incorrect, got %s, want: %s", conf.DBServicePath, expectedDBPath)
+	if config.DBServicePath != expectedDBSvcPath {
+		t.Errorf("DB Service Path is incorrect, got: %s, want: %s", config.DBServicePath, expectedDBSvcPath)
 	}
-	expectedDBAPIKey := "aabbcc"
-	if conf.DBAPIKey != expectedDBAPIKey {
-		t.Errorf("DB API Key is incorrect, got %s, want: %s", conf.DBAPIKey, expectedDBAPIKey)
+	if config.DBAPIKey != expectedDBAPIKey {
+		t.Errorf("DB API Key is incorrect, got :%s, want: %s", config.DBAPIKey, expectedDBAPIKey)
+	}
+	os.Setenv("BURNITGW_LISTEN_PORT", "")
+	os.Setenv("BURNITGEN_BASE_URL", "")
+	os.Setenv("BURNITGEN_PATH", "")
+	os.Setenv("BURNITDB_BASE_URL", "")
+	os.Setenv("BURNITDB_PATH", "")
+	os.Setenv("BURNITDB_API_KEY", "")
+}
+
+func TestConfigureFromFlags(t *testing.T) {
+	expectedPort := "4000"
+	expectedGenBaseURL := "http://someurl:4002"
+	expectedGenSvcPath := "/api/v1/generate"
+	expectedDBBaseURL := "http://someurl:4003"
+	expectedDBSvcPath := "/api/v1/secrets"
+	expectedDBAPIKey := "ccaabb"
+
+	flags := Flags{
+		Port:                 expectedPort,
+		GeneratorBaseURL:     expectedGenBaseURL,
+		GeneratorServicePath: expectedGenSvcPath,
+		DBBaseURL:            expectedDBBaseURL,
+		DBServicePath:        expectedDBSvcPath,
+		DBAPIKey:             expectedDBAPIKey,
+	}
+
+	config := &Configuration{}
+	configureFromFlags(config, flags)
+
+	if config.Port != expectedPort {
+		t.Errorf("Port was incorrect, got: %s, want: %s", config.Port, expectedPort)
+	}
+	if config.GeneratorBaseURL != expectedGenBaseURL {
+		t.Errorf("Generator Base URL is incorrect, got: %s, want: %s", config.GeneratorBaseURL, expectedGenBaseURL)
+	}
+	if config.GeneratorServicePath != expectedGenSvcPath {
+		t.Errorf("Generator Service Path is incorrect, got: %s, want: %s", config.GeneratorServicePath, expectedGenSvcPath)
+	}
+	if config.DBBaseURL != expectedDBBaseURL {
+		t.Errorf("DB Base URL is incorrect, got: %s, want: %s", config.DBBaseURL, expectedDBBaseURL)
+	}
+	if config.DBServicePath != expectedDBSvcPath {
+		t.Errorf("DB Service Path is incorrect, got: %s, want: %s", config.DBServicePath, expectedDBSvcPath)
+	}
+	if config.DBAPIKey != expectedDBAPIKey {
+		t.Errorf("DB API Key is incorrect, got :%s, want: %s", config.DBAPIKey, expectedDBAPIKey)
 	}
 }
 
 func TestConfigure(t *testing.T) {
-	// Test Configure from environment.
-	_, err := Configure("")
+	configPath := "../test/config.yaml"
+	// Test defaul t configuration.
+	expectedPort := "3000"
+	expectedGenBaseURL := "http://localhost:3002"
+	expectedGenSvcPath := "/api/generate"
+	expectedDBBaseURL := "http://localhost:3001"
+	expectedDBSvcPath := "/api/secrets"
+	expectedDBAPIKey := ""
+
+	var flags Flags
+	config, err := Configure(flags)
 	if err != nil {
-		t.Errorf("Error: %v", err)
+		t.Fatalf("error in test: %v", err)
 	}
-	// Test Configure from file.
-	_, err = Configure("../test/config.yaml")
+
+	if config.Port != expectedPort {
+		t.Errorf("Port was incorrect, got: %s, want: %s", config.Port, expectedPort)
+	}
+	if config.GeneratorBaseURL != expectedGenBaseURL {
+		t.Errorf("Generator Base URL is incorrect, got: %s, want: %s", config.GeneratorBaseURL, expectedGenBaseURL)
+	}
+	if config.GeneratorServicePath != expectedGenSvcPath {
+		t.Errorf("Generator Service Path is incorrect, got: %s, want: %s", config.GeneratorServicePath, expectedGenSvcPath)
+	}
+	if config.DBBaseURL != expectedDBBaseURL {
+		t.Errorf("DB Base URL is incorrect, got: %s, want: %s", config.DBBaseURL, expectedDBBaseURL)
+	}
+	if config.DBServicePath != expectedDBSvcPath {
+		t.Errorf("DB Service Path is incorrect, got: %s, want: %s", config.DBServicePath, expectedDBSvcPath)
+	}
+	if config.DBAPIKey != expectedDBAPIKey {
+		t.Errorf("DB API Key is incorrect, got :%s, want: %s", config.DBAPIKey, expectedDBAPIKey)
+	}
+
+	// Test with file. Should override default.
+	expectedPort = "3003"
+	expectedGenBaseURL = "http://localhost:3003"
+	expectedGenSvcPath = "/api/v1/generate"
+	expectedDBBaseURL = "http://localhost:3003"
+	expectedDBSvcPath = "/api/v1/secrets"
+	expectedDBAPIKey = "aabbcc"
+
+	flags.ConfigPath = configPath
+	config, err = Configure(flags)
 	if err != nil {
-		t.Errorf("Error: %v", err)
+		t.Fatalf("error in test: %v", err)
 	}
-	// Handle whene no configuration exists.
-	_, err = Configure("../test/nofile.yml")
-	if err == nil {
-		t.Errorf("Incorrect, should have returned an error")
+
+	if config.Port != expectedPort {
+		t.Errorf("Port was incorrect, got: %s, want: %s", config.Port, expectedPort)
 	}
+	if config.GeneratorBaseURL != expectedGenBaseURL {
+		t.Errorf("Generator Base URL is incorrect, got: %s, want: %s", config.GeneratorBaseURL, expectedGenBaseURL)
+	}
+	if config.GeneratorServicePath != expectedGenSvcPath {
+		t.Errorf("Generator Service Path is incorrect, got: %s, want: %s", config.GeneratorServicePath, expectedGenSvcPath)
+	}
+	if config.DBBaseURL != expectedDBBaseURL {
+		t.Errorf("DB Base URL is incorrect, got: %s, want: %s", config.DBBaseURL, expectedDBBaseURL)
+	}
+	if config.DBServicePath != expectedDBSvcPath {
+		t.Errorf("DB Service Path is incorrect, got: %s, want: %s", config.DBServicePath, expectedDBSvcPath)
+	}
+	if config.DBAPIKey != expectedDBAPIKey {
+		t.Errorf("DB API Key is incorrect, got :%s, want: %s", config.DBAPIKey, expectedDBAPIKey)
+	}
+
+	// Test with environment variables. Should override file.
+	expectedPort = "3003"
+	expectedGenBaseURL = "http://someurl:3002"
+	expectedGenSvcPath = "/api/v1/generate"
+	expectedDBBaseURL = "http://someurl:3001"
+	expectedDBSvcPath = "/api/v1/secrets"
+	expectedDBAPIKey = "AAAA"
+
+	os.Setenv("BURNITGW_LISTEN_PORT", expectedPort)
+	os.Setenv("BURNITGEN_BASE_URL", expectedGenBaseURL)
+	os.Setenv("BURNITGEN_PATH", expectedGenSvcPath)
+	os.Setenv("BURNITDB_BASE_URL", expectedDBBaseURL)
+	os.Setenv("BURNITDB_PATH", expectedDBSvcPath)
+	os.Setenv("BURNITDB_API_KEY", expectedDBAPIKey)
+
+	config, err = Configure(flags)
+	if err != nil {
+		t.Fatalf("error in test: %v", err)
+	}
+
+	if config.Port != expectedPort {
+		t.Errorf("Port was incorrect, got: %s, want: %s", config.Port, expectedPort)
+	}
+	if config.GeneratorBaseURL != expectedGenBaseURL {
+		t.Errorf("Generator Base URL is incorrect, got: %s, want: %s", config.GeneratorBaseURL, expectedGenBaseURL)
+	}
+	if config.GeneratorServicePath != expectedGenSvcPath {
+		t.Errorf("Generator Service Path is incorrect, got: %s, want: %s", config.GeneratorServicePath, expectedGenSvcPath)
+	}
+	if config.DBBaseURL != expectedDBBaseURL {
+		t.Errorf("DB Base URL is incorrect, got: %s, want: %s", config.DBBaseURL, expectedDBBaseURL)
+	}
+	if config.DBServicePath != expectedDBSvcPath {
+		t.Errorf("DB Service Path is incorrect, got: %s, want: %s", config.DBServicePath, expectedDBSvcPath)
+	}
+	if config.DBAPIKey != expectedDBAPIKey {
+		t.Errorf("DB API Key is incorrect, got :%s, want: %s", config.DBAPIKey, expectedDBAPIKey)
+	}
+
+	// Test with flags. Should override file and envrionment variables.
+	expectedPort = "4000"
+	expectedGenBaseURL = "http://someurl:4002"
+	expectedGenSvcPath = "/api/v1/generate"
+	expectedDBBaseURL = "http://someurl:4003"
+	expectedDBSvcPath = "/api/v1/secrets"
+	expectedDBAPIKey = "ccaabb"
+
+	flags = Flags{
+		ConfigPath:           configPath,
+		Port:                 expectedPort,
+		GeneratorBaseURL:     expectedGenBaseURL,
+		GeneratorServicePath: expectedGenSvcPath,
+		DBBaseURL:            expectedDBBaseURL,
+		DBServicePath:        expectedDBSvcPath,
+		DBAPIKey:             expectedDBAPIKey,
+	}
+
+	config, err = Configure(flags)
+	if err != nil {
+		t.Fatalf("error in test: %v", err)
+	}
+
+	if config.Port != expectedPort {
+		t.Errorf("Port was incorrect, got: %s, want: %s", config.Port, expectedPort)
+	}
+	if config.GeneratorBaseURL != expectedGenBaseURL {
+		t.Errorf("Generator Base URL is incorrect, got: %s, want: %s", config.GeneratorBaseURL, expectedGenBaseURL)
+	}
+	if config.GeneratorServicePath != expectedGenSvcPath {
+		t.Errorf("Generator Service Path is incorrect, got: %s, want: %s", config.GeneratorServicePath, expectedGenSvcPath)
+	}
+	if config.DBBaseURL != expectedDBBaseURL {
+		t.Errorf("DB Base URL is incorrect, got: %s, want: %s", config.DBBaseURL, expectedDBBaseURL)
+	}
+	if config.DBServicePath != expectedDBSvcPath {
+		t.Errorf("DB Service Path is incorrect, got: %s, want: %s", config.DBServicePath, expectedDBSvcPath)
+	}
+	if config.DBAPIKey != expectedDBAPIKey {
+		t.Errorf("DB API Key is incorrect, got :%s, want: %s", config.DBAPIKey, expectedDBAPIKey)
+	}
+
+	os.Setenv("BURNITGW_LISTEN_PORT", "")
+	os.Setenv("BURNITGEN_BASE_URL", "")
+	os.Setenv("BURNITGEN_PATH", "")
+	os.Setenv("BURNITDB_BASE_URL", "")
+	os.Setenv("BURNITDB_PATH", "")
+	os.Setenv("BURNITDB_API_KEY", "")
 }

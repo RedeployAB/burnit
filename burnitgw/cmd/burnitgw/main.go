@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"log"
 
 	"github.com/RedeployAB/burnit/burnitgw/config"
@@ -10,11 +9,9 @@ import (
 )
 
 func main() {
-	configPath := flag.String("config", "", "Path to configuration file")
-	flag.Parse()
-
+	flags := config.ParseFlags()
 	// Setup config.
-	conf, err := config.Configure(*configPath)
+	conf, err := config.Configure(flags)
 	if err != nil {
 		log.Fatalf("configuration: %v", err)
 	}

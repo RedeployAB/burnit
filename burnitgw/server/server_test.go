@@ -11,7 +11,7 @@ import (
 
 func TestNewServer(t *testing.T) {
 
-	conf := config.Configuration{Server: config.Server{Port: "5000"}}
+	conf := &config.Configuration{Server: config.Server{Port: "5000"}}
 	r := mux.NewRouter()
 	srv := New(conf, r)
 
@@ -22,7 +22,7 @@ func TestNewServer(t *testing.T) {
 }
 
 func TestStartAndShutdown(t *testing.T) {
-	conf := config.Configuration{Server: config.Server{Port: "5000"}}
+	conf := &config.Configuration{Server: config.Server{Port: "5000"}}
 	r := mux.NewRouter()
 	srv := New(conf, r)
 

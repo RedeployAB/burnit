@@ -4,9 +4,14 @@
 
 ## Configuration
 
-There are two ways of configuring the service. Either use environment
-variables or provide a config file. Not all are mandatory, most
-have default values.
+There are four ways of configuring the service. Either provide a config file, use environment variables, pass command line arguments or use defaults.
+
+Order of precedence:
+
+* Defaults
+* File
+* Environment variables
+* Command line arguments
 
 **Service configuration**
 
@@ -36,4 +41,23 @@ server:
   dbBaseUrl: "http://localhost:3001"
   dbServicePath: "/api/secrets"
   dbApiKey: "<DB-API-KEY>"
+```
+
+**Command line arguments**
+
+```
+  -config string
+        Path to configuration file
+  -db-api-key string
+        API Key to DB service
+  -db-base-url string
+        Base URL to DB service (burnitdb)
+  -db-service-path string
+        Path to DB service endpoint (burnitdb)
+  -generator-base-url string
+        Base URL to generator service (burnitgen)
+  -generator-service-path string
+        Path to generator service endpoint (burnitgen)
+  -port string
+        Port to listen on
 ```

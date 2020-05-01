@@ -1,11 +1,54 @@
 package config
 
 import (
+	"flag"
 	"io/ioutil"
 	"os"
 
 	"gopkg.in/yaml.v2"
 )
+
+var (
+	defaultListenPort           = "3000"
+	defaultGeneratorBaseURL     = "http://localhost:3002"
+	defaultGeneratorServicePath = "/api/generate"
+	defaultDBBaseURL            = "http://localhost:3001"
+	defaultDBServicePath        = "/api/secrets"
+	defaultDBAPIKey             = ""
+)
+
+// Flags is parsed flags.
+type Flags struct {
+	ConfigPath           string
+	Port                 string
+	GeneratorBaseURL     string
+	GeneratorServicePath string
+	DBBaseURL            string
+	DBServicePath        string
+	DBAPIKey             string
+}
+
+// ParseFlags runs flag.Parse and returns a flag object.
+func ParseFlags() Flags {
+	configPath := flag.String("config", "", "Path to configuration file")
+	listenPort := flag.String("port", "", "Port to listen on")
+	generatorBaseURL := flag.String("generator-base-url", "", "Base URL to generator service (burnitgen)")
+	generatorServicePath := flag.String("generator-service-path", "", "Path to generator service endpoint (burnitgen)")
+	dbBaseURL := flag.String("db-base-url", "", "Base URL to DB service (burnitdb)")
+	dbServicePath := flag.String("db-service-path", "", "Path to DB service endpoint (burnitdb)")
+	dbAPIKey := flag.String("db-api-key", "", "API Key to DB service")
+	flag.Parse()
+
+	return Flags{
+		ConfigPath:           *configPath,
+		Port:                 *listenPort,
+		GeneratorBaseURL:     *generatorBaseURL,
+		GeneratorServicePath: *generatorServicePath,
+		DBBaseURL:            *dbBaseURL,
+		DBServicePath:        *dbServicePath,
+		DBAPIKey:             *dbAPIKey,
+	}
+}
 
 // Server represents server part of configuration.
 type Server struct {
@@ -25,81 +68,108 @@ type Configuration struct {
 // Configure calls configureFromEnvor
 // configureFromFile depending on the parameters
 // passed  in.
-func Configure(path string) (Configuration, error) {
-	var config Configuration
-	var err error
-	if len(path) == 0 {
-		config = configureFromEnv()
-	} else {
-		config, err = configureFromFile(path)
-		if err != nil {
-			return config, err
+func Configure(f Flags) (*Configuration, error) {
+	// Set default configuration.
+	config := &Configuration{
+		Server{
+			Port:                 defaultListenPort,
+			GeneratorBaseURL:     defaultGeneratorBaseURL,
+			GeneratorServicePath: defaultGeneratorServicePath,
+			DBBaseURL:            defaultDBBaseURL,
+			DBServicePath:        defaultDBServicePath,
+			DBAPIKey:             defaultDBAPIKey,
+		},
+	}
+
+	if len(f.ConfigPath) > 0 {
+		if err := configureFromFile(config, f.ConfigPath); err != nil {
+			return nil, err
 		}
 	}
+
+	configureFromEnv(config)
+	configureFromFlags(config, f)
+
 	return config, nil
 }
 
-// configureFromEnv performs the necessary steps
-// for server configuration from environment
-// variables.
-func configureFromEnv() Configuration {
-	port := os.Getenv("BURNITGW_LISTEN_PORT")
-	if len(port) == 0 {
-		port = "3000"
+// mergeConfig merges a configuration with the base
+// configuration.
+func mergeConfig(config *Configuration, srcCfg Configuration) {
+	if len(srcCfg.Port) > 0 {
+		config.Port = srcCfg.Port
 	}
-
-	genBaseURL := os.Getenv("BURNITGEN_BASE_URL")
-	if len(genBaseURL) == 0 {
-		genBaseURL = "http://localhost:3002"
+	if len(srcCfg.GeneratorBaseURL) > 0 {
+		config.GeneratorBaseURL = srcCfg.GeneratorBaseURL
 	}
-	genSvcPath := os.Getenv("BURNITGEN_PATH")
-	if len(genSvcPath) == 0 {
-		genSvcPath = "/api/generate"
+	if len(srcCfg.GeneratorServicePath) > 0 {
+		config.GeneratorServicePath = srcCfg.GeneratorServicePath
 	}
-
-	dbBaseURL := os.Getenv("BURNITDB_BASE_URL")
-	if len(dbBaseURL) == 0 {
-		dbBaseURL = "http://localhost:3001"
+	if len(srcCfg.DBBaseURL) > 0 {
+		config.DBBaseURL = srcCfg.DBBaseURL
 	}
-	dbSvcPath := os.Getenv("BURNITDB_PATH")
-	if len(dbSvcPath) == 0 {
-		dbSvcPath = "/api/secrets"
+	if len(srcCfg.DBServicePath) > 0 {
+		config.DBServicePath = srcCfg.DBServicePath
 	}
-
-	dbAPIKey := os.Getenv("BURNITDB_API_KEY")
-
-	config := Configuration{
-		Server{
-			Port:                 port,
-			GeneratorBaseURL:     genBaseURL,
-			GeneratorServicePath: genSvcPath,
-			DBBaseURL:            dbBaseURL,
-			DBServicePath:        dbSvcPath,
-			DBAPIKey:             dbAPIKey,
-		},
+	if len(srcCfg.DBAPIKey) > 0 {
+		config.DBAPIKey = srcCfg.DBAPIKey
 	}
-	return config
 }
 
 // configureFromFile performs the necessary steps
 // for server configuration from environment
 // variables.
-func configureFromFile(path string) (Configuration, error) {
-	var config = Configuration{}
+func configureFromFile(config *Configuration, path string) error {
 	f, err := os.Open(path)
 	if err != nil {
-		return config, err
+		return err
 	}
 	defer f.Close()
 
 	b, err := ioutil.ReadAll(f)
 	if err != nil {
-		return config, err
+		return err
 	}
 
-	err = yaml.Unmarshal(b, &config)
+	var cfg Configuration
+	err = yaml.Unmarshal(b, &cfg)
 	if err != nil {
-		return config, err
+		return err
 	}
-	return config, nil
+
+	mergeConfig(config, cfg)
+	return nil
+}
+
+// configureFromEnv performs the necessary steps
+// for server configuration from environment
+// variables.
+func configureFromEnv(config *Configuration) {
+	cfg := Configuration{
+		Server{
+			Port:                 os.Getenv("BURNITGW_LISTEN_PORT"),
+			GeneratorBaseURL:     os.Getenv("BURNITGEN_BASE_URL"),
+			GeneratorServicePath: os.Getenv("BURNITGEN_PATH"),
+			DBBaseURL:            os.Getenv("BURNITDB_BASE_URL"),
+			DBServicePath:        os.Getenv("BURNITDB_PATH"),
+			DBAPIKey:             os.Getenv("BURNITDB_API_KEY"),
+		},
+	}
+	mergeConfig(config, cfg)
+}
+
+// configureFromFlags takes incoming flags and creates
+// a configuration object from it.
+func configureFromFlags(config *Configuration, f Flags) {
+	cfg := Configuration{
+		Server{
+			Port:                 f.Port,
+			GeneratorBaseURL:     f.GeneratorBaseURL,
+			GeneratorServicePath: f.GeneratorServicePath,
+			DBBaseURL:            f.DBBaseURL,
+			DBServicePath:        f.DBServicePath,
+			DBAPIKey:             f.DBAPIKey,
+		},
+	}
+	mergeConfig(config, cfg)
 }
