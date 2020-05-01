@@ -38,7 +38,9 @@ port: 3002
 
 **Command line arguments**
 
-Pass `-port` with port number when running the service, like so:
-```
-./burnitgen -port 3002
+```shell
+  -config string
+        Path to configuration file
+  -port string
+        Port to listen on
 ```

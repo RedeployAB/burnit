@@ -45,7 +45,7 @@ server:
 
 **Command line arguments**
 
-```
+```shell
   -config string
         Path to configuration file
   -db-api-key string
