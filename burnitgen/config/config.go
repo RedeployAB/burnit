@@ -56,21 +56,12 @@ func Configure(f Flags) (*Configuration, error) {
 	return config, nil
 }
 
-func configureFromFlags(config *Configuration, f Flags) {
-	cfg := Configuration{
-		Port: f.Port,
+// mergeConfig merges a configuration with the base
+// configuration.
+func mergeConfig(config *Configuration, srcCfg Configuration) {
+	if len(srcCfg.Port) > 0 {
+		config.Port = srcCfg.Port
 	}
-	mergeConfig(config, cfg)
-}
-
-// configureFromEnv performs the necessary steps
-// for server configuration from environment
-// variables.
-func configureFromEnv(config *Configuration) {
-	cfg := Configuration{
-		Port: os.Getenv("BURNITGEN_LISTEN_PORT"),
-	}
-	mergeConfig(config, cfg)
 }
 
 // configureFromFile performs the necessary steps
@@ -98,8 +89,21 @@ func configureFromFile(config *Configuration, path string) error {
 	return nil
 }
 
-func mergeConfig(config *Configuration, srcCfg Configuration) {
-	if len(srcCfg.Port) > 0 {
-		config.Port = srcCfg.Port
+// configureFromEnv performs the necessary steps
+// for server configuration from environment
+// variables.
+func configureFromEnv(config *Configuration) {
+	cfg := Configuration{
+		Port: os.Getenv("BURNITGEN_LISTEN_PORT"),
 	}
+	mergeConfig(config, cfg)
+}
+
+// configureFromFlags takes incoming flags and creates
+// a configuration object from it.
+func configureFromFlags(config *Configuration, f Flags) {
+	cfg := Configuration{
+		Port: f.Port,
+	}
+	mergeConfig(config, cfg)
 }

@@ -18,19 +18,6 @@ func TestConfigureDefault(t *testing.T) {
 	}
 }
 
-func TestConfigureFromEnv(t *testing.T) {
-	expectedPort := "5000"
-
-	config := &Configuration{}
-	os.Setenv("BURNITGEN_LISTEN_PORT", expectedPort)
-	configureFromEnv(config)
-
-	if config.Port != expectedPort {
-		t.Errorf("Port was incorrect, got: %s, want: %s", config.Port, expectedPort)
-	}
-	os.Setenv("BURNITGEN_LISTEN_PORT", "")
-}
-
 func TestConfigureFromFile(t *testing.T) {
 	expectedPort := "3003"
 	configPath := "../test/config.yaml"
@@ -47,6 +34,19 @@ func TestConfigureFromFile(t *testing.T) {
 	if err := configureFromFile(config, "nonexisting.yml"); err == nil {
 		t.Errorf("should return error if file does not exist")
 	}
+}
+
+func TestConfigureFromEnv(t *testing.T) {
+	expectedPort := "5000"
+
+	config := &Configuration{}
+	os.Setenv("BURNITGEN_LISTEN_PORT", expectedPort)
+	configureFromEnv(config)
+
+	if config.Port != expectedPort {
+		t.Errorf("Port was incorrect, got: %s, want: %s", config.Port, expectedPort)
+	}
+	os.Setenv("BURNITGEN_LISTEN_PORT", "")
 }
 
 func TestConfigureFromFlags(t *testing.T) {
@@ -76,8 +76,8 @@ func TestConfigure(t *testing.T) {
 		t.Errorf("Port was incorrect, got: %s, want: %s", config.Port, expectedPort)
 	}
 
-	expectedPort = "3003"
 	// Test with file. Should override default.
+	expectedPort = "3003"
 	flags.ConfigPath = configPath
 	config, err = Configure(flags)
 	if err != nil {
@@ -99,6 +99,7 @@ func TestConfigure(t *testing.T) {
 	if config.Port != expectedPort {
 		t.Errorf("Port was incorrect, got: %s, want: %s", config.Port, expectedPort)
 	}
+
 	// Test with flags. Should override file and envrionment variables.
 	expectedPort = "3005"
 	flags.Port = expectedPort
@@ -110,4 +111,5 @@ func TestConfigure(t *testing.T) {
 	if config.Port != expectedPort {
 		t.Errorf("Port was incorrect, got: %s, want: %s", config.Port, expectedPort)
 	}
+	os.Setenv("BURNITGEN_LISTEN_PORT", "")
 }
