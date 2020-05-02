@@ -11,9 +11,9 @@ import (
 var (
 	defaultListenPort           = "3000"
 	defaultGeneratorBaseURL     = "http://localhost:3002"
-	defaultGeneratorServicePath = "/api/generate"
+	defaultGeneratorServicePath = "/generate"
 	defaultDBBaseURL            = "http://localhost:3001"
-	defaultDBServicePath        = "/api/secrets"
+	defaultDBServicePath        = "/secrets"
 	defaultDBAPIKey             = ""
 )
 

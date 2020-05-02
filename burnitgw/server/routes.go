@@ -6,11 +6,11 @@ import (
 
 func (s *Server) routes() {
 	// Generator routes.
-	g := s.router.PathPrefix("/api").Subrouter()
+	g := s.router.PathPrefix("/").Subrouter()
 	g.Handle("/generate", s.generateSecret()).Methods("GET")
 
 	// DB routes.
-	d := s.router.PathPrefix("/api").Subrouter()
+	d := s.router.PathPrefix("/").Subrouter()
 	d.Handle("/secrets/{id}", s.getSecret()).Methods("GET")
 	d.Handle("/secrets", s.createSecret()).Methods("POST")
 	// Init middleware for all db routes.

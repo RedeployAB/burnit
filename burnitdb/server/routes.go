@@ -6,13 +6,11 @@ import (
 )
 
 func (s *Server) routes(ts auth.TokenStore) {
-	// Setup sub eouter.
-	sr := s.router.PathPrefix("/api").Subrouter()
 	// Routes.
-	sr.Handle("/secrets/{id}", s.getSecret()).Methods("GET")
-	sr.Handle("/secrets", s.createSecret()).Methods("POST")
-	sr.Handle("/secrets/{id}", s.updateSecret()).Methods("PUT")
-	sr.Handle("/secrets/{id}", s.deleteSecret()).Methods("DELETE")
+	s.router.Handle("/secrets/{id}", s.getSecret()).Methods("GET")
+	s.router.Handle("/secrets", s.createSecret()).Methods("POST")
+	s.router.Handle("/secrets/{id}", s.updateSecret()).Methods("PUT")
+	s.router.Handle("/secrets/{id}", s.deleteSecret()).Methods("DELETE")
 
 	// All other routes.
 	s.router.PathPrefix("/").HandlerFunc(s.notFound)

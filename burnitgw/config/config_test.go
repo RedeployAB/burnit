@@ -8,9 +8,9 @@ import (
 func TestConfigureDefault(t *testing.T) {
 	expectedPort := "3000"
 	expectedGenBaseURL := "http://localhost:3002"
-	expectedGenSvcPath := "/api/generate"
+	expectedGenSvcPath := "/generate"
 	expectedDBBaseURL := "http://localhost:3001"
-	expectedDBSvcPath := "/api/secrets"
+	expectedDBSvcPath := "/secrets"
 	expectedDBAPIKey := ""
 
 	var flags Flags
@@ -42,9 +42,9 @@ func TestConfigureDefault(t *testing.T) {
 func TestConfigureFromFile(t *testing.T) {
 	expectedPort := "3003"
 	expectedGenBaseURL := "http://localhost:3003"
-	expectedGenSvcPath := "/api/v1/generate"
+	expectedGenSvcPath := "/v1/generate"
 	expectedDBBaseURL := "http://localhost:3003"
-	expectedDBSvcPath := "/api/v1/secrets"
+	expectedDBSvcPath := "/v1/secrets"
 	expectedDBAPIKey := "aabbcc"
 	configPath := "../test/config.yaml"
 
@@ -80,9 +80,9 @@ func TestConfigureFromFile(t *testing.T) {
 func TestConfigureFromEnv(t *testing.T) {
 	expectedPort := "3003"
 	expectedGenBaseURL := "http://someurl:3002"
-	expectedGenSvcPath := "/api/v1/generate"
+	expectedGenSvcPath := "/v1/generate"
 	expectedDBBaseURL := "http://someurl:3001"
-	expectedDBSvcPath := "/api/v1/secrets"
+	expectedDBSvcPath := "/v1/secrets"
 	expectedDBAPIKey := "AAAA"
 
 	config := &Configuration{}
@@ -123,9 +123,9 @@ func TestConfigureFromEnv(t *testing.T) {
 func TestConfigureFromFlags(t *testing.T) {
 	expectedPort := "4000"
 	expectedGenBaseURL := "http://someurl:4002"
-	expectedGenSvcPath := "/api/v1/generate"
+	expectedGenSvcPath := "/v1/generate"
 	expectedDBBaseURL := "http://someurl:4003"
-	expectedDBSvcPath := "/api/v1/secrets"
+	expectedDBSvcPath := "/v1/secrets"
 	expectedDBAPIKey := "ccaabb"
 
 	flags := Flags{
@@ -165,9 +165,9 @@ func TestConfigure(t *testing.T) {
 	// Test default configuration.
 	expectedPort := "3000"
 	expectedGenBaseURL := "http://localhost:3002"
-	expectedGenSvcPath := "/api/generate"
+	expectedGenSvcPath := "/generate"
 	expectedDBBaseURL := "http://localhost:3001"
-	expectedDBSvcPath := "/api/secrets"
+	expectedDBSvcPath := "/secrets"
 	expectedDBAPIKey := ""
 
 	var flags Flags
@@ -198,9 +198,9 @@ func TestConfigure(t *testing.T) {
 	// Test with file. Should override default.
 	expectedPort = "3003"
 	expectedGenBaseURL = "http://localhost:3003"
-	expectedGenSvcPath = "/api/v1/generate"
+	expectedGenSvcPath = "/v1/generate"
 	expectedDBBaseURL = "http://localhost:3003"
-	expectedDBSvcPath = "/api/v1/secrets"
+	expectedDBSvcPath = "/v1/secrets"
 	expectedDBAPIKey = "aabbcc"
 
 	flags.ConfigPath = configPath
@@ -231,9 +231,9 @@ func TestConfigure(t *testing.T) {
 	// Test with environment variables. Should override file.
 	expectedPort = "3003"
 	expectedGenBaseURL = "http://someurl:3002"
-	expectedGenSvcPath = "/api/v1/generate"
+	expectedGenSvcPath = "/v1/generate"
 	expectedDBBaseURL = "http://someurl:3001"
-	expectedDBSvcPath = "/api/v1/secrets"
+	expectedDBSvcPath = "/v1/secrets"
 	expectedDBAPIKey = "AAAA"
 
 	os.Setenv("BURNITGW_LISTEN_PORT", expectedPort)
@@ -270,9 +270,9 @@ func TestConfigure(t *testing.T) {
 	// Test with flags. Should override file and envrionment variables.
 	expectedPort = "4000"
 	expectedGenBaseURL = "http://someurl:4002"
-	expectedGenSvcPath = "/api/v1/generate"
+	expectedGenSvcPath = "/v1/generate"
 	expectedDBBaseURL = "http://someurl:4003"
-	expectedDBSvcPath = "/api/v1/secrets"
+	expectedDBSvcPath = "/v1/secrets"
 	expectedDBAPIKey = "ccaabb"
 
 	flags = Flags{
