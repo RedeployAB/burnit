@@ -162,7 +162,7 @@ func TestConfigureFromFlags(t *testing.T) {
 
 func TestConfigure(t *testing.T) {
 	configPath := "../test/config.yaml"
-	// Test defaul t configuration.
+	// Test default configuration.
 	expectedPort := "3000"
 	expectedGenBaseURL := "http://localhost:3002"
 	expectedGenSvcPath := "/api/generate"
