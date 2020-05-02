@@ -80,8 +80,7 @@ func configureFromFile(config *Configuration, path string) error {
 	}
 
 	var cfg Configuration
-	err = yaml.Unmarshal(b, &config)
-	if err != nil {
+	if err = yaml.Unmarshal(b, &config); err != nil {
 		return err
 	}
 	// Merge configurations.
