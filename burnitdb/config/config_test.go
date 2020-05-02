@@ -5,127 +5,526 @@ import (
 	"testing"
 )
 
-func TestConfigureFromEnv(t *testing.T) {
-	confDefault := configureFromEnv()
-	if confDefault.Server.Port != "3001" {
-		t.Errorf("default port value is incorrect, got %s, want: 3001", confDefault.Server.Port)
-	}
-	if confDefault.Server.Security.APIKey != "" {
-		t.Errorf("default db api key value is incorrect, got %s, want: \"\"", confDefault.Server.Security.APIKey)
-	}
-	if confDefault.Server.Security.Encryption.Key != "" {
-		t.Errorf("default encryption key value is incorrect, got %s, want: \"\"", confDefault.Server.Security.Encryption.Key)
-	}
-	if confDefault.Database.Address != "localhost" {
-		t.Errorf("default address value is incorrect, got %s, want: localhost", confDefault.Database.Address)
-	}
-	if confDefault.Database.Database != "burnitdb" {
-		t.Errorf("default database value is incorrect, got %s, want: %s", confDefault.Database.Database, "burnitdb")
-	}
-	if confDefault.Database.Username != "" {
-		t.Errorf("default username value is incorrect, got %s, want: \"\"", confDefault.Database.Username)
-	}
-	if confDefault.Database.Password != "" {
-		t.Errorf("default password value is incorrect, got %s, want: \"\"", confDefault.Database.Password)
-	}
-	if confDefault.Database.SSL != false {
-		t.Errorf("default ssl value is incorrect, got %v, want: false", confDefault.Database.SSL)
-	}
-	if confDefault.Database.URI != "" {
-		t.Errorf("default uri value is incorrect, got %v, want: \"\"", confDefault.Database.URI)
+func TestConfigureDefault(t *testing.T) {
+	expectedPort := "3001"
+	expectedAPIKey := ""
+	expectedHashMethod := "md5"
+	expectedEncryptionKey := ""
+	expectedDriver := "mongo"
+	expectedDBAddress := "localhost"
+	expectedDBURI := ""
+	expectedDB := "burnitdb"
+	expectedDBUser := ""
+	expectedDBPassword := ""
+	expectedDBSSL := true
+
+	var flags Flags
+	config, err := Configure(flags)
+	if err == nil {
+		t.Fatalf("error in test, encryption key must be set: %v", err)
 	}
 
-	os.Setenv("BURNITDB_LISTEN_PORT", "6000")
-	os.Setenv("BURNITDB_API_KEY", "aabbcc")
-	os.Setenv("BURNITDB_ENCRYPTION_KEY", "secretstring")
-	os.Setenv("DB_HOST", "localhost:27017")
-	os.Setenv("DB", "burnit_db")
-	os.Setenv("DB_USER", "dbuser")
-	os.Setenv("DB_PASSWORD", "dbpassword")
-	os.Setenv("DB_SSL", "true")
-	os.Setenv("DB_CONNECTION_URI", "mongodb://localhost:27017")
-	confEnv := configureFromEnv()
-	if confEnv.Server.Port != "6000" {
-		t.Errorf("port value is incorrect, got %s, want: 6000", confEnv.Server.Port)
+	flags.EncryptionKey = "aabbcc"
+	if config.Server.Port != expectedPort {
+		t.Errorf("Port was incorrect, got: %s, want: %s", config.Server.Port, expectedPort)
 	}
-	if confEnv.Server.Security.APIKey != "aabbcc" {
-		t.Errorf("api key value is incorrect, got %s, want: aabbcc", confEnv.Server.Security.APIKey)
+	if config.Server.Security.APIKey != expectedAPIKey {
+		t.Errorf("API Key was incorrect, got :%s, want: %s", config.Server.Security.APIKey, expectedAPIKey)
 	}
-	if confEnv.Server.Security.Encryption.Key != "secretstring" {
-		t.Errorf("encryption key value is incorrect, got %s, want: secretstring", confEnv.Server.Security.Encryption.Key)
+	if config.Server.Security.HashMethod != expectedHashMethod {
+		t.Errorf("Hash method was incorrect, got: %s, want: %s", config.Server.Security.HashMethod, expectedHashMethod)
 	}
-
-	if confEnv.Database.Address != "localhost:27017" {
-		t.Errorf("address value is incorrect, got %s, want: localhost:27017", confEnv.Database.Address)
+	if config.Server.Security.Encryption.Key != expectedEncryptionKey {
+		t.Errorf("Encryption key was incorrect, got: %s, want: %s", config.Server.Security.Encryption.Key, expectedEncryptionKey)
 	}
-	if confEnv.Database.Database != "burnit_db" {
-		t.Errorf("database value is incorrect, got %s, want: burnit_db", confEnv.Database.Database)
+	if config.Database.Driver != expectedDriver {
+		t.Errorf("Driver weas incorrect, got: %s, want: %s", config.Database.Driver, expectedDriver)
 	}
-	if confEnv.Database.Username != "dbuser" {
-		t.Errorf("username value is incorrect, got %s, want: dbuser", confEnv.Database.Username)
+	if config.Database.Address != expectedDBAddress {
+		t.Errorf("DB Address was incorrect, got: %s, want: %s", config.Database.Address, expectedDBAddress)
 	}
-	if confEnv.Database.Password != "dbpassword" {
-		t.Errorf("password value is incorrect, got %s, want: dbpassword", confEnv.Database.Password)
+	if config.Database.URI != expectedDBURI {
+		t.Errorf("DB URI was incorrect, got: %s, want: %s", config.Database.URI, expectedDBURI)
 	}
-	if confEnv.Database.SSL != true {
-		t.Errorf("ssl value is incorrect, got %v, want: true", confEnv.Database.SSL)
+	if config.Database.Database != expectedDB {
+		t.Errorf("DB was incorrect, got: %s, want: %s", config.Database.Database, expectedDB)
 	}
-	if confEnv.Database.URI != "mongodb://localhost:27017" {
-		t.Errorf("uri value is incorrect, got %v, want: mongodb://localhost:27017", confEnv.Database.URI)
+	if config.Database.Username != expectedDBUser {
+		t.Errorf("DB User was incorrect, got: %s, want: %s", config.Database.Username, expectedDBUser)
+	}
+	if config.Database.Password != expectedDBPassword {
+		t.Errorf("DB Password was incorrect, got: %s, want: %s", config.Database.Password, expectedDBPassword)
+	}
+	if config.Database.SSL != expectedDBSSL {
+		t.Errorf("DB SSL was incorrect, got: %t, want: %t", config.Database.SSL, expectedDBSSL)
 	}
 }
 
 func TestConfigureFromFile(t *testing.T) {
+	expectedPort := "3003"
+	expectedAPIKey := "aabbcc"
+	expectedHashMethod := "bcrypt"
+	expectedEncryptionKey := "secretstring"
+	expectedDriver := "mongo"
+	expectedDBAddress := "localhost:27017"
+	expectedDBURI := "mongodb://localhost:27017"
+	expectedDB := "burnit_db"
+	expectedDBUser := "dbuser"
+	expectedDBPassword := "dbpassword"
+	expectedDBSSL := false
 	configPath := "../test/config.yaml"
-	conf, err := configureFromFile(configPath)
-	if err != nil {
-		t.Errorf("%v", err)
+
+	config := &Configuration{}
+	if err := configureFromFile(config, configPath); err != nil {
+		t.Fatalf("error in test: %v", err)
 	}
 
-	if conf.Server.Port != "3003" {
-		t.Errorf("port value is incorrect, got %s, want: 3003", conf.Server.Port)
+	if config.Server.Port != expectedPort {
+		t.Errorf("Port was incorrect, got: %s, want: %s", config.Server.Port, expectedPort)
 	}
-	if conf.Server.Security.APIKey != "aabbcc" {
-		t.Errorf("api key value is incorrect, got %s, want: aabbcc", conf.Server.Security.APIKey)
+	if config.Server.Security.APIKey != expectedAPIKey {
+		t.Errorf("API Key was incorrect, got :%s, want: %s", config.Server.Security.APIKey, expectedAPIKey)
 	}
-	if conf.Server.Security.Encryption.Key != "secretstring" {
-		t.Errorf("encryption key value is incorrect, got %s, want: secretstring", conf.Server.Security.Encryption.Key)
+	if config.Server.Security.HashMethod != expectedHashMethod {
+		t.Errorf("Hash method was incorrect, got: %s, want: %s", config.Server.Security.HashMethod, expectedHashMethod)
+	}
+	if config.Server.Security.Encryption.Key != expectedEncryptionKey {
+		t.Errorf("Encryption key was incorrect, got: %s, want: %s", config.Server.Security.Encryption.Key, expectedEncryptionKey)
+	}
+	if config.Database.Driver != expectedDriver {
+		t.Errorf("Driver was incorrect, got: %s, want: %s", config.Database.Driver, expectedDriver)
+	}
+	if config.Database.Address != expectedDBAddress {
+		t.Errorf("DB Address was incorrect, got: %s, want: %s", config.Database.Address, expectedDBAddress)
+	}
+	if config.Database.URI != expectedDBURI {
+		t.Errorf("DB URI was incorrect, got: %s, want: %s", config.Database.URI, expectedDBURI)
+	}
+	if config.Database.Database != expectedDB {
+		t.Errorf("DB was incorrect, got: %s, want: %s", config.Database.Database, expectedDB)
+	}
+	if config.Database.Username != expectedDBUser {
+		t.Errorf("DB User was incorrect, got: %s, want: %s", config.Database.Username, expectedDBUser)
+	}
+	if config.Database.Password != expectedDBPassword {
+		t.Errorf("DB Password was incorrect, got: %s, want: %s", config.Database.Password, expectedDBPassword)
+	}
+	if config.Database.SSL != expectedDBSSL {
+		t.Errorf("DB SSL was incorrect, got: %t, want: %t", config.Database.SSL, expectedDBSSL)
 	}
 
-	if conf.Database.Address != "localhost:27017" {
-		t.Errorf("address value is incorrect, got %s, want: localhost:27017", conf.Database.Address)
+	if err := configureFromFile(config, "nonexisting.yml"); err == nil {
+		t.Errorf("should return error if file does not exist")
 	}
-	if conf.Database.Database != "burnit_db" {
-		t.Errorf("database value is incorrect, got %s, want: burnit_db", conf.Database.Database)
+}
+
+func TestConfigureFromEnv(t *testing.T) {
+	expectedPort := "3004"
+	expectedAPIKey := "aabbcc"
+	expectedHashMethod := "bcrypt"
+	expectedEncryptionKey := "secretstring"
+	expectedDBAddress := "localhost:27017"
+	expectedDBURI := "mongodb://localhost:27017"
+	expectedDB := "burnitdb"
+	expectedDBUser := "dbuser"
+	expectedDBPassword := "dbpassword"
+	expectedDriver := "mongo"
+	expectedDBSSL := false
+
+	config := &Configuration{}
+	os.Setenv("BURNITDB_LISTEN_PORT", expectedPort)
+	os.Setenv("BURNITDB_API_KEY", expectedAPIKey)
+	os.Setenv("BURNITDB_ENCRYPTION_KEY", expectedEncryptionKey)
+	os.Setenv("BURNITDB_HASH_METHOD", expectedHashMethod)
+	os.Setenv("DB_DRIVER", expectedDriver)
+	os.Setenv("DB_HOST", expectedDBAddress)
+	os.Setenv("DB_CONNECTION_URI", expectedDBURI)
+	os.Setenv("DB", expectedDB)
+	os.Setenv("DB_USER", expectedDBUser)
+	os.Setenv("DB_PASSWORD", expectedDBPassword)
+	os.Setenv("DB_SSL", "false")
+
+	configureFromEnv(config)
+
+	if config.Server.Port != expectedPort {
+		t.Errorf("Port was incorrect, got: %s, want: %s", config.Server.Port, expectedPort)
 	}
-	if conf.Database.Username != "dbuser" {
-		t.Errorf("username value is incorrect, got %s, want: dbuser", conf.Database.Username)
+	if config.Server.Security.APIKey != expectedAPIKey {
+		t.Errorf("API Key was incorrect, got :%s, want: %s", config.Server.Security.APIKey, expectedAPIKey)
 	}
-	if conf.Database.Password != "dbpassword" {
-		t.Errorf("password value is incorrect, got %s, want: dbpassword", conf.Database.Password)
+	if config.Server.Security.HashMethod != expectedHashMethod {
+		t.Errorf("Hash method was incorrect, got: %s, want: %s", config.Server.Security.HashMethod, expectedHashMethod)
 	}
-	if conf.Database.SSL != true {
-		t.Errorf("ssl value is incorrect, got %v, want: true", conf.Database.SSL)
+	if config.Server.Security.Encryption.Key != expectedEncryptionKey {
+		t.Errorf("Encryption key was incorrect, got: %s, want: %s", config.Server.Security.Encryption.Key, expectedEncryptionKey)
 	}
-	if conf.Database.URI != "mongodb://localhost:27017" {
-		t.Errorf("uri value is incorrect, got %v, want: mongodb://localhost:27017", conf.Database.URI)
+	if config.Database.Driver != expectedDriver {
+		t.Errorf("Driver was incorrect, got: %s, want: %s", config.Database.Driver, expectedDriver)
+	}
+	if config.Database.Address != expectedDBAddress {
+		t.Errorf("DB Address was incorrect, got: %s, want: %s", config.Database.Address, expectedDBAddress)
+	}
+	if config.Database.URI != expectedDBURI {
+		t.Errorf("DB URI was incorrect, got: %s, want: %s", config.Database.URI, expectedDBURI)
+	}
+	if config.Database.Database != expectedDB {
+		t.Errorf("DB was incorrect, got: %s, want: %s", config.Database.Database, expectedDB)
+	}
+	if config.Database.Username != expectedDBUser {
+		t.Errorf("DB User was incorrect, got: %s, want: %s", config.Database.Username, expectedDBUser)
+	}
+	if config.Database.Password != expectedDBPassword {
+		t.Errorf("DB Password was incorrect, got: %s, want: %s", config.Database.Password, expectedDBPassword)
+	}
+	if config.Database.SSL != expectedDBSSL {
+		t.Errorf("DB SSL was incorrect, got: %t, want: %t", config.Database.SSL, expectedDBSSL)
+	}
+
+	os.Setenv("BURNITDB_LISTEN_PORT", "")
+	os.Setenv("BURNITDB_API_KEY", "")
+	os.Setenv("BURNITDB_ENCRYPTION_KEY", "")
+	os.Setenv("BURNITDB_HASH_METHOD", "")
+	os.Setenv("DB_DRIVER", "")
+	os.Setenv("DB_HOST", "")
+	os.Setenv("DB_CONNECTION_URI", "")
+	os.Setenv("DB", "")
+	os.Setenv("DB_USER", "")
+	os.Setenv("DB_PASSWORD", "")
+	os.Setenv("DB_SSL", "")
+}
+
+func TestConfigureFromFlags(t *testing.T) {
+	expectedPort := "4001"
+	expectedAPIKey := "ccaabb"
+	expectedHashMethod := "md5"
+	expectedEncryptionKey := "stringsecret"
+	expectedDBAddress := "localhost:6379"
+	expectedDBURI := "localhost:6379"
+	expectedDB := "burnitdb"
+	expectedDBUser := "dbuser"
+	expectedDBPassword := "dbpassword"
+	expectedDriver := "redis"
+	expectedDBSSL1 := false
+	expectedDBSSL2 := true
+
+	flags := Flags{
+		Port:          expectedPort,
+		APIKey:        expectedAPIKey,
+		HashMethod:    expectedHashMethod,
+		EncryptionKey: expectedEncryptionKey,
+		Driver:        expectedDriver,
+		DBAddress:     expectedDBAddress,
+		DBURI:         expectedDBURI,
+		DB:            expectedDB,
+		DBUser:        expectedDBUser,
+		DBPassword:    expectedDBPassword,
+		DisableDBSSL:  true,
+	}
+
+	config := &Configuration{}
+	configureFromFlags(config, flags)
+
+	if config.Server.Port != expectedPort {
+		t.Errorf("Port was incorrect, got: %s, want: %s", config.Server.Port, expectedPort)
+	}
+	if config.Server.Security.APIKey != expectedAPIKey {
+		t.Errorf("API Key was incorrect, got :%s, want: %s", config.Server.Security.APIKey, expectedAPIKey)
+	}
+	if config.Server.Security.HashMethod != expectedHashMethod {
+		t.Errorf("Hash method was incorrect, got: %s, want: %s", config.Server.Security.HashMethod, expectedHashMethod)
+	}
+	if config.Server.Security.Encryption.Key != expectedEncryptionKey {
+		t.Errorf("Encryption key was incorrect, got: %s, want: %s", config.Server.Security.Encryption.Key, expectedEncryptionKey)
+	}
+	if config.Database.Driver != expectedDriver {
+		t.Errorf("Driver was incorrect, got: %s, want: %s", config.Database.Driver, expectedDriver)
+	}
+	if config.Database.Address != expectedDBAddress {
+		t.Errorf("DB Address was incorrect, got: %s, want: %s", config.Database.Address, expectedDBAddress)
+	}
+	if config.Database.URI != expectedDBURI {
+		t.Errorf("DB URI was incorrect, got: %s, want: %s", config.Database.URI, expectedDBURI)
+	}
+	if config.Database.Database != expectedDB {
+		t.Errorf("DB was incorrect, got: %s, want: %s", config.Database.Database, expectedDB)
+	}
+	if config.Database.Username != expectedDBUser {
+		t.Errorf("DB User was incorrect, got: %s, want: %s", config.Database.Username, expectedDBUser)
+	}
+	if config.Database.Password != expectedDBPassword {
+		t.Errorf("DB Password was incorrect, got: %s, want: %s", config.Database.Password, expectedDBPassword)
+	}
+	if config.Database.SSL != expectedDBSSL1 {
+		t.Errorf("DB SSL was incorrect, got: %t, want: %t", config.Database.SSL, expectedDBSSL1)
+	}
+
+	config.Database.SSL = true
+	flags.DisableDBSSL = false
+	configureFromFlags(config, flags)
+
+	if config.Database.SSL != expectedDBSSL2 {
+		t.Errorf("DB SSL was incorrect, got: %t, want: %t", config.Database.SSL, expectedDBSSL2)
 	}
 }
 
 func TestConfigure(t *testing.T) {
-	// Test Configure from environment.
-	_, err := Configure("")
-	if err != nil {
-		t.Errorf("error: %v", err)
-	}
-	// Test Configure from file.
-	_, err = Configure("../test/config.yaml")
-	if err != nil {
-		t.Errorf("eerror: %v", err)
-	}
-	// Handle whene no configuration exists.
-	_, err = Configure("../test/nofile.yml")
+	configPath := "../test/config.yaml"
+	// Test default configuration.
+	expectedPort := "3001"
+	expectedAPIKey := ""
+	expectedHashMethod := "md5"
+	expectedEncryptionKey := ""
+	expectedDriver := "mongo"
+	expectedDBAddress := "localhost"
+	expectedDBURI := ""
+	expectedDB := "burnitdb"
+	expectedDBUser := ""
+	expectedDBPassword := ""
+	expectedDBSSL := true
+
+	var flags Flags
+	config, err := Configure(flags)
 	if err == nil {
-		t.Errorf("incorrect, should return an error")
+		t.Fatalf("error in test, encryption key must be set: %v", err)
 	}
+
+	flags.EncryptionKey = "aabbcc"
+	if config.Server.Port != expectedPort {
+		t.Errorf("Port was incorrect, got: %s, want: %s", config.Server.Port, expectedPort)
+	}
+	if config.Server.Security.APIKey != expectedAPIKey {
+		t.Errorf("API Key was incorrect, got :%s, want: %s", config.Server.Security.APIKey, expectedAPIKey)
+	}
+	if config.Server.Security.HashMethod != expectedHashMethod {
+		t.Errorf("Hash method was incorrect, got: %s, want: %s", config.Server.Security.HashMethod, expectedHashMethod)
+	}
+	if config.Server.Security.Encryption.Key != expectedEncryptionKey {
+		t.Errorf("Encryption key was incorrect, got: %s, want: %s", config.Server.Security.Encryption.Key, expectedEncryptionKey)
+	}
+	if config.Database.Driver != expectedDriver {
+		t.Errorf("Driver weas incorrect, got: %s, want: %s", config.Database.Driver, expectedDriver)
+	}
+	if config.Database.Address != expectedDBAddress {
+		t.Errorf("DB Address was incorrect, got: %s, want: %s", config.Database.Address, expectedDBAddress)
+	}
+	if config.Database.URI != expectedDBURI {
+		t.Errorf("DB URI was incorrect, got: %s, want: %s", config.Database.URI, expectedDBURI)
+	}
+	if config.Database.Database != expectedDB {
+		t.Errorf("DB was incorrect, got: %s, want: %s", config.Database.Database, expectedDB)
+	}
+	if config.Database.Username != expectedDBUser {
+		t.Errorf("DB User was incorrect, got: %s, want: %s", config.Database.Username, expectedDBUser)
+	}
+	if config.Database.Password != expectedDBPassword {
+		t.Errorf("DB Password was incorrect, got: %s, want: %s", config.Database.Password, expectedDBPassword)
+	}
+	if config.Database.SSL != expectedDBSSL {
+		t.Errorf("DB SSL was incorrect, got: %t, want: %t", config.Database.SSL, expectedDBSSL)
+	}
+	flags.EncryptionKey = ""
+
+	// Test with file. Should override default.
+	expectedPort = "3003"
+	expectedAPIKey = "aabbcc"
+	expectedHashMethod = "bcrypt"
+	expectedEncryptionKey = "secretstring"
+	expectedDriver = "mongo"
+	expectedDBAddress = "localhost:27017"
+	expectedDBURI = "mongodb://localhost:27017"
+	expectedDB = "burnit_db"
+	expectedDBUser = "dbuser"
+	expectedDBPassword = "dbpassword"
+	expectedDBSSL = false
+
+	flags.ConfigPath = configPath
+	config, err = Configure(flags)
+	if err != nil {
+		t.Fatalf("error in test: %v", err)
+	}
+
+	if config.Server.Port != expectedPort {
+		t.Errorf("Port was incorrect, got: %s, want: %s", config.Server.Port, expectedPort)
+	}
+	if config.Server.Security.APIKey != expectedAPIKey {
+		t.Errorf("API Key was incorrect, got :%s, want: %s", config.Server.Security.APIKey, expectedAPIKey)
+	}
+	if config.Server.Security.HashMethod != expectedHashMethod {
+		t.Errorf("Hash method was incorrect, got: %s, want: %s", config.Server.Security.HashMethod, expectedHashMethod)
+	}
+	if config.Server.Security.Encryption.Key != expectedEncryptionKey {
+		t.Errorf("Encryption key was incorrect, got: %s, want: %s", config.Server.Security.Encryption.Key, expectedEncryptionKey)
+	}
+	if config.Database.Driver != expectedDriver {
+		t.Errorf("Driver weas incorrect, got: %s, want: %s", config.Database.Driver, expectedDriver)
+	}
+	if config.Database.Address != expectedDBAddress {
+		t.Errorf("DB Address was incorrect, got: %s, want: %s", config.Database.Address, expectedDBAddress)
+	}
+	if config.Database.URI != expectedDBURI {
+		t.Errorf("DB URI was incorrect, got: %s, want: %s", config.Database.URI, expectedDBURI)
+	}
+	if config.Database.Database != expectedDB {
+		t.Errorf("DB was incorrect, got: %s, want: %s", config.Database.Database, expectedDB)
+	}
+	if config.Database.Username != expectedDBUser {
+		t.Errorf("DB User was incorrect, got: %s, want: %s", config.Database.Username, expectedDBUser)
+	}
+	if config.Database.Password != expectedDBPassword {
+		t.Errorf("DB Password was incorrect, got: %s, want: %s", config.Database.Password, expectedDBPassword)
+	}
+	if config.Database.SSL != expectedDBSSL {
+		t.Errorf("DB SSL was incorrect, got: %t, want: %t", config.Database.SSL, expectedDBSSL)
+	}
+
+	// Test with environment variables. Should override file.
+	expectedPort = "3004"
+	expectedAPIKey = "aabbcc"
+	expectedHashMethod = "bcrypt"
+	expectedEncryptionKey = "secretstring"
+	expectedDBAddress = "localhost:27017"
+	expectedDBURI = "mongodb://localhost:27017"
+	expectedDB = "burnitdb"
+	expectedDBUser = "dbuser"
+	expectedDBPassword = "dbpassword"
+	expectedDriver = "mongo"
+	expectedDBSSL = false
+
+	os.Setenv("BURNITDB_LISTEN_PORT", expectedPort)
+	os.Setenv("BURNITDB_API_KEY", expectedAPIKey)
+	os.Setenv("BURNITDB_ENCRYPTION_KEY", expectedEncryptionKey)
+	os.Setenv("BURNITDB_HASH_METHOD", expectedHashMethod)
+	os.Setenv("DB_DRIVER", expectedDriver)
+	os.Setenv("DB_HOST", expectedDBAddress)
+	os.Setenv("DB_CONNECTION_URI", expectedDBURI)
+	os.Setenv("DB", expectedDB)
+	os.Setenv("DB_USER", expectedDBUser)
+	os.Setenv("DB_PASSWORD", expectedDBPassword)
+	os.Setenv("DB_SSL", "false")
+
+	config, err = Configure(flags)
+	if err != nil {
+		t.Fatalf("error in test: %v", err)
+	}
+
+	if config.Server.Port != expectedPort {
+		t.Errorf("Port was incorrect, got: %s, want: %s", config.Server.Port, expectedPort)
+	}
+	if config.Server.Security.APIKey != expectedAPIKey {
+		t.Errorf("API Key was incorrect, got :%s, want: %s", config.Server.Security.APIKey, expectedAPIKey)
+	}
+	if config.Server.Security.HashMethod != expectedHashMethod {
+		t.Errorf("Hash method was incorrect, got: %s, want: %s", config.Server.Security.HashMethod, expectedHashMethod)
+	}
+	if config.Server.Security.Encryption.Key != expectedEncryptionKey {
+		t.Errorf("Encryption key was incorrect, got: %s, want: %s", config.Server.Security.Encryption.Key, expectedEncryptionKey)
+	}
+	if config.Database.Driver != expectedDriver {
+		t.Errorf("Driver weas incorrect, got: %s, want: %s", config.Database.Driver, expectedDriver)
+	}
+	if config.Database.Address != expectedDBAddress {
+		t.Errorf("DB Address was incorrect, got: %s, want: %s", config.Database.Address, expectedDBAddress)
+	}
+	if config.Database.URI != expectedDBURI {
+		t.Errorf("DB URI was incorrect, got: %s, want: %s", config.Database.URI, expectedDBURI)
+	}
+	if config.Database.Database != expectedDB {
+		t.Errorf("DB was incorrect, got: %s, want: %s", config.Database.Database, expectedDB)
+	}
+	if config.Database.Username != expectedDBUser {
+		t.Errorf("DB User was incorrect, got: %s, want: %s", config.Database.Username, expectedDBUser)
+	}
+	if config.Database.Password != expectedDBPassword {
+		t.Errorf("DB Password was incorrect, got: %s, want: %s", config.Database.Password, expectedDBPassword)
+	}
+	if config.Database.SSL != expectedDBSSL {
+		t.Errorf("DB SSL was incorrect, got: %t, want: %t", config.Database.SSL, expectedDBSSL)
+	}
+
+	// Test with flags. Should override file and envrionment variables.
+	expectedPort = "4001"
+	expectedAPIKey = "ccaabb"
+	expectedHashMethod = "md5"
+	expectedEncryptionKey = "stringsecret"
+	expectedDBAddress = "localhost:6379"
+	expectedDBURI = "localhost:6379"
+	expectedDB = "burnitdb"
+	expectedDBUser = "dbuser"
+	expectedDBPassword = "dbpassword"
+	expectedDriver = "redis"
+	expectedDBSSL1 := false
+	expectedDBSSL2 := true
+
+	flags = Flags{
+		Port:          expectedPort,
+		APIKey:        expectedAPIKey,
+		HashMethod:    expectedHashMethod,
+		EncryptionKey: expectedEncryptionKey,
+		Driver:        expectedDriver,
+		DBAddress:     expectedDBAddress,
+		DBURI:         expectedDBURI,
+		DB:            expectedDB,
+		DBUser:        expectedDBUser,
+		DBPassword:    expectedDBPassword,
+		DisableDBSSL:  true,
+	}
+
+	config, err = Configure(flags)
+	if err != nil {
+		t.Fatalf("error in test: %v", err)
+	}
+
+	if config.Server.Port != expectedPort {
+		t.Errorf("Port was incorrect, got: %s, want: %s", config.Server.Port, expectedPort)
+	}
+	if config.Server.Security.APIKey != expectedAPIKey {
+		t.Errorf("API Key was incorrect, got :%s, want: %s", config.Server.Security.APIKey, expectedAPIKey)
+	}
+	if config.Server.Security.HashMethod != expectedHashMethod {
+		t.Errorf("Hash method was incorrect, got: %s, want: %s", config.Server.Security.HashMethod, expectedHashMethod)
+	}
+	if config.Server.Security.Encryption.Key != expectedEncryptionKey {
+		t.Errorf("Encryption key was incorrect, got: %s, want: %s", config.Server.Security.Encryption.Key, expectedEncryptionKey)
+	}
+	if config.Database.Driver != expectedDriver {
+		t.Errorf("Driver was incorrect, got: %s, want: %s", config.Database.Driver, expectedDriver)
+	}
+	if config.Database.Address != expectedDBAddress {
+		t.Errorf("DB Address was incorrect, got: %s, want: %s", config.Database.Address, expectedDBAddress)
+	}
+	if config.Database.URI != expectedDBURI {
+		t.Errorf("DB URI was incorrect, got: %s, want: %s", config.Database.URI, expectedDBURI)
+	}
+	if config.Database.Database != expectedDB {
+		t.Errorf("DB was incorrect, got: %s, want: %s", config.Database.Database, expectedDB)
+	}
+	if config.Database.Username != expectedDBUser {
+		t.Errorf("DB User was incorrect, got: %s, want: %s", config.Database.Username, expectedDBUser)
+	}
+	if config.Database.Password != expectedDBPassword {
+		t.Errorf("DB Password was incorrect, got: %s, want: %s", config.Database.Password, expectedDBPassword)
+	}
+	if config.Database.SSL != expectedDBSSL1 {
+		t.Errorf("DB SSL was incorrect, got: %t, want: %t", config.Database.SSL, expectedDBSSL1)
+	}
+
+	config.Database.SSL = true
+	flags.DisableDBSSL = false
+	configureFromFlags(config, flags)
+
+	if config.Database.SSL != expectedDBSSL2 {
+		t.Errorf("DB SSL was incorrect, got: %t, want: %t", config.Database.SSL, expectedDBSSL2)
+	}
+
+	os.Setenv("BURNITDB_LISTEN_PORT", "")
+	os.Setenv("BURNITDB_API_KEY", "")
+	os.Setenv("BURNITDB_ENCRYPTION_KEY", "")
+	os.Setenv("BURNITDB_HASH_METHOD", "")
+	os.Setenv("DB_DRIVER", "")
+	os.Setenv("DB_HOST", "")
+	os.Setenv("DB_CONNECTION_URI", "")
+	os.Setenv("DB", "")
+	os.Setenv("DB_USER", "")
+	os.Setenv("DB_PASSWORD", "")
+	os.Setenv("DB_SSL", "")
 }

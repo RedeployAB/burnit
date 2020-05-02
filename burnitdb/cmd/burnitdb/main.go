@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"log"
 
 	"github.com/RedeployAB/burnit/burnitdb/config"
@@ -12,10 +11,8 @@ import (
 )
 
 func main() {
-	configPath := flag.String("config", "", "Path to configuration file")
-	flag.Parse()
-
-	conf, err := config.Configure(*configPath)
+	flags := config.ParseFlags()
+	conf, err := config.Configure(flags)
 	if err != nil {
 		log.Fatalf("configuration: %v", err)
 	}
@@ -42,7 +39,7 @@ type dbConnection struct {
 	repository db.Repository
 }
 
-func connectToDB(conf config.Configuration) *dbConnection {
+func connectToDB(conf *config.Configuration) *dbConnection {
 	log.Printf("connecting to db (driver: %s) server: %s...\n", conf.Database.Driver, conf.Database.Address)
 	client, err := db.Connect(conf.Database)
 	if err != nil {

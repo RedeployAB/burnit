@@ -9,9 +9,14 @@ It supports two different databases: `mongodb` and `redis`.
 
 ## Configuration
 
-There are two ways of configuring the service. Either use environment
-variables or provide a config file. Not all are mandatory, most
-have default values.
+There are four ways of configuring the service. Either provide a config file, use environment variables, pass command line arguments or use defaults.
+
+Order of precedence:
+
+* Defaults
+* File
+* Environment variables
+* Command line arguments
 
 ***Service configuration**
 
@@ -42,17 +47,46 @@ Pass `-config` with path when running service, like so:
 ```yaml
 server:
   port: 3001
-  dbApiKey: <db-api-key> # Mandatory
+  apiKey: <db-api-key> # Mandatory
   security:
     encryption:
       key: secretstring # Mandatory
     hashMethod: bcrypt|md5
 database:
+  driver: mongo|redis
   address: localhost:27017
   database: burnit_db
   username: dbuser
   password: dbpassword
   ssl: true
   uri: mongodb://localhost:27017|localhost:6379 # Can be used instead of address, database, username, password and ssl.
-  driver: mongo|redis
+```
+
+**Command line arguments**
+
+```shell
+  -api-key string
+        API key for database endpoints
+  -config string
+        Path to configuration file
+  -db string
+        Database name
+  -db-address string
+        Host name and port for database
+  -db-password string
+        Password for user for database connections
+  -db-uri string
+        URI for database connection
+  -db-user string
+        User for database connections
+  -disable-db-ssl
+        Disable SSL for database connections
+  -driver string
+        Database driver for storage of secrets: mongo|redis
+  -encryption-key string
+        Encryption key for secrets in database
+  -hash-method string
+        Hash method for passphrase protected secrets
+  -port string
+        Port to listen onq
 ```

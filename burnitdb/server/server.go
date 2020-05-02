@@ -29,7 +29,7 @@ type Server struct {
 
 // Options represents options to be used with server.
 type Options struct {
-	Config     config.Configuration
+	Config     *config.Configuration
 	Router     *mux.Router
 	DBClient   db.Client
 	Repository db.Repository

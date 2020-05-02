@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"flag"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -13,10 +14,61 @@ import (
 var (
 	defaultListenPort = "3001"
 	defaultHashMethod = "md5"
-	defaultDB         = "burnitdb"
-	defaultDBURI      = "mongodb://localhost"
+	defaultAPIKey     = ""
 	defaultDriver     = "mongo"
+	defaultAddress    = "localhost" // Change when "default" driver is updated.
+	defaultDBURI      = ""          // Change when "default" driver is updated.
+	defaultDB         = "burnitdb"
+	defaultDBSSL      = true
 )
+
+// Flags is parsed flags.
+type Flags struct {
+	ConfigPath    string
+	Port          string
+	APIKey        string
+	HashMethod    string
+	EncryptionKey string
+	Driver        string
+	DBAddress     string
+	DBURI         string
+	DB            string
+	DBUser        string
+	DBPassword    string
+	DisableDBSSL  bool
+}
+
+// ParseFlags runs flag.Parse and returns a flag object.
+func ParseFlags() Flags {
+	configPath := flag.String("config", "", "Path to configuration file")
+	listenPort := flag.String("port", "", "Port to listen on")
+	apiKey := flag.String("api-key", "", "API key for database endpoints")
+	hashMethod := flag.String("hash-method", "", "Hash method for passphrase protected secrets")
+	encryptionKey := flag.String("encryption-key", "", "Encryption key for secrets in database")
+	driver := flag.String("driver", "", "Database driver for storage of secrets: mongo|redis")
+	dbAddress := flag.String("db-address", "", "Host name and port for database")
+	dbURI := flag.String("db-uri", "", "URI for database connection")
+	db := flag.String("db", "", "Database name")
+	dbUser := flag.String("db-user", "", "User for database connections")
+	dbPassword := flag.String("db-password", "", "Password for user for database connections")
+	disableDBSSL := flag.Bool("disable-db-ssl", false, "Disable SSL for database connections")
+	flag.Parse()
+
+	return Flags{
+		ConfigPath:    *configPath,
+		Port:          *listenPort,
+		APIKey:        *apiKey,
+		HashMethod:    *hashMethod,
+		EncryptionKey: *encryptionKey,
+		Driver:        *driver,
+		DBAddress:     *dbAddress,
+		DBURI:         *dbURI,
+		DB:            *db,
+		DBUser:        *dbUser,
+		DBPassword:    *dbPassword,
+		DisableDBSSL:  *disableDBSSL,
+	}
+}
 
 // Server defines server part of configuration.
 type Server struct {
@@ -38,13 +90,13 @@ type Encryption struct {
 
 // Database represents database part of configuration.
 type Database struct {
+	Driver   string `yaml:"driver"`
 	Address  string `yaml:"address"`
+	URI      string `yaml:"uri"`
 	Database string `yaml:"database"`
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
 	SSL      bool   `yaml:"ssl"`
-	URI      string `yaml:"uri"`
-	Driver   string `yaml:"driver"`
 }
 
 // Configuration represents a configuration.
@@ -55,133 +107,167 @@ type Configuration struct {
 
 // Configure performs the necessary steps
 // for server configuration.
-func Configure(path string) (Configuration, error) {
-	var config Configuration
-	var err error
-	if len(path) == 0 {
-		config = configureFromEnv()
-	} else {
-		config, err = configureFromFile(path)
-		if err != nil {
-			return config, err
+func Configure(f Flags) (*Configuration, error) {
+	// Set default configuration.
+	config := &Configuration{
+		Server{
+			Port: defaultListenPort,
+			Security: Security{
+				APIKey: defaultAPIKey,
+				Encryption: Encryption{
+					Key: "",
+				},
+				HashMethod: defaultHashMethod,
+			},
+		},
+		Database{
+			Driver:   defaultDriver,
+			Address:  defaultAddress,
+			URI:      defaultDBURI,
+			Database: defaultDB,
+			Username: "",
+			Password: "",
+			SSL:      defaultDBSSL,
+		},
+	}
+
+	if len(f.ConfigPath) > 0 {
+		if err := configureFromFile(config, f.ConfigPath); err != nil {
+			return nil, err
 		}
 	}
 
+	configureFromEnv(config)
+	configureFromFlags(config, f)
+
 	if len(config.Server.Security.Encryption.Key) == 0 {
-		return Configuration{}, errors.New("encryption key must be set")
+		return config, errors.New("encryption key must be set")
 	}
 	return config, nil
 }
 
-// configureFromEnv performs the necessary steps
-// for server configuration from environment
-// variables.
-func configureFromEnv() Configuration {
-	// Server variables.
-	port := os.Getenv("BURNITDB_LISTEN_PORT")
-	if len(port) == 0 {
-		port = defaultListenPort
+func mergeConfig(config *Configuration, srcCfg Configuration) {
+	if len(srcCfg.Server.Port) > 0 {
+		config.Server.Port = srcCfg.Server.Port
 	}
-	apiKey := os.Getenv("BURNITDB_API_KEY")
-	encryptionKey := os.Getenv("BURNITDB_ENCRYPTION_KEY")
-	hashMethod := strings.ToLower(os.Getenv("BURNITDB_HASH_METHOD"))
-	if len(hashMethod) == 0 {
-		hashMethod = defaultHashMethod
+	if len(srcCfg.Server.Security.APIKey) > 0 {
+		config.Server.Security.APIKey = srcCfg.Server.Security.APIKey
 	}
-	// Database variables.
-	dbHost := os.Getenv("DB_HOST")
-	if len(dbHost) == 0 {
-		dbHost = "localhost"
+	if len(srcCfg.Server.Security.HashMethod) > 0 {
+		config.Server.Security.HashMethod = srcCfg.Server.Security.HashMethod
 	}
-
-	db := os.Getenv("DB")
-	if len(db) == 0 {
-		db = defaultDB
+	if len(srcCfg.Server.Security.Encryption.Key) > 0 {
+		config.Server.Security.Encryption.Key = srcCfg.Server.Security.Encryption.Key
 	}
-
-	dbUser := os.Getenv("DB_USER")
-	dbPassword := os.Getenv("DB_PASSWORD")
-
-	var dbSSL bool
-	dbSSLStr := os.Getenv("DB_SSL")
-	if len(dbSSLStr) == 0 {
-		dbSSL = false
-	} else {
-		dbSSL, _ = strconv.ParseBool(dbSSLStr)
+	if len(srcCfg.Database.Driver) > 0 {
+		config.Database.Driver = strings.ToLower(srcCfg.Database.Driver)
 	}
-
-	driver := strings.ToLower(os.Getenv("DB_DRIVER"))
-	if len(driver) == 0 {
-		driver = "mongo"
+	if len(srcCfg.Database.Address) > 0 {
+		config.Database.Address = srcCfg.Database.Address
 	}
-
-	uri := os.Getenv("DB_CONNECTION_URI")
-
-	config := Configuration{
-		Server{
-			Port: port,
-			Security: Security{
-				APIKey: apiKey,
-				Encryption: Encryption{
-					Key: encryptionKey,
-				},
-				HashMethod: hashMethod,
-			},
-		},
-		Database{
-			Address:  dbHost,
-			Database: db,
-			Username: dbUser,
-			Password: dbPassword,
-			SSL:      dbSSL,
-			URI:      uri,
-			Driver:   driver,
-		},
+	if len(srcCfg.Database.URI) > 0 {
+		config.Database.URI = srcCfg.Database.URI
 	}
-	return config
+	if len(srcCfg.Database.Database) > 0 {
+		config.Database.Database = srcCfg.Database.Database
+	}
+	if len(srcCfg.Database.Username) > 0 {
+		config.Database.Username = srcCfg.Database.Username
+	}
+	if len(srcCfg.Database.Password) > 0 {
+		config.Database.Password = srcCfg.Database.Password
+	}
+	config.Database.SSL = srcCfg.Database.SSL
 }
 
 // configureFromFile performs the necessary steps
 // for server configuration from environment
 // variables.
-func configureFromFile(path string) (Configuration, error) {
-	var config = Configuration{}
+func configureFromFile(config *Configuration, path string) error {
 	f, err := os.Open(path)
 	if err != nil {
-		return config, err
+		return err
 	}
 	defer f.Close()
 
 	b, err := ioutil.ReadAll(f)
 	if err != nil {
-		return config, err
+		return err
 	}
 
-	if err = yaml.Unmarshal(b, &config); err != nil {
-		return config, err
+	var cfg Configuration
+	if err = yaml.Unmarshal(b, &cfg); err != nil {
+		return err
 	}
 
-	if len(config.Server.Port) == 0 {
-		config.Server.Port = defaultListenPort
-	}
-	if len(config.Server.Security.HashMethod) == 0 {
-		config.Server.Security.HashMethod = defaultHashMethod
+	mergeConfig(config, cfg)
+	return nil
+}
+
+// configureFromEnv performs the necessary steps
+// for server configuration from environment
+// variables.
+func configureFromEnv(config *Configuration) {
+	var dbSSL bool
+	dbSSLStr := os.Getenv("DB_SSL")
+	if len(dbSSLStr) == 0 {
+		dbSSL = config.Database.SSL
 	} else {
-		config.Server.Security.HashMethod = strings.ToLower(config.Server.Security.HashMethod)
+		dbSSL, _ = strconv.ParseBool(dbSSLStr)
 	}
 
-	if len(config.Database.Database) == 0 {
-		config.Database.Database = defaultDB
+	cfg := Configuration{
+		Server{
+			Port: os.Getenv("BURNITDB_LISTEN_PORT"),
+			Security: Security{
+				APIKey: os.Getenv("BURNITDB_API_KEY"),
+				Encryption: Encryption{
+					Key: os.Getenv("BURNITDB_ENCRYPTION_KEY"),
+				},
+				HashMethod: strings.ToLower(os.Getenv("BURNITDB_HASH_METHOD")),
+			},
+		},
+		Database{
+			Driver:   strings.ToLower(os.Getenv("DB_DRIVER")),
+			Address:  os.Getenv("DB_HOST"),
+			URI:      os.Getenv("DB_CONNECTION_URI"),
+			Database: os.Getenv("DB"),
+			Username: os.Getenv("DB_USER"),
+			Password: os.Getenv("DB_PASSWORD"),
+			SSL:      dbSSL,
+		},
+	}
+	mergeConfig(config, cfg)
+}
+
+// configureFromFlags takes incoming flags and creates
+// a configuration object from it.
+func configureFromFlags(config *Configuration, f Flags) {
+	dbSSL := config.Database.SSL
+	if f.DisableDBSSL == true {
+		dbSSL = false
 	}
 
-	if len(config.Database.Address) == 0 && len(config.Database.URI) == 0 {
-		config.Database.URI = defaultDBURI
+	cfg := Configuration{
+		Server{
+			Port: f.Port,
+			Security: Security{
+				APIKey: f.APIKey,
+				Encryption: Encryption{
+					Key: f.EncryptionKey,
+				},
+				HashMethod: f.HashMethod,
+			},
+		},
+		Database{
+			Driver:   f.Driver,
+			Address:  f.DBAddress,
+			URI:      f.DBURI,
+			Database: f.DB,
+			Username: f.DBUser,
+			Password: f.DBPassword,
+			SSL:      dbSSL,
+		},
 	}
-
-	if len(config.Database.Driver) == 0 {
-		config.Database.Driver = defaultDriver
-	} else {
-		config.Database.Driver = strings.ToLower(config.Database.Driver)
-	}
-	return config, nil
+	mergeConfig(config, cfg)
 }

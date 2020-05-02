@@ -84,7 +84,7 @@ func SetupOptions() Options {
 
 	r := mux.NewRouter()
 	srvOpts := Options{
-		Config:     conf,
+		Config:     &conf,
 		Router:     r,
 		DBClient:   client,
 		Repository: repo,

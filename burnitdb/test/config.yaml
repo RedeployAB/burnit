@@ -7,9 +7,10 @@ server:
     hashMethod: bcrypt
 
 database:
+  driver: mongo
   address: localhost:27017
   database: burnit_db
   username: dbuser
   password: dbpassword
-  ssl: true
+  ssl: false
   uri: mongodb://localhost:27017
