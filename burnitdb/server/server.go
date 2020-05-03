@@ -78,7 +78,7 @@ func (s *Server) Start() {
 		}
 	}()
 
-	if s.repository.GetDriver() == "mongo" {
+	if s.repository.Driver() == "mongo" {
 		// Start cleanup expired entries go routine.
 		go s.cleanup(&wg, cleanup)
 		wg.Add(1)
