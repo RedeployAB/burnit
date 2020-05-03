@@ -8,19 +8,9 @@ import (
 	"github.com/RedeployAB/burnit/common/security"
 )
 
-type mockClient struct{}
-
-func (m *mockClient) Database(name string) *mockDatabase {
-	return &mockDatabase{}
-}
-
-type mockDatabase struct{}
-
-func (d *mockDatabase) Collection(name string) *mockCollection {
-	return &mockCollection{}
-}
-
-type mockCollection struct {
+// mockClient is a struct to test the different
+// methods on SecretRepository.
+type mockClient struct {
 	mode string
 }
 
@@ -28,7 +18,7 @@ var id1 = "507f1f77bcf86cd799439011"
 var encryptionKey = "abcdefg"
 var encrypted, _ = security.Encrypt([]byte("value"), encryptionKey)
 
-func (c *mockCollection) FindOne(id string) (*models.Secret, error) {
+func (c *mockClient) FindOne(id string) (*models.Secret, error) {
 	var model *models.Secret
 	var err error
 
@@ -46,7 +36,7 @@ func (c *mockCollection) FindOne(id string) (*models.Secret, error) {
 	return model, err
 }
 
-func (c *mockCollection) InsertOne(m *models.Secret) (*models.Secret, error) {
+func (c *mockClient) InsertOne(m *models.Secret) (*models.Secret, error) {
 	var model *models.Secret
 	var err error
 
@@ -62,7 +52,7 @@ func (c *mockCollection) InsertOne(m *models.Secret) (*models.Secret, error) {
 	return model, err
 }
 
-func (c *mockCollection) DeleteOne(id string) (int64, error) {
+func (c *mockClient) DeleteOne(id string) (int64, error) {
 	var deleted int64
 	var err error
 
@@ -81,7 +71,7 @@ func (c *mockCollection) DeleteOne(id string) (int64, error) {
 	return deleted, err
 }
 
-func (c *mockCollection) DeleteMany() (int64, error) {
+func (c *mockClient) DeleteMany() (int64, error) {
 	var deleted int64
 	var err error
 
@@ -105,9 +95,47 @@ func SetupRepository(mode string) *SecretRepository {
 		HashMethod:    "bcrypt",
 	}
 	return &SecretRepository{
-		db:      &mockCollection{mode: mode},
+		db:      &mockClient{mode: mode},
 		options: opts,
 		hash:    security.Bcrypt,
+	}
+}
+
+func TestNewSecretRepository(t *testing.T) {
+	// Test with redis driver and md5.
+	opts := &SecretRepositoryOptions{
+		Driver:        "redis",
+		EncryptionKey: encryptionKey,
+		HashMethod:    "md5",
+	}
+
+	rClient := &redisClient{}
+	repo := NewSecretRepository(rClient, opts)
+
+	expectedHashMethod := "md5"
+	expectedDriver := "redis"
+
+	if repo.options.HashMethod != expectedHashMethod {
+		t.Errorf("incorrect hash method, got: %s, want: %s", repo.options.HashMethod, expectedHashMethod)
+	}
+	if repo.options.Driver != expectedDriver {
+		t.Errorf("incorrect driver, got: %s, want: %s", repo.options.Driver, expectedDriver)
+	}
+	// Test with mongo driver and bcrypt.
+	opts = &SecretRepositoryOptions{
+		Driver:        "redis",
+		EncryptionKey: encryptionKey,
+		HashMethod:    "bcrypt",
+	}
+
+	repo = NewSecretRepository(rClient, opts)
+
+	expectedHashMethod = "bcrypt"
+	if repo.options.HashMethod != expectedHashMethod {
+		t.Errorf("incorrect hash method, got: %s, want: %s", repo.options.HashMethod, expectedHashMethod)
+	}
+	if repo.options.Driver != expectedDriver {
+		t.Errorf("incorrect driver, got: %s, want: %s", repo.options.Driver, expectedDriver)
 	}
 }
 

@@ -17,7 +17,7 @@ type Repository interface {
 	Insert(s *models.Secret) (*models.Secret, error)
 	Delete(id string) (int64, error)
 	DeleteExpired() (int64, error)
-	GetDriver() string
+	Driver() string
 }
 
 // SecretRepository handles interactions with the database
@@ -107,9 +107,9 @@ func (r *SecretRepository) DeleteExpired() (int64, error) {
 	return deleted, nil
 }
 
-// GetDriver gets the configured driver for
+// Driver gets the configured driver for
 // the repository.
-func (r *SecretRepository) GetDriver() string {
+func (r *SecretRepository) Driver() string {
 	return r.options.Driver
 }
 
