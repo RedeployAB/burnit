@@ -93,7 +93,7 @@ func (c *redisClient) DeleteMany() (int64, error) {
 // newRedisClient creates a new redisClient object.
 func newRedisClient(opts config.Database) *redisClient {
 	client := redis.NewClient(&redis.Options{
-		Addr:     opts.URI,
+		Addr:     opts.Address,
 		Password: opts.Password,
 		DB:       0,
 	})
