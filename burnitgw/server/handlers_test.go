@@ -85,116 +85,115 @@ func SetupServer(mode string) Server {
 	return srv
 }
 
-func TestGenerateSecretSuccess(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/generate", nil)
-	res := httptest.NewRecorder()
-	SetupServer("gen-success").router.ServeHTTP(res, req)
-
-	if res.Code != 200 {
-		t.Errorf("status code incorrect, got: %d, want: 200", res.Code)
+func TestGenerateSecret(t *testing.T) {
+	var tests = []struct {
+		mode       string
+		wantCode   int
+		wantSecret string
+	}{
+		{mode: "gen-success", wantCode: 200, wantSecret: "value"},
+		{mode: "gen-fail", wantCode: 500},
 	}
 
-	var rb mockGenerateFullResponse
-	b, err := ioutil.ReadAll(res.Body)
+	for _, test := range tests {
+		req, _ := http.NewRequest("GET", "/generate", nil)
+		res := httptest.NewRecorder()
+		SetupServer(test.mode).router.ServeHTTP(res, req)
 
-	if err = json.Unmarshal(b, &rb); err != nil {
-		t.Errorf("error in test: %v", err)
-	}
+		if res.Code != test.wantCode {
+			t.Errorf("status code incorrect, got: %d, want: %d", res.Code, test.wantCode)
+		}
 
-	expectedVale := "value"
-	if rb.Data.Secret != expectedVale {
-		t.Errorf("response incorrect, got: %s, want: %s", rb.Data.Secret, expectedVale)
-	}
-}
+		if test.mode == "gen-success" {
+			var rb mockGenerateFullResponse
+			b, err := ioutil.ReadAll(res.Body)
 
-func TestGenerateSecretError(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/generate", nil)
-	res := httptest.NewRecorder()
-	SetupServer("gen-fail").router.ServeHTTP(res, req)
+			if err = json.Unmarshal(b, &rb); err != nil {
+				t.Fatalf("error in test: %v", err)
+			}
 
-	expectedCode := 500
-	if res.Code != expectedCode {
-		t.Errorf("status code incorrect, got: %d, want: %d", res.Code, expectedCode)
-	}
-}
-
-func TestGetSecretSuccess(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/secrets/1234", nil)
-	res := httptest.NewRecorder()
-	SetupServer("db-get-success").router.ServeHTTP(res, req)
-
-	expectedCode := 200
-	if res.Code != expectedCode {
-		t.Errorf("status code incorrect, got: %d, want: %d", res.Code, expectedCode)
-	}
-
-	var rb mockDBFullResponse
-	b, err := ioutil.ReadAll(res.Body)
-
-	if err = json.Unmarshal(b, &rb); err != nil {
-		t.Errorf("error in test: %v", err)
-	}
-
-	expectedID := "1234"
-	if rb.Data.ID != expectedID {
-		t.Errorf("response incorrect, got: %s, want: %s", rb.Data.ID, expectedID)
-	}
-
-	expectedValue := "value"
-	if rb.Data.Secret != expectedValue {
-		t.Errorf("response incorrect, got: %s, want: %s", rb.Data.Secret, expectedValue)
+			if rb.Data.Secret != test.wantSecret {
+				t.Errorf("response incorrect, got: %s, want: %s", rb.Data.Secret, test.wantSecret)
+			}
+		}
 	}
 }
 
-func TestGetSecretError(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/secrets/1234", nil)
-	res := httptest.NewRecorder()
-	SetupServer("db-get-fail").router.ServeHTTP(res, req)
+func TestGetSecret(t *testing.T) {
+	var tests = []struct {
+		mode       string
+		param      string
+		wantCode   int
+		wantSecret string
+	}{
+		{mode: "db-get-success", param: "1234", wantCode: 200, wantSecret: "value"},
+		{mode: "db-get-fail", param: "1234", wantCode: 500},
+	}
 
-	expectedCode := 500
-	if res.Code != expectedCode {
-		t.Errorf("status code incorrect, got: %d, want: %d", res.Code, expectedCode)
+	for _, test := range tests {
+		req, _ := http.NewRequest("GET", "/secrets/"+test.param, nil)
+		res := httptest.NewRecorder()
+		SetupServer(test.mode).router.ServeHTTP(res, req)
+
+		if res.Code != test.wantCode {
+			t.Errorf("status code incorrect, got: %d, want: %d", res.Code, test.wantCode)
+		}
+
+		if test.mode == "db-get-success" {
+			var rb mockDBFullResponse
+			b, err := ioutil.ReadAll(res.Body)
+			if err = json.Unmarshal(b, &rb); err != nil {
+				t.Fatalf("error in test: %v", err)
+			}
+
+			if rb.Data.ID != test.param {
+				t.Errorf("response incorrect, got: %s, want: %s", rb.Data.ID, test.param)
+			}
+			if rb.Data.Secret != test.wantSecret {
+				t.Errorf("response incorrect, got: %s, want: %s", rb.Data.Secret, test.wantSecret)
+			}
+		}
 	}
 }
 
-func TestCreateSecretSuccess(t *testing.T) {
+func TestCreateSecret(t *testing.T) {
 	jsonStr := []byte(`{"secret":"value"}`)
-	req, _ := http.NewRequest("POST", "/secrets", bytes.NewBuffer(jsonStr))
-	res := httptest.NewRecorder()
-	SetupServer("db-create-success").router.ServeHTTP(res, req)
+	malformedJSONstr := []byte(`{"secret)`)
 
-	expectedCode := 201
-	if res.Code != expectedCode {
-		t.Errorf("status code incorrect, got: %d, want: %d", res.Code, expectedCode)
+	var tests = []struct {
+		mode       string
+		body       []byte
+		wantCode   int
+		wantID     string
+		wantSecret string
+	}{
+		{mode: "db-create-success", body: jsonStr, wantCode: 201, wantID: "4321", wantSecret: "value"},
+		{mode: "db-create-fail", body: malformedJSONstr, wantCode: 500},
 	}
 
-	var rb mockDBFullResponse
-	b, err := ioutil.ReadAll(res.Body)
+	for _, test := range tests {
+		req, _ := http.NewRequest("POST", "/secrets", bytes.NewBuffer(test.body))
+		res := httptest.NewRecorder()
+		SetupServer(test.mode).router.ServeHTTP(res, req)
 
-	if err = json.Unmarshal(b, &rb); err != nil {
-		t.Errorf("error in test: %v", err)
-	}
+		if res.Code != test.wantCode {
+			t.Errorf("status code incorrect, got: %d, want: %d", res.Code, test.wantCode)
+		}
 
-	expectedID := "4321"
-	if rb.Data.ID != expectedID {
-		t.Errorf("response incorrect, got: %s, want: %s", rb.Data.ID, expectedID)
-	}
+		if test.mode == "db-create-success" {
+			var rb mockDBFullResponse
+			b, err := ioutil.ReadAll(res.Body)
+			if err = json.Unmarshal(b, &rb); err != nil {
+				t.Fatalf("error in test: %v", err)
+			}
 
-	expectedValue := "value"
-	if rb.Data.Secret != expectedValue {
-		t.Errorf("response incorrect, got: %s, want: %s", rb.Data.Secret, expectedValue)
-	}
-}
-
-func TestCreateSecretError(t *testing.T) {
-	jsonStr := []byte(`{"secret}`)
-	req, _ := http.NewRequest("POST", "/secrets", bytes.NewBuffer(jsonStr))
-	res := httptest.NewRecorder()
-	SetupServer("db-create-fail").router.ServeHTTP(res, req)
-
-	expectedCode := 500
-	if res.Code != expectedCode {
-		t.Errorf("Status code incorrect, got: %d, want: %d", res.Code, expectedCode)
+			if rb.Data.ID != test.wantID {
+				t.Errorf("response incorrect, got: %s, want: %s", rb.Data.ID, test.wantID)
+			}
+			if rb.Data.Secret != test.wantSecret {
+				t.Errorf("response incorrect, got: %s, want: %s", rb.Data.Secret, test.wantSecret)
+			}
+		}
 	}
 }
 
