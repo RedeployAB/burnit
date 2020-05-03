@@ -51,7 +51,7 @@ func (r *mockRepository) DeleteExpired() (int64, error) {
 	return 0, nil
 }
 
-func (r *mockRepository) GetDriver() string {
+func (r *mockRepository) Driver() string {
 	return "mongo"
 }
 
