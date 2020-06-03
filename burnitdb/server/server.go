@@ -66,20 +66,18 @@ func New(opts Options) *Server {
 
 // Start creates an http server and runs ListenAndServe().
 func (s *Server) Start() {
-	// Setup WaitGroup and channel for cleanup job.
-	var wg sync.WaitGroup
-	cleanup := make(chan bool, 1)
-	// Setup routes.
 	s.routes(s.tokenStore)
-	// Listen and Serve.
+
 	go func() {
 		if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("server err: %v\n", err)
 		}
 	}()
 
+	var wg sync.WaitGroup
+	cleanup := make(chan bool, 1)
+
 	if s.repository.Driver() == "mongo" {
-		// Start cleanup expired entries go routine.
 		go s.cleanup(&wg, cleanup)
 		wg.Add(1)
 	}
@@ -97,7 +95,7 @@ func (s *Server) shutdown(wg *sync.WaitGroup, cleanup chan<- bool) {
 	sig := <-stop
 
 	log.Printf("shutting down server. reason: %s\n", sig.String())
-	// Awaiting cleanup job to stop before proceeding.
+
 	cleanup <- true
 	wg.Wait()
 
@@ -109,7 +107,7 @@ func (s *Server) shutdown(wg *sync.WaitGroup, cleanup chan<- bool) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	// Turn of SetKeepAlive when awaiting shutdown.
+
 	s.httpServer.SetKeepAlivesEnabled(false)
 	if err := s.httpServer.Shutdown(ctx); err != nil {
 		log.Fatalf("could not shutdown server gracefully: %v", err)

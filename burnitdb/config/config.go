@@ -108,7 +108,6 @@ type Configuration struct {
 // Configure performs the necessary steps
 // for server configuration.
 func Configure(f Flags) (*Configuration, error) {
-	// Set default configuration.
 	config := &Configuration{
 		Server{
 			Port: defaultListenPort,
