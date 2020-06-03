@@ -79,8 +79,8 @@ type Server struct {
 // Security defines security part of server configuration.
 type Security struct {
 	APIKey     string     `yaml:"apiKey"`
-	Encryption Encryption `yaml:"encryption"`
 	HashMethod string     `yaml:"hashMethod"`
+	Encryption Encryption `yaml:"encryption"`
 }
 
 // Encryption defines encryption pat of security configuration.
