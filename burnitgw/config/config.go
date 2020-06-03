@@ -69,7 +69,6 @@ type Configuration struct {
 // configureFromFile depending on the parameters
 // passed  in.
 func Configure(f Flags) (*Configuration, error) {
-	// Set default configuration.
 	config := &Configuration{
 		Server{
 			Port:                 defaultListenPort,

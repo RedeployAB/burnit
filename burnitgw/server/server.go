@@ -56,9 +56,8 @@ func New(conf *config.Configuration, r *mux.Router) *Server {
 
 // Start creates an http server and runs ListenAndServe().
 func (s *Server) Start() {
-	// Setup routes.
 	s.routes()
-	// Listen and Serve.
+
 	go func() {
 		if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("server err: %v\n", err)
@@ -80,7 +79,7 @@ func (s *Server) shutdown() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	// Turn of SetKeepAlive when awaiting shutdown.
+
 	s.httpServer.SetKeepAlivesEnabled(false)
 	if err := s.httpServer.Shutdown(ctx); err != nil {
 		log.Fatalf("could not shutdown server gracefully: %v", err)

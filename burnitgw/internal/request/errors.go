@@ -17,6 +17,5 @@ func HandleHTTPError(err error) int {
 	} else {
 		status = 500
 	}
-
 	return status
 }

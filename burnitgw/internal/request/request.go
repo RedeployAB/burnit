@@ -40,7 +40,6 @@ func NewHTTPClient(baseURL, path string) *HTTPClient {
 
 // Request performs a request against the target URL.
 func (c HTTPClient) Request(o Options) (ResponseBody, error) {
-	// Get the Base URL and Path from the struct.
 	url := c.BaseURL + c.Path
 	if o.Params["id"] != "" {
 		url += "/" + o.Params["id"]
