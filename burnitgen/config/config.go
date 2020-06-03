@@ -39,7 +39,6 @@ type Configuration struct {
 // configureFromFile depending on the parameters
 // passed in.
 func Configure(f Flags) (*Configuration, error) {
-	// Set default configuration.
 	config := &Configuration{
 		Port: defaultListenPort,
 	}
@@ -83,7 +82,7 @@ func configureFromFile(config *Configuration, path string) error {
 	if err = yaml.Unmarshal(b, &config); err != nil {
 		return err
 	}
-	// Merge configurations.
+
 	mergeConfig(config, cfg)
 	return nil
 }
