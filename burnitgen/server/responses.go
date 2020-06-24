@@ -2,15 +2,15 @@ package server
 
 // responseBody represents a secret response.
 type responseBody struct {
-	Data data `json:"data"`
+	Secret secret `json:"secret"`
 }
 
-// data represents the data part of the response body.
-type data struct {
-	Secret string `json:"secret"`
+// secret represents the data part of the response body.
+type secret struct {
+	Value string `json:"value"`
 }
 
 // response creates a response from a Secret (string).
 func response(s string) *responseBody {
-	return &responseBody{Data: data{Secret: s}}
+	return &responseBody{Secret: secret{Value: s}}
 }

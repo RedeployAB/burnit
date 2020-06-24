@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/RedeployAB/burnit/burnitgen/internal/secret"
+	"github.com/RedeployAB/burnit/burnitgen/internal/secrets"
 	"github.com/RedeployAB/burnit/common/httperror"
 )
 
@@ -20,7 +20,7 @@ func (s *Server) notFound(w http.ResponseWriter, r *http.Request) {
 func (s *Server) generateSecret(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	length, specialChars := parseGenerateSecretQuery(query)
-	secret := secret.Generate(length, specialChars)
+	secret := secrets.Generate(length, specialChars)
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
