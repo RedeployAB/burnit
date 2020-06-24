@@ -21,22 +21,22 @@ type mockClient struct {
 }
 
 type mockGenerateResponse struct {
-	Secret string
+	Value string
 }
 
 type mockGenerateFullResponse struct {
-	Data mockGenerateResponse
+	Secret mockGenerateResponse
 }
 
 type mockDBResponse struct {
 	ID        string
-	Secret    string
+	Value     string
 	CreatedAt time.Time
 	ExpiresAt time.Time
 }
 
 type mockDBFullResponse struct {
-	Data mockDBResponse
+	Secret mockDBResponse
 }
 
 func (c mockClient) Request(o request.Options) (request.ResponseBody, error) {
@@ -46,28 +46,28 @@ func (c mockClient) Request(o request.Options) (request.ResponseBody, error) {
 
 	switch c.mode {
 	case "gen-success":
-		resBody.Data = mockGenerateResponse{Secret: "value"}
+		resBody.Secret = mockGenerateResponse{Value: "value"}
 		err = nil
 	case "gen-fail":
-		resBody.Data = mockGenerateResponse{Secret: "fail"}
+		resBody.Secret = mockGenerateResponse{Value: "fail"}
 		err = errors.New("call to api failed")
 	case "db-get-success":
-		resBody.Data = mockDBResponse{
-			ID:     "1234",
-			Secret: "value",
+		resBody.Secret = mockDBResponse{
+			ID:    "1234",
+			Value: "value",
 		}
 		err = nil
 	case "db-get-fail":
-		resBody.Data = mockDBResponse{}
+		resBody.Secret = mockDBResponse{}
 		err = errors.New("call to api failed")
 	case "db-create-success":
-		resBody.Data = mockDBResponse{
-			ID:     "4321",
-			Secret: "value",
+		resBody.Secret = mockDBResponse{
+			ID:    "4321",
+			Value: "value",
 		}
 		err = nil
 	case "db-create-fail":
-		resBody.Data = mockDBResponse{}
+		resBody.Secret = mockDBResponse{}
 		err = errors.New("call to api failed")
 	}
 
@@ -112,8 +112,8 @@ func TestGenerateSecret(t *testing.T) {
 				t.Fatalf("error in test: %v", err)
 			}
 
-			if rb.Data.Secret != test.wantSecret {
-				t.Errorf("response incorrect, got: %s, want: %s", rb.Data.Secret, test.wantSecret)
+			if rb.Secret.Value != test.wantSecret {
+				t.Errorf("response incorrect, got: %s, want: %s", rb.Secret.Value, test.wantSecret)
 			}
 		}
 	}
@@ -146,11 +146,11 @@ func TestGetSecret(t *testing.T) {
 				t.Fatalf("error in test: %v", err)
 			}
 
-			if rb.Data.ID != test.param {
-				t.Errorf("response incorrect, got: %s, want: %s", rb.Data.ID, test.param)
+			if rb.Secret.ID != test.param {
+				t.Errorf("response incorrect, got: %s, want: %s", rb.Secret.ID, test.param)
 			}
-			if rb.Data.Secret != test.wantSecret {
-				t.Errorf("response incorrect, got: %s, want: %s", rb.Data.Secret, test.wantSecret)
+			if rb.Secret.Value != test.wantSecret {
+				t.Errorf("response incorrect, got: %s, want: %s", rb.Secret.Value, test.wantSecret)
 			}
 		}
 	}
@@ -187,11 +187,11 @@ func TestCreateSecret(t *testing.T) {
 				t.Fatalf("error in test: %v", err)
 			}
 
-			if rb.Data.ID != test.wantID {
-				t.Errorf("response incorrect, got: %s, want: %s", rb.Data.ID, test.wantID)
+			if rb.Secret.ID != test.wantID {
+				t.Errorf("response incorrect, got: %s, want: %s", rb.Secret.ID, test.wantID)
 			}
-			if rb.Data.Secret != test.wantSecret {
-				t.Errorf("response incorrect, got: %s, want: %s", rb.Data.Secret, test.wantSecret)
+			if rb.Secret.Value != test.wantSecret {
+				t.Errorf("response incorrect, got: %s, want: %s", rb.Secret.Value, test.wantSecret)
 			}
 		}
 	}

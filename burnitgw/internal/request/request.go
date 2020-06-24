@@ -92,7 +92,7 @@ type Options struct {
 // ResponseBody is the response returned
 // to the client.
 type ResponseBody struct {
-	Data interface{} `json:"data"`
+	Secret interface{} `json:"secret"`
 }
 
 // Error implements error interface

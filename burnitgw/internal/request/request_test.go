@@ -9,18 +9,18 @@ import (
 )
 
 type mockResponse struct {
-	Secret string `json:"secret"`
+	Value string `json:"value"`
 }
 
 type mockFullResponse struct {
-	Data mockResponse
+	Secret mockResponse
 }
 
 func TestBasicRequest(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		mr := ResponseBody{
-			Data: mockResponse{
-				Secret: "secret",
+			Secret: mockResponse{
+				Value: "secret",
 			},
 		}
 		json.NewEncoder(w).Encode(&mr)
@@ -40,8 +40,9 @@ func TestBasicRequest(t *testing.T) {
 		t.Fatalf("Error in JSON marshaling: %v", err)
 	}
 
-	if string(jsonRes) != `{"data":{"secret":"secret"}}` {
-		t.Errorf(`Incorrect value, got: %s, want: {"data":{"secret":"secret"}}`, string(jsonRes))
+	expected := `{"secret":{"value":"secret"}}`
+	if string(jsonRes) != expected {
+		t.Errorf(`Incorrect value, got: %s, want: %s`, string(jsonRes), expected)
 	}
 }
 
@@ -97,8 +98,8 @@ func TestRequestWithParams(t *testing.T) {
 			return
 		}
 		mr := ResponseBody{
-			Data: mockResponse{
-				Secret: "secret",
+			Secret: mockResponse{
+				Value: "secret",
 			},
 		}
 		json.NewEncoder(w).Encode(&mr)
@@ -122,8 +123,8 @@ func TestBasicRequestWithQuery(t *testing.T) {
 			return
 		}
 		mr := ResponseBody{
-			Data: mockResponse{
-				Secret: "secret",
+			Secret: mockResponse{
+				Value: "secret",
 			},
 		}
 		json.NewEncoder(w).Encode(&mr)
