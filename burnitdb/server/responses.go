@@ -8,13 +8,13 @@ import (
 
 // responseBody represents a secret type response body.
 type responseBody struct {
-	Data data `json:"data"`
+	Secret secret `json:"secret"`
 }
 
 // data represents the data part of the response body.
-type data struct {
+type secret struct {
 	ID        string    `json:"id,omitempty"`
-	Secret    string    `json:"secret,omitempty"`
+	Value     string    `json:"value,omitempty"`
 	CreatedAt time.Time `json:"createdAt,omitempty"`
 	ExpiresAt time.Time `json:"expiresAt,omitempty"`
 }
@@ -22,9 +22,9 @@ type data struct {
 // response creates a response from a Secret (DTO).
 func response(s *dto.Secret) *responseBody {
 	return &responseBody{
-		Data: data{
+		Secret: secret{
 			ID:        s.ID,
-			Secret:    s.Secret,
+			Value:     s.Secret,
 			CreatedAt: s.CreatedAt,
 			ExpiresAt: s.ExpiresAt,
 		},
