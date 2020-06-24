@@ -11,7 +11,7 @@ type responseBody struct {
 	Secret secret `json:"secret"`
 }
 
-// data represents the data part of the response body.
+// secret represents the data part of the response body.
 type secret struct {
 	ID        string    `json:"id,omitempty"`
 	Value     string    `json:"value,omitempty"`
