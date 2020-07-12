@@ -7,7 +7,7 @@ import (
 
 	"github.com/RedeployAB/burnit/burnitdb/config"
 	"github.com/RedeployAB/burnit/burnitdb/internal/models"
-	"github.com/go-redis/redis/v7"
+	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 )
 
@@ -19,8 +19,7 @@ type redisClient struct {
 
 // Connect connects and tests connection to redis.
 func (c *redisClient) Connect(ctx context.Context) error {
-	// Add retry logic.
-	_, err := c.client.Ping().Result()
+	_, err := c.client.Ping(ctx).Result()
 	if err != nil {
 		return err
 	}
@@ -38,7 +37,10 @@ func (c *redisClient) Disconnect(ctx context.Context) error {
 // FindOne implements and calls the method Get from
 // redis.Client.
 func (c *redisClient) FindOne(id string) (*models.Secret, error) {
-	res, err := c.client.Get(id).Result()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	res, err := c.client.Get(ctx, id).Result()
 	if err != nil {
 		if err == redis.Nil {
 			return nil, nil
@@ -63,7 +65,10 @@ func (c *redisClient) InsertOne(s *models.Secret) (*models.Secret, error) {
 		return nil, err
 	}
 
-	if err := c.client.Set(s.ID, secret, s.ExpiresAt.Sub(time.Now())).Err(); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := c.client.Set(ctx, s.ID, secret, s.ExpiresAt.Sub(time.Now())).Err(); err != nil {
 		return nil, err
 	}
 
@@ -78,7 +83,10 @@ func (c *redisClient) InsertOne(s *models.Secret) (*models.Secret, error) {
 // DeleteOne implements and calls the method Del from
 // redis.Client.
 func (c *redisClient) DeleteOne(id string) (int64, error) {
-	res, err := c.client.Del(id).Result()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	res, err := c.client.Del(ctx, id).Result()
 	if err != nil {
 		return 0, err
 	}
@@ -93,9 +101,13 @@ func (c *redisClient) DeleteMany() (int64, error) {
 // newRedisClient creates a new redisClient object.
 func newRedisClient(opts config.Database) *redisClient {
 	client := redis.NewClient(&redis.Options{
-		Addr:     opts.Address,
-		Password: opts.Password,
-		DB:       0,
+		Addr:            opts.Address,
+		Password:        opts.Password,
+		DB:              0,
+		DialTimeout:     15 * time.Second,
+		MaxRetries:      20,
+		MinRetryBackoff: 1 * time.Second,
+		MaxRetryBackoff: 5 * time.Second,
 	})
 
 	return &redisClient{client: client}
