@@ -3,13 +3,9 @@ release/
 *.exe
 *.out
 
-docker-compose.yml
 .env
 *.env
 env.sh
-
 run.sh
 
 .DS_Store
-
-deployments/
