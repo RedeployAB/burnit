@@ -84,7 +84,7 @@ gw.env:
   BURNITDB_API_KEY=<string>
 
 db.env
-  BURNITDB_API_KEY=string
+  BURNITDB_API_KEY=<string>
   BURNITDB_ENCRYPTION_KEY=<string>
   DB_HOST=redis|mongo
   DB_SSL=false
