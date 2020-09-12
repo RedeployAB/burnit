@@ -7,6 +7,10 @@ storing and handling secrets.
 
 It supports two different databases: `mongodb` and `redis`.
 
+* [Configuration](#configuration)
+  * [Running MongoDB in memory](#running-mongodb-in-memory)
+
+
 ## Configuration
 
 There are four ways of configuring the service. Either provide a config file, use environment variables, pass command line arguments or use defaults.
@@ -89,4 +93,34 @@ database:
         Hash method for passphrase protected secrets
   -port string
         Port to listen onq
+```
+### Running MongoDB in memory
+
+To run a MongoDB in memory (or rather from a mounted RAM disk) issue
+the following to your container:
+
+```
+mongod --smallfiles --noprealloc --nojournal --dbpath <ramdisk mounted localtion>
+```
+
+This information was got from the following [answer](https://stackoverflow.com/questions/26572248/can-i-configure-mongodb-to-be-in-memory) at stackoverflow.
+
+**Kubernetes deployment**
+
+```yaml
+...
+...
+spec:
+  containers:
+  - name: mongo
+    image: mongo
+    command: [ "mongod" ]
+    args: ["--smallfiles", "--noprealloc", "--nojournal", "--dbpath",  "/data/inmem" ]
+    volumeMounts:
+    - mountPath: /data/inmem
+      name: inmem
+...
+  volumes:
+  - name: inmem
+    emptyDir: {}
 ```
