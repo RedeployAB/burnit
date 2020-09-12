@@ -5,6 +5,7 @@ import (
 	"flag"
 	"io/ioutil"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -141,6 +142,13 @@ func Configure(f Flags) (*Configuration, error) {
 
 	if len(config.Server.Security.Encryption.Key) == 0 {
 		return config, errors.New("encryption key must be set")
+	}
+
+	if config.Database.Driver == "redis" {
+		re := regexp.MustCompile(`:\d+$`)
+		if !re.MatchString(config.Database.Address) {
+			config.Database.Address += ":6379"
+		}
 	}
 	return config, nil
 }
