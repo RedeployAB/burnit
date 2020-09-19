@@ -23,9 +23,9 @@ spec:
         ports:
         - containerPort: 3000
         env:
-        - name: BURNITGEN_BASE_URL
+        - name: BURNITGEN_ADDRESS
           value: http://burnitgen:3002
-        - name: BURNITDB_BASE_URL
+        - name: BURNITDB_ADDRESS
           value: http://burnitdb:3001
         - name: BURNITDB_API_KEY
           valueFrom:
