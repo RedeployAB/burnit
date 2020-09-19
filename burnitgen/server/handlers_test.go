@@ -21,7 +21,7 @@ func SetupServer() Server {
 }
 
 func TestGenerateSecret(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/generate", nil)
+	req, _ := http.NewRequest("GET", "/secret", nil)
 	res := httptest.NewRecorder()
 	SetupServer().router.ServeHTTP(res, req)
 
@@ -49,7 +49,7 @@ func TestGenerateSecret(t *testing.T) {
 }
 
 func TestGenerateSecretHandlerParams(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/generate?length=22&specialshars=true", nil)
+	req, _ := http.NewRequest("GET", "/secret?length=22&specialshars=true", nil)
 	res := httptest.NewRecorder()
 	SetupServer().router.ServeHTTP(res, req)
 

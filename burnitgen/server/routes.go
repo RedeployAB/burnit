@@ -5,7 +5,7 @@ import (
 )
 
 func (s *Server) routes() {
-	s.router.HandleFunc("/generate", s.generateSecret).Methods("GET")
+	s.router.HandleFunc("/secret", s.generateSecret).Methods("GET")
 	s.router.PathPrefix("/").HandlerFunc(s.notFound)
 	s.router.Use(middleware.Logger)
 }
