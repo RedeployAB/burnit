@@ -110,17 +110,18 @@ This information was got from the following [answer](https://stackoverflow.com/q
 ```yaml
 ...
 ...
-spec:
-  containers:
-  - name: mongo
-    image: mongo
-    command: [ "mongod" ]
-    args: ["--smallfiles", "--noprealloc", "--nojournal", "--dbpath",  "/data/inmem" ]
-    volumeMounts:
-    - mountPath: /data/inmem
-      name: inmem
+- name: mongo
+  image: mongo:4.0
+  ports:
+  - containerPort: 6379
+  command: [ "mongod" ]
+  args: [ "--smallfiles", "--noprealloc", "--nojournal", "--dbpath",  "/data/inmem" ]
+  volumeMounts:
+  - mountPath: /data/inmem
+    name: inmem
 ...
-  volumes:
-  - name: inmem
-    emptyDir: {}
+...
+volumes:
+- name: inmem
+  emptyDir: {}
 ```
