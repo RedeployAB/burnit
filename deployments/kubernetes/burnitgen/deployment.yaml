@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: burnitgen
+  labels:
+    app: burnit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: burnit
+  template:
+    metadata:
+      labels:
+        app: burnit
+    spec:
+      containers:
+      - name: burnitgen
+        image: burnitgen:0.1.0
+        ports:
+        - containerPort: 3002
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
