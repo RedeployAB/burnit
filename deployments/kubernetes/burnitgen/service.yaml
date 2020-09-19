@@ -4,7 +4,7 @@ metadata:
   name: burnitgen
 spec:
   selector:
-    app: burnit
+    service: burnitgen
   ports:
   - protocol: TCP
     port: 3002

@@ -4,15 +4,18 @@ metadata:
   name: burnitgen
   labels:
     app: burnit
+    service: burnitgen
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: burnit
+      service: burnitgen
   template:
     metadata:
       labels:
         app: burnit
+        service: burnitgen
     spec:
       containers:
       - name: burnitgen
@@ -21,8 +24,8 @@ spec:
         - containerPort: 3002
         resources:
           requests:
-            memory: "64Mi"
-            cpu: "100m"
+            memory: 64Mi
+            cpu: 100m
           limits:
-            memory: "128Mi"
-            cpu: "200m"
+            memory: 128Mi
+            cpu: 200m

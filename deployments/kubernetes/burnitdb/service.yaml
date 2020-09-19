@@ -4,7 +4,7 @@ metadata:
   name: burnitdb
 spec:
   selector:
-    app: burnit
+    service: burnitdb
   ports:
   - protocol: TCP
     port: 3001
