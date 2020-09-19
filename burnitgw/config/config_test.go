@@ -315,4 +315,54 @@ func TestConfigure(t *testing.T) {
 	os.Setenv("BURNITDB_ADDRESS", "")
 	os.Setenv("BURNITDB_PATH", "")
 	os.Setenv("BURNITDB_API_KEY", "")
+
+	// Test with flags. Should override file and envrionment variables.
+	// Should not have prefix http:// or https:// in address arguments.
+	expectedPort = "4000"
+	expectedGenAddress = "http://someurl:4002"
+	expectedGenSvcPath = "/v1/secret"
+	expectedDBAddress = "http://someurl:4003"
+	expectedDBSvcPath = "/v1/secrets"
+	expectedDBAPIKey = "ccaabb"
+
+	flags = Flags{
+		ConfigPath:           configPath,
+		Port:                 expectedPort,
+		GeneratorAddress:     "someurl:4002",
+		GeneratorServicePath: expectedGenSvcPath,
+		DBAddress:            "someurl:4003",
+		DBServicePath:        expectedDBSvcPath,
+		DBAPIKey:             expectedDBAPIKey,
+	}
+
+	config, err = Configure(flags)
+	if err != nil {
+		t.Fatalf("error in test: %v", err)
+	}
+
+	if config.Port != expectedPort {
+		t.Errorf("Port was incorrect, got: %s, want: %s", config.Port, expectedPort)
+	}
+	if config.GeneratorAddress != expectedGenAddress {
+		t.Errorf("Generator Address is incorrect, got: %s, want: %s", config.GeneratorAddress, expectedGenAddress)
+	}
+	if config.GeneratorServicePath != expectedGenSvcPath {
+		t.Errorf("Generator Service Path is incorrect, got: %s, want: %s", config.GeneratorServicePath, expectedGenSvcPath)
+	}
+	if config.DBAddress != expectedDBAddress {
+		t.Errorf("DB Address is incorrect, got: %s, want: %s", config.DBAddress, expectedDBAddress)
+	}
+	if config.DBServicePath != expectedDBSvcPath {
+		t.Errorf("DB Service Path is incorrect, got: %s, want: %s", config.DBServicePath, expectedDBSvcPath)
+	}
+	if config.DBAPIKey != expectedDBAPIKey {
+		t.Errorf("DB API Key is incorrect, got :%s, want: %s", config.DBAPIKey, expectedDBAPIKey)
+	}
+
+	os.Setenv("BURNITGW_LISTEN_PORT", "")
+	os.Setenv("BURNITGEN_ADDRESS", "")
+	os.Setenv("BURNITGEN_PATH", "")
+	os.Setenv("BURNITDB_ADDRESS", "")
+	os.Setenv("BURNITDB_PATH", "")
+	os.Setenv("BURNITDB_API_KEY", "")
 }

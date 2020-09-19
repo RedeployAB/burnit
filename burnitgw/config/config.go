@@ -4,6 +4,7 @@ import (
 	"flag"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 )
@@ -88,6 +89,14 @@ func Configure(f Flags) (*Configuration, error) {
 
 	configureFromEnv(config)
 	configureFromFlags(config, f)
+
+	if !strings.HasPrefix(config.GeneratorAddress, "http://") && !strings.HasPrefix(config.GeneratorAddress, "https://") {
+		config.GeneratorAddress = "http://" + config.GeneratorAddress
+	}
+
+	if !strings.HasPrefix(config.DBAddress, "http://") && !strings.HasPrefix(config.DBAddress, "https://") {
+		config.DBAddress = "http://" + config.DBAddress
+	}
 
 	return config, nil
 }
