@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: burnitgw
+  labels:
+    app: burnit
+    service: burnitgw
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: burnit
+      service: burnitgw
+  template:
+    metadata:
+      labels:
+        app: burnit
+        service: burnitgw
+    spec:
+      containers:
+      - name: burnitgw
+        image: burnitgw:0.1.0
+        ports:
+        - containerPort: 3000
+        env:
+        - name: BURNITGEN_BASE_URL
+          value: http://burnitgen:3002
+        - name: BURNITDB_BASE_URL
+          value: http://burnitdb:3001
+        - name: BURNITDB_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: burnit
+              key: apikey
+        resources:
+          requests:
+            memory: 64Mi
+            cpu: 100m
+          limits:
+            memory: 128Mi
+            cpu: 200m
