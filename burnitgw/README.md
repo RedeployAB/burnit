@@ -18,9 +18,9 @@ Order of precedence:
 **Environment variables**
 
 * `BURNITGW_LISTEN_PORT` - Port the service listens to. Defaults to `3000`
-* `BURNITGEN_BASE_URL` - URL with port to `burnitgen`. Defaults to `http://localhost:3002`
+* `BURNITGEN_ADDRESS` - URL with port to `burnitgen`. Defaults to `http://localhost:3002`
 * `BURNITGEN_PATH` - Path for service calls. Defaults to `/generate`
-* `BURNITDB_BASE_URL` - URL with port to `burnitdb`. Defaults to `http://localhost:3001`
+* `BURNITDB_ADDRESS` - URL with port to `burnitdb`. Defaults to `http://localhost:3001`
 * `BURNITDB_PATH`- Path for service alls. Defaults to `/secrets`
 * `BURNITDB_API_KEY` - API key/token to `burnitdb` endpoints
 
@@ -36,9 +36,9 @@ Pass `-config` with path when running service, like so:
 ```yaml
 server:
   port: 3000
-  generatorBaseUrl: "http://localhost:3002"
+  generatorAddress: "http://localhost:3002"
   generatorServicePath: "/generate"
-  dbBaseUrl: "http://localhost:3001"
+  dbAddress: "http://localhost:3001"
   dbServicePath: "/secrets"
   dbApiKey: "<DB-API-KEY>"
 ```
@@ -51,11 +51,11 @@ server:
   -db-api-key string
         API Key to DB service
   -db-base-url string
-        Base URL to DB service (burnitdb)
+        Address to DB service (burnitdb)
   -db-service-path string
         Path to DB service endpoint (burnitdb)
   -generator-base-url string
-        Base URL to generator service (burnitgen)
+        Address to generator service (burnitgen)
   -generator-service-path string
         Path to generator service endpoint (burnitgen)
   -port string
