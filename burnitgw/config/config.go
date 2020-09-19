@@ -10,9 +10,9 @@ import (
 
 var (
 	defaultListenPort           = "3000"
-	defaultGeneratorBaseURL     = "http://localhost:3002"
+	defaultGeneratorAddress     = "http://localhost:3002"
 	defaultGeneratorServicePath = "/generate"
-	defaultDBBaseURL            = "http://localhost:3001"
+	defaultDBAddress            = "http://localhost:3001"
 	defaultDBServicePath        = "/secrets"
 	defaultDBAPIKey             = ""
 )
@@ -21,9 +21,9 @@ var (
 type Flags struct {
 	ConfigPath           string
 	Port                 string
-	GeneratorBaseURL     string
+	GeneratorAddress     string
 	GeneratorServicePath string
-	DBBaseURL            string
+	DBAddress            string
 	DBServicePath        string
 	DBAPIKey             string
 }
@@ -32,9 +32,9 @@ type Flags struct {
 func ParseFlags() Flags {
 	configPath := flag.String("config", "", "Path to configuration file")
 	listenPort := flag.String("port", "", "Port to listen on")
-	generatorBaseURL := flag.String("generator-base-url", "", "Base URL to generator service (burnitgen)")
+	generatorAddress := flag.String("generator-address", "", "Address to generator service (burnitgen)")
 	generatorServicePath := flag.String("generator-service-path", "", "Path to generator service endpoint (burnitgen)")
-	dbBaseURL := flag.String("db-base-url", "", "Base URL to DB service (burnitdb)")
+	dbAddress := flag.String("db-address", "", "Address to DB service (burnitdb)")
 	dbServicePath := flag.String("db-service-path", "", "Path to DB service endpoint (burnitdb)")
 	dbAPIKey := flag.String("db-api-key", "", "API Key to DB service")
 	flag.Parse()
@@ -42,9 +42,9 @@ func ParseFlags() Flags {
 	return Flags{
 		ConfigPath:           *configPath,
 		Port:                 *listenPort,
-		GeneratorBaseURL:     *generatorBaseURL,
+		GeneratorAddress:     *generatorAddress,
 		GeneratorServicePath: *generatorServicePath,
-		DBBaseURL:            *dbBaseURL,
+		DBAddress:            *dbAddress,
 		DBServicePath:        *dbServicePath,
 		DBAPIKey:             *dbAPIKey,
 	}
@@ -53,9 +53,9 @@ func ParseFlags() Flags {
 // Server represents server part of configuration.
 type Server struct {
 	Port                 string `yaml:"port"`
-	GeneratorBaseURL     string `yaml:"generatorBaseUrl"`
+	GeneratorAddress     string `yaml:"generatorAddress"`
 	GeneratorServicePath string `yaml:"generatorServicePath"`
-	DBBaseURL            string `yaml:"dbBaseUrl"`
+	DBAddress            string `yaml:"dbAddress"`
 	DBServicePath        string `yaml:"dbServicePath"`
 	DBAPIKey             string `yaml:"dbApiKey"`
 }
@@ -72,9 +72,9 @@ func Configure(f Flags) (*Configuration, error) {
 	config := &Configuration{
 		Server{
 			Port:                 defaultListenPort,
-			GeneratorBaseURL:     defaultGeneratorBaseURL,
+			GeneratorAddress:     defaultGeneratorAddress,
 			GeneratorServicePath: defaultGeneratorServicePath,
-			DBBaseURL:            defaultDBBaseURL,
+			DBAddress:            defaultDBAddress,
 			DBServicePath:        defaultDBServicePath,
 			DBAPIKey:             defaultDBAPIKey,
 		},
@@ -98,14 +98,14 @@ func mergeConfig(config *Configuration, srcCfg Configuration) {
 	if len(srcCfg.Port) > 0 {
 		config.Port = srcCfg.Port
 	}
-	if len(srcCfg.GeneratorBaseURL) > 0 {
-		config.GeneratorBaseURL = srcCfg.GeneratorBaseURL
+	if len(srcCfg.GeneratorAddress) > 0 {
+		config.GeneratorAddress = srcCfg.GeneratorAddress
 	}
 	if len(srcCfg.GeneratorServicePath) > 0 {
 		config.GeneratorServicePath = srcCfg.GeneratorServicePath
 	}
-	if len(srcCfg.DBBaseURL) > 0 {
-		config.DBBaseURL = srcCfg.DBBaseURL
+	if len(srcCfg.DBAddress) > 0 {
+		config.DBAddress = srcCfg.DBAddress
 	}
 	if len(srcCfg.DBServicePath) > 0 {
 		config.DBServicePath = srcCfg.DBServicePath
@@ -146,9 +146,9 @@ func configureFromEnv(config *Configuration) {
 	cfg := Configuration{
 		Server{
 			Port:                 os.Getenv("BURNITGW_LISTEN_PORT"),
-			GeneratorBaseURL:     os.Getenv("BURNITGEN_BASE_URL"),
+			GeneratorAddress:     os.Getenv("BURNITGEN_ADDRESS"),
 			GeneratorServicePath: os.Getenv("BURNITGEN_PATH"),
-			DBBaseURL:            os.Getenv("BURNITDB_BASE_URL"),
+			DBAddress:            os.Getenv("BURNITDB_ADDRESS"),
 			DBServicePath:        os.Getenv("BURNITDB_PATH"),
 			DBAPIKey:             os.Getenv("BURNITDB_API_KEY"),
 		},
@@ -162,9 +162,9 @@ func configureFromFlags(config *Configuration, f Flags) {
 	cfg := Configuration{
 		Server{
 			Port:                 f.Port,
-			GeneratorBaseURL:     f.GeneratorBaseURL,
+			GeneratorAddress:     f.GeneratorAddress,
 			GeneratorServicePath: f.GeneratorServicePath,
-			DBBaseURL:            f.DBBaseURL,
+			DBAddress:            f.DBAddress,
 			DBServicePath:        f.DBServicePath,
 			DBAPIKey:             f.DBAPIKey,
 		},
