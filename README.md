@@ -79,8 +79,8 @@ To get started define the following files in the same directory:
   DB_PORT=6379|27017
 
 gw.env:
-  BURNITGEN_BASE_URL=http://burnitgen:3002
-  BURNITDB_BASE_URL=http://burnitdb:3001
+  BURNITGEN_ADDRESS=http://burnitgen:3002
+  BURNITDB_ADDRESS=http://burnitdb:3001
   BURNITDB_API_KEY=<string>
 
 db.env
