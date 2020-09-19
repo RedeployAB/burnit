@@ -19,7 +19,7 @@ Order of precedence:
 
 * `BURNITGW_LISTEN_PORT` - Port the service listens to. Defaults to `3000`
 * `BURNITGEN_ADDRESS` - URL with port to `burnitgen`. Defaults to `http://localhost:3002`
-* `BURNITGEN_PATH` - Path for service calls. Defaults to `/generate`
+* `BURNITGEN_PATH` - Path for service calls. Defaults to `/secret`
 * `BURNITDB_ADDRESS` - URL with port to `burnitdb`. Defaults to `http://localhost:3001`
 * `BURNITDB_PATH`- Path for service alls. Defaults to `/secrets`
 * `BURNITDB_API_KEY` - API key/token to `burnitdb` endpoints
@@ -37,7 +37,7 @@ Pass `-config` with path when running service, like so:
 server:
   port: 3000
   generatorAddress: "http://localhost:3002"
-  generatorServicePath: "/generate"
+  generatorServicePath: "/secret"
   dbAddress: "http://localhost:3001"
   dbServicePath: "/secrets"
   dbApiKey: "<DB-API-KEY>"

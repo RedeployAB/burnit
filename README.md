@@ -20,7 +20,7 @@ This is a collection of three services:
 
 These endpoints are available:
 
-* `/generate`
+* `/secret`
 * `/secrets`
 
 ## Usage
@@ -31,16 +31,16 @@ These endpoints are available:
 // NOTE: special characters are: (!?=()&%)
 
 // Generating a secret with default length (16).
-GET /generate
+GET /secret
 
 // Generating a secret with specified length of 24.
-GET /generate?length=24
+GET /secret?length=24
 
 // Generating a secret with special characters.
-GET /generate?specialchars=true
+GET /secret?specialchars=true
 
 // Generating a secret with specified length and special characters.
-GET /generate?length=24&specialchars=true
+GET /secret?length=24&specialchars=true
 ```
 
 ### Creating and fetching secrets
