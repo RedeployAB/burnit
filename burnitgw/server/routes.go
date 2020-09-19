@@ -6,7 +6,7 @@ import (
 
 func (s *Server) routes() {
 	g := s.router.PathPrefix("/").Subrouter()
-	g.Handle("/generate", s.generateSecret()).Methods("GET")
+	g.Handle("/secret", s.generateSecret()).Methods("GET")
 
 	d := s.router.PathPrefix("/").Subrouter()
 	d.Handle("/secrets/{id}", s.getSecret()).Methods("GET")

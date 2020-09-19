@@ -96,7 +96,7 @@ func TestGenerateSecret(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		req, _ := http.NewRequest("GET", "/generate", nil)
+		req, _ := http.NewRequest("GET", "/secret", nil)
 		res := httptest.NewRecorder()
 		SetupServer(test.mode).router.ServeHTTP(res, req)
 

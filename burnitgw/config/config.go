@@ -11,7 +11,7 @@ import (
 var (
 	defaultListenPort           = "3000"
 	defaultGeneratorAddress     = "http://localhost:3002"
-	defaultGeneratorServicePath = "/generate"
+	defaultGeneratorServicePath = "/secret"
 	defaultDBAddress            = "http://localhost:3001"
 	defaultDBServicePath        = "/secrets"
 	defaultDBAPIKey             = ""

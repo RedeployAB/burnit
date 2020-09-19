@@ -8,7 +8,7 @@ import (
 func TestConfigureDefault(t *testing.T) {
 	expectedPort := "3000"
 	expectedGenAddress := "http://localhost:3002"
-	expectedGenSvcPath := "/generate"
+	expectedGenSvcPath := "/secret"
 	expectedDBAddress := "http://localhost:3001"
 	expectedDBSvcPath := "/secrets"
 	expectedDBAPIKey := ""
@@ -42,7 +42,7 @@ func TestConfigureDefault(t *testing.T) {
 func TestConfigureFromFile(t *testing.T) {
 	expectedPort := "3003"
 	expectedGenAddress := "http://localhost:3003"
-	expectedGenSvcPath := "/v1/generate"
+	expectedGenSvcPath := "/v1/secret"
 	expectedDBAddress := "http://localhost:3003"
 	expectedDBSvcPath := "/v1/secrets"
 	expectedDBAPIKey := "aabbcc"
@@ -80,7 +80,7 @@ func TestConfigureFromFile(t *testing.T) {
 func TestConfigureFromEnv(t *testing.T) {
 	expectedPort := "3003"
 	expectedGenAddress := "http://someurl:3002"
-	expectedGenSvcPath := "/v1/generate"
+	expectedGenSvcPath := "/v1/secret"
 	expectedDBAddress := "http://someurl:3001"
 	expectedDBSvcPath := "/v1/secrets"
 	expectedDBAPIKey := "AAAA"
@@ -123,7 +123,7 @@ func TestConfigureFromEnv(t *testing.T) {
 func TestConfigureFromFlags(t *testing.T) {
 	expectedPort := "4000"
 	expectedGenAddress := "http://someurl:4002"
-	expectedGenSvcPath := "/v1/generate"
+	expectedGenSvcPath := "/v1/secret"
 	expectedDBAddress := "http://someurl:4003"
 	expectedDBSvcPath := "/v1/secrets"
 	expectedDBAPIKey := "ccaabb"
@@ -165,7 +165,7 @@ func TestConfigure(t *testing.T) {
 	// Test default configuration.
 	expectedPort := "3000"
 	expectedGenAddress := "http://localhost:3002"
-	expectedGenSvcPath := "/generate"
+	expectedGenSvcPath := "/secret"
 	expectedDBAddress := "http://localhost:3001"
 	expectedDBSvcPath := "/secrets"
 	expectedDBAPIKey := ""
@@ -198,7 +198,7 @@ func TestConfigure(t *testing.T) {
 	// Test with file. Should override default.
 	expectedPort = "3003"
 	expectedGenAddress = "http://localhost:3003"
-	expectedGenSvcPath = "/v1/generate"
+	expectedGenSvcPath = "/v1/secret"
 	expectedDBAddress = "http://localhost:3003"
 	expectedDBSvcPath = "/v1/secrets"
 	expectedDBAPIKey = "aabbcc"
@@ -231,7 +231,7 @@ func TestConfigure(t *testing.T) {
 	// Test with environment variables. Should override file.
 	expectedPort = "3003"
 	expectedGenAddress = "http://someurl:3002"
-	expectedGenSvcPath = "/v1/generate"
+	expectedGenSvcPath = "/v1/secret"
 	expectedDBAddress = "http://someurl:3001"
 	expectedDBSvcPath = "/v1/secrets"
 	expectedDBAPIKey = "AAAA"
@@ -270,7 +270,7 @@ func TestConfigure(t *testing.T) {
 	// Test with flags. Should override file and envrionment variables.
 	expectedPort = "4000"
 	expectedGenAddress = "http://someurl:4002"
-	expectedGenSvcPath = "/v1/generate"
+	expectedGenSvcPath = "/v1/secret"
 	expectedDBAddress = "http://someurl:4003"
 	expectedDBSvcPath = "/v1/secrets"
 	expectedDBAPIKey = "ccaabb"
