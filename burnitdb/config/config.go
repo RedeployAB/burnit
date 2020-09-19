@@ -16,7 +16,7 @@ var (
 	defaultListenPort = "3001"
 	defaultHashMethod = "md5"
 	defaultAPIKey     = ""
-	defaultDriver     = "mongo"
+	defaultDriver     = "redis"
 	defaultAddress    = "localhost" // Change when "default" driver is updated.
 	defaultDBURI      = ""          // Change when "default" driver is updated.
 	defaultDB         = "burnitdb"
