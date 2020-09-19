@@ -300,7 +300,7 @@ func TestConfigure(t *testing.T) {
 		t.Errorf("Generator Service Path is incorrect, got: %s, want: %s", config.GeneratorServicePath, expectedGenSvcPath)
 	}
 	if config.DBAddress != expectedDBAddress {
-		t.Errorf("DB Address is incorrect, got: %s, want: %s", config.DBAddress, expectedDBBaseURL)
+		t.Errorf("DB Address is incorrect, got: %s, want: %s", config.DBAddress, expectedDBAddress)
 	}
 	if config.DBServicePath != expectedDBSvcPath {
 		t.Errorf("DB Service Path is incorrect, got: %s, want: %s", config.DBServicePath, expectedDBSvcPath)

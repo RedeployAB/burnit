@@ -1,7 +1,7 @@
 server:
   port: 3003
-  generatorBaseUrl: "http://localhost:3003"
+  generatorAddress: "http://localhost:3003"
   generatorServicePath: "/v1/generate"
-  dbBaseUrl: "http://localhost:3003"
+  dbAddress: "http://localhost:3003"
   dbServicePath: "/v1/secrets"
   dbApiKey: "aabbcc"

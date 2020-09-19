@@ -25,22 +25,22 @@ type Client interface {
 // HTTPClient reqpresents a HTTP/HTTPS client
 // to be used against other services.
 type HTTPClient struct {
-	BaseURL string
+	Address string
 	Path    string
 }
 
 // NewHTTPClient creates and returns a new
-// HTTPClient with the provided BaseURL and Path.
-func NewHTTPClient(baseURL, path string) *HTTPClient {
+// HTTPClient with the provided Address and Path.
+func NewHTTPClient(address, path string) *HTTPClient {
 	return &HTTPClient{
-		BaseURL: baseURL,
+		Address: address,
 		Path:    path,
 	}
 }
 
 // Request performs a request against the target URL.
 func (c HTTPClient) Request(o Options) (ResponseBody, error) {
-	url := c.BaseURL + c.Path
+	url := c.Address + c.Path
 	if o.Params["id"] != "" {
 		url += "/" + o.Params["id"]
 	}

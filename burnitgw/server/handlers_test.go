@@ -15,7 +15,7 @@ import (
 )
 
 type mockClient struct {
-	baseURL string
+	address string
 	path    string
 	mode    string
 }

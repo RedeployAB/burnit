@@ -44,11 +44,11 @@ func New(conf *config.Configuration, r *mux.Router) *Server {
 			dbAPIkey: conf.Server.DBAPIKey,
 		},
 		generatorService: request.HTTPClient{
-			BaseURL: conf.GeneratorBaseURL,
+			Address: conf.GeneratorAddress,
 			Path:    conf.GeneratorServicePath,
 		},
 		dbService: request.HTTPClient{
-			BaseURL: conf.DBBaseURL,
+			Address: conf.DBAddress,
 			Path:    conf.DBServicePath,
 		},
 	}
