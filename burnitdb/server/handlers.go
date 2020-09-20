@@ -70,6 +70,7 @@ func (s *Server) createSecret() http.Handler {
 		}
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.Header().Set("Location", "/secrets/"+secretModel.ID)
 		w.WriteHeader(http.StatusCreated)
 		if err := json.NewEncoder(w).Encode(response(mappers.Secret{}.ToDTO(secretModel))); err != nil {
 			panic(err)

@@ -191,14 +191,15 @@ func TestCreateSecret(t *testing.T) {
 	malformedJSONStr := []byte(`{"secret":"value}`)
 
 	var tests = []struct {
-		mode    string
-		headers map[string]string
-		body    []byte
-		want    int
+		mode         string
+		headers      map[string]string
+		body         []byte
+		want         int
+		wantLocation string
 	}{
-		{mode: "insert-success", headers: authHeaders, body: jsonStr, want: 201},
-		{mode: "insert-success", headers: authHeaders, body: malformedJSONStr, want: 400},
-		{mode: "insert-error", headers: authHeaders, body: jsonStr, want: 500},
+		{mode: "insert-success", headers: authHeaders, body: jsonStr, want: 201, wantLocation: "/secrets/" + id1},
+		{mode: "insert-success", headers: authHeaders, body: malformedJSONStr, want: 400, wantLocation: ""},
+		{mode: "insert-error", headers: authHeaders, body: jsonStr, want: 500, wantLocation: ""},
 	}
 
 	for _, test := range tests {
@@ -211,6 +212,10 @@ func TestCreateSecret(t *testing.T) {
 
 		if res.Code != test.want {
 			t.Errorf("status code was incorrect, got: %d, want: %d", res.Code, test.want)
+		}
+		locHdr := res.Header().Get("Location")
+		if locHdr != test.wantLocation {
+			t.Errorf("location header was incorrect, got: %s, want: %s", locHdr, test.wantLocation)
 		}
 	}
 }
