@@ -5,7 +5,8 @@
 `burnitdb` is a service for handling database access for
 storing and handling secrets.
 
-It supports two different databases: `mongodb` and `redis`.
+It supports two different databases: `redis` (default) and `mongodb` and
+two hashing methods for the passphrase for protected secrets: `bcrypt` (default) and `md5`.
 
 * [Configuration](#configuration)
   * [Running MongoDB in memory](#running-mongodb-in-memory)
@@ -29,6 +30,7 @@ Order of precedence:
 * `BURNITDB_LISTEN_PORT` - Port the service listens to. Defaults to `3001`
 * `BURNITDB_API_KEY` - API key/token to access the service endpoints (**mandatory**)
 * `BURNITDB_ENCRYPTION_KEY` - Encryption key for the secrets in the database (**mandatory**)
+* `BURNITDB_HASH_METHOD` - Hash method for passphrases. Defaults to `bcrypt`
 
 *Database configuration*
 
@@ -36,8 +38,8 @@ Order of precedence:
 * `DB` - Database for the secrets
 * `DB_USER` - Database user with read/write access
 * `DB_PASSWORD` - Password for the database user
-* `DB_SSL` - True/False. If true, use SSL for DB communication. Defaults to `false`
-* `DB_DRIVER` - `mongo`/`redis`. The database engine to use for the service. Defaults to `mongo`
+* `DB_SSL` - True/False. If true, use SSL for DB communication. Defaults to `true`
+* `DB_DRIVER` - `redis`/`mongo`. The database engine to use for the service. Defaults to `redis`
 
 **Configuration file**
 
@@ -57,18 +59,18 @@ server:
       key: secretstring # Mandatory
     hashMethod: bcrypt|md5
 database:
-  driver: mongo|redis
-  address: localhost:27017
+  driver: redis|mongo
+  address: localhost:6379|localhost:27017
   database: burnit_db
   username: dbuser
   password: dbpassword
-  ssl: true
-  uri: mongodb://localhost:27017|localhost:6379 # Can be used instead of address, database, username, password and ssl.
+  ssl: true # Set to false if burnitdb and redis/mongo is in the same pod if using Kubernetes.
+  uri: localhost:6379|mongodb://localhost:27017 # Can be used instead of address, database, username, password and ssl.
 ```
 
 **Command line arguments**
 
-```shell
+```sh
   -api-key string
         API key for database endpoints
   -config string
@@ -113,7 +115,7 @@ This information was got from the following [answer](https://stackoverflow.com/q
 - name: mongo
   image: mongo:4.0
   ports:
-  - containerPort: 6379
+  - containerPort: 27017
   command: [ "mongod" ]
   args: [ "--smallfiles", "--noprealloc", "--nojournal", "--dbpath",  "/data/inmem" ]
   volumeMounts:
