@@ -14,6 +14,7 @@ This is a collection of three services:
 * [Usage](#usage)
 * [Local development and testing](#loca-development-and-testing)
   * [docker-compose](#docker-compose)
+* [Deploy to Kubernetes](#deploy-to-kubernetes)
 
 
 ## API
@@ -109,3 +110,70 @@ string
   * `db.env`
     * `DB_HOST=mongo`
     * `DB_DRIVER=mongo`
+
+## Deploy to Kubernetes
+
+At `deployments/kubernetes` the following manifests are located:
+
+```sh
+deployments/kubernetes
+├── burnitdb
+│   ├── deployment.yaml
+│   └── service.yaml
+├── burnitgen
+│   ├── deployment.yaml
+│   └── service.yaml
+└── burnitgw
+    ├── deployment.yaml
+    └── service.yaml
+```
+
+The `deployment.yaml` for `burnitdb` and `burnitgw` expects
+files as secrets to setup on the cluster for their
+respective configuration.
+
+Create the following (minimal configuration) as their respective files named `config.yaml`:
+
+```yaml
+# burnitdb
+server:
+  security:
+    apiKey: <api-key-for-incoming-service-requests>
+    encryption:
+      key: <encryption-key-string>
+databasE:
+  ssl: false
+```
+(`ssl: false` since `burnitdb` and `redis`/`mongo` reside in the same pod)
+
+```yaml
+# burnitgw
+server:
+  generatorAddress: burnitgen:3002
+  dbAddress: burnitdb:3001
+  dbApiKey: <same-api-key-as-above>
+```
+
+Deploying:
+
+```sh
+kubectl create namespace burnit
+
+kubectl create secret generic burnitdb-config \
+  --from-file=/path/to/file \
+  --namespace burnit
+
+kubectl create secret generic burnitgw-config \
+  --from-file=/path/to/file \
+  --namespace burnit
+
+# burnitgen
+kubectl apply -f deployments/kubernetes/burnitgen/deployment.yaml -n burnit
+kubectl apply -f deployments/kubernetes/burnitgen/service.yaml -n burnit
+# burnitdb
+kubectl apply -f deployments/kubernetes/burnitdb/deployment.yaml -n burnit
+kubectl apply -f deployments/kubernetes/burnitdb/service.yaml -n burnit
+# burnitgw
+kubectl apply -f deployments/kubernetes/burnitgw/deployment.yaml -n burnit
+kubectl apply -f deployments/kubernetes/burnitgw/service.yaml -n burnit
+```
