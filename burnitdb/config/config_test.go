@@ -8,7 +8,7 @@ import (
 func TestConfigureDefault(t *testing.T) {
 	expectedPort := "3001"
 	expectedAPIKey := ""
-	expectedHashMethod := "md5"
+	expectedHashMethod := "bcrypt"
 	expectedEncryptionKey := ""
 	expectedDriver := "redis"
 	expectedDBAddress := "localhost"
@@ -272,7 +272,7 @@ func TestConfigure(t *testing.T) {
 	// Test default configuration.
 	expectedPort := "3001"
 	expectedAPIKey := ""
-	expectedHashMethod := "md5"
+	expectedHashMethod := "bcrypt"
 	expectedEncryptionKey := ""
 	expectedDriver := "redis"
 	expectedDBAddress := "localhost"

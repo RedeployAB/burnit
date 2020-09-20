@@ -14,7 +14,7 @@ import (
 
 var (
 	defaultListenPort = "3001"
-	defaultHashMethod = "md5"
+	defaultHashMethod = "bcrypt"
 	defaultAPIKey     = ""
 	defaultDriver     = "redis"
 	defaultAddress    = "localhost" // Change when "default" driver is updated.
