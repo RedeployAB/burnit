@@ -22,16 +22,11 @@ spec:
         image: burnitgw:0.1.0
         ports:
         - containerPort: 3000
-        env:
-        - name: BURNITGEN_ADDRESS
-          value: http://burnitgen:3002
-        - name: BURNITDB_ADDRESS
-          value: http://burnitdb:3001
-        - name: BURNITDB_API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: burnit
-              key: apikey
+        command: [ "/usr/bin/burnitgw", "-config", "/etc/burnitgw/config.yaml" ]
+        volumeMounts:
+        - name: burnitgw-config
+          mountPath: /etc/burnitgw
+          readOnly: true
         resources:
           requests:
             memory: 64Mi
@@ -39,3 +34,8 @@ spec:
           limits:
             memory: 128Mi
             cpu: 200m
+
+      volumes:
+      - name: burnitgw-config
+        secret:
+          secretName: burnitgw-config
