@@ -13,7 +13,7 @@ func (s *Server) routes() {
 	d.Handle("/secrets", s.createSecret()).Methods("POST")
 
 	amw := middleware.AuthHeader{Token: s.middlewareConfig.dbAPIkey}
-	hmw := middleware.HeaderStrip{Exceptions: []string{"X-Passphrase"}}
+	hmw := middleware.HeaderStrip{Exceptions: []string{"Passphrase"}}
 	d.Use(hmw.Strip, amw.AddAuthHeader)
 
 	s.router.PathPrefix("/").HandlerFunc(s.notFound)

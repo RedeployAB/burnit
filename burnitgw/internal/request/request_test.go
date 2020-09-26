@@ -140,7 +140,7 @@ func TestBasicRequestWithQuery(t *testing.T) {
 }
 
 func TestBasicRequestWithHeaders(t *testing.T) {
-	hdrName := "X-PASSPHRASE"
+	hdrName := "PASSPHRASE"
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		hdrVal := r.Header.Get(hdrName)
 		if len(hdrVal) == 0 {
