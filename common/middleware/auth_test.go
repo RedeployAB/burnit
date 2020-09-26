@@ -31,7 +31,7 @@ func TestAuthenticate(t *testing.T) {
 	for _, test := range tests {
 		req, _ := http.NewRequest("GET", "/", nil)
 		res := httptest.NewRecorder()
-		req.Header.Set("X-API-Key", test.input)
+		req.Header.Set("API-Key", test.input)
 
 		amw.Authenticate(h()).ServeHTTP(res, req)
 		if res.Code != test.want {
@@ -54,7 +54,7 @@ func TestAddAuthHeader(t *testing.T) {
 
 	amw.AddAuthHeader(h()).ServeHTTP(res, req)
 
-	header := req.Header.Get("X-API-Key")
+	header := req.Header.Get("API-Key")
 	if header != token {
 		t.Errorf("incorrect value, got: %s, want: %s", header, token)
 	}

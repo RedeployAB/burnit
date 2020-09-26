@@ -7,7 +7,7 @@ import (
 )
 
 func TestStrip(t *testing.T) {
-	exceptions := []string{"X-API-Key", "X-Passphrase"}
+	exceptions := []string{"API-Key", "Passphrase"}
 	hmw := HeaderStrip{Exceptions: exceptions}
 
 	h := func() http.Handler {
@@ -21,10 +21,10 @@ func TestStrip(t *testing.T) {
 	token := "abcdefg"
 	passphrase := "gfedcba"
 	inHeaders := map[string]string{
-		"Forwarded":    "for=192.168.0.1",
-		"X-Real-IP":    "192.168.0.1",
-		"X-API-Key":    token,
-		"X-Passphrase": passphrase,
+		"Forwarded":  "for=192.168.0.1",
+		"X-Real-IP":  "192.168.0.1",
+		"API-Key":    token,
+		"Passphrase": passphrase,
 	}
 
 	for k, v := range inHeaders {
@@ -38,10 +38,10 @@ func TestStrip(t *testing.T) {
 	if len(req.Header.Get("X-Real-IP")) > 0 {
 		t.Errorf("incorrect value, got: %s, want: %s", req.Header.Get("X-Real-IP"), "")
 	}
-	if req.Header.Get("X-API-Key") != token {
-		t.Errorf("incorrect value, got: %s, want: %s", req.Header.Get("X-API-Key"), token)
+	if req.Header.Get("API-Key") != token {
+		t.Errorf("incorrect value, got: %s, want: %s", req.Header.Get("API-Key"), token)
 	}
-	if req.Header.Get("X-Passphrase") != passphrase {
-		t.Errorf("incorrect value, got: %s, want: %s", req.Header.Get("X-Passphrase"), passphrase)
+	if req.Header.Get("Passphrase") != passphrase {
+		t.Errorf("incorrect value, got: %s, want: %s", req.Header.Get("Passphrase"), passphrase)
 	}
 }
