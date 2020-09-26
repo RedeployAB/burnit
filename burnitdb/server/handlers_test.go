@@ -140,17 +140,17 @@ func SetupServer(action, mode string) Server {
 
 func TestGetSecret(t *testing.T) {
 	authHeaders := map[string]string{
-		"x-api-key": apiKey,
+		"api-key": apiKey,
 	}
 
 	authPassphraseSuccess := map[string]string{
-		"x-api-key":    apiKey,
-		"x-passphrase": "passphrase",
+		"api-key":    apiKey,
+		"passphrase": "passphrase",
 	}
 
 	authPassphraseFail := map[string]string{
-		"x-api-key":    apiKey,
-		"x-passphrase": "notpassphrase",
+		"api-key":    apiKey,
+		"passphrase": "notpassphrase",
 	}
 
 	var tests = []struct {
@@ -184,7 +184,7 @@ func TestGetSecret(t *testing.T) {
 
 func TestCreateSecret(t *testing.T) {
 	authHeaders := map[string]string{
-		"x-api-key": apiKey,
+		"api-key": apiKey,
 	}
 
 	jsonStr := []byte(`{"secret":"value"}`)
@@ -222,7 +222,7 @@ func TestCreateSecret(t *testing.T) {
 
 func TestUpdateSecret(t *testing.T) {
 	req, _ := http.NewRequest("PUT", "/secrets/"+id1, nil)
-	req.Header.Add("x-api-key", apiKey)
+	req.Header.Add("api-key", apiKey)
 	res := httptest.NewRecorder()
 	SetupServer("", "").router.ServeHTTP(res, req)
 
@@ -234,7 +234,7 @@ func TestUpdateSecret(t *testing.T) {
 
 func TestDeleteSecret(t *testing.T) {
 	authHeaders := map[string]string{
-		"x-api-key": apiKey,
+		"api-key": apiKey,
 	}
 
 	var tests = []struct {
@@ -264,7 +264,7 @@ func TestDeleteSecret(t *testing.T) {
 
 func TestNotFound(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)
-	req.Header.Add("x-api-key", apiKey)
+	req.Header.Add("api-key", apiKey)
 	res := httptest.NewRecorder()
 	SetupServer("", "").router.ServeHTTP(res, req)
 
