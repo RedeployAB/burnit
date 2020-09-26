@@ -10,17 +10,16 @@ import (
 	"time"
 
 	"github.com/RedeployAB/burnit/burnitgen/config"
-	"github.com/gorilla/mux"
 )
 
 // Server represents server with configuration.
 type Server struct {
 	httpServer *http.Server
-	router     *mux.Router
+	router     *http.ServeMux
 }
 
 // New returns a configured Server.
-func New(conf *config.Configuration, r *mux.Router) *Server {
+func New(conf *config.Configuration, r *http.ServeMux) *Server {
 	srv := &http.Server{
 		Addr:         "0.0.0.0:" + conf.Port,
 		WriteTimeout: time.Second * 15,

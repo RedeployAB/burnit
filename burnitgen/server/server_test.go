@@ -1,17 +1,17 @@
 package server
 
 import (
+	"net/http"
 	"os"
 	"testing"
 	"time"
 
 	"github.com/RedeployAB/burnit/burnitgen/config"
-	"github.com/gorilla/mux"
 )
 
 func TestNew(t *testing.T) {
 	conf := &config.Configuration{Port: "5000"}
-	r := mux.NewRouter()
+	r := http.NewServeMux()
 	srv := New(conf, r)
 
 	expected := "0.0.0.0:5000"
@@ -22,7 +22,7 @@ func TestNew(t *testing.T) {
 
 func TestStartAndShutdown(t *testing.T) {
 	conf := &config.Configuration{Port: "5000"}
-	r := mux.NewRouter()
+	r := http.NewServeMux()
 	srv := New(conf, r)
 
 	proc, err := os.FindProcess(os.Getpid())

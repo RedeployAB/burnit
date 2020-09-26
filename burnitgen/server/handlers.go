@@ -17,16 +17,22 @@ func (s *Server) notFound(w http.ResponseWriter, r *http.Request) {
 }
 
 // generateSecret handles requests for secret generation.
-func (s *Server) generateSecret(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query()
-	length, specialChars := parseGenerateSecretQuery(query)
-	secret := secrets.Generate(length, specialChars)
+func (s *Server) generateSecret() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		query := r.URL.Query()
+		length, specialChars := parseGenerateSecretQuery(query)
+		secret := secrets.Generate(length, specialChars)
 
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(response(secret)); err != nil {
-		panic(err)
-	}
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		if err := json.NewEncoder(w).Encode(response(secret)); err != nil {
+			panic(err)
+		}
+	})
 }
 
 // parseGenerateSecretQuery parses query parameters to get length and special character

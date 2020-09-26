@@ -2,10 +2,10 @@ package main
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/RedeployAB/burnit/burnitgen/config"
 	"github.com/RedeployAB/burnit/burnitgen/server"
-	"github.com/gorilla/mux"
 )
 
 func main() {
@@ -16,7 +16,7 @@ func main() {
 		log.Fatalf("configuration: %v", err)
 	}
 
-	r := mux.NewRouter()
+	r := http.NewServeMux()
 	srv := server.New(conf, r)
 
 	srv.Start()

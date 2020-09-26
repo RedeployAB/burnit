@@ -8,13 +8,11 @@ import (
 	"net/url"
 	"testing"
 	"unicode/utf8"
-
-	"github.com/gorilla/mux"
 )
 
 func SetupServer() Server {
 	srv := Server{
-		router: mux.NewRouter(),
+		router: http.NewServeMux(),
 	}
 	srv.routes()
 	return srv
