@@ -22,7 +22,7 @@ Order of precedence:
 * `BURNITGEN_PATH` - Path for service calls. Defaults to `/secret`
 * `BURNITDB_ADDRESS` - URL with port to `burnitdb`. Defaults to `http://localhost:3001`
 * `BURNITDB_PATH`- Path for service alls. Defaults to `/secrets`
-* `BURNITDB_API_KEY` - API key/token to `burnitdb` endpoints
+* `BURNITDB_API_KEY` - API key/token to `burnitdb` endpoints. If set on `burnitdb` this key is mandatory
 
 **Configuration file**
 
