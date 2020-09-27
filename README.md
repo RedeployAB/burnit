@@ -82,10 +82,8 @@ To get started define the following files in the same directory:
 gw.env:
   BURNITGEN_ADDRESS=http://burnitgen:3002
   BURNITDB_ADDRESS=http://burnitdb:3001
-  BURNITDB_API_KEY=<string>
 
 db.env
-  BURNITDB_API_KEY=<string>
   BURNITDB_ENCRYPTION_KEY=<string>
   DB_HOST=redis|mongo
   DB_SSL=false
@@ -138,7 +136,7 @@ Create the following (minimal configuration) as their respective files named `co
 # burnitdb
 server:
   security:
-    apiKey: <api-key-for-incoming-service-requests>
+    apiKey: <api-key-for-incoming-service-requests> # Optional.
     encryption:
       key: <encryption-key-string>
 databasE:
@@ -151,7 +149,7 @@ databasE:
 server:
   generatorAddress: burnitgen:3002
   dbAddress: burnitdb:3001
-  dbApiKey: <same-api-key-as-above>
+  dbApiKey: <same-api-key-as-above> # Optional if not set in DB.
 ```
 
 Deploying:
