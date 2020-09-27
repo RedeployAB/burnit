@@ -28,7 +28,7 @@ Order of precedence:
 **Environment variables**
 
 * `BURNITDB_LISTEN_PORT` - Port the service listens to. Defaults to `3001`
-* `BURNITDB_API_KEY` - API key/token to access the service endpoints (**mandatory**)
+* `BURNITDB_API_KEY` - API key/token to access the service endpoints. Leave empty to not require an API key/token (**optional**)
 * `BURNITDB_ENCRYPTION_KEY` - Encryption key for the secrets in the database (**mandatory**)
 * `BURNITDB_HASH_METHOD` - Hash method for passphrases. Defaults to `bcrypt`
 

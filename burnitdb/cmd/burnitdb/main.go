@@ -17,8 +17,11 @@ func main() {
 		log.Fatalf("configuration: %v", err)
 	}
 
-	ts := auth.NewMemoryTokenStore()
-	ts.Set(conf.Server.Security.APIKey, "server")
+	var ts *auth.MemoryTokenStore
+	if len(conf.Server.Security.APIKey) > 0 {
+		ts = auth.NewMemoryTokenStore()
+		ts.Set(conf.Server.Security.APIKey, "server")
+	}
 
 	conn := connectToDB(conf)
 

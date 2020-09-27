@@ -99,27 +99,8 @@ func (r *mockHandlerRepository) Driver() string {
 // The different methods on the handler will require
 // states. When creating
 func SetupServer(action, mode string) Server {
-	conf := config.Configuration{
-		Server: config.Server{
-			Port: "5000",
-			Security: config.Security{
-				APIKey: "ABCDEF",
-				Encryption: config.Encryption{
-					Key: "testphrase",
-				},
-				HashMethod: "bcrypt",
-			},
-		},
-		Database: config.Database{
-			Driver:   "mongo",
-			Address:  "mongo://db",
-			Database: "secrets",
-			Username: "user",
-			Password: "password",
-			SSL:      false,
-			URI:      "",
-		},
-	}
+	conf := config.Configuration{}
+	conf.Server.Security.APIKey = "ABCDEF"
 
 	client := &mockClient{}
 	repo := &mockHandlerRepository{action: action, mode: mode}

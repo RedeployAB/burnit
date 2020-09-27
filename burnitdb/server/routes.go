@@ -12,6 +12,9 @@ func (s *Server) routes(ts auth.TokenStore) {
 	s.router.Handle("/secrets/{id}", s.deleteSecret()).Methods("DELETE")
 	s.router.PathPrefix("/").HandlerFunc(s.notFound)
 
-	amw := middleware.Authentication{TokenStore: ts}
-	s.router.Use(middleware.Logger, amw.Authenticate)
+	s.router.Use(middleware.Logger)
+	if s.tokenStore.(*auth.MemoryTokenStore) != nil {
+		amw := middleware.Authentication{TokenStore: ts}
+		s.router.Use(amw.Authenticate)
+	}
 }
