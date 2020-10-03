@@ -3,8 +3,8 @@ package mappers
 import (
 	"time"
 
+	"github.com/RedeployAB/burnit/burnitdb/db"
 	"github.com/RedeployAB/burnit/burnitdb/internal/dto"
-	"github.com/RedeployAB/burnit/burnitdb/internal/models"
 )
 
 // Mapper is an interface that covers the mapping
@@ -21,7 +21,7 @@ type Secret struct{}
 // ToPersistance transforms a Secret (DTO) to Secret (Model).
 // It is the responsibility of the objects implementing
 // Repository to handle ID setting and creating.
-func (m Secret) ToPersistance(s *dto.Secret) *models.Secret {
+func (m Secret) ToPersistance(s *dto.Secret) *db.Secret {
 	// Fallback for setting CreatedAt and ExpiresAt
 	// if those are not set in incoming DTO object.
 	var createdAt, expiresAt time.Time
@@ -37,21 +37,21 @@ func (m Secret) ToPersistance(s *dto.Secret) *models.Secret {
 		expiresAt = s.ExpiresAt
 	}
 
-	secretModel := &models.Secret{
+	secret := &db.Secret{
 		Secret:    s.Secret,
 		CreatedAt: createdAt,
 		ExpiresAt: expiresAt,
 	}
 
 	if len(s.Passphrase) > 0 {
-		secretModel.Passphrase = s.Passphrase
+		secret.Passphrase = s.Passphrase
 	}
 
-	return secretModel
+	return secret
 }
 
 // ToDTO transforms a Secret (Model) to Secret (DTO).
-func (m Secret) ToDTO(s *models.Secret) *dto.Secret {
+func (m Secret) ToDTO(s *db.Secret) *dto.Secret {
 	return &dto.Secret{
 		ID:         s.ID,
 		Secret:     s.Secret,

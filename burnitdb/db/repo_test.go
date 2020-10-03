@@ -4,7 +4,6 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/RedeployAB/burnit/burnitdb/internal/models"
 	"github.com/RedeployAB/burnit/common/security"
 )
 
@@ -18,38 +17,38 @@ var id1 = "507f1f77bcf86cd799439011"
 var encryptionKey = "abcdefg"
 var encrypted, _ = security.Encrypt([]byte("value"), encryptionKey)
 
-func (c *mockClient) FindOne(id string) (*models.Secret, error) {
-	var model *models.Secret
+func (c *mockClient) FindOne(id string) (*Secret, error) {
+	var secret *Secret
 	var err error
 
 	switch c.mode {
 	case "find-success":
-		model = &models.Secret{ID: id1, Secret: string(encrypted)}
+		secret = &Secret{ID: id1, Secret: string(encrypted)}
 		err = nil
 	case "find-not-found":
-		model = nil
+		secret = nil
 		err = nil
 	case "find-error":
-		model = nil
+		secret = nil
 		err = errors.New("error in db")
 	}
-	return model, err
+	return secret, err
 }
 
-func (c *mockClient) InsertOne(m *models.Secret) (*models.Secret, error) {
-	var model *models.Secret
+func (c *mockClient) InsertOne(m *Secret) (*Secret, error) {
+	var secret *Secret
 	var err error
 
 	switch c.mode {
 	case "insert-success":
-		model = &models.Secret{ID: id1}
+		secret = &Secret{ID: id1}
 		err = nil
 	case "insert-error":
-		model = nil
+		secret = nil
 		err = errors.New("error in db")
 	}
 
-	return model, err
+	return secret, err
 }
 
 func (c *mockClient) DeleteOne(id string) (int64, error) {
@@ -143,10 +142,10 @@ func TestSecretRepositoryFind(t *testing.T) {
 	var tests = []struct {
 		inputMode string
 		input     string
-		wanted    *models.Secret
+		wanted    *Secret
 		wantedErr error
 	}{
-		{inputMode: "find-success", input: id1, wanted: &models.Secret{ID: id1, Secret: "value"}, wantedErr: nil},
+		{inputMode: "find-success", input: id1, wanted: &Secret{ID: id1, Secret: "value"}, wantedErr: nil},
 		{inputMode: "find-not-found", input: id1, wanted: nil, wantedErr: nil},
 		{inputMode: "find-invalid-oid", input: "1234", wanted: nil, wantedErr: nil},
 		{inputMode: "find-error", input: id1, wanted: nil, wantedErr: errors.New("error in db")},
@@ -168,13 +167,13 @@ func TestSecretRepositoryFind(t *testing.T) {
 func TestSecretRepositoryInsert(t *testing.T) {
 	var tests = []struct {
 		inputMode string
-		input     *models.Secret
-		wanted    *models.Secret
+		input     *Secret
+		wanted    *Secret
 		wantedErr error
 	}{
-		{inputMode: "insert-success", input: &models.Secret{Secret: "value"}, wanted: &models.Secret{ID: id1}, wantedErr: nil},
-		{inputMode: "insert-success", input: &models.Secret{Secret: "value", Passphrase: "passphrase"}, wanted: &models.Secret{ID: id1, Passphrase: security.ToMD5("passphrase")}, wantedErr: nil},
-		{inputMode: "insert-error", input: &models.Secret{Secret: "value"}, wanted: nil, wantedErr: errors.New("error in db")},
+		{inputMode: "insert-success", input: &Secret{Secret: "value"}, wanted: &Secret{ID: id1}, wantedErr: nil},
+		{inputMode: "insert-success", input: &Secret{Secret: "value", Passphrase: "passphrase"}, wanted: &Secret{ID: id1, Passphrase: security.ToMD5("passphrase")}, wantedErr: nil},
+		{inputMode: "insert-error", input: &Secret{Secret: "value"}, wanted: nil, wantedErr: errors.New("error in db")},
 	}
 
 	for _, test := range tests {

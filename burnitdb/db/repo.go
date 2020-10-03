@@ -1,7 +1,6 @@
 package db
 
 import (
-	"github.com/RedeployAB/burnit/burnitdb/internal/models"
 	"github.com/RedeployAB/burnit/common/security"
 )
 
@@ -13,8 +12,8 @@ var (
 // Repository defined the methods needed for interact
 // with a database and collection.
 type Repository interface {
-	Find(id string) (*models.Secret, error)
-	Insert(s *models.Secret) (*models.Secret, error)
+	Find(id string) (*Secret, error)
+	Insert(s *Secret) (*Secret, error)
 	Delete(id string) (int64, error)
 	DeleteExpired() (int64, error)
 	Driver() string
@@ -65,7 +64,7 @@ type SecretRepositoryOptions struct {
 }
 
 // Find queries the collection for an entry by ID.
-func (r *SecretRepository) Find(id string) (*models.Secret, error) {
+func (r *SecretRepository) Find(id string) (*Secret, error) {
 	s, err := r.db.FindOne(id)
 	if err != nil || s == nil {
 		return s, err
@@ -75,7 +74,7 @@ func (r *SecretRepository) Find(id string) (*models.Secret, error) {
 }
 
 // Insert handles inserts into the database.
-func (r *SecretRepository) Insert(s *models.Secret) (*models.Secret, error) {
+func (r *SecretRepository) Insert(s *Secret) (*Secret, error) {
 	s.Secret = encrypt(s.Secret, r.options.EncryptionKey)
 	if len(s.Passphrase) > 0 {
 		s.Passphrase = r.hash(s.Passphrase)

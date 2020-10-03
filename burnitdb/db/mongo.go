@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/RedeployAB/burnit/burnitdb/config"
-	"github.com/RedeployAB/burnit/burnitdb/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -26,8 +25,8 @@ type MongoDatabase interface {
 // MongoCollection provides methods FindOne, InsertOne,
 // DeleteOne and DeleteMany.
 type MongoCollection interface {
-	FindOne(id string) (*models.Secret, error)
-	InsertOne(s *models.Secret) (*models.Secret, error)
+	FindOne(id string) (*Secret, error)
+	InsertOne(s *Secret) (*Secret, error)
 	DeleteOne(id string) (int64, error)
 	DeleteMany() (int64, error)
 }
@@ -76,7 +75,7 @@ type mongoCollection struct {
 
 // FindOne implements and calls the method FindOne from
 // mongo.Collection.
-func (c *mongoCollection) FindOne(id string) (*models.Secret, error) {
+func (c *mongoCollection) FindOne(id string) (*Secret, error) {
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, nil
@@ -87,7 +86,7 @@ func (c *mongoCollection) FindOne(id string) (*models.Secret, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	var s models.Secret
+	var s Secret
 	if err = c.collection.FindOne(ctx, bsonQ).Decode(&s); err != nil {
 		if err.Error() == "mongo: no documents in result" {
 			return nil, nil
@@ -100,7 +99,7 @@ func (c *mongoCollection) FindOne(id string) (*models.Secret, error) {
 
 // InsertOne implents and calls the the method InsertOne from
 // mongo.Collection.
-func (c *mongoCollection) InsertOne(s *models.Secret) (*models.Secret, error) {
+func (c *mongoCollection) InsertOne(s *Secret) (*Secret, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -110,7 +109,7 @@ func (c *mongoCollection) InsertOne(s *models.Secret) (*models.Secret, error) {
 	}
 	oid := res.InsertedID.(primitive.ObjectID).Hex()
 
-	return &models.Secret{
+	return &Secret{
 		ID:         oid,
 		Passphrase: s.Passphrase,
 		CreatedAt:  s.CreatedAt,

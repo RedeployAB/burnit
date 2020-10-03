@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/RedeployAB/burnit/burnitdb/config"
-	"github.com/RedeployAB/burnit/burnitdb/internal/models"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -21,8 +20,8 @@ type Client interface {
 // Database represents a connection/client/collection
 // in context of a database.
 type Database interface {
-	FindOne(id string) (*models.Secret, error)
-	InsertOne(s *models.Secret) (*models.Secret, error)
+	FindOne(id string) (*Secret, error)
+	InsertOne(s *Secret) (*Secret, error)
 	DeleteOne(id string) (int64, error)
 	DeleteMany() (int64, error)
 }

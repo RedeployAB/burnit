@@ -8,7 +8,6 @@ import (
 
 	"github.com/RedeployAB/burnit/burnitdb/config"
 	"github.com/RedeployAB/burnit/burnitdb/db"
-	"github.com/RedeployAB/burnit/burnitdb/internal/models"
 	"github.com/RedeployAB/burnit/common/auth"
 	"github.com/gorilla/mux"
 )
@@ -35,12 +34,12 @@ func (c *mockClient) Database(name string) db.Database {
 type mockRepository struct {
 }
 
-func (r *mockRepository) Find(id string) (*models.Secret, error) {
-	return &models.Secret{}, nil
+func (r *mockRepository) Find(id string) (*db.Secret, error) {
+	return &db.Secret{}, nil
 }
 
-func (r *mockRepository) Insert(s *models.Secret) (*models.Secret, error) {
-	return &models.Secret{}, nil
+func (r *mockRepository) Insert(s *db.Secret) (*db.Secret, error) {
+	return &db.Secret{}, nil
 }
 
 func (r *mockRepository) Delete(id string) (int64, error) {

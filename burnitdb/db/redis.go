@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/RedeployAB/burnit/burnitdb/config"
-	"github.com/RedeployAB/burnit/burnitdb/internal/models"
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 )
@@ -36,7 +35,7 @@ func (c *redisClient) Disconnect(ctx context.Context) error {
 
 // FindOne implements and calls the method Get from
 // redis.Client.
-func (c *redisClient) FindOne(id string) (*models.Secret, error) {
+func (c *redisClient) FindOne(id string) (*Secret, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -48,7 +47,7 @@ func (c *redisClient) FindOne(id string) (*models.Secret, error) {
 		return nil, err
 	}
 
-	var s models.Secret
+	var s Secret
 	if err := json.Unmarshal([]byte(res), &s); err != nil {
 		return nil, err
 	}
@@ -58,7 +57,7 @@ func (c *redisClient) FindOne(id string) (*models.Secret, error) {
 
 // InsertOne implents and calls the the method Set from
 // redis.Client.
-func (c *redisClient) InsertOne(s *models.Secret) (*models.Secret, error) {
+func (c *redisClient) InsertOne(s *Secret) (*Secret, error) {
 	s.ID = uuid.New().String()
 	secret, err := json.Marshal(s)
 	if err != nil {
@@ -72,7 +71,7 @@ func (c *redisClient) InsertOne(s *models.Secret) (*models.Secret, error) {
 		return nil, err
 	}
 
-	return &models.Secret{
+	return &Secret{
 		ID:         s.ID,
 		Passphrase: s.Passphrase,
 		CreatedAt:  s.CreatedAt,
