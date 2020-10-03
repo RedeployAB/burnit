@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/RedeployAB/burnit/burnitgen/internal/secrets"
+	"github.com/RedeployAB/burnit/burnitgen/secret"
 	"github.com/RedeployAB/burnit/common/httperror"
 )
 
@@ -23,13 +23,12 @@ func (s *Server) generateSecret() http.Handler {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		query := r.URL.Query()
-		length, specialChars := parseGenerateSecretQuery(query)
-		secret := secrets.Generate(length, specialChars)
+
+		s := secret.Generate(parseGenerateSecretQuery(r.URL.Query()))
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode(response(secret)); err != nil {
+		if err := json.NewEncoder(w).Encode(newSecretResponse(s)); err != nil {
 			panic(err)
 		}
 	})
@@ -38,17 +37,17 @@ func (s *Server) generateSecret() http.Handler {
 // parseGenerateSecretQuery parses query parameters to get length and special character
 // options.
 func parseGenerateSecretQuery(query url.Values) (int, bool) {
-	lengthParam := query.Get("length")
-	specialCharsParam := query.Get("specialchars")
+	lParam := query.Get("length")
+	scParam := query.Get("specialchars")
 
-	length, err := strconv.Atoi(lengthParam)
+	l, err := strconv.Atoi(lParam)
 	if err != nil {
-		length = 16
+		l = 16
 	}
-	specialChars, err := strconv.ParseBool(specialCharsParam)
+	sc, err := strconv.ParseBool(scParam)
 	if err != nil {
-		specialChars = false
+		sc = false
 	}
 
-	return length, specialChars
+	return l, sc
 }

@@ -1,16 +1,18 @@
 package server
 
-// responseBody represents a secret response.
-type responseBody struct {
-	Secret secret `json:"secret"`
+// secretResponse defines the structure of an outgoing
+// secret response.
+type secretResponse struct {
+	Secret secretBody `json:"secret"`
 }
 
-// secret represents the data part of the response body.
-type secret struct {
+// secretBody defines the structure of an outgoing
+// secret response body.
+type secretBody struct {
 	Value string `json:"value"`
 }
 
-// response creates a response from a Secret (string).
-func response(s string) *responseBody {
-	return &responseBody{Secret: secret{Value: s}}
+// newSecretResponse creates a response from a secret (string).
+func newSecretResponse(s string) *secretResponse {
+	return &secretResponse{Secret: secretBody{Value: s}}
 }
