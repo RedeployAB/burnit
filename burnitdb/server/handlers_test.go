@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/RedeployAB/burnit/burnitdb/config"
-	"github.com/RedeployAB/burnit/burnitdb/internal/models"
+	"github.com/RedeployAB/burnit/burnitdb/db"
 	"github.com/RedeployAB/burnit/common/auth"
 	"github.com/RedeployAB/burnit/common/security"
 	"github.com/gorilla/mux"
@@ -24,45 +24,45 @@ type mockHandlerRepository struct {
 	mode   string
 }
 
-func (r *mockHandlerRepository) Find(id string) (*models.Secret, error) {
+func (r *mockHandlerRepository) Find(id string) (*db.Secret, error) {
 	// Return different results based on underlying structs
 	// state.
-	var model *models.Secret
+	var secret *db.Secret
 	var err error
 
 	switch r.mode {
 	case "find-success":
-		model = &models.Secret{ID: id1, Secret: "values"}
+		secret = &db.Secret{ID: id1, Secret: "values"}
 		err = nil
 	case "find-not-found":
-		model = nil
+		secret = nil
 		err = nil
 	case "find-success-passphrase":
-		model = &models.Secret{ID: id1, Secret: "values", Passphrase: correctPassphrase}
+		secret = &db.Secret{ID: id1, Secret: "values", Passphrase: correctPassphrase}
 		err = nil
 	case "find-error":
-		model = nil
+		secret = nil
 		err = errors.New("find error")
 	case "find-delete-error":
-		model = &models.Secret{ID: id1, Secret: "values"}
+		secret = &db.Secret{ID: id1, Secret: "values"}
 		err = nil
 	}
-	return model, err
+	return secret, err
 }
 
-func (r *mockHandlerRepository) Insert(s *models.Secret) (*models.Secret, error) {
-	var model *models.Secret
+func (r *mockHandlerRepository) Insert(s *db.Secret) (*db.Secret, error) {
+	var secret *db.Secret
 	var err error
 
 	switch r.mode {
 	case "insert-success":
-		model = &models.Secret{ID: id1, Secret: "value"}
+		secret = &db.Secret{ID: id1, Secret: "value"}
 		err = nil
 	case "insert-error":
-		model = nil
+		secret = nil
 		err = errors.New("insert error")
 	}
-	return model, err
+	return secret, err
 }
 
 func (r *mockHandlerRepository) Delete(id string) (int64, error) {

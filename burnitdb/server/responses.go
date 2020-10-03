@@ -6,23 +6,25 @@ import (
 	"github.com/RedeployAB/burnit/burnitdb/internal/dto"
 )
 
-// responseBody represents a secret type response body.
-type responseBody struct {
-	Secret secret `json:"secret"`
+// secretResponse defines the structure of an outgoing
+// secret response.
+type secretResponse struct {
+	Secret secretBody `json:"secret"`
 }
 
-// secret represents the data part of the response body.
-type secret struct {
+// secretBody defines the structure of an outgoing
+// secret response body.
+type secretBody struct {
 	ID        string    `json:"id,omitempty"`
 	Value     string    `json:"value,omitempty"`
 	CreatedAt time.Time `json:"createdAt,omitempty"`
 	ExpiresAt time.Time `json:"expiresAt,omitempty"`
 }
 
-// response creates a response from a Secret (DTO).
-func response(s *dto.Secret) *responseBody {
-	return &responseBody{
-		Secret: secret{
+// newSecretResponse creates a secret response from a Secret (DTO).
+func newSecretResponse(s *dto.Secret) *secretResponse {
+	return &secretResponse{
+		Secret: secretBody{
 			ID:        s.ID,
 			Value:     s.Secret,
 			CreatedAt: s.CreatedAt,

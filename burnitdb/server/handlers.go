@@ -21,18 +21,18 @@ func (s *Server) getSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 
-		secretModel, err := s.repository.Find(vars["id"])
+		secret, err := s.repository.Find(vars["id"])
 		if err != nil {
 			httperror.Error(w, http.StatusInternalServerError)
 			return
 		}
 
-		if secretModel == nil {
+		if secret == nil {
 			httperror.Error(w, http.StatusNotFound)
 			return
 		}
 
-		secretDTO := mappers.Secret{}.ToDTO(secretModel)
+		secretDTO := mappers.Secret{}.ToDTO(secret)
 		passphrase := r.Header.Get("Passphrase")
 		if len(secretDTO.Passphrase) > 0 && !s.compareHash(secretDTO.Passphrase, passphrase) {
 			httperror.Error(w, http.StatusUnauthorized)
@@ -47,7 +47,7 @@ func (s *Server) getSecret() http.Handler {
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode(response(secretDTO)); err != nil {
+		if err := json.NewEncoder(w).Encode(newSecretResponse(secretDTO)); err != nil {
 			panic(err)
 		}
 	})
@@ -63,16 +63,16 @@ func (s *Server) createSecret() http.Handler {
 		}
 		defer r.Body.Close()
 
-		secretModel, err := s.repository.Insert(mappers.Secret{}.ToPersistance(secretDTO))
+		secret, err := s.repository.Insert(mappers.Secret{}.ToPersistance(secretDTO))
 		if err != nil {
 			httperror.Error(w, http.StatusInternalServerError)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.Header().Set("Location", "/secrets/"+secretModel.ID)
+		w.Header().Set("Location", "/secrets/"+secret.ID)
 		w.WriteHeader(http.StatusCreated)
-		if err := json.NewEncoder(w).Encode(response(mappers.Secret{}.ToDTO(secretModel))); err != nil {
+		if err := json.NewEncoder(w).Encode(newSecretResponse(mappers.Secret{}.ToDTO(secret))); err != nil {
 			panic(err)
 		}
 	})
