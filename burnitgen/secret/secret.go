@@ -1,4 +1,4 @@
-package secrets
+package secret
 
 import (
 	"math/rand"
@@ -6,18 +6,22 @@ import (
 	"time"
 )
 
-var stdLetters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUWXYZ_-"
+var stdLetters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUWXYZ"
+var maxLength = 512
 
 // Generate generates a random string. Argument
 // l determines amount of characters in the
 // resulting string. Argument sc determines if
 // special characters should be used.
 func Generate(l int, sc bool) string {
-	var strb strings.Builder
+	if l > maxLength {
+		l = maxLength
+	}
 
+	var strb strings.Builder
 	strb.WriteString(stdLetters)
 	if sc == true {
-		strb.WriteString("!?=()&%")
+		strb.WriteString("_-!?=()&%")
 	}
 	bltrs := []byte(strb.String())
 
