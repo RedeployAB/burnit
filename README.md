@@ -29,7 +29,7 @@ These endpoints are available:
 ### Generating secrets
 
 ```
-// NOTE: special characters are: (!?=()&%)
+// NOTE: special characters are: _-!?=()&%
 
 // Generating a secret with default length (16).
 GET /secret
