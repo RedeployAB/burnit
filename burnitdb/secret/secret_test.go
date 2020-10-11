@@ -90,10 +90,6 @@ func (r *mockSecretRepository) DeleteExpired() (int64, error) {
 	return result, err
 }
 
-func (r *mockSecretRepository) Driver() string {
-	return "redis"
-}
-
 func SetupService(action, mode string) Service {
 	repo := &mockSecretRepository{action: action, mode: mode}
 	return NewService(repo)
