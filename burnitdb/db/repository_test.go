@@ -142,24 +142,24 @@ func TestSecretRepositoryFind(t *testing.T) {
 	var tests = []struct {
 		inputMode string
 		input     string
-		wanted    *Secret
-		wantedErr error
+		want      *Secret
+		wantErr   error
 	}{
-		{inputMode: "find-success", input: id1, wanted: &Secret{ID: id1, Secret: "value"}, wantedErr: nil},
-		{inputMode: "find-not-found", input: id1, wanted: nil, wantedErr: nil},
-		{inputMode: "find-invalid-oid", input: "1234", wanted: nil, wantedErr: nil},
-		{inputMode: "find-error", input: id1, wanted: nil, wantedErr: errors.New("error in db")},
+		{inputMode: "find-success", input: id1, want: &Secret{ID: id1, Secret: "value"}, wantErr: nil},
+		{inputMode: "find-not-found", input: id1, want: nil, wantErr: nil},
+		{inputMode: "find-invalid-oid", input: "1234", want: nil, wantErr: nil},
+		{inputMode: "find-error", input: id1, want: nil, wantErr: errors.New("error in db")},
 	}
 
 	for _, test := range tests {
 		repo := SetupRepository(test.inputMode)
 
 		res, err := repo.Find(test.input)
-		if res != nil && res.Secret != test.wanted.Secret {
-			t.Errorf("incorrect value, got: %v, want: %v", res.Secret, test.wanted.Secret)
+		if res != nil && res.Secret != test.want.Secret {
+			t.Errorf("incorrect value, got: %v, want: %v", res.Secret, test.want.Secret)
 		}
 		if err != nil && err.Error() != "error in db" {
-			t.Errorf("incorrect value, got: %v, want: %v", err, test.wantedErr)
+			t.Errorf("incorrect value, got: %v, want: %v", err, test.wantErr)
 		}
 	}
 }
@@ -168,12 +168,12 @@ func TestSecretRepositoryInsert(t *testing.T) {
 	var tests = []struct {
 		inputMode string
 		input     *Secret
-		wanted    *Secret
-		wantedErr error
+		want      *Secret
+		wantErr   error
 	}{
-		{inputMode: "insert-success", input: &Secret{Secret: "value"}, wanted: &Secret{ID: id1}, wantedErr: nil},
-		{inputMode: "insert-success", input: &Secret{Secret: "value", Passphrase: "passphrase"}, wanted: &Secret{ID: id1, Passphrase: security.ToMD5("passphrase")}, wantedErr: nil},
-		{inputMode: "insert-error", input: &Secret{Secret: "value"}, wanted: nil, wantedErr: errors.New("error in db")},
+		{inputMode: "insert-success", input: &Secret{Secret: "value"}, want: &Secret{ID: id1}, wantErr: nil},
+		{inputMode: "insert-success", input: &Secret{Secret: "value", Passphrase: "passphrase"}, want: &Secret{ID: id1, Passphrase: security.ToMD5("passphrase")}, wantErr: nil},
+		{inputMode: "insert-error", input: &Secret{Secret: "value"}, want: nil, wantErr: errors.New("error in db")},
 	}
 
 	for _, test := range tests {
@@ -187,7 +187,7 @@ func TestSecretRepositoryInsert(t *testing.T) {
 			t.Errorf("incorrect value, got: %s, want: %s", res.Passphrase, security.ToMD5("passphrase"))
 		}
 		if err != nil && err.Error() != "error in db" {
-			t.Errorf("incorrect value, got: %v, want: %v", err, test.wantedErr)
+			t.Errorf("incorrect value, got: %v, want: %v", err, test.wantErr)
 		}
 	}
 }
@@ -196,23 +196,23 @@ func TestSecretRepositoryDelete(t *testing.T) {
 	var tests = []struct {
 		inputMode string
 		input     string
-		wanted    int64
-		wantedErr error
+		want      int64
+		wantErr   error
 	}{
-		{inputMode: "delete-success", input: id1, wanted: 1, wantedErr: nil},
-		{inputMode: "delete-not-found", input: id1, wanted: 0, wantedErr: nil},
-		{inputMode: "delete-error", input: id1, wanted: 0, wantedErr: errors.New("error in db")},
+		{inputMode: "delete-success", input: id1, want: 1, wantErr: nil},
+		{inputMode: "delete-not-found", input: id1, want: 0, wantErr: nil},
+		{inputMode: "delete-error", input: id1, want: 0, wantErr: errors.New("error in db")},
 	}
 
 	for _, test := range tests {
 		repo := SetupRepository(test.inputMode)
 
 		res, err := repo.Delete(test.input)
-		if res != test.wanted {
-			t.Errorf("incorrect value, got: %d, want: %d", res, test.wanted)
+		if res != test.want {
+			t.Errorf("incorrect value, got: %d, want: %d", res, test.want)
 		}
 		if err != nil && err.Error() != "error in db" {
-			t.Errorf("incorrect value, got: %v, want: %v", err, test.wantedErr)
+			t.Errorf("incorrect value, got: %v, want: %v", err, test.wantErr)
 		}
 	}
 }
@@ -220,23 +220,23 @@ func TestSecretRepositoryDelete(t *testing.T) {
 func TestSecretRepositoryDeleteMany(t *testing.T) {
 	var tests = []struct {
 		inputMode string
-		wanted    int64
-		wantedErr error
+		want      int64
+		wantErr   error
 	}{
-		{inputMode: "delete-many-success", wanted: 2, wantedErr: nil},
-		{inputMode: "delete-many-not-found", wanted: 0, wantedErr: nil},
-		{inputMode: "delete-many-error", wanted: 0, wantedErr: errors.New("error in db")},
+		{inputMode: "delete-many-success", want: 2, wantErr: nil},
+		{inputMode: "delete-many-not-found", want: 0, wantErr: nil},
+		{inputMode: "delete-many-error", want: 0, wantErr: errors.New("error in db")},
 	}
 
 	for _, test := range tests {
 		repo := SetupRepository(test.inputMode)
 
 		res, err := repo.DeleteExpired()
-		if res != test.wanted {
-			t.Errorf("incorrect value, got: %d, want: %d", res, test.wanted)
+		if res != test.want {
+			t.Errorf("incorrect value, got: %d, want: %d", res, test.want)
 		}
 		if err != nil && err.Error() != "error in db" {
-			t.Errorf("incorrect value, got: %v, want: %v", err, test.wantedErr)
+			t.Errorf("incorrect value, got: %v, want: %v", err, test.wantErr)
 		}
 	}
 }

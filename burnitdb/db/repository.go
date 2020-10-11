@@ -16,7 +16,6 @@ type Repository interface {
 	Insert(s *Secret) (*Secret, error)
 	Delete(id string) (int64, error)
 	DeleteExpired() (int64, error)
-	Driver() string
 }
 
 // SecretRepository handles interactions with the database
@@ -30,7 +29,6 @@ type SecretRepository struct {
 // NewSecretRepository creates and returns a SecretRepository
 // object.
 func NewSecretRepository(c Client, opts *SecretRepositoryOptions) *SecretRepository {
-
 	var hash func(s string) string
 	switch opts.HashMethod {
 	case "md5":
@@ -104,12 +102,6 @@ func (r *SecretRepository) DeleteExpired() (int64, error) {
 		return 0, err
 	}
 	return deleted, nil
-}
-
-// Driver gets the configured driver for
-// the repository.
-func (r *SecretRepository) Driver() string {
-	return r.options.Driver
 }
 
 // encrypt encrypts the field Secret.
