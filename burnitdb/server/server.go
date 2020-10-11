@@ -12,6 +12,7 @@ import (
 
 	"github.com/RedeployAB/burnit/burnitdb/config"
 	"github.com/RedeployAB/burnit/burnitdb/db"
+	"github.com/RedeployAB/burnit/burnitdb/secret"
 	"github.com/RedeployAB/burnit/common/auth"
 	"github.com/RedeployAB/burnit/common/security"
 	"github.com/gorilla/mux"
@@ -19,12 +20,13 @@ import (
 
 // Server represents server with configuration.
 type Server struct {
-	httpServer  *http.Server
-	router      *mux.Router
-	dbClient    db.Client
-	repository  db.Repository
-	tokenStore  auth.TokenStore
-	compareHash func(hash, s string) bool
+	httpServer    *http.Server
+	router        *mux.Router
+	dbClient      db.Client
+	secretService secret.Service
+	tokenStore    auth.TokenStore
+	compareHash   func(hash, s string) bool
+	driver        int
 }
 
 // Options represents options to be used with server.
@@ -54,13 +56,22 @@ func New(opts Options) *Server {
 		compareHash = security.CompareBcryptHash
 	}
 
+	var driver int
+	switch opts.Config.Database.Driver {
+	case "redis":
+		driver = 1
+	case "mongo":
+		driver = 2
+	}
+
 	return &Server{
-		httpServer:  srv,
-		router:      opts.Router,
-		dbClient:    opts.DBClient,
-		repository:  opts.Repository,
-		tokenStore:  opts.TokenStore,
-		compareHash: compareHash,
+		httpServer:    srv,
+		router:        opts.Router,
+		dbClient:      opts.DBClient,
+		secretService: secret.NewService(opts.Repository),
+		driver:        driver,
+		tokenStore:    opts.TokenStore,
+		compareHash:   compareHash,
 	}
 }
 
@@ -77,7 +88,7 @@ func (s *Server) Start() {
 	var wg sync.WaitGroup
 	cleanup := make(chan bool, 1)
 
-	if s.repository.Driver() == "mongo" {
+	if s.driver == 2 {
 		go s.cleanup(&wg, cleanup)
 		wg.Add(1)
 	}
@@ -125,7 +136,7 @@ func (s *Server) cleanup(wg *sync.WaitGroup, stop <-chan bool) {
 			wg.Done()
 			return
 		case <-time.After(5 * time.Second):
-			_, err := s.repository.DeleteExpired()
+			_, err := s.secretService.DeleteExpired()
 			if err != nil {
 				log.Printf("error in db expired cleanup: %v\n", err)
 			}

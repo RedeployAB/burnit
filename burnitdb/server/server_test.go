@@ -50,10 +50,6 @@ func (r *mockRepository) DeleteExpired() (int64, error) {
 	return 0, nil
 }
 
-func (r *mockRepository) Driver() string {
-	return "mongo"
-}
-
 func SetupOptions() Options {
 	conf := config.Configuration{
 		Server: config.Server{

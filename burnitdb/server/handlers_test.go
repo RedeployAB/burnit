@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/RedeployAB/burnit/burnitdb/config"
-	"github.com/RedeployAB/burnit/burnitdb/db"
+	"github.com/RedeployAB/burnit/burnitdb/secret"
 	"github.com/RedeployAB/burnit/common/auth"
 	"github.com/RedeployAB/burnit/common/security"
 	"github.com/gorilla/mux"
@@ -18,54 +18,58 @@ var correctPassphrase = security.Bcrypt("passphrase")
 var id1 = "507f1f77bcf86cd799439011"
 var apiKey = "ABCDEF"
 
-// Mock to handle repository answers in handler tests.
-type mockHandlerRepository struct {
+// Mock to handle service actions in handler tests.
+type mockSecretService struct {
 	action string
 	mode   string
 }
 
-func (r *mockHandlerRepository) Find(id string) (*db.Secret, error) {
+func (r mockSecretService) Get(id string) (*secret.Secret, error) {
 	// Return different results based on underlying structs
 	// state.
-	var secret *db.Secret
+	var sec *secret.Secret
 	var err error
 
 	switch r.mode {
 	case "find-success":
-		secret = &db.Secret{ID: id1, Secret: "values"}
+		sec = &secret.Secret{ID: id1, Secret: "values"}
 		err = nil
 	case "find-not-found":
-		secret = nil
+		sec = nil
 		err = nil
 	case "find-success-passphrase":
-		secret = &db.Secret{ID: id1, Secret: "values", Passphrase: correctPassphrase}
+		sec = &secret.Secret{ID: id1, Secret: "values", Passphrase: correctPassphrase}
 		err = nil
 	case "find-error":
-		secret = nil
+		sec = nil
 		err = errors.New("find error")
 	case "find-delete-error":
-		secret = &db.Secret{ID: id1, Secret: "values"}
+		sec = &secret.Secret{ID: id1, Secret: "values"}
 		err = nil
 	}
-	return secret, err
+	return sec, err
 }
 
-func (r *mockHandlerRepository) Insert(s *db.Secret) (*db.Secret, error) {
-	var secret *db.Secret
+func (r mockSecretService) Create(s *secret.Secret) (*secret.Secret, error) {
+	var sec *secret.Secret
 	var err error
 
 	switch r.mode {
 	case "insert-success":
-		secret = &db.Secret{ID: id1, Secret: "value"}
+		sec = &secret.Secret{ID: id1, Secret: "value"}
 		err = nil
 	case "insert-error":
-		secret = nil
+		sec = nil
 		err = errors.New("insert error")
 	}
-	return secret, err
+	return sec, err
 }
 
-func (r *mockHandlerRepository) Delete(id string) (int64, error) {
+func (r mockSecretService) DeleteExpired() (int64, error) {
+	return 0, nil
+}
+
+func (r mockSecretService) Delete(id string) (int64, error) {
 	var result int64
 	var err error
 
@@ -88,14 +92,6 @@ func (r *mockHandlerRepository) Delete(id string) (int64, error) {
 	return result, err
 }
 
-func (r *mockHandlerRepository) DeleteExpired() (int64, error) {
-	return 0, nil
-}
-
-func (r *mockHandlerRepository) Driver() string {
-	return "mongo"
-}
-
 // The different methods on the handler will require
 // states. When creating
 func SetupServer(action, mode string) Server {
@@ -103,17 +99,17 @@ func SetupServer(action, mode string) Server {
 	conf.Server.Security.APIKey = "ABCDEF"
 
 	client := &mockClient{}
-	repo := &mockHandlerRepository{action: action, mode: mode}
+	service := &mockSecretService{action: action, mode: mode}
 	ts := auth.NewMemoryTokenStore()
 	ts.Set(conf.Server.Security.APIKey, "server")
 
 	r := mux.NewRouter()
 	srv := &Server{
-		router:      r,
-		dbClient:    client,
-		repository:  repo,
-		tokenStore:  ts,
-		compareHash: security.CompareBcryptHash,
+		router:        r,
+		dbClient:      client,
+		secretService: service,
+		tokenStore:    ts,
+		compareHash:   security.CompareBcryptHash,
 	}
 	srv.routes(ts)
 	return *srv

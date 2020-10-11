@@ -3,7 +3,7 @@ package server
 import (
 	"time"
 
-	"github.com/RedeployAB/burnit/burnitdb/internal/dto"
+	"github.com/RedeployAB/burnit/burnitdb/secret"
 )
 
 // secretResponse defines the structure of an outgoing
@@ -22,7 +22,7 @@ type secretBody struct {
 }
 
 // newSecretResponse creates a secret response from a Secret (DTO).
-func newSecretResponse(s *dto.Secret) *secretResponse {
+func newSecretResponse(s *secret.Secret) *secretResponse {
 	return &secretResponse{
 		Secret: secretBody{
 			ID:        s.ID,
