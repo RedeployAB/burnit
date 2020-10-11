@@ -1,10 +1,5 @@
 package db
 
-// mongo.go consists of abstrations and wrappers
-// around the mongodb drivers to make the repository
-// parts of these libraries testable with the help
-// of interfacces located in db.go.
-
 import (
 	"context"
 	"strings"
@@ -17,30 +12,16 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// MongoDatabase provides method Collection.
-type MongoDatabase interface {
-	Collection(name string) MongoCollection
-}
-
-// MongoCollection provides methods FindOne, InsertOne,
-// DeleteOne and DeleteMany.
-type MongoCollection interface {
-	FindOne(id string) (*Secret, error)
-	InsertOne(s *Secret) (*Secret, error)
-	DeleteOne(id string) (int64, error)
-	DeleteMany() (int64, error)
-}
+var (
+	database   = "burnitdb"
+	collection = "secrets"
+)
 
 // mongoClient wraps around mongo.Client to assist with
 // implementations of calls related to mongo clients.
 type mongoClient struct {
-	client *mongo.Client
-}
-
-// Database wraps around mongoClients (mongo.Client)
-// Database method.
-func (c *mongoClient) Database(name string) MongoDatabase {
-	return &mongoDatabase{database: c.client.Database(name)}
+	client     *mongo.Client
+	collection *mongo.Collection
 }
 
 // Connect wraps around mongoClients (mongo.Client)
@@ -55,27 +36,9 @@ func (c *mongoClient) Disconnect(ctx context.Context) error {
 	return c.client.Disconnect(ctx)
 }
 
-// mongoDatabase wraps around mongo.Database to assist with
-// implementations of calls related to mongo databases.
-type mongoDatabase struct {
-	database *mongo.Database
-}
-
-// Collection wraps around mongoDatabases (mongo.Datbase)
-// Collection method.
-func (db *mongoDatabase) Collection(name string) MongoCollection {
-	return &mongoCollection{collection: db.database.Collection(name)}
-}
-
-// mongoCollection wraps around mongo.Collection to assist with
-// implementations of calls related to mongo collections.
-type mongoCollection struct {
-	collection *mongo.Collection
-}
-
 // FindOne implements and calls the method FindOne from
 // mongo.Collection.
-func (c *mongoCollection) FindOne(id string) (*Secret, error) {
+func (c *mongoClient) FindOne(id string) (*Secret, error) {
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, nil
@@ -99,7 +62,7 @@ func (c *mongoCollection) FindOne(id string) (*Secret, error) {
 
 // InsertOne implents and calls the the method InsertOne from
 // mongo.Collection.
-func (c *mongoCollection) InsertOne(s *Secret) (*Secret, error) {
+func (c *mongoClient) InsertOne(s *Secret) (*Secret, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -119,7 +82,7 @@ func (c *mongoCollection) InsertOne(s *Secret) (*Secret, error) {
 
 // DeleteOne implements and calls the method InsertOne from
 // mongo.Collection.
-func (c *mongoCollection) DeleteOne(id string) (int64, error) {
+func (c *mongoClient) DeleteOne(id string) (int64, error) {
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return 0, nil
@@ -138,7 +101,7 @@ func (c *mongoCollection) DeleteOne(id string) (int64, error) {
 
 // DeleteMany implements and calls the method DeleteMany from
 // mongo.Collection.
-func (c *mongoCollection) DeleteMany() (int64, error) {
+func (c *mongoClient) DeleteMany() (int64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -175,7 +138,10 @@ func mongoConnect(opts config.Database) (*mongoClient, error) {
 		return nil, err
 	}
 
-	return &mongoClient{client: client}, nil
+	return &mongoClient{
+		client:     client,
+		collection: client.Database(database).Collection(collection),
+	}, nil
 }
 
 // toURI returns a mongodb connection URI from

@@ -4,11 +4,6 @@ import (
 	"github.com/RedeployAB/burnit/common/security"
 )
 
-var (
-	database   = "burnitdb"
-	collection = "secrets"
-)
-
 // Repository defined the methods needed for interact
 // with a database and collection.
 type Repository interface {
@@ -40,7 +35,7 @@ func NewSecretRepository(c Client, opts *SecretRepositoryOptions) *SecretReposit
 	var db Database
 	switch c.(type) {
 	case *mongoClient:
-		db = c.(*mongoClient).Database(database).Collection(collection)
+		db = c.(*mongoClient)
 	case *redisClient:
 		db = c.(*redisClient)
 	}
