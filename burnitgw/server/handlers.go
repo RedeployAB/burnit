@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/RedeployAB/burnit/burnitgw/internal/request"
+	"github.com/RedeployAB/burnit/burnitgw/services/request"
 	"github.com/RedeployAB/burnit/common/httperror"
 	"github.com/gorilla/mux"
 )
@@ -19,18 +19,16 @@ func (s *Server) notFound(w http.ResponseWriter, r *http.Request) {
 // to generate a secret.
 func (s *Server) generateSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		res, err := s.generatorService.Request(request.Options{
-			Method: request.GET,
-			Query:  r.URL.RawQuery,
-		})
+		secret, err := s.generatorService.Generate(r)
 		if err != nil {
-			httperror.Error(w, http.StatusInternalServerError)
+			status := request.ParseError(err)
+			w.WriteHeader(status)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode(&res); err != nil {
+		if err := json.NewEncoder(w).Encode(&secret); err != nil {
 			panic(err)
 		}
 	})
@@ -41,20 +39,16 @@ func (s *Server) generateSecret() http.Handler {
 func (s *Server) getSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		res, err := s.dbService.Request(request.Options{
-			Method: request.GET,
-			Header: r.Header,
-			Params: vars,
-		})
+		secret, err := s.dbService.Get(r, vars)
 		if err != nil {
-			status := request.HandleHTTPError(err)
+			status := request.ParseError(err)
 			w.WriteHeader(status)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode(&res); err != nil {
+		if err := json.NewEncoder(w).Encode(&secret); err != nil {
 			panic(err)
 		}
 	})
@@ -64,13 +58,9 @@ func (s *Server) getSecret() http.Handler {
 // create a secret.
 func (s *Server) createSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		res, err := s.dbService.Request(request.Options{
-			Method: request.POST,
-			Header: r.Header,
-			Body:   r.Body,
-		})
+		secret, err := s.dbService.Create(r)
 		if err != nil {
-			status := request.HandleHTTPError(err)
+			status := request.ParseError(err)
 			w.WriteHeader(status)
 			return
 		}
@@ -78,7 +68,7 @@ func (s *Server) createSecret() http.Handler {
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusCreated)
-		if err := json.NewEncoder(w).Encode(&res); err != nil {
+		if err := json.NewEncoder(w).Encode(&secret); err != nil {
 			panic(err)
 		}
 	})

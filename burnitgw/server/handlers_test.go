@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
-	"github.com/RedeployAB/burnit/burnitgw/internal/request"
+	"github.com/RedeployAB/burnit/burnitgw/services/db"
+	"github.com/RedeployAB/burnit/burnitgw/services/generator"
 	"github.com/gorilla/mux"
 )
 
@@ -20,66 +20,73 @@ type mockClient struct {
 	mode    string
 }
 
-type mockGenerateResponse struct {
-	Value string
+type mockGeneratorService struct {
+	client mockClient
 }
 
-type mockGenerateFullResponse struct {
-	Secret mockGenerateResponse
-}
-
-type mockDBResponse struct {
-	ID        string
-	Value     string
-	CreatedAt time.Time
-	ExpiresAt time.Time
-}
-
-type mockDBFullResponse struct {
-	Secret mockDBResponse
-}
-
-func (c mockClient) Request(o request.Options) (request.ResponseBody, error) {
-
-	resBody := request.ResponseBody{}
+func (s mockGeneratorService) Generate(r *http.Request) (*generator.Secret, error) {
+	var secret *generator.Secret
 	var err error
-
-	switch c.mode {
+	switch s.client.mode {
 	case "gen-success":
-		resBody.Secret = mockGenerateResponse{Value: "value"}
-		err = nil
+		secret = &generator.Secret{}
+		secret.Secret.Value = "value"
 	case "gen-fail":
-		resBody.Secret = mockGenerateResponse{Value: "fail"}
-		err = errors.New("call to api failed")
-	case "db-get-success":
-		resBody.Secret = mockDBResponse{
-			ID:    "1234",
-			Value: "value",
-		}
-		err = nil
-	case "db-get-fail":
-		resBody.Secret = mockDBResponse{}
-		err = errors.New("call to api failed")
-	case "db-create-success":
-		resBody.Secret = mockDBResponse{
-			ID:    "4321",
-			Value: "value",
-		}
-		err = nil
-	case "db-create-fail":
-		resBody.Secret = mockDBResponse{}
 		err = errors.New("call to api failed")
 	}
+	return secret, err
+}
 
-	return resBody, err
+type mockDbService struct {
+	client mockClient
+}
+
+func (s mockDbService) Get(r *http.Request, params map[string]string) (*db.Secret, error) {
+	var secret *db.Secret
+	var err error
+	switch s.client.mode {
+	case "db-get-success":
+		secret = &db.Secret{}
+		secret.Secret.ID = "1234"
+		secret.Secret.Value = "value"
+	case "db-get-fail":
+		err = errors.New("call to api failed")
+	}
+	return secret, err
+}
+
+func (s mockDbService) Create(r *http.Request) (*db.Secret, error) {
+	var secret *db.Secret
+	var err error
+	switch s.client.mode {
+	case "db-create-success":
+		secret = &db.Secret{}
+		secret.Secret.ID = "4321"
+		secret.Secret.Value = "value"
+	case "db-create-fail":
+		err = errors.New("call to api failed")
+	}
+	return secret, err
 }
 
 func SetupServer(mode string) Server {
 
+	generatorService := mockGeneratorService{
+		mockClient{
+			mode: mode,
+		},
+	}
+
+	dbService := mockDbService{
+		mockClient{
+			mode: mode,
+		},
+	}
+
 	srv := Server{
 		router:           mux.NewRouter(),
-		generatorService: mockClient{mode: mode},
-		dbService:        mockClient{mode: mode},
+		generatorService: generatorService,
+		dbService:        dbService,
 	}
 	srv.routes()
 	return srv
@@ -105,9 +112,8 @@ func TestGenerateSecret(t *testing.T) {
 		}
 
 		if test.mode == "gen-success" {
-			var rb mockGenerateFullResponse
+			var rb *generator.Secret
 			b, err := ioutil.ReadAll(res.Body)
-
 			if err = json.Unmarshal(b, &rb); err != nil {
 				t.Fatalf("error in test: %v", err)
 			}
@@ -140,7 +146,7 @@ func TestGetSecret(t *testing.T) {
 		}
 
 		if test.mode == "db-get-success" {
-			var rb mockDBFullResponse
+			var rb *db.Secret
 			b, err := ioutil.ReadAll(res.Body)
 			if err = json.Unmarshal(b, &rb); err != nil {
 				t.Fatalf("error in test: %v", err)
@@ -181,7 +187,7 @@ func TestCreateSecret(t *testing.T) {
 		}
 
 		if test.mode == "db-create-success" {
-			var rb mockDBFullResponse
+			var rb *db.Secret
 			b, err := ioutil.ReadAll(res.Body)
 			if err = json.Unmarshal(b, &rb); err != nil {
 				t.Fatalf("error in test: %v", err)

@@ -10,7 +10,9 @@ import (
 	"time"
 
 	"github.com/RedeployAB/burnit/burnitgw/config"
-	"github.com/RedeployAB/burnit/burnitgw/internal/request"
+	"github.com/RedeployAB/burnit/burnitgw/services/db"
+	"github.com/RedeployAB/burnit/burnitgw/services/generator"
+	"github.com/RedeployAB/burnit/burnitgw/services/request"
 	"github.com/gorilla/mux"
 )
 
@@ -19,8 +21,8 @@ type Server struct {
 	httpServer       *http.Server
 	router           *mux.Router
 	middlewareConfig middlewareConfig
-	generatorService request.Client
-	dbService        request.Client
+	generatorService generator.Service
+	dbService        db.Service
 }
 
 type middlewareConfig struct {
@@ -37,20 +39,28 @@ func New(conf *config.Configuration, r *mux.Router) *Server {
 		Handler:      r,
 	}
 
+	generatorService := generator.NewService(
+		request.NewClient(
+			conf.GeneratorAddress,
+			conf.GeneratorServicePath,
+		),
+	)
+
+	dbService := db.NewService(
+		request.NewClient(
+			conf.DBAddress,
+			conf.DBServicePath,
+		),
+	)
+
 	return &Server{
 		httpServer: srv,
 		router:     r,
 		middlewareConfig: middlewareConfig{
 			dbAPIkey: conf.Server.DBAPIKey,
 		},
-		generatorService: request.HTTPClient{
-			Address: conf.GeneratorAddress,
-			Path:    conf.GeneratorServicePath,
-		},
-		dbService: request.HTTPClient{
-			Address: conf.DBAddress,
-			Path:    conf.DBServicePath,
-		},
+		generatorService: generatorService,
+		dbService:        dbService,
 	}
 }
 
