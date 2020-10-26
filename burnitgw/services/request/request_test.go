@@ -1,7 +1,6 @@
 package request
 
 import (
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -17,32 +16,22 @@ type mockFullResponse struct {
 }
 
 func TestBasicRequest(t *testing.T) {
+	jsonByte := []byte(`{"secret":{"value":"secret"}}`)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		mr := ResponseBody{
-			Secret: mockResponse{
-				Value: "secret",
-			},
-		}
-		json.NewEncoder(w).Encode(&mr)
+		w.Write(jsonByte)
 	}))
 	defer srv.Close()
 
-	client := NewHTTPClient(srv.URL, "/path")
+	client := NewClient(srv.URL, "/path")
 	opts := Options{Method: GET}
 	res, err := client.Request(opts)
 	if err != nil {
 		t.Fatalf("Error in setting client call: %v", err)
 	}
 
-	// Update this to use type assertion later on.
-	jsonRes, err := json.Marshal(res)
-	if err != nil {
-		t.Fatalf("Error in JSON marshaling: %v", err)
-	}
-
 	expected := `{"secret":{"value":"secret"}}`
-	if string(jsonRes) != expected {
-		t.Errorf(`Incorrect value, got: %s, want: %s`, string(jsonRes), expected)
+	if string(res) != expected {
+		t.Errorf(`Incorrect value, got: %s, want: %s`, string(res), expected)
 	}
 }
 
@@ -53,7 +42,7 @@ func TestBasicRequestError(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	client := NewHTTPClient(srv.URL, "/path")
+	client := NewClient(srv.URL, "/path")
 	opts := Options{Method: GET}
 	_, err := client.Request(opts)
 	if err == nil {
@@ -70,11 +59,10 @@ func TestBasicRequestError(t *testing.T) {
 
 func TestPostRequestWithoutBody(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		mr := ResponseBody{}
-		json.NewEncoder(w).Encode(&mr)
+		w.Write([]byte(""))
 	}))
 
-	client := NewHTTPClient(srv.URL, "/path")
+	client := NewClient(srv.URL, "/path")
 	opts := Options{Method: POST}
 	_, err := client.Request(opts)
 
@@ -91,22 +79,18 @@ func TestPostRequestWithoutBody(t *testing.T) {
 }
 
 func TestRequestWithParams(t *testing.T) {
+	jsonByte := []byte(`{"secret":{"value":"secret"}}`)
 	expectedParam := "1234"
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !strings.Contains(r.URL.String(), "/1234") {
 			w.WriteHeader(400)
 			return
 		}
-		mr := ResponseBody{
-			Secret: mockResponse{
-				Value: "secret",
-			},
-		}
-		json.NewEncoder(w).Encode(&mr)
+		w.Write(jsonByte)
 	}))
 	defer srv.Close()
 
-	client := NewHTTPClient(srv.URL, "/path")
+	client := NewClient(srv.URL, "/path")
 	params := map[string]string{"id": expectedParam}
 	opts := Options{Method: GET, Params: params}
 	_, err := client.Request(opts)
@@ -116,22 +100,18 @@ func TestRequestWithParams(t *testing.T) {
 }
 
 func TestBasicRequestWithQuery(t *testing.T) {
+	jsonByte := []byte(`{"secret":{"value":"secret"}}`)
 	expectedQuery := "length=10"
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !strings.Contains(r.URL.String(), "?"+expectedQuery) {
 			w.WriteHeader(400)
 			return
 		}
-		mr := ResponseBody{
-			Secret: mockResponse{
-				Value: "secret",
-			},
-		}
-		json.NewEncoder(w).Encode(&mr)
+		w.Write(jsonByte)
 	}))
 	defer srv.Close()
 
-	client := NewHTTPClient(srv.URL, "/path")
+	client := NewClient(srv.URL, "/path")
 	opts := Options{Method: GET, Query: expectedQuery}
 	_, err := client.Request(opts)
 	if err != nil {
@@ -140,6 +120,7 @@ func TestBasicRequestWithQuery(t *testing.T) {
 }
 
 func TestBasicRequestWithHeaders(t *testing.T) {
+	jsonByte := []byte(`{"secret":{"value":"secret"}}`)
 	hdrName := "PASSPHRASE"
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		hdrVal := r.Header.Get(hdrName)
@@ -147,11 +128,10 @@ func TestBasicRequestWithHeaders(t *testing.T) {
 			t.Error("Incorrect, header should be set.")
 			return
 		}
-		mr := ResponseBody{}
-		json.NewEncoder(w).Encode(&mr)
+		w.Write(jsonByte)
 	}))
 
-	client := NewHTTPClient(srv.URL, "/path")
+	client := NewClient(srv.URL, "/path")
 
 	hdr := http.Header{}
 	hdr.Add(hdrName, "test")

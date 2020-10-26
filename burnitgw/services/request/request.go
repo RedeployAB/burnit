@@ -1,7 +1,6 @@
 package request
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -19,27 +18,27 @@ const (
 
 // Client is an interface for HTTP requests.
 type Client interface {
-	Request(o Options) (ResponseBody, error)
+	Request(o Options) ([]byte, error)
 }
 
-// HTTPClient reqpresents a HTTP/HTTPS client
+// client reqpresents a HTTP/HTTPS client
 // to be used against other services.
-type HTTPClient struct {
+type client struct {
 	Address string
 	Path    string
 }
 
-// NewHTTPClient creates and returns a new
-// HTTPClient with the provided Address and Path.
-func NewHTTPClient(address, path string) *HTTPClient {
-	return &HTTPClient{
+// NewClient creates and returns a new
+// HTTP client with the provided Address and Path.
+func NewClient(address, path string) Client {
+	return &client{
 		Address: address,
 		Path:    path,
 	}
 }
 
 // Request performs a request against the target URL.
-func (c HTTPClient) Request(o Options) (ResponseBody, error) {
+func (c client) Request(o Options) ([]byte, error) {
 	url := c.Address + c.Path
 	if o.Params["id"] != "" {
 		url += "/" + o.Params["id"]
@@ -48,9 +47,8 @@ func (c HTTPClient) Request(o Options) (ResponseBody, error) {
 		url += "?" + o.Query
 	}
 
-	var r ResponseBody
 	if (o.Method == POST || o.Method == PUT) && o.Body == nil {
-		return r, &Error{code: 400, err: "400 Bad Request"}
+		return nil, &Error{code: 400, err: "400 Bad Request"}
 	}
 
 	client := &http.Client{}
@@ -63,20 +61,20 @@ func (c HTTPClient) Request(o Options) (ResponseBody, error) {
 
 	res, err := client.Do(req)
 	if err != nil {
-		return r, err
+		return nil, err
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode < http.StatusOK || res.StatusCode > http.StatusNoContent {
-		return r, &Error{code: res.StatusCode, err: res.Status}
+		return nil, &Error{code: res.StatusCode, err: res.Status}
 	}
 
 	b, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return r, err
+		return nil, err
 	}
-	err = json.Unmarshal(b, &r)
-	return r, nil
+
+	return b, nil
 }
 
 // Options is options for an HTTP/HTTPs request.
@@ -87,12 +85,6 @@ type Options struct {
 	Params map[string]string
 	Query  string
 	Body   io.Reader
-}
-
-// ResponseBody is the response returned
-// to the client.
-type ResponseBody struct {
-	Secret interface{} `json:"secret"`
 }
 
 // Error implements error interface

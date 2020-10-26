@@ -5,8 +5,8 @@ import (
 	"strings"
 )
 
-// HandleHTTPError takes an error and parses it for HTTP errors.
-func HandleHTTPError(err error) int {
+// ParseError takes an error and parses it for HTTP errors.
+func ParseError(err error) int {
 	var status int
 	errStr := err.Error()
 	if strings.HasPrefix(errStr, "code ") {
