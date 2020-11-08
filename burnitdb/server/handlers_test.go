@@ -32,19 +32,19 @@ func (r mockSecretService) Get(id string) (*secret.Secret, error) {
 
 	switch r.mode {
 	case "find-success":
-		sec = &secret.Secret{ID: id1, Secret: "values"}
+		sec = &secret.Secret{ID: id1, Value: "values"}
 		err = nil
 	case "find-not-found":
 		sec = nil
 		err = nil
 	case "find-success-passphrase":
-		sec = &secret.Secret{ID: id1, Secret: "values", Passphrase: correctPassphrase}
+		sec = &secret.Secret{ID: id1, Value: "values", Passphrase: correctPassphrase}
 		err = nil
 	case "find-error":
 		sec = nil
 		err = errors.New("find error")
 	case "find-delete-error":
-		sec = &secret.Secret{ID: id1, Secret: "values"}
+		sec = &secret.Secret{ID: id1, Value: "values"}
 		err = nil
 	}
 	return sec, err
@@ -56,7 +56,7 @@ func (r mockSecretService) Create(s *secret.Secret) (*secret.Secret, error) {
 
 	switch r.mode {
 	case "insert-success":
-		sec = &secret.Secret{ID: id1, Secret: "value"}
+		sec = &secret.Secret{ID: id1, Value: "value"}
 		err = nil
 	case "insert-error":
 		sec = nil
@@ -164,8 +164,8 @@ func TestCreateSecret(t *testing.T) {
 		"api-key": apiKey,
 	}
 
-	jsonStr := []byte(`{"secret":"value"}`)
-	malformedJSONStr := []byte(`{"secret":"value}`)
+	jsonStr := []byte(`{"value":"value"}`)
+	malformedJSONStr := []byte(`{"value":"value}`)
 
 	var tests = []struct {
 		mode         string

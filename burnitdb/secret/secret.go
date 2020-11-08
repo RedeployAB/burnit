@@ -12,7 +12,7 @@ import (
 // incoming JSON payload and the data model.
 type Secret struct {
 	ID         string
-	Secret     string
+	Value      string
 	Passphrase string
 	CreatedAt  time.Time
 	ExpiresAt  time.Time
@@ -110,7 +110,7 @@ func toModel(secret *Secret) *db.Secret {
 	}
 
 	return &db.Secret{
-		Secret:     secret.Secret,
+		Value:      secret.Value,
 		CreatedAt:  createdAt,
 		ExpiresAt:  expiresAt,
 		Passphrase: secret.Passphrase,
@@ -122,7 +122,7 @@ func toModel(secret *Secret) *db.Secret {
 func toSecret(s *db.Secret) *Secret {
 	return &Secret{
 		ID:         s.ID,
-		Secret:     s.Secret,
+		Value:      s.Value,
 		Passphrase: s.Passphrase,
 		CreatedAt:  s.CreatedAt,
 		ExpiresAt:  s.ExpiresAt,

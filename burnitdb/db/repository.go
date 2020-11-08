@@ -62,13 +62,13 @@ func (r *SecretRepository) Find(id string) (*Secret, error) {
 	if err != nil || s == nil {
 		return s, err
 	}
-	s.Secret = decrypt(s.Secret, r.options.EncryptionKey)
+	s.Value = decrypt(s.Value, r.options.EncryptionKey)
 	return s, nil
 }
 
 // Insert handles inserts into the database.
 func (r *SecretRepository) Insert(s *Secret) (*Secret, error) {
-	s.Secret = encrypt(s.Secret, r.options.EncryptionKey)
+	s.Value = encrypt(s.Value, r.options.EncryptionKey)
 	if len(s.Passphrase) > 0 {
 		s.Passphrase = r.hash(s.Passphrase)
 	}

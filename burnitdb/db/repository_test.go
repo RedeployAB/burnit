@@ -23,7 +23,7 @@ func (c *mockClient) FindOne(id string) (*Secret, error) {
 
 	switch c.mode {
 	case "find-success":
-		secret = &Secret{ID: id1, Secret: string(encrypted)}
+		secret = &Secret{ID: id1, Value: string(encrypted)}
 		err = nil
 	case "find-not-found":
 		secret = nil
@@ -145,7 +145,7 @@ func TestSecretRepositoryFind(t *testing.T) {
 		want      *Secret
 		wantErr   error
 	}{
-		{inputMode: "find-success", input: id1, want: &Secret{ID: id1, Secret: "value"}, wantErr: nil},
+		{inputMode: "find-success", input: id1, want: &Secret{ID: id1, Value: "value"}, wantErr: nil},
 		{inputMode: "find-not-found", input: id1, want: nil, wantErr: nil},
 		{inputMode: "find-invalid-oid", input: "1234", want: nil, wantErr: nil},
 		{inputMode: "find-error", input: id1, want: nil, wantErr: errors.New("error in db")},
@@ -155,8 +155,8 @@ func TestSecretRepositoryFind(t *testing.T) {
 		repo := SetupRepository(test.inputMode)
 
 		res, err := repo.Find(test.input)
-		if res != nil && res.Secret != test.want.Secret {
-			t.Errorf("incorrect value, got: %v, want: %v", res.Secret, test.want.Secret)
+		if res != nil && res.Value != test.want.Value {
+			t.Errorf("incorrect value, got: %v, want: %v", res.Value, test.want.Value)
 		}
 		if err != nil && err.Error() != "error in db" {
 			t.Errorf("incorrect value, got: %v, want: %v", err, test.wantErr)
@@ -171,9 +171,9 @@ func TestSecretRepositoryInsert(t *testing.T) {
 		want      *Secret
 		wantErr   error
 	}{
-		{inputMode: "insert-success", input: &Secret{Secret: "value"}, want: &Secret{ID: id1}, wantErr: nil},
-		{inputMode: "insert-success", input: &Secret{Secret: "value", Passphrase: "passphrase"}, want: &Secret{ID: id1, Passphrase: security.ToMD5("passphrase")}, wantErr: nil},
-		{inputMode: "insert-error", input: &Secret{Secret: "value"}, want: nil, wantErr: errors.New("error in db")},
+		{inputMode: "insert-success", input: &Secret{Value: "value"}, want: &Secret{ID: id1}, wantErr: nil},
+		{inputMode: "insert-success", input: &Secret{Value: "value", Passphrase: "passphrase"}, want: &Secret{ID: id1, Passphrase: security.ToMD5("passphrase")}, wantErr: nil},
+		{inputMode: "insert-error", input: &Secret{Value: "value"}, want: nil, wantErr: errors.New("error in db")},
 	}
 
 	for _, test := range tests {

@@ -29,7 +29,7 @@ func (r *mockSecretRepository) Find(id string) (*db.Secret, error) {
 
 	switch r.mode {
 	case "find-success":
-		secret = &db.Secret{ID: id1, Secret: "value"}
+		secret = &db.Secret{ID: id1, Value: "value"}
 		err = nil
 	case "find-not-found":
 		secret = nil
@@ -47,7 +47,7 @@ func (r *mockSecretRepository) Insert(s *db.Secret) (*db.Secret, error) {
 
 	switch r.mode {
 	case "insert-success":
-		secret = &db.Secret{ID: id1, Secret: "value"}
+		secret = &db.Secret{ID: id1, Value: "value"}
 		err = nil
 	case "insert-error":
 		secret = nil
@@ -111,7 +111,7 @@ func TestServiceGet(t *testing.T) {
 		want    *Secret
 		wantErr error
 	}{
-		{mode: "find-success", input: id1, want: &Secret{ID: id1, Secret: "value"}, wantErr: nil},
+		{mode: "find-success", input: id1, want: &Secret{ID: id1, Value: "value"}, wantErr: nil},
 		{mode: "find-not-found", input: id1, want: nil, wantErr: nil},
 		{mode: "find-error", input: id1, want: nil, wantErr: errors.New("find error")},
 	}
@@ -119,8 +119,8 @@ func TestServiceGet(t *testing.T) {
 	for _, test := range tests {
 		svc := SetupService("find", test.mode)
 		sec, err := svc.Get(test.input)
-		if sec != nil && sec.Secret != test.want.Secret {
-			t.Errorf("incorrect value, got: %v, want: %v", sec.Secret, test.want.Secret)
+		if sec != nil && sec.Value != test.want.Value {
+			t.Errorf("incorrect value, got: %v, want: %v", sec.Value, test.want.Value)
 		}
 		if err != nil && err.Error() != test.wantErr.Error() {
 			t.Errorf("incorrect value, got: %v, want: %v", err.Error(), test.wantErr.Error())
@@ -135,8 +135,8 @@ func TestServiceCreate(t *testing.T) {
 		want    *Secret
 		wantErr error
 	}{
-		{mode: "insert-success", input: &Secret{Secret: "value"}, want: &Secret{ID: id1}, wantErr: nil},
-		{mode: "insert-error", input: &Secret{Secret: "value"}, want: nil, wantErr: errors.New("insert error")},
+		{mode: "insert-success", input: &Secret{Value: "value"}, want: &Secret{ID: id1}, wantErr: nil},
+		{mode: "insert-error", input: &Secret{Value: "value"}, want: nil, wantErr: errors.New("insert error")},
 	}
 
 	for _, test := range tests {
@@ -199,10 +199,10 @@ func TestServiceDeleteExpired(t *testing.T) {
 }
 
 func TestNewFromJSON(t *testing.T) {
-	str1 := []byte(`{"secret":"value1"}`)
-	str2 := []byte(`{"secret":"value2","passphrase":"1234"}`)
-	str3 := []byte(`{"secret":"value3","ttl":4320}`)
-	strMalformed1 := []byte(`{"secret":`)
+	str1 := []byte(`{"value":"value1"}`)
+	str2 := []byte(`{"value":"value2","passphrase":"1234"}`)
+	str3 := []byte(`{"value":"value3","ttl":4320}`)
+	strMalformed1 := []byte(`{"value":`)
 
 	expectedDay1 := time.Now().AddDate(0, 0, 7)
 	expectedDay2 := time.Now().AddDate(0, 0, 3)
@@ -212,16 +212,16 @@ func TestNewFromJSON(t *testing.T) {
 		want    *Secret
 		wantErr error
 	}{
-		{input: str1, want: &Secret{Secret: "value1", Passphrase: "", ExpiresAt: expectedDay1}, wantErr: nil},
-		{input: str2, want: &Secret{Secret: "value2", Passphrase: "1234", ExpiresAt: expectedDay1}, wantErr: nil},
-		{input: str3, want: &Secret{Secret: "value3", Passphrase: "", ExpiresAt: expectedDay2}, wantErr: nil},
+		{input: str1, want: &Secret{Value: "value1", Passphrase: "", ExpiresAt: expectedDay1}, wantErr: nil},
+		{input: str2, want: &Secret{Value: "value2", Passphrase: "1234", ExpiresAt: expectedDay1}, wantErr: nil},
+		{input: str3, want: &Secret{Value: "value3", Passphrase: "", ExpiresAt: expectedDay2}, wantErr: nil},
 		{input: strMalformed1, want: nil, wantErr: errors.New("unexpected EOF")},
 	}
 
 	for _, test := range tests {
 		got, err := NewFromJSON(ioutil.NopCloser(bytes.NewBuffer(test.input)))
-		if got != nil && got.Secret != test.want.Secret {
-			t.Errorf("incorrect value, got: %s, want: %s", got.Secret, test.want.Secret)
+		if got != nil && got.Value != test.want.Value {
+			t.Errorf("incorrect value, got: %s, want: %s", got.Value, test.want.Value)
 		}
 		if got != nil && got.Passphrase != test.want.Passphrase {
 			t.Errorf("incorrect value, got: %s, want: %s", got.Passphrase, test.want.Passphrase)
@@ -240,15 +240,15 @@ func TestToModel(t *testing.T) {
 		input *Secret
 		want  *db.Secret
 	}{
-		{input: &Secret{Secret: "value1"}, want: &db.Secret{Secret: "value1"}},
-		{input: &Secret{Secret: "value2", Passphrase: "1234"}, want: &db.Secret{Secret: "value2", Passphrase: "1234"}},
-		{input: &Secret{Secret: "value3", CreatedAt: createdAt, ExpiresAt: expiresAt}, want: &db.Secret{Secret: "value3", CreatedAt: createdAt, ExpiresAt: expiresAt}},
+		{input: &Secret{Value: "value1"}, want: &db.Secret{Value: "value1"}},
+		{input: &Secret{Value: "value2", Passphrase: "1234"}, want: &db.Secret{Value: "value2", Passphrase: "1234"}},
+		{input: &Secret{Value: "value3", CreatedAt: createdAt, ExpiresAt: expiresAt}, want: &db.Secret{Value: "value3", CreatedAt: createdAt, ExpiresAt: expiresAt}},
 	}
 
 	for _, test := range tests {
 		got := toModel(test.input)
-		if got.Secret != test.want.Secret {
-			t.Errorf("incorrect value, got: %s, want: %s", got.Secret, test.want.Secret)
+		if got.Value != test.want.Value {
+			t.Errorf("incorrect value, got: %s, want: %s", got.Value, test.want.Value)
 		}
 		if got.Passphrase != test.want.Passphrase {
 			t.Errorf("incorrect value, got: %s, want: %s", got.Passphrase, test.want.Passphrase)
