@@ -22,17 +22,17 @@ func (c mockClient) Request(o request.Options) ([]byte, error) {
 	var responseJSON []byte
 	switch c.mode {
 	case "db-get-success":
-		responseJSON = []byte(`{"secret":{"id":"1234","value":"secret"}}`)
+		responseJSON = []byte(`{"id":"1234","value":"secret"}`)
 	case "db-get-fail":
 		err = errors.New("call to api failed")
 	case "db-get-malformed":
-		responseJSON = []byte(`{"secret":`)
+		responseJSON = []byte(`{"value":`)
 	case "db-create-success":
-		responseJSON = []byte(`{"secret":{"id":"4321","value":"terces"}}`)
+		responseJSON = []byte(`{"id":"4321","value":"terces"}`)
 	case "db-create-fail":
 		err = errors.New("call to api failed")
 	case "db-create-mailformed":
-		responseJSON = []byte(`{"secret":`)
+		responseJSON = []byte(`{"value":`)
 	}
 
 	return responseJSON, err
@@ -40,12 +40,12 @@ func (c mockClient) Request(o request.Options) ([]byte, error) {
 
 func TestGet(t *testing.T) {
 	secret1 := &Secret{}
-	secret1.Secret.ID = "1234"
-	secret1.Secret.Value = "secret"
+	secret1.ID = "1234"
+	secret1.Value = "secret"
 
 	secret2 := &Secret{}
-	secret2.Secret.ID = "4321"
-	secret2.Secret.Value = "terces"
+	secret2.ID = "4321"
+	secret2.Value = "terces"
 
 	var tests = []struct {
 		mode    string
@@ -64,11 +64,11 @@ func TestGet(t *testing.T) {
 		svc := NewService(&mockClient{mode: test.mode})
 		got, err := svc.Get(r, map[string]string{"id": test.param})
 
-		if got != nil && got.Secret.ID != test.want.Secret.ID {
-			t.Errorf("incorrect value, got: %s, want: %s", got.Secret.ID, test.want.Secret.ID)
+		if got != nil && got.ID != test.want.ID {
+			t.Errorf("incorrect value, got: %s, want: %s", got.ID, test.want.ID)
 		}
-		if got != nil && got.Secret.Value != test.want.Secret.Value {
-			t.Errorf("incorrect value, got: %s, want: %s", got.Secret.Value, test.want.Secret.Value)
+		if got != nil && got.Value != test.want.Value {
+			t.Errorf("incorrect value, got: %s, want: %s", got.Value, test.want.Value)
 		}
 		if got == nil && err != nil && err.Error() != test.wantErr.Error() {
 			t.Errorf("incorrect value, got: %s, want: %s", err.Error(), test.wantErr.Error())
@@ -78,9 +78,9 @@ func TestGet(t *testing.T) {
 
 func TestCreate(t *testing.T) {
 	secret1 := &Secret{}
-	secret1.Secret.ID = "4321"
-	secret1.Secret.Value = "terces"
-	jsonStr := []byte(`{"secret":"terces"}`)
+	secret1.ID = "4321"
+	secret1.Value = "terces"
+	jsonStr := []byte(`{"value":"terces"}`)
 
 	var tests = []struct {
 		mode    string
@@ -99,11 +99,11 @@ func TestCreate(t *testing.T) {
 		svc := NewService(&mockClient{mode: test.mode})
 		got, err := svc.Create(r)
 
-		if got != nil && got.Secret.ID != test.want.Secret.ID {
-			t.Errorf("incorrect value, got: %s, want: %s", got.Secret.ID, test.want.Secret.ID)
+		if got != nil && got.ID != test.want.ID {
+			t.Errorf("incorrect value, got: %s, want: %s", got.ID, test.want.ID)
 		}
-		if got != nil && got.Secret.Value != test.want.Secret.Value {
-			t.Errorf("incorrect value, got: %s, want: %s", got.Secret.Value, test.want.Secret.Value)
+		if got != nil && got.Value != test.want.Value {
+			t.Errorf("incorrect value, got: %s, want: %s", got.Value, test.want.Value)
 		}
 		if got == nil && err != nil && err.Error() != test.wantErr.Error() {
 			t.Errorf("incorrect value, got: %s, want: %s", err.Error(), test.wantErr.Error())

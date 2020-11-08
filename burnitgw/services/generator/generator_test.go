@@ -20,12 +20,12 @@ func (c mockClient) Request(o request.Options) ([]byte, error) {
 	var responseJSON []byte
 	switch c.mode {
 	case "gen-success":
-		responseJSON = []byte(`{"secret":{"value":"secret"}}`)
+		responseJSON = []byte(`{"value":"secret"}`)
 		err = nil
 	case "gen-fail":
 		err = errors.New("call to api failed")
 	case "gen-malformed":
-		responseJSON = []byte(`{"secret":`)
+		responseJSON = []byte(`{"value":`)
 	}
 
 	return responseJSON, err
@@ -33,7 +33,7 @@ func (c mockClient) Request(o request.Options) ([]byte, error) {
 
 func TestGenerate(t *testing.T) {
 	secret1 := &Secret{}
-	secret1.Secret.Value = "secret"
+	secret1.Value = "secret"
 
 	var tests = []struct {
 		mode    string
@@ -51,8 +51,8 @@ func TestGenerate(t *testing.T) {
 		svc := NewService(&mockClient{mode: test.mode})
 		got, err := svc.Generate(r)
 
-		if got != nil && got.Secret.Value != test.want.Secret.Value {
-			t.Errorf("incorrect value, got: %s, want: %s", got.Secret.Value, test.want.Secret.Value)
+		if got != nil && got.Value != test.want.Value {
+			t.Errorf("incorrect value, got: %s, want: %s", got.Value, test.want.Value)
 		}
 		if got == nil && err != nil && err.Error() != test.wantErr.Error() {
 			t.Errorf("incorrect value, got: %s, want: %s", err.Error(), test.wantErr.Error())

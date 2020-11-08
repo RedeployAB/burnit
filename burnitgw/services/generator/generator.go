@@ -10,9 +10,7 @@ import (
 // Secret represents the secret response
 // from secret generator service.
 type Secret struct {
-	Secret struct {
-		Value string `json:"value"`
-	} `json:"secret"`
+	Value string `json:"value"`
 }
 
 // Service provides handling operations for secret

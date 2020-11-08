@@ -11,12 +11,10 @@ import (
 // Secret represents the secret response
 // from secret db service.
 type Secret struct {
-	Secret struct {
-		ID        string    `json:"id,omitempty"`
-		Value     string    `json:"value,omitempty"`
-		CreatedAt time.Time `json:"createdAt,omitempty"`
-		ExpiresAt time.Time `json:"expiresAt,omitempty"`
-	} `json:"secret"`
+	ID        string    `json:"id,omitempty"`
+	Value     string    `json:"value,omitempty"`
+	CreatedAt time.Time `json:"createdAt,omitempty"`
+	ExpiresAt time.Time `json:"expiresAt,omitempty"`
 }
 
 // Service provides handling operations for secret

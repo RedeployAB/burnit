@@ -30,7 +30,7 @@ func (s mockGeneratorService) Generate(r *http.Request) (*generator.Secret, erro
 	switch s.client.mode {
 	case "gen-success":
 		secret = &generator.Secret{}
-		secret.Secret.Value = "value"
+		secret.Value = "value"
 	case "gen-fail":
 		err = errors.New("call to api failed")
 	}
@@ -47,8 +47,8 @@ func (s mockDbService) Get(r *http.Request, params map[string]string) (*db.Secre
 	switch s.client.mode {
 	case "db-get-success":
 		secret = &db.Secret{}
-		secret.Secret.ID = "1234"
-		secret.Secret.Value = "value"
+		secret.ID = "1234"
+		secret.Value = "value"
 	case "db-get-fail":
 		err = errors.New("call to api failed")
 	}
@@ -61,8 +61,8 @@ func (s mockDbService) Create(r *http.Request) (*db.Secret, error) {
 	switch s.client.mode {
 	case "db-create-success":
 		secret = &db.Secret{}
-		secret.Secret.ID = "4321"
-		secret.Secret.Value = "value"
+		secret.ID = "4321"
+		secret.Value = "value"
 	case "db-create-fail":
 		err = errors.New("call to api failed")
 	}
@@ -118,8 +118,8 @@ func TestGenerateSecret(t *testing.T) {
 				t.Fatalf("error in test: %v", err)
 			}
 
-			if rb.Secret.Value != test.wantSecret {
-				t.Errorf("response incorrect, got: %s, want: %s", rb.Secret.Value, test.wantSecret)
+			if rb.Value != test.wantSecret {
+				t.Errorf("response incorrect, got: %s, want: %s", rb.Value, test.wantSecret)
 			}
 		}
 	}
@@ -152,19 +152,19 @@ func TestGetSecret(t *testing.T) {
 				t.Fatalf("error in test: %v", err)
 			}
 
-			if rb.Secret.ID != test.param {
-				t.Errorf("response incorrect, got: %s, want: %s", rb.Secret.ID, test.param)
+			if rb.ID != test.param {
+				t.Errorf("response incorrect, got: %s, want: %s", rb.ID, test.param)
 			}
-			if rb.Secret.Value != test.wantSecret {
-				t.Errorf("response incorrect, got: %s, want: %s", rb.Secret.Value, test.wantSecret)
+			if rb.Value != test.wantSecret {
+				t.Errorf("response incorrect, got: %s, want: %s", rb.Value, test.wantSecret)
 			}
 		}
 	}
 }
 
 func TestCreateSecret(t *testing.T) {
-	jsonStr := []byte(`{"secret":"value"}`)
-	malformedJSONstr := []byte(`{"secret)`)
+	jsonStr := []byte(`{"value":"value"}`)
+	malformedJSONstr := []byte(`{"value)`)
 
 	var tests = []struct {
 		mode       string
@@ -193,11 +193,11 @@ func TestCreateSecret(t *testing.T) {
 				t.Fatalf("error in test: %v", err)
 			}
 
-			if rb.Secret.ID != test.wantID {
-				t.Errorf("response incorrect, got: %s, want: %s", rb.Secret.ID, test.wantID)
+			if rb.ID != test.wantID {
+				t.Errorf("response incorrect, got: %s, want: %s", rb.ID, test.wantID)
 			}
-			if rb.Secret.Value != test.wantSecret {
-				t.Errorf("response incorrect, got: %s, want: %s", rb.Secret.Value, test.wantSecret)
+			if rb.Value != test.wantSecret {
+				t.Errorf("response incorrect, got: %s, want: %s", rb.Value, test.wantSecret)
 			}
 		}
 	}
