@@ -49,19 +49,19 @@ GET /secret?length=24&specialchars=true
 ```
 // Creating a secret with no passphrase, and default TTL (7 days).
 POST /secrets
-Body: {"secret":"<value>"}
+Body: {"value":"<value>"}
 
 // Creating a secret with a passphrase.
 POST /secrets
-Body: {"secret":"<value>","passphrase":"<value>"}
+Body: {"value":"<value>","passphrase":"<value>"}
 
 // Creating a secret with a specified TTL in minutes.
 POST /secrets
-Body: {"secret":"<value>","ttl":<value>}
+Body: {"value":"<value>","ttl":<value>}
 
 // Creating a secret with a passphrase and a specified TTL in minutes.
 POST /secrets
-Body: {"secret":"<value>","passphrase":"<value>","ttl":<value>}
+Body: {"value":"<value>","passphrase":"<value>","ttl":<value>}
 ```
 
 ## Local development and testing
