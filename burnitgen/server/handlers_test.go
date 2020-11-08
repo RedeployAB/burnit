@@ -35,11 +35,11 @@ func TestGenerateSecret(t *testing.T) {
 		t.Errorf("error in test: %v", err)
 	}
 
-	if len(rb.Secret.Value) == 0 {
-		t.Errorf("response incorrect, got: empty string, want: %s", rb.Secret.Value)
+	if len(rb.Value) == 0 {
+		t.Errorf("response incorrect, got: empty string, want: %s", rb.Value)
 	}
 
-	c := utf8.RuneCountInString(rb.Secret.Value)
+	c := utf8.RuneCountInString(rb.Value)
 	expected := 16
 	if c != expected {
 		t.Errorf("response secret length incorrect, got: %d, want: %d", c, expected)
@@ -63,11 +63,11 @@ func TestGenerateSecretHandlerParams(t *testing.T) {
 		t.Errorf("error in test: %v", err)
 	}
 
-	if len(rb.Secret.Value) == 0 {
-		t.Errorf("response incorrect, got: empty string, want: %s", rb.Secret.Value)
+	if len(rb.Value) == 0 {
+		t.Errorf("response incorrect, got: empty string, want: %s", rb.Value)
 	}
 
-	c := utf8.RuneCountInString(rb.Secret.Value)
+	c := utf8.RuneCountInString(rb.Value)
 	expected := 22
 	if c != 22 {
 		t.Errorf("response secret length incorrect, got: %d, want: %d", c, expected)
