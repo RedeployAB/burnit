@@ -14,6 +14,8 @@ import (
 var correctPassphrase = security.Bcrypt("passphrase")
 var id1 = "507f1f77bcf86cd799439011"
 var apiKey = "ABCDEF"
+var encryptionKey = "abcdefg"
+var encrypted, _ = security.Encrypt([]byte("value"), encryptionKey)
 
 // Mock to handle repository answers in handler tests.
 type mockSecretRepository struct {
@@ -29,7 +31,7 @@ func (r *mockSecretRepository) Find(id string) (*db.Secret, error) {
 
 	switch r.mode {
 	case "find-success":
-		secret = &db.Secret{ID: id1, Value: "value"}
+		secret = &db.Secret{ID: id1, Value: string(encrypted)}
 		err = nil
 	case "find-not-found":
 		secret = nil
@@ -47,7 +49,7 @@ func (r *mockSecretRepository) Insert(s *db.Secret) (*db.Secret, error) {
 
 	switch r.mode {
 	case "insert-success":
-		secret = &db.Secret{ID: id1, Value: "value"}
+		secret = &db.Secret{ID: id1, Value: string(encrypted)}
 		err = nil
 	case "insert-error":
 		secret = nil
@@ -92,12 +94,14 @@ func (r *mockSecretRepository) DeleteExpired() (int64, error) {
 
 func SetupService(action, mode string) Service {
 	repo := &mockSecretRepository{action: action, mode: mode}
-	return NewService(repo)
+	opts := Options{EncryptionKey: encryptionKey}
+	return NewService(repo, opts)
 }
 
 func TestNewService(t *testing.T) {
 	repo := &mockSecretRepository{action: "", mode: ""}
-	service := NewService(repo)
+	opts := Options{EncryptionKey: encryptionKey}
+	service := NewService(repo, opts)
 
 	if service == nil {
 		t.Errorf("error in creating service")
@@ -236,19 +240,26 @@ func TestToModel(t *testing.T) {
 	createdAt := time.Now()
 	expiresAt := time.Now()
 
+	encrypted1, _ := security.Encrypt([]byte("value1"), encryptionKey)
+	encrypted2, _ := security.Encrypt([]byte("value2"), encryptionKey)
+	encrypted3, _ := security.Encrypt([]byte("value3"), encryptionKey)
+
 	var tests = []struct {
 		input *Secret
 		want  *db.Secret
 	}{
-		{input: &Secret{Value: "value1"}, want: &db.Secret{Value: "value1"}},
-		{input: &Secret{Value: "value2", Passphrase: "1234"}, want: &db.Secret{Value: "value2", Passphrase: "1234"}},
-		{input: &Secret{Value: "value3", CreatedAt: createdAt, ExpiresAt: expiresAt}, want: &db.Secret{Value: "value3", CreatedAt: createdAt, ExpiresAt: expiresAt}},
+		{input: &Secret{Value: "value1"}, want: &db.Secret{Value: string(encrypted1)}},
+		{input: &Secret{Value: "value2", Passphrase: "1234"}, want: &db.Secret{Value: string(encrypted2), Passphrase: "1234"}},
+		{input: &Secret{Value: "value3", CreatedAt: createdAt, ExpiresAt: expiresAt}, want: &db.Secret{Value: string(encrypted3), CreatedAt: createdAt, ExpiresAt: expiresAt}},
 	}
 
 	for _, test := range tests {
-		got := toModel(test.input)
-		if got.Value != test.want.Value {
-			t.Errorf("incorrect value, got: %s, want: %s", got.Value, test.want.Value)
+		got := toModel(test.input, encryptionKey)
+
+		decryptedGot, _ := security.Decrypt([]byte(got.Value), encryptionKey)
+		decryptedWant, _ := security.Decrypt([]byte(test.want.Value), encryptionKey)
+		if string(decryptedGot) != string(decryptedWant) {
+			t.Errorf("incorrect value, got: %s, want: %s", string(decryptedGot), string(decryptedWant))
 		}
 		if got.Passphrase != test.want.Passphrase {
 			t.Errorf("incorrect value, got: %s, want: %s", got.Passphrase, test.want.Passphrase)

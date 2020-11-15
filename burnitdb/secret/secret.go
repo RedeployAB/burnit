@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/RedeployAB/burnit/burnitdb/db"
+	"github.com/RedeployAB/burnit/common/security"
 )
 
 // Secret is to be used as the middle-hand between
@@ -32,29 +33,35 @@ type Service interface {
 // compatible with database.
 type service struct {
 	secrets db.Repository
+	options Options
+}
+
+// Options for Service.
+type Options struct {
+	EncryptionKey string
 }
 
 // Gets a secret from the repository by ID.
-func (s service) Get(id string) (*Secret, error) {
-	model, err := s.secrets.Find(id)
+func (svc service) Get(id string) (*Secret, error) {
+	model, err := svc.secrets.Find(id)
 	if err != nil || model == nil {
 		return nil, err
 	}
-	return toSecret(model), nil
+	return toSecret(model, svc.options.EncryptionKey), nil
 }
 
 // Create a secret in the repository.
-func (s service) Create(secret *Secret) (*Secret, error) {
-	model, err := s.secrets.Insert(toModel(secret))
+func (svc service) Create(s *Secret) (*Secret, error) {
+	model, err := svc.secrets.Insert(toModel(s, svc.options.EncryptionKey))
 	if err != nil {
 		return nil, err
 	}
-	return toSecret(model), nil
+	return toSecret(model, svc.options.EncryptionKey), nil
 }
 
 // Delete a secret from the repository.
-func (s service) Delete(id string) (int64, error) {
-	deleted, err := s.secrets.Delete(id)
+func (svc service) Delete(id string) (int64, error) {
+	deleted, err := svc.secrets.Delete(id)
 	if err != nil {
 		return 0, err
 	}
@@ -63,8 +70,8 @@ func (s service) Delete(id string) (int64, error) {
 
 // Delete expired deletes all entries that has expiresAt
 // less than current  time (time of invocation).
-func (s service) DeleteExpired() (int64, error) {
-	deleted, err := s.secrets.DeleteExpired()
+func (svc service) DeleteExpired() (int64, error) {
+	deleted, err := svc.secrets.DeleteExpired()
 	if err != nil {
 		return 0, err
 	}
@@ -72,57 +79,71 @@ func (s service) DeleteExpired() (int64, error) {
 }
 
 // NewService creates a new service for handling secrets.
-func NewService(secrets db.Repository) Service {
-	return &service{secrets: secrets}
+func NewService(secrets db.Repository, opts Options) Service {
+	return &service{secrets: secrets, options: opts}
 }
 
 // NewFromJSON creates an incoming JSON payload
 // and creates a Secret from it.
 func NewFromJSON(b io.ReadCloser) (*Secret, error) {
-	var secret *Secret
-	if err := json.NewDecoder(b).Decode(&secret); err != nil {
+	var s *Secret
+	if err := json.NewDecoder(b).Decode(&s); err != nil {
 		return nil, err
 	}
 
-	if secret.TTL != 0 {
-		secret.ExpiresAt = time.Now().Add(time.Minute * time.Duration(secret.TTL))
+	if s.TTL != 0 {
+		s.ExpiresAt = time.Now().Add(time.Minute * time.Duration(s.TTL))
 	} else {
-		secret.ExpiresAt = time.Now().AddDate(0, 0, 7)
+		s.ExpiresAt = time.Now().AddDate(0, 0, 7)
 	}
 
-	return secret, nil
+	return s, nil
 }
 
 // toModel transforms a Secret to the
 // data model variant of Secret.
-func toModel(secret *Secret) *db.Secret {
+func toModel(s *Secret, passphrase string) *db.Secret {
 	var createdAt, expiresAt time.Time
-	if secret.CreatedAt.IsZero() {
+	if s.CreatedAt.IsZero() {
 		createdAt = time.Now()
 	} else {
-		createdAt = secret.CreatedAt
+		createdAt = s.CreatedAt
 	}
 
-	if secret.ExpiresAt.IsZero() {
+	if s.ExpiresAt.IsZero() {
 		expiresAt = time.Now().Add(time.Minute * time.Duration(10080))
 	} else {
-		expiresAt = secret.ExpiresAt
+		expiresAt = s.ExpiresAt
+	}
+
+	val, err := security.Encrypt([]byte(s.Value), passphrase)
+	if err != nil {
+		return nil
 	}
 
 	return &db.Secret{
-		Value:      secret.Value,
+		Value:      string(val),
 		CreatedAt:  createdAt,
 		ExpiresAt:  expiresAt,
-		Passphrase: secret.Passphrase,
+		Passphrase: s.Passphrase,
 	}
 }
 
 // toSecret transforms the data model variant
 // of Secret to a Secret.
-func toSecret(s *db.Secret) *Secret {
+func toSecret(s *db.Secret, passphrase string) *Secret {
+	var val string
+	if len(s.Value) > 0 {
+		decrypted, err := security.Decrypt([]byte(s.Value), passphrase)
+		if err != nil {
+			return nil
+		}
+		val = string(decrypted)
+	}
+
 	return &Secret{
 		ID:         s.ID,
-		Value:      s.Value,
+		Value:      val,
 		Passphrase: s.Passphrase,
 		CreatedAt:  s.CreatedAt,
 		ExpiresAt:  s.ExpiresAt,

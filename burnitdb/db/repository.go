@@ -48,12 +48,10 @@ func NewSecretRepository(c Client, opts *SecretRepositoryOptions) *SecretReposit
 }
 
 // SecretRepositoryOptions provides additional options
-// for the repository. It contains: encryptionKey and
-// hashMethod.
+// for the repository. It contains: hashMethod.
 type SecretRepositoryOptions struct {
-	Driver        string
-	EncryptionKey string
-	HashMethod    string
+	Driver     string
+	HashMethod string
 }
 
 // Find queries the collection for an entry by ID.
@@ -62,13 +60,11 @@ func (r *SecretRepository) Find(id string) (*Secret, error) {
 	if err != nil || s == nil {
 		return s, err
 	}
-	s.Value = decrypt(s.Value, r.options.EncryptionKey)
 	return s, nil
 }
 
 // Insert handles inserts into the database.
 func (r *SecretRepository) Insert(s *Secret) (*Secret, error) {
-	s.Value = encrypt(s.Value, r.options.EncryptionKey)
 	if len(s.Passphrase) > 0 {
 		s.Passphrase = r.hash(s.Passphrase)
 	}
@@ -97,22 +93,4 @@ func (r *SecretRepository) DeleteExpired() (int64, error) {
 		return 0, err
 	}
 	return deleted, nil
-}
-
-// encrypt encrypts the field Secret.
-func encrypt(plaintext, key string) string {
-	encrypted, err := security.Encrypt([]byte(plaintext), key)
-	if err != nil {
-		panic(err)
-	}
-	return string(encrypted)
-}
-
-// decrypt decrypts the field Secret.
-func decrypt(ciphertext, key string) string {
-	decrypted, err := security.Decrypt([]byte(ciphertext), key)
-	if err != nil {
-		panic(err)
-	}
-	return string(decrypted)
 }

@@ -64,11 +64,16 @@ func New(opts Options) *Server {
 		driver = 2
 	}
 
+	secretService := secret.NewService(
+		opts.Repository,
+		secret.Options{EncryptionKey: opts.Config.Server.Security.Encryption.Key},
+	)
+
 	return &Server{
 		httpServer:    srv,
 		router:        opts.Router,
 		dbClient:      opts.DBClient,
-		secretService: secret.NewService(opts.Repository),
+		secretService: secretService,
 		driver:        driver,
 		tokenStore:    opts.TokenStore,
 		compareHash:   compareHash,

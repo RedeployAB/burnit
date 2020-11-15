@@ -14,8 +14,6 @@ type mockClient struct {
 }
 
 var id1 = "507f1f77bcf86cd799439011"
-var encryptionKey = "abcdefg"
-var encrypted, _ = security.Encrypt([]byte("value"), encryptionKey)
 
 func (c *mockClient) FindOne(id string) (*Secret, error) {
 	var secret *Secret
@@ -23,7 +21,7 @@ func (c *mockClient) FindOne(id string) (*Secret, error) {
 
 	switch c.mode {
 	case "find-success":
-		secret = &Secret{ID: id1, Value: string(encrypted)}
+		secret = &Secret{ID: id1, Value: "value"}
 		err = nil
 	case "find-not-found":
 		secret = nil
@@ -90,8 +88,7 @@ func (c *mockClient) DeleteMany() (int64, error) {
 
 func SetupRepository(mode string) *SecretRepository {
 	opts := &SecretRepositoryOptions{
-		EncryptionKey: encryptionKey,
-		HashMethod:    "bcrypt",
+		HashMethod: "bcrypt",
 	}
 	return &SecretRepository{
 		db:      &mockClient{mode: mode},
@@ -103,9 +100,8 @@ func SetupRepository(mode string) *SecretRepository {
 func TestNewSecretRepository(t *testing.T) {
 	// Test with redis driver and md5.
 	opts := &SecretRepositoryOptions{
-		Driver:        "redis",
-		EncryptionKey: encryptionKey,
-		HashMethod:    "md5",
+		Driver:     "redis",
+		HashMethod: "md5",
 	}
 
 	rClient := &redisClient{}
@@ -122,9 +118,8 @@ func TestNewSecretRepository(t *testing.T) {
 	}
 	// Test with mongo driver and bcrypt.
 	opts = &SecretRepositoryOptions{
-		Driver:        "redis",
-		EncryptionKey: encryptionKey,
-		HashMethod:    "bcrypt",
+		Driver:     "redis",
+		HashMethod: "bcrypt",
 	}
 
 	repo = NewSecretRepository(rClient, opts)
