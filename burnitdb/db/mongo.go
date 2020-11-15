@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	database   = "burnitdb"
+	database   = "burnit"
 	collection = "secrets"
 )
 

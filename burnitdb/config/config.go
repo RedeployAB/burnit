@@ -19,7 +19,7 @@ var (
 	defaultDriver     = "redis"
 	defaultAddress    = "localhost" // Change when "default" driver is updated.
 	defaultDBURI      = ""          // Change when "default" driver is updated.
-	defaultDB         = "burnitdb"
+	defaultDB         = "burnit"
 	defaultDBSSL      = true
 )
 
