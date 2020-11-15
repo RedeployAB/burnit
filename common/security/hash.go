@@ -1,3 +1,5 @@
+// Package security contains functions to handle
+// encryption and encoding.
 package security
 
 import (

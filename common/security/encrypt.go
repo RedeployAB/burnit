@@ -1,3 +1,10 @@
+// Package security contains functions to handle
+// encryption and encoding.
+// Source: https://github.com/gtank/cryptopasta
+// Modified to encode/decode from base64 and a key string
+// and encode it to MD5. Some minor modifications in byte/string
+// handling ass well. Encrypts output a base64 encoded string,
+// Decrypt takes a base64 encoded string.
 package security
 
 import (
@@ -7,12 +14,6 @@ import (
 	"errors"
 	"io"
 )
-
-// Source: https://github.com/gtank/cryptopasta
-// Modified to encode/decode from base64 and a key string
-// and encode it to MD5. Some minor modifications in byte/string
-// handling ass well. Encrypts output a base64 encoded string,
-// Decrypt takes a base64 encoded string.
 
 // Encrypt encrypts data using 256-bit AES-GCM.  This both hides the content of
 // the data and provides a check that it hasn't been altered. Output takes the
