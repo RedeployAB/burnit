@@ -19,7 +19,7 @@ func (s *Server) notFound(w http.ResponseWriter, r *http.Request) {
 func (s *Server) getSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		sec, err := s.secretService.Get(vars["id"])
+		sec, err := s.secretService.Get(vars["id"], r.Header.Get("passphrase"))
 		if err != nil {
 			httperror.Error(w, http.StatusInternalServerError)
 			return
@@ -30,8 +30,7 @@ func (s *Server) getSecret() http.Handler {
 			return
 		}
 
-		passphrase := r.Header.Get("Passphrase")
-		if len(sec.Passphrase) > 0 && !s.compareHash(sec.Passphrase, passphrase) {
+		if len(sec.Value) == 0 {
 			httperror.Error(w, http.StatusUnauthorized)
 			return
 		}

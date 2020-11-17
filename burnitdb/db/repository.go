@@ -1,9 +1,5 @@
 package db
 
-import (
-	"github.com/RedeployAB/burnit/common/security"
-)
-
 // Repository defined the methods needed for interact
 // with a database and collection.
 type Repository interface {
@@ -18,20 +14,11 @@ type Repository interface {
 type SecretRepository struct {
 	db      Database
 	options *SecretRepositoryOptions
-	hash    func(s string) string
 }
 
 // NewSecretRepository creates and returns a SecretRepository
 // object.
 func NewSecretRepository(c Client, opts *SecretRepositoryOptions) *SecretRepository {
-	var hash func(s string) string
-	switch opts.HashMethod {
-	case "md5":
-		hash = security.ToMD5
-	case "bcrypt":
-		hash = security.Bcrypt
-	}
-
 	var db Database
 	switch c.(type) {
 	case *mongoClient:
@@ -43,15 +30,13 @@ func NewSecretRepository(c Client, opts *SecretRepositoryOptions) *SecretReposit
 	return &SecretRepository{
 		db:      db,
 		options: opts,
-		hash:    hash,
 	}
 }
 
 // SecretRepositoryOptions provides additional options
-// for the repository. It contains: hashMethod.
+// for the repository. It contains: Driver.
 type SecretRepositoryOptions struct {
-	Driver     string
-	HashMethod string
+	Driver string
 }
 
 // Find queries the collection for an entry by ID.
@@ -65,10 +50,6 @@ func (r *SecretRepository) Find(id string) (*Secret, error) {
 
 // Insert handles inserts into the database.
 func (r *SecretRepository) Insert(s *Secret) (*Secret, error) {
-	if len(s.Passphrase) > 0 {
-		s.Passphrase = r.hash(s.Passphrase)
-	}
-
 	s, err := r.db.InsertOne(s)
 	if err != nil {
 		return nil, err

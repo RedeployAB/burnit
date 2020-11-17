@@ -72,10 +72,9 @@ func (c *redisClient) InsertOne(s *Secret) (*Secret, error) {
 	}
 
 	return &Secret{
-		ID:         s.ID,
-		Passphrase: s.Passphrase,
-		CreatedAt:  s.CreatedAt,
-		ExpiresAt:  s.ExpiresAt,
+		ID:        s.ID,
+		CreatedAt: s.CreatedAt,
+		ExpiresAt: s.ExpiresAt,
 	}, nil
 }
 

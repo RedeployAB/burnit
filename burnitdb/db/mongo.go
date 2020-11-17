@@ -73,10 +73,9 @@ func (c *mongoClient) InsertOne(s *Secret) (*Secret, error) {
 	oid := res.InsertedID.(primitive.ObjectID).Hex()
 
 	return &Secret{
-		ID:         oid,
-		Passphrase: s.Passphrase,
-		CreatedAt:  s.CreatedAt,
-		ExpiresAt:  s.ExpiresAt,
+		ID:        oid,
+		CreatedAt: s.CreatedAt,
+		ExpiresAt: s.ExpiresAt,
 	}, nil
 }
 

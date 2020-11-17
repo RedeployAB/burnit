@@ -14,7 +14,6 @@ import (
 
 var (
 	defaultListenPort = "3001"
-	defaultHashMethod = "bcrypt"
 	defaultAPIKey     = ""
 	defaultDriver     = "redis"
 	defaultAddress    = "localhost" // Change when "default" driver is updated.
@@ -28,7 +27,6 @@ type Flags struct {
 	ConfigPath    string
 	Port          string
 	APIKey        string
-	HashMethod    string
 	EncryptionKey string
 	Driver        string
 	DBAddress     string
@@ -44,7 +42,6 @@ func ParseFlags() Flags {
 	configPath := flag.String("config", "", "Path to configuration file")
 	listenPort := flag.String("port", "", "Port to listen on")
 	apiKey := flag.String("api-key", "", "API key for database endpoints")
-	hashMethod := flag.String("hash-method", "", "Hash method for passphrase protected secrets")
 	encryptionKey := flag.String("encryption-key", "", "Encryption key for secrets in database")
 	driver := flag.String("driver", "", "Database driver for storage of secrets: mongo|redis")
 	dbAddress := flag.String("db-address", "", "Host name and port for database")
@@ -59,7 +56,6 @@ func ParseFlags() Flags {
 		ConfigPath:    *configPath,
 		Port:          *listenPort,
 		APIKey:        *apiKey,
-		HashMethod:    *hashMethod,
 		EncryptionKey: *encryptionKey,
 		Driver:        *driver,
 		DBAddress:     *dbAddress,
@@ -80,7 +76,6 @@ type Server struct {
 // Security defines security part of server configuration.
 type Security struct {
 	APIKey     string     `yaml:"apiKey"`
-	HashMethod string     `yaml:"hashMethod"`
 	Encryption Encryption `yaml:"encryption"`
 }
 
@@ -117,7 +112,6 @@ func Configure(f Flags) (*Configuration, error) {
 				Encryption: Encryption{
 					Key: "",
 				},
-				HashMethod: defaultHashMethod,
 			},
 		},
 		Database{
@@ -159,9 +153,6 @@ func mergeConfig(config *Configuration, srcCfg Configuration) {
 	}
 	if len(srcCfg.Server.Security.APIKey) > 0 {
 		config.Server.Security.APIKey = srcCfg.Server.Security.APIKey
-	}
-	if len(srcCfg.Server.Security.HashMethod) > 0 {
-		config.Server.Security.HashMethod = srcCfg.Server.Security.HashMethod
 	}
 	if len(srcCfg.Server.Security.Encryption.Key) > 0 {
 		config.Server.Security.Encryption.Key = srcCfg.Server.Security.Encryption.Key
@@ -231,7 +222,6 @@ func configureFromEnv(config *Configuration) {
 				Encryption: Encryption{
 					Key: os.Getenv("BURNITDB_ENCRYPTION_KEY"),
 				},
-				HashMethod: strings.ToLower(os.Getenv("BURNITDB_HASH_METHOD")),
 			},
 		},
 		Database{
@@ -263,7 +253,6 @@ func configureFromFlags(config *Configuration, f Flags) {
 				Encryption: Encryption{
 					Key: f.EncryptionKey,
 				},
-				HashMethod: f.HashMethod,
 			},
 		},
 		Database{

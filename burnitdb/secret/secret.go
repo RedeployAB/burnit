@@ -22,7 +22,7 @@ type Secret struct {
 
 // Service provides handling operations for secrets.
 type Service interface {
-	Get(id string) (*Secret, error)
+	Get(id, passphrase string) (*Secret, error)
 	Create(secret *Secret) (*Secret, error)
 	Delete(id string) (int64, error)
 	DeleteExpired() (int64, error)
@@ -42,17 +42,31 @@ type Options struct {
 }
 
 // Gets a secret from the repository by ID.
-func (svc service) Get(id string) (*Secret, error) {
+func (svc service) Get(id, passphrase string) (*Secret, error) {
 	model, err := svc.secrets.Find(id)
 	if err != nil || model == nil {
 		return nil, err
 	}
-	return toSecret(model, svc.options.EncryptionKey), nil
+
+	var encryptionKey string
+	if len(passphrase) > 0 {
+		encryptionKey = passphrase
+	} else {
+		encryptionKey = svc.options.EncryptionKey
+	}
+
+	return toSecret(model, encryptionKey), nil
 }
 
 // Create a secret in the repository.
 func (svc service) Create(s *Secret) (*Secret, error) {
-	model, err := svc.secrets.Insert(toModel(s, svc.options.EncryptionKey))
+	var encryptionKey string
+	if len(s.Passphrase) > 0 {
+		encryptionKey = s.Passphrase
+	} else {
+		encryptionKey = svc.options.EncryptionKey
+	}
+	model, err := svc.secrets.Insert(toModel(s, encryptionKey))
 	if err != nil {
 		return nil, err
 	}
@@ -122,10 +136,9 @@ func toModel(s *Secret, passphrase string) *db.Secret {
 	}
 
 	return &db.Secret{
-		Value:      string(val),
-		CreatedAt:  createdAt,
-		ExpiresAt:  expiresAt,
-		Passphrase: s.Passphrase,
+		Value:     string(val),
+		CreatedAt: createdAt,
+		ExpiresAt: expiresAt,
 	}
 }
 
@@ -136,16 +149,15 @@ func toSecret(s *db.Secret, passphrase string) *Secret {
 	if len(s.Value) > 0 {
 		decrypted, err := security.Decrypt([]byte(s.Value), passphrase)
 		if err != nil {
-			return nil
+			return &Secret{}
 		}
 		val = string(decrypted)
 	}
 
 	return &Secret{
-		ID:         s.ID,
-		Value:      val,
-		Passphrase: s.Passphrase,
-		CreatedAt:  s.CreatedAt,
-		ExpiresAt:  s.ExpiresAt,
+		ID:        s.ID,
+		Value:     val,
+		CreatedAt: s.CreatedAt,
+		ExpiresAt: s.ExpiresAt,
 	}
 }

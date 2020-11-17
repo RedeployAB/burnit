@@ -57,7 +57,6 @@ server:
   security:
     encryption:
       key: secretstring # Mandatory
-    hashMethod: bcrypt|md5
 database:
   driver: redis|mongo
   address: localhost:6379|localhost:27017

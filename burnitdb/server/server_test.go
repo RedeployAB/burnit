@@ -59,7 +59,6 @@ func SetupOptions() Options {
 				Encryption: config.Encryption{
 					Key: "testphrase",
 				},
-				HashMethod: "bcrypt",
 			},
 		},
 		Database: config.Database{

@@ -8,7 +8,6 @@ import (
 func TestConfigureDefault(t *testing.T) {
 	expectedPort := "3001"
 	expectedAPIKey := ""
-	expectedHashMethod := "bcrypt"
 	expectedEncryptionKey := ""
 	expectedDriver := "redis"
 	expectedDBAddress := "localhost"
@@ -30,9 +29,6 @@ func TestConfigureDefault(t *testing.T) {
 	}
 	if config.Server.Security.APIKey != expectedAPIKey {
 		t.Errorf("API Key was incorrect, got :%s, want: %s", config.Server.Security.APIKey, expectedAPIKey)
-	}
-	if config.Server.Security.HashMethod != expectedHashMethod {
-		t.Errorf("Hash method was incorrect, got: %s, want: %s", config.Server.Security.HashMethod, expectedHashMethod)
 	}
 	if config.Server.Security.Encryption.Key != expectedEncryptionKey {
 		t.Errorf("Encryption key was incorrect, got: %s, want: %s", config.Server.Security.Encryption.Key, expectedEncryptionKey)
@@ -63,7 +59,6 @@ func TestConfigureDefault(t *testing.T) {
 func TestConfigureFromFile(t *testing.T) {
 	expectedPort := "3003"
 	expectedAPIKey := "aabbcc"
-	expectedHashMethod := "bcrypt"
 	expectedEncryptionKey := "secretstring"
 	expectedDriver := "mongo"
 	expectedDBAddress := "localhost:27017"
@@ -84,9 +79,6 @@ func TestConfigureFromFile(t *testing.T) {
 	}
 	if config.Server.Security.APIKey != expectedAPIKey {
 		t.Errorf("API Key was incorrect, got :%s, want: %s", config.Server.Security.APIKey, expectedAPIKey)
-	}
-	if config.Server.Security.HashMethod != expectedHashMethod {
-		t.Errorf("Hash method was incorrect, got: %s, want: %s", config.Server.Security.HashMethod, expectedHashMethod)
 	}
 	if config.Server.Security.Encryption.Key != expectedEncryptionKey {
 		t.Errorf("Encryption key was incorrect, got: %s, want: %s", config.Server.Security.Encryption.Key, expectedEncryptionKey)
@@ -121,7 +113,6 @@ func TestConfigureFromFile(t *testing.T) {
 func TestConfigureFromEnv(t *testing.T) {
 	expectedPort := "3004"
 	expectedAPIKey := "aabbcc"
-	expectedHashMethod := "bcrypt"
 	expectedEncryptionKey := "secretstring"
 	expectedDBAddress := "localhost:27017"
 	expectedDBURI := "mongodb://localhost:27017"
@@ -135,7 +126,6 @@ func TestConfigureFromEnv(t *testing.T) {
 	os.Setenv("BURNITDB_LISTEN_PORT", expectedPort)
 	os.Setenv("BURNITDB_API_KEY", expectedAPIKey)
 	os.Setenv("BURNITDB_ENCRYPTION_KEY", expectedEncryptionKey)
-	os.Setenv("BURNITDB_HASH_METHOD", expectedHashMethod)
 	os.Setenv("DB_DRIVER", expectedDriver)
 	os.Setenv("DB_HOST", expectedDBAddress)
 	os.Setenv("DB_CONNECTION_URI", expectedDBURI)
@@ -151,9 +141,6 @@ func TestConfigureFromEnv(t *testing.T) {
 	}
 	if config.Server.Security.APIKey != expectedAPIKey {
 		t.Errorf("API Key was incorrect, got :%s, want: %s", config.Server.Security.APIKey, expectedAPIKey)
-	}
-	if config.Server.Security.HashMethod != expectedHashMethod {
-		t.Errorf("Hash method was incorrect, got: %s, want: %s", config.Server.Security.HashMethod, expectedHashMethod)
 	}
 	if config.Server.Security.Encryption.Key != expectedEncryptionKey {
 		t.Errorf("Encryption key was incorrect, got: %s, want: %s", config.Server.Security.Encryption.Key, expectedEncryptionKey)
@@ -196,7 +183,6 @@ func TestConfigureFromEnv(t *testing.T) {
 func TestConfigureFromFlags(t *testing.T) {
 	expectedPort := "4001"
 	expectedAPIKey := "ccaabb"
-	expectedHashMethod := "md5"
 	expectedEncryptionKey := "stringsecret"
 	expectedDBAddress := "localhost:6379"
 	expectedDBURI := "localhost:6379"
@@ -210,7 +196,6 @@ func TestConfigureFromFlags(t *testing.T) {
 	flags := Flags{
 		Port:          expectedPort,
 		APIKey:        expectedAPIKey,
-		HashMethod:    expectedHashMethod,
 		EncryptionKey: expectedEncryptionKey,
 		Driver:        expectedDriver,
 		DBAddress:     expectedDBAddress,
@@ -229,9 +214,6 @@ func TestConfigureFromFlags(t *testing.T) {
 	}
 	if config.Server.Security.APIKey != expectedAPIKey {
 		t.Errorf("API Key was incorrect, got :%s, want: %s", config.Server.Security.APIKey, expectedAPIKey)
-	}
-	if config.Server.Security.HashMethod != expectedHashMethod {
-		t.Errorf("Hash method was incorrect, got: %s, want: %s", config.Server.Security.HashMethod, expectedHashMethod)
 	}
 	if config.Server.Security.Encryption.Key != expectedEncryptionKey {
 		t.Errorf("Encryption key was incorrect, got: %s, want: %s", config.Server.Security.Encryption.Key, expectedEncryptionKey)
@@ -272,7 +254,6 @@ func TestConfigure(t *testing.T) {
 	// Test default configuration.
 	expectedPort := "3001"
 	expectedAPIKey := ""
-	expectedHashMethod := "bcrypt"
 	expectedEncryptionKey := ""
 	expectedDriver := "redis"
 	expectedDBAddress := "localhost"
@@ -294,9 +275,6 @@ func TestConfigure(t *testing.T) {
 	}
 	if config.Server.Security.APIKey != expectedAPIKey {
 		t.Errorf("API Key was incorrect, got :%s, want: %s", config.Server.Security.APIKey, expectedAPIKey)
-	}
-	if config.Server.Security.HashMethod != expectedHashMethod {
-		t.Errorf("Hash method was incorrect, got: %s, want: %s", config.Server.Security.HashMethod, expectedHashMethod)
 	}
 	if config.Server.Security.Encryption.Key != expectedEncryptionKey {
 		t.Errorf("Encryption key was incorrect, got: %s, want: %s", config.Server.Security.Encryption.Key, expectedEncryptionKey)
@@ -327,7 +305,6 @@ func TestConfigure(t *testing.T) {
 	// Test with file. Should override default.
 	expectedPort = "3003"
 	expectedAPIKey = "aabbcc"
-	expectedHashMethod = "bcrypt"
 	expectedEncryptionKey = "secretstring"
 	expectedDriver = "mongo"
 	expectedDBAddress = "localhost:27017"
@@ -348,9 +325,6 @@ func TestConfigure(t *testing.T) {
 	}
 	if config.Server.Security.APIKey != expectedAPIKey {
 		t.Errorf("API Key was incorrect, got :%s, want: %s", config.Server.Security.APIKey, expectedAPIKey)
-	}
-	if config.Server.Security.HashMethod != expectedHashMethod {
-		t.Errorf("Hash method was incorrect, got: %s, want: %s", config.Server.Security.HashMethod, expectedHashMethod)
 	}
 	if config.Server.Security.Encryption.Key != expectedEncryptionKey {
 		t.Errorf("Encryption key was incorrect, got: %s, want: %s", config.Server.Security.Encryption.Key, expectedEncryptionKey)
@@ -380,7 +354,6 @@ func TestConfigure(t *testing.T) {
 	// Test with environment variables. Should override file.
 	expectedPort = "3004"
 	expectedAPIKey = "aabbcc"
-	expectedHashMethod = "bcrypt"
 	expectedEncryptionKey = "secretstring"
 	expectedDBAddress = "localhost:27017"
 	expectedDBURI = "mongodb://localhost:27017"
@@ -393,7 +366,6 @@ func TestConfigure(t *testing.T) {
 	os.Setenv("BURNITDB_LISTEN_PORT", expectedPort)
 	os.Setenv("BURNITDB_API_KEY", expectedAPIKey)
 	os.Setenv("BURNITDB_ENCRYPTION_KEY", expectedEncryptionKey)
-	os.Setenv("BURNITDB_HASH_METHOD", expectedHashMethod)
 	os.Setenv("DB_DRIVER", expectedDriver)
 	os.Setenv("DB_HOST", expectedDBAddress)
 	os.Setenv("DB_CONNECTION_URI", expectedDBURI)
@@ -412,9 +384,6 @@ func TestConfigure(t *testing.T) {
 	}
 	if config.Server.Security.APIKey != expectedAPIKey {
 		t.Errorf("API Key was incorrect, got :%s, want: %s", config.Server.Security.APIKey, expectedAPIKey)
-	}
-	if config.Server.Security.HashMethod != expectedHashMethod {
-		t.Errorf("Hash method was incorrect, got: %s, want: %s", config.Server.Security.HashMethod, expectedHashMethod)
 	}
 	if config.Server.Security.Encryption.Key != expectedEncryptionKey {
 		t.Errorf("Encryption key was incorrect, got: %s, want: %s", config.Server.Security.Encryption.Key, expectedEncryptionKey)
@@ -444,7 +413,6 @@ func TestConfigure(t *testing.T) {
 	// Test with flags. Should override file and envrionment variables.
 	expectedPort = "4001"
 	expectedAPIKey = "ccaabb"
-	expectedHashMethod = "md5"
 	expectedEncryptionKey = "stringsecret"
 	expectedDBAddress = "localhost:6379"
 	expectedDBURI = "localhost:6379"
@@ -458,7 +426,6 @@ func TestConfigure(t *testing.T) {
 	flags = Flags{
 		Port:          expectedPort,
 		APIKey:        expectedAPIKey,
-		HashMethod:    expectedHashMethod,
 		EncryptionKey: expectedEncryptionKey,
 		Driver:        expectedDriver,
 		DBAddress:     expectedDBAddress,
@@ -479,9 +446,6 @@ func TestConfigure(t *testing.T) {
 	}
 	if config.Server.Security.APIKey != expectedAPIKey {
 		t.Errorf("API Key was incorrect, got :%s, want: %s", config.Server.Security.APIKey, expectedAPIKey)
-	}
-	if config.Server.Security.HashMethod != expectedHashMethod {
-		t.Errorf("Hash method was incorrect, got: %s, want: %s", config.Server.Security.HashMethod, expectedHashMethod)
 	}
 	if config.Server.Security.Encryption.Key != expectedEncryptionKey {
 		t.Errorf("Encryption key was incorrect, got: %s, want: %s", config.Server.Security.Encryption.Key, expectedEncryptionKey)

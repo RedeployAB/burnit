@@ -33,6 +33,12 @@ func (r *mockSecretRepository) Find(id string) (*db.Secret, error) {
 	case "find-success":
 		secret = &db.Secret{ID: id1, Value: string(encrypted)}
 		err = nil
+	case "find-passphrase-success":
+		secret = &db.Secret{ID: id1, Value: string(encrypted)}
+		err = nil
+	case "find-passphrase-error":
+		secret = nil
+		err = nil
 	case "find-not-found":
 		secret = nil
 		err = nil
@@ -49,6 +55,9 @@ func (r *mockSecretRepository) Insert(s *db.Secret) (*db.Secret, error) {
 
 	switch r.mode {
 	case "insert-success":
+		secret = &db.Secret{ID: id1, Value: string(encrypted)}
+		err = nil
+	case "insert-passphrase-success":
 		secret = &db.Secret{ID: id1, Value: string(encrypted)}
 		err = nil
 	case "insert-error":
@@ -110,19 +119,22 @@ func TestNewService(t *testing.T) {
 
 func TestServiceGet(t *testing.T) {
 	var tests = []struct {
-		mode    string
-		input   string
-		want    *Secret
-		wantErr error
+		mode       string
+		input      string
+		passphrase string
+		want       *Secret
+		wantErr    error
 	}{
-		{mode: "find-success", input: id1, want: &Secret{ID: id1, Value: "value"}, wantErr: nil},
-		{mode: "find-not-found", input: id1, want: nil, wantErr: nil},
-		{mode: "find-error", input: id1, want: nil, wantErr: errors.New("find error")},
+		{mode: "find-success", input: id1, passphrase: "", want: &Secret{ID: id1, Value: "value"}, wantErr: nil},
+		{mode: "find-passphrase-success", input: id1, passphrase: encryptionKey, want: &Secret{ID: id1, Value: "value"}, wantErr: nil},
+		{mode: "find-passphrase-error", input: id1, passphrase: "", want: nil, wantErr: nil},
+		{mode: "find-not-found", input: id1, passphrase: "", want: nil, wantErr: nil},
+		{mode: "find-error", input: id1, passphrase: "", want: nil, wantErr: errors.New("find error")},
 	}
 
 	for _, test := range tests {
 		svc := SetupService("find", test.mode)
-		sec, err := svc.Get(test.input)
+		sec, err := svc.Get(test.input, test.passphrase)
 		if sec != nil && sec.Value != test.want.Value {
 			t.Errorf("incorrect value, got: %v, want: %v", sec.Value, test.want.Value)
 		}
@@ -140,6 +152,7 @@ func TestServiceCreate(t *testing.T) {
 		wantErr error
 	}{
 		{mode: "insert-success", input: &Secret{Value: "value"}, want: &Secret{ID: id1}, wantErr: nil},
+		{mode: "insert-passphrase-success", input: &Secret{Value: "value", Passphrase: encryptionKey}, want: &Secret{ID: id1}, wantErr: nil},
 		{mode: "insert-error", input: &Secret{Value: "value"}, want: nil, wantErr: errors.New("insert error")},
 	}
 
@@ -249,7 +262,7 @@ func TestToModel(t *testing.T) {
 		want  *db.Secret
 	}{
 		{input: &Secret{Value: "value1"}, want: &db.Secret{Value: string(encrypted1)}},
-		{input: &Secret{Value: "value2", Passphrase: "1234"}, want: &db.Secret{Value: string(encrypted2), Passphrase: "1234"}},
+		{input: &Secret{Value: "value2", Passphrase: "1234"}, want: &db.Secret{Value: string(encrypted2)}},
 		{input: &Secret{Value: "value3", CreatedAt: createdAt, ExpiresAt: expiresAt}, want: &db.Secret{Value: string(encrypted3), CreatedAt: createdAt, ExpiresAt: expiresAt}},
 	}
 
@@ -260,9 +273,6 @@ func TestToModel(t *testing.T) {
 		decryptedWant, _ := security.Decrypt([]byte(test.want.Value), encryptionKey)
 		if string(decryptedGot) != string(decryptedWant) {
 			t.Errorf("incorrect value, got: %s, want: %s", string(decryptedGot), string(decryptedWant))
-		}
-		if got.Passphrase != test.want.Passphrase {
-			t.Errorf("incorrect value, got: %s, want: %s", got.Passphrase, test.want.Passphrase)
 		}
 		if !test.input.CreatedAt.IsZero() && got.CreatedAt != test.want.CreatedAt {
 			t.Errorf("incorrect value, got: %v, want: %v", got.CreatedAt, test.want.CreatedAt)

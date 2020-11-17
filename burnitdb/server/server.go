@@ -14,7 +14,6 @@ import (
 	"github.com/RedeployAB/burnit/burnitdb/db"
 	"github.com/RedeployAB/burnit/burnitdb/secret"
 	"github.com/RedeployAB/burnit/common/auth"
-	"github.com/RedeployAB/burnit/common/security"
 	"github.com/gorilla/mux"
 )
 
@@ -48,14 +47,6 @@ func New(opts Options) *Server {
 		Handler:      opts.Router,
 	}
 
-	var compareHash func(hash, s string) bool
-	switch opts.Config.Server.Security.HashMethod {
-	case "md5":
-		compareHash = security.CompareMD5Hash
-	case "bcrypt":
-		compareHash = security.CompareBcryptHash
-	}
-
 	var driver int
 	switch opts.Config.Database.Driver {
 	case "redis":
@@ -76,7 +67,6 @@ func New(opts Options) *Server {
 		secretService: secretService,
 		driver:        driver,
 		tokenStore:    opts.TokenStore,
-		compareHash:   compareHash,
 	}
 }
 

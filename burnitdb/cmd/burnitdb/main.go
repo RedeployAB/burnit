@@ -51,8 +51,7 @@ func connectToDB(conf *config.Configuration) *dbConnection {
 	repo := db.NewSecretRepository(
 		client,
 		&db.SecretRepositoryOptions{
-			Driver:     conf.Database.Driver,
-			HashMethod: conf.Server.Security.HashMethod,
+			Driver: conf.Database.Driver,
 		},
 	)
 

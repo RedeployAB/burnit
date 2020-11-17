@@ -3,8 +3,6 @@ package db
 import (
 	"errors"
 	"testing"
-
-	"github.com/RedeployAB/burnit/common/security"
 )
 
 // mockClient is a struct to test the different
@@ -87,47 +85,32 @@ func (c *mockClient) DeleteMany() (int64, error) {
 }
 
 func SetupRepository(mode string) *SecretRepository {
-	opts := &SecretRepositoryOptions{
-		HashMethod: "bcrypt",
-	}
+	opts := &SecretRepositoryOptions{}
 	return &SecretRepository{
 		db:      &mockClient{mode: mode},
 		options: opts,
-		hash:    security.Bcrypt,
 	}
 }
 
 func TestNewSecretRepository(t *testing.T) {
 	// Test with redis driver and md5.
 	opts := &SecretRepositoryOptions{
-		Driver:     "redis",
-		HashMethod: "md5",
+		Driver: "redis",
 	}
 
 	rClient := &redisClient{}
 	repo := NewSecretRepository(rClient, opts)
 
-	expectedHashMethod := "md5"
 	expectedDriver := "redis"
-
-	if repo.options.HashMethod != expectedHashMethod {
-		t.Errorf("incorrect hash method, got: %s, want: %s", repo.options.HashMethod, expectedHashMethod)
-	}
 	if repo.options.Driver != expectedDriver {
 		t.Errorf("incorrect driver, got: %s, want: %s", repo.options.Driver, expectedDriver)
 	}
 	// Test with mongo driver and bcrypt.
 	opts = &SecretRepositoryOptions{
-		Driver:     "redis",
-		HashMethod: "bcrypt",
+		Driver: "redis",
 	}
 
 	repo = NewSecretRepository(rClient, opts)
-
-	expectedHashMethod = "bcrypt"
-	if repo.options.HashMethod != expectedHashMethod {
-		t.Errorf("incorrect hash method, got: %s, want: %s", repo.options.HashMethod, expectedHashMethod)
-	}
 	if repo.options.Driver != expectedDriver {
 		t.Errorf("incorrect driver, got: %s, want: %s", repo.options.Driver, expectedDriver)
 	}
@@ -167,7 +150,7 @@ func TestSecretRepositoryInsert(t *testing.T) {
 		wantErr   error
 	}{
 		{inputMode: "insert-success", input: &Secret{Value: "value"}, want: &Secret{ID: id1}, wantErr: nil},
-		{inputMode: "insert-success", input: &Secret{Value: "value", Passphrase: "passphrase"}, want: &Secret{ID: id1, Passphrase: security.ToMD5("passphrase")}, wantErr: nil},
+		{inputMode: "insert-success", input: &Secret{Value: "value"}, want: &Secret{ID: id1}, wantErr: nil},
 		{inputMode: "insert-error", input: &Secret{Value: "value"}, want: nil, wantErr: errors.New("error in db")},
 	}
 
@@ -177,9 +160,6 @@ func TestSecretRepositoryInsert(t *testing.T) {
 		res, err := repo.Insert(test.input)
 		if res != nil && res.ID != id1 {
 			t.Errorf("incorrect value, got: %v, want: %v", res.ID, id1)
-		}
-		if res != nil && res.Passphrase != "" && res.Passphrase != security.ToMD5("passphrase") {
-			t.Errorf("incorrect value, got: %s, want: %s", res.Passphrase, security.ToMD5("passphrase"))
 		}
 		if err != nil && err.Error() != "error in db" {
 			t.Errorf("incorrect value, got: %v, want: %v", err, test.wantErr)

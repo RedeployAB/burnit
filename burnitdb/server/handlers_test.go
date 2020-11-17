@@ -24,7 +24,7 @@ type mockSecretService struct {
 	mode   string
 }
 
-func (r mockSecretService) Get(id string) (*secret.Secret, error) {
+func (r mockSecretService) Get(id, passphrase string) (*secret.Secret, error) {
 	// Return different results based on underlying structs
 	// state.
 	var sec *secret.Secret
@@ -32,19 +32,22 @@ func (r mockSecretService) Get(id string) (*secret.Secret, error) {
 
 	switch r.mode {
 	case "find-success":
-		sec = &secret.Secret{ID: id1, Value: "values"}
+		sec = &secret.Secret{ID: id1, Value: "value"}
 		err = nil
 	case "find-not-found":
 		sec = nil
 		err = nil
-	case "find-success-passphrase":
-		sec = &secret.Secret{ID: id1, Value: "values", Passphrase: correctPassphrase}
+	case "find-passphrase-success":
+		sec = &secret.Secret{ID: id1, Value: "value"}
+		err = nil
+	case "find-passphrase-error":
+		sec = &secret.Secret{ID: id1, Value: ""}
 		err = nil
 	case "find-error":
 		sec = nil
 		err = errors.New("find error")
 	case "find-delete-error":
-		sec = &secret.Secret{ID: id1, Value: "values"}
+		sec = &secret.Secret{ID: id1, Value: "value"}
 		err = nil
 	}
 	return sec, err
@@ -141,8 +144,8 @@ func TestGetSecret(t *testing.T) {
 		{mode: "find-not-found", headers: authHeaders, param: id1, want: 404},
 		{mode: "find-error", headers: authHeaders, param: id1, want: 500},
 		{mode: "find-delete-error", headers: authHeaders, param: id1, want: 500},
-		{mode: "find-success-passphrase", headers: authPassphraseSuccess, param: id1, want: 200},
-		{mode: "find-success-passphrase", headers: authPassphraseFail, param: id1, want: 401},
+		{mode: "find-passphrase-success", headers: authPassphraseSuccess, param: id1, want: 200},
+		{mode: "find-passphrase-error", headers: authPassphraseFail, param: id1, want: 401},
 	}
 
 	for _, test := range tests {
