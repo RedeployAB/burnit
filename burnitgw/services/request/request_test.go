@@ -30,8 +30,8 @@ func TestBasicRequest(t *testing.T) {
 	}
 
 	expected := `{"secret":{"value":"secret"}}`
-	if string(res) != expected {
-		t.Errorf(`Incorrect value, got: %s, want: %s`, string(res), expected)
+	if string(res.Body) != expected {
+		t.Errorf(`Incorrect value, got: %s, want: %s`, string(res.Body), expected)
 	}
 }
 

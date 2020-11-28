@@ -44,7 +44,7 @@ func (s service) Generate(r *http.Request) (*Secret, error) {
 	}
 
 	var secret Secret
-	if err := json.Unmarshal(res, &secret); err != nil {
+	if err := json.Unmarshal(res.Body, &secret); err != nil {
 		return nil, err
 	}
 	return &secret, nil

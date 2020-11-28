@@ -15,20 +15,23 @@ type mockClient struct {
 	mode    string
 }
 
-func (c mockClient) Request(o request.Options) ([]byte, error) {
+func (c mockClient) Request(o request.Options) (*request.Response, error) {
 	var err error
+	var code int
 	var responseJSON []byte
 	switch c.mode {
 	case "gen-success":
+		code = 200
 		responseJSON = []byte(`{"value":"secret"}`)
-		err = nil
 	case "gen-fail":
+		code = 500
 		err = errors.New("call to api failed")
 	case "gen-malformed":
+		code = 400
 		responseJSON = []byte(`{"value":`)
 	}
 
-	return responseJSON, err
+	return &request.Response{StatusCode: code, Body: responseJSON}, err
 }
 
 func TestGenerate(t *testing.T) {

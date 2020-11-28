@@ -17,25 +17,32 @@ type mockClient struct {
 	mode    string
 }
 
-func (c mockClient) Request(o request.Options) ([]byte, error) {
+func (c mockClient) Request(o request.Options) (*request.Response, error) {
 	var err error
+	var code int
 	var responseJSON []byte
 	switch c.mode {
 	case "db-get-success":
+		code = 200
 		responseJSON = []byte(`{"id":"1234","value":"secret"}`)
 	case "db-get-fail":
+		code = 500
 		err = errors.New("call to api failed")
 	case "db-get-malformed":
+		code = 400
 		responseJSON = []byte(`{"value":`)
 	case "db-create-success":
+		code = 200
 		responseJSON = []byte(`{"id":"4321","value":"terces"}`)
 	case "db-create-fail":
+		code = 500
 		err = errors.New("call to api failed")
 	case "db-create-mailformed":
+		code = 400
 		responseJSON = []byte(`{"value":`)
 	}
 
-	return responseJSON, err
+	return &request.Response{StatusCode: code, Body: responseJSON}, err
 }
 
 func TestGet(t *testing.T) {

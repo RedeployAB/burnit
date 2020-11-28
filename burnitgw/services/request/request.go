@@ -18,7 +18,7 @@ const (
 
 // Client is an interface for HTTP requests.
 type Client interface {
-	Request(o Options) ([]byte, error)
+	Request(o Options) (*Response, error)
 }
 
 // client reqpresents a HTTP/HTTPS client
@@ -38,7 +38,7 @@ func NewClient(address, path string) Client {
 }
 
 // Request performs a request against the target URL.
-func (c client) Request(o Options) ([]byte, error) {
+func (c client) Request(o Options) (*Response, error) {
 	url := c.Address + c.Path
 	if o.Params["id"] != "" {
 		url += "/" + o.Params["id"]
@@ -74,7 +74,7 @@ func (c client) Request(o Options) ([]byte, error) {
 		return nil, err
 	}
 
-	return b, nil
+	return &Response{StatusCode: res.StatusCode, Body: b}, nil
 }
 
 // Options is options for an HTTP/HTTPs request.
@@ -85,6 +85,14 @@ type Options struct {
 	Params map[string]string
 	Query  string
 	Body   io.Reader
+}
+
+// Response is the result from the request
+// including status code and body read into
+// []byte.
+type Response struct {
+	StatusCode int
+	Body       []byte
 }
 
 // Error implements error interface

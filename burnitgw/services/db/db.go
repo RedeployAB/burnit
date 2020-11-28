@@ -51,7 +51,7 @@ func (s service) Get(r *http.Request, params map[string]string) (*Secret, error)
 	}
 
 	var secret Secret
-	if err := json.Unmarshal(res, &secret); err != nil {
+	if err := json.Unmarshal(res.Body, &secret); err != nil {
 		return nil, err
 	}
 	return &secret, nil
@@ -69,7 +69,7 @@ func (s service) Create(r *http.Request) (*Secret, error) {
 	}
 
 	var secret Secret
-	if err := json.Unmarshal(res, &secret); err != nil {
+	if err := json.Unmarshal(res.Body, &secret); err != nil {
 		return nil, err
 	}
 	return &secret, nil
