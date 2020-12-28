@@ -48,7 +48,7 @@ func (c client) Request(o Options) (*Response, error) {
 	}
 
 	if (o.Method == POST || o.Method == PUT) && o.Body == nil {
-		return nil, &Error{code: 400, err: "400 Bad Request"}
+		return nil, &Error{StatusCode: 400, Message: "bad request"}
 	}
 
 	client := &http.Client{}
@@ -65,15 +65,10 @@ func (c client) Request(o Options) (*Response, error) {
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode < http.StatusOK || res.StatusCode > http.StatusNoContent {
-		return nil, &Error{code: res.StatusCode, err: res.Status}
-	}
-
 	b, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}
-
 	return &Response{StatusCode: res.StatusCode, Body: b}, nil
 }
 
@@ -91,18 +86,18 @@ type Options struct {
 // including status code and body read into
 // []byte.
 type Response struct {
-	StatusCode int
 	Body       []byte
+	StatusCode int
 }
 
-// Error implements error interface
-// and represents errors encountered with Client
-// requests.
+// Error represents and error response from the called
+// service and implements error interface.
 type Error struct {
-	err  string
-	code int
+	Message    string `json:"message,omitempty"`
+	Code       string `json:"code,omitempty"`
+	StatusCode int    `json:"statusCode,omitempty"`
 }
 
 func (e *Error) Error() string {
-	return fmt.Sprintf("code %d: %s", e.code, e.err)
+	return fmt.Sprintf("%s", e.Message)
 }

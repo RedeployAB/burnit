@@ -35,28 +35,6 @@ func TestBasicRequest(t *testing.T) {
 	}
 }
 
-func TestBasicRequestError(t *testing.T) {
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(400)
-		return
-	}))
-	defer srv.Close()
-
-	client := NewClient(srv.URL, "/path")
-	opts := Options{Method: GET}
-	_, err := client.Request(opts)
-	if err == nil {
-		t.Fatal("Incorrect, should result in an error")
-	}
-
-	if err.(*Error).code != 400 {
-		t.Errorf("Incorrect value, got: %v, want: 400", err.(*Error).code)
-	}
-	if err.(*Error).Error() != "code 400: 400 Bad Request" {
-		t.Errorf("Incorrect value, got: %s, want: code 400: Bad Request", err.(*Error).Error())
-	}
-}
-
 func TestPostRequestWithoutBody(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(""))
@@ -70,11 +48,11 @@ func TestPostRequestWithoutBody(t *testing.T) {
 		t.Fatal("Incorrect, should result in an error")
 	}
 
-	if err.(*Error).code != 400 {
-		t.Errorf("Incorrect value, got: %v, want: 400", err.(*Error).code)
+	if err.(*Error).StatusCode != 400 {
+		t.Errorf("Incorrect value, got: %v, want: 400", err.(*Error).StatusCode)
 	}
-	if err.(*Error).Error() != "code 400: 400 Bad Request" {
-		t.Errorf("Incorrect value, got: %s, want: code 400: Bad Request", err.(*Error).Error())
+	if err.(*Error).Error() != "bad request" {
+		t.Errorf("Incorrect value, got: %s, want: bad request", err.(*Error).Error())
 	}
 }
 
