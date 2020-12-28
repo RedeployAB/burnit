@@ -11,7 +11,6 @@ import (
 
 // notFound handles all non used routes.
 func (s *Server) notFound(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	httperror.Error(w, http.StatusNotFound)
 }
 
@@ -77,7 +76,6 @@ func (s *Server) createSecret() http.Handler {
 // updateSecret handler updates a secret in the database.
 func (s *Server) updateSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		httperror.Error(w, http.StatusNotImplemented)
 		return
 	})
