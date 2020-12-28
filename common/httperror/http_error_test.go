@@ -14,12 +14,12 @@ func TestError(t *testing.T) {
 		wantedCode    int
 		wantedMessage string
 	}{
-		{input: http.StatusBadRequest, wantedCode: 400, wantedMessage: `{"error":"malformed JSON","code":400}`},
-		{input: http.StatusUnauthorized, wantedCode: 401, wantedMessage: `{"error":"unauthorized","code":401}`},
-		{input: http.StatusForbidden, wantedCode: 403, wantedMessage: `{"error":"forbidden","code":403}`},
-		{input: http.StatusNotFound, wantedCode: 404, wantedMessage: `{"error":"not found","code":404}`},
-		{input: http.StatusInternalServerError, wantedCode: 500, wantedMessage: `{"error":"internal server error","code":500}`},
-		{input: http.StatusNotImplemented, wantedCode: 501, wantedMessage: `{"error":"not implemented","code":501}`},
+		{input: http.StatusBadRequest, wantedCode: 400, wantedMessage: `{"message":"malformed JSON","statusCode":400}`},
+		{input: http.StatusUnauthorized, wantedCode: 401, wantedMessage: `{"message":"unauthorized","statusCode":401}`},
+		{input: http.StatusForbidden, wantedCode: 403, wantedMessage: `{"message":"forbidden","statusCode":403}`},
+		{input: http.StatusNotFound, wantedCode: 404, wantedMessage: `{"message":"not found","statusCode":404}`},
+		{input: http.StatusInternalServerError, wantedCode: 500, wantedMessage: `{"message":"internal server error","statusCode":500}`},
+		{input: http.StatusNotImplemented, wantedCode: 501, wantedMessage: `{"message":"not implemented","statusCode":501}`},
 	}
 
 	for _, test := range tests {

@@ -6,10 +6,10 @@ import (
 )
 
 // Error works like the http packages Error, but it responds
-// with JSON {"error":"error message", "code":"httpErrorCode"}.
-func Error(w http.ResponseWriter, code int) {
+// with JSON {"message":"error message", "statusCode":"httpErrorCode"}.
+func Error(w http.ResponseWriter, statusCode int) {
 	var err string
-	switch code {
+	switch statusCode {
 	case http.StatusBadRequest:
 		err = "malformed JSON"
 	case http.StatusUnauthorized:
@@ -23,8 +23,9 @@ func Error(w http.ResponseWriter, code int) {
 	case http.StatusNotImplemented:
 		err = "not implemented"
 	}
-	er := errorResponse{Error: err, Code: code}
-	w.WriteHeader(code)
+	er := errorResponse{Message: err, StatusCode: statusCode}
+
+	w.WriteHeader(statusCode)
 	if err := json.NewEncoder(w).Encode(&er); err != nil {
 		panic(err)
 	}
@@ -33,6 +34,7 @@ func Error(w http.ResponseWriter, code int) {
 // authenticationErrorResponse represents an HTTP error response
 // message to be encoded as JSON.
 type errorResponse struct {
-	Error string `json:"error,omitempty"`
-	Code  int    `json:"code,omitempty"`
+	Message    string `json:"message,omitempty"`
+	Code       string `json:"code,omitempty"`
+	StatusCode int    `json:"statusCode,omitempty"`
 }
