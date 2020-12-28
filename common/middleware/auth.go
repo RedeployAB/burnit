@@ -19,13 +19,13 @@ func (amw *Authentication) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("API-Key")
 		if len(token) == 0 {
-			httperror.Error(w, http.StatusUnauthorized)
+			httperror.Write(w, http.StatusUnauthorized, "", "")
 			return
 		}
 
 		ok := amw.TokenStore.Verify(token)
 		if !ok {
-			httperror.Error(w, http.StatusForbidden)
+			httperror.Write(w, http.StatusForbidden, "", "")
 		} else {
 			next.ServeHTTP(w, r)
 		}
