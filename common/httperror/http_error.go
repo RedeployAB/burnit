@@ -25,7 +25,9 @@ func Error(w http.ResponseWriter, statusCode int) {
 	}
 	er := errorResponse{Message: err, StatusCode: statusCode}
 
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(statusCode)
+
 	if err := json.NewEncoder(w).Encode(&er); err != nil {
 		panic(err)
 	}
