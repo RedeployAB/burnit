@@ -12,7 +12,7 @@ import (
 
 // notFound handles all non used routes.
 func (s *Server) notFound(w http.ResponseWriter, r *http.Request) {
-	httperror.Error(w, http.StatusNotFound)
+	httperror.Write(w, http.StatusNotFound, "", "")
 }
 
 // generateSecret handles requests for secret generation.

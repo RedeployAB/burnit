@@ -11,7 +11,7 @@ import (
 
 // notFoundHandler handles all non used routes.
 func (s *Server) notFound(w http.ResponseWriter, r *http.Request) {
-	httperror.Error(w, http.StatusNotFound)
+	httperror.Write(w, http.StatusNotFound, "", "")
 	return
 }
 
@@ -21,7 +21,7 @@ func (s *Server) generateSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		secret, err := s.generatorService.Generate(r)
 		if err != nil {
-			setErrorResponse(w, err)
+			writeError(w, err)
 			return
 		}
 
@@ -40,7 +40,7 @@ func (s *Server) getSecret() http.Handler {
 		vars := mux.Vars(r)
 		secret, err := s.dbService.Get(r, vars)
 		if err != nil {
-			setErrorResponse(w, err)
+			writeError(w, err)
 			return
 		}
 
@@ -58,7 +58,7 @@ func (s *Server) createSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		secret, err := s.dbService.Create(r)
 		if err != nil {
-			setErrorResponse(w, err)
+			writeError(w, err)
 			return
 		}
 		defer r.Body.Close()
@@ -71,11 +71,11 @@ func (s *Server) createSecret() http.Handler {
 	})
 }
 
-func setErrorResponse(w http.ResponseWriter, err error) {
+func writeError(w http.ResponseWriter, err error) {
 	switch e := err.(type) {
 	case *request.Error:
-		httperror.Error(w, e.StatusCode)
+		httperror.Write(w, e.StatusCode, e.Code, e.Message)
 	default:
-		httperror.Error(w, http.StatusInternalServerError)
+		httperror.Write(w, http.StatusInternalServerError, "", "")
 	}
 }
