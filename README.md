@@ -139,7 +139,7 @@ server:
     apiKey: <api-key-for-incoming-service-requests> # Optional.
     encryption:
       key: <encryption-key-string>
-databasE:
+database:
   ssl: false
 ```
 (`ssl: false` since `burnitdb` and `redis`/`mongo` reside in the same pod)
