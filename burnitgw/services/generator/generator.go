@@ -43,6 +43,14 @@ func (s service) Generate(r *http.Request) (*Secret, error) {
 		return nil, err
 	}
 
+	if res.StatusCode < 200 || res.StatusCode > 202 {
+		var reqErr request.Error
+		if err := json.Unmarshal(res.Body, &reqErr); err != nil {
+			return nil, err
+		}
+		return nil, &reqErr
+	}
+
 	var secret Secret
 	if err := json.Unmarshal(res.Body, &secret); err != nil {
 		return nil, err
