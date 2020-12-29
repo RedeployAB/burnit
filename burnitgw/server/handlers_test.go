@@ -9,8 +9,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/RedeployAB/burnit/burnitgw/services/db"
-	"github.com/RedeployAB/burnit/burnitgw/services/generator"
+	"github.com/RedeployAB/burnit/burnitgw/service/db"
+	"github.com/RedeployAB/burnit/burnitgw/service/generator"
 	"github.com/gorilla/mux"
 )
 

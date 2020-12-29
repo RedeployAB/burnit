@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/RedeployAB/burnit/burnitgw/services/request"
+	"github.com/RedeployAB/burnit/burnitgw/service/request"
 	"github.com/RedeployAB/burnit/common/httperror"
 	"github.com/gorilla/mux"
 )

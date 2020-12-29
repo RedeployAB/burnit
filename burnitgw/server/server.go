@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/RedeployAB/burnit/burnitgw/config"
-	"github.com/RedeployAB/burnit/burnitgw/services/db"
-	"github.com/RedeployAB/burnit/burnitgw/services/generator"
-	"github.com/RedeployAB/burnit/burnitgw/services/request"
+	"github.com/RedeployAB/burnit/burnitgw/service/db"
+	"github.com/RedeployAB/burnit/burnitgw/service/generator"
+	"github.com/RedeployAB/burnit/burnitgw/service/request"
 	"github.com/gorilla/mux"
 )
 
