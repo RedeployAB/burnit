@@ -35,27 +35,6 @@ func TestBasicRequest(t *testing.T) {
 	}
 }
 
-func TestPostRequestWithoutBody(t *testing.T) {
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(""))
-	}))
-
-	client := NewClient(srv.URL, "/path")
-	opts := Options{Method: POST}
-	_, err := client.Request(opts)
-
-	if err == nil {
-		t.Fatal("Incorrect, should result in an error")
-	}
-
-	if err.(*Error).StatusCode != 400 {
-		t.Errorf("Incorrect value, got: %v, want: 400", err.(*Error).StatusCode)
-	}
-	if err.(*Error).Error() != "bad request" {
-		t.Errorf("Incorrect value, got: %s, want: bad request", err.(*Error).Error())
-	}
-}
-
 func TestRequestWithParams(t *testing.T) {
 	jsonByte := []byte(`{"secret":{"value":"secret"}}`)
 	expectedParam := "1234"

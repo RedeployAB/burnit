@@ -47,10 +47,6 @@ func (c client) Request(o Options) (*Response, error) {
 		url += "?" + o.Query
 	}
 
-	if (o.Method == POST || o.Method == PUT) && o.Body == nil {
-		return nil, &Error{StatusCode: 400, Message: "bad request"}
-	}
-
 	client := &http.Client{}
 	req, _ := http.NewRequest(o.Method, url, o.Body)
 	if o.Header != nil && len(o.Header) > 0 {

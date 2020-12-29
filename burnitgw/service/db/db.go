@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/RedeployAB/burnit/burnitgw/services/request"
+	"github.com/RedeployAB/burnit/burnitgw/service/request"
 )
 
 // Secret represents the secret response

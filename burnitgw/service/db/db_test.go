@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/RedeployAB/burnit/burnitgw/services/request"
+	"github.com/RedeployAB/burnit/burnitgw/service/request"
 )
 
 type mockClient struct {
