@@ -74,7 +74,7 @@ GET /secret?length=24&specialchars=true
 ### Creating and retreiving secrets
 
 **Creating**
-```json
+```
 // Creating a secret with no passphrase, and default TTL (7 days).
 POST /secrets
 Body: {"value":"<value>"}
@@ -106,7 +106,7 @@ Body:
 ```
 
 **Retreiving**
-```json
+```
 // Retreive a secret without custom passphrase.
 GET /secrets/<secretId>
 
@@ -119,7 +119,7 @@ GET /secrets/<secretId>
 ```
 
 **Example responses**
-```json
+```
 // Creating:
 HEADER:
 Location: /secrets/<id>
