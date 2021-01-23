@@ -253,10 +253,10 @@ func TestNewFromJSONMalformed(t *testing.T) {
 	str1 := []byte(`{}`)
 	str2 := []byte(`{"value":""}`)
 
-	wantErr := "value is missing"
+	wantErr := "a provided secret (value) is missing"
 
 	var tests = []struct {
-		input []byte
+		input   []byte
 		wantErr string
 	}{
 		{input: str1, wantErr: wantErr},
