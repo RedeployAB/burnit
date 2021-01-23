@@ -53,7 +53,7 @@ func (s *Server) createSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sec, err := secret.NewFromJSON(r.Body)
 		if err != nil {
-			httperror.Write(w, http.StatusBadRequest, "", "")
+			httperror.Write(w, http.StatusBadRequest, "", err.Error())
 			return
 		}
 		defer r.Body.Close()

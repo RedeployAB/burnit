@@ -2,6 +2,7 @@ package secret
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"time"
 
@@ -103,6 +104,10 @@ func NewFromJSON(b io.ReadCloser) (*Secret, error) {
 	var s *Secret
 	if err := json.NewDecoder(b).Decode(&s); err != nil {
 		return nil, err
+	}
+
+	if len(s.Value) == 0 {
+		return nil, errors.New("a provided secret (value) is missing")
 	}
 
 	if s.TTL != 0 {

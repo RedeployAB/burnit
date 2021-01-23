@@ -249,6 +249,33 @@ func TestNewFromJSON(t *testing.T) {
 	}
 }
 
+func TestNewFromJSONMalformed(t *testing.T) {
+	str1 := []byte(`{}`)
+	str2 := []byte(`{"value":""}`)
+
+	wantErr := "value is missing"
+
+	var tests = []struct {
+		input []byte
+		wantErr string
+	}{
+		{input: str1, wantErr: wantErr},
+		{input: str2, wantErr: wantErr},
+	}
+
+	for _, test := range tests {
+		_, err := NewFromJSON(ioutil.NopCloser(bytes.NewBuffer(test.input)))
+
+		if err == nil {
+			t.Errorf("incorrect value, should return an error")
+		}
+
+		if err.Error() != wantErr {
+			t.Errorf("incorrect value, got: %s, want: %s", err.Error(), wantErr)
+		}
+	}
+}
+
 func TestToModel(t *testing.T) {
 	createdAt := time.Now()
 	expiresAt := time.Now()
