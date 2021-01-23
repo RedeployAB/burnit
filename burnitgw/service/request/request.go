@@ -65,7 +65,7 @@ func (c client) Request(o Options) (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Response{StatusCode: res.StatusCode, Body: b}, nil
+	return &Response{Header: req.Header, Body: b, StatusCode: res.StatusCode}, nil
 }
 
 // Options is options for an HTTP/HTTPs request.
@@ -82,6 +82,7 @@ type Options struct {
 // including status code and body read into
 // []byte.
 type Response struct {
+	Header     http.Header
 	Body       []byte
 	StatusCode int
 }
