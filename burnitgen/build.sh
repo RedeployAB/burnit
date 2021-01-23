@@ -56,13 +56,14 @@ if [ $? -ne 0 ]; then
 fi
 
 bin_full_name=$BIN-$VERSION-$OS-$ARCH
+bin_path=release/$OS/bin
 
 mkdir -p release
 GOOS=$OS GOARCH=$ARCH go build -o release/$bin_full_name -ldflags="-w -s" -trimpath cmd/$BIN/main.go
 
 if [[ $CONTAINER -eq 1 && "$OS" == "linux" ]]; then
-  mkdir -p release/bin/$OS
-  cp release/$bin_full_name release/bin/$OS/$BIN
+  mkdir -p $bin_path
+  cp release/$bin_full_name $bin_path/$BIN
   docker build -t $BIN:$VERSION --build-arg VERSION=$VERSION .
   docker image prune -f
 fi

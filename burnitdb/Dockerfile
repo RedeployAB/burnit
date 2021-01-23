@@ -11,7 +11,7 @@ ARG PORT=3001
 # Get user settings.
 COPY --from=builder /etc/passwd /etc/passwd
 
-COPY release/bin/burnitdb /usr/bin/burnitdb
+COPY release/linux/bin/burnitdb /usr/bin/burnitdb
 
 EXPOSE ${PORT}
 

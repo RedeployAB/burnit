@@ -11,7 +11,7 @@ ARG PORT=3002
 # Get user settings.
 COPY --from=builder /etc/passwd /etc/passwd
 
-COPY release/bin/burnitgen /usr/bin/burnitgen
+COPY release/linux/bin/burnitgen /usr/bin/burnitgen
 
 EXPOSE ${PORT}
 

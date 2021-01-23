@@ -11,7 +11,7 @@ ARG PORT=3000
 # Get user settings.
 COPY --from=builder /etc/passwd /etc/passwd
 
-COPY release/bin/burnitgw /usr/bin/burnitgw
+COPY release/linux/bin/burnitgw /usr/bin/burnitgw
 
 EXPOSE ${PORT}
 
