@@ -36,7 +36,7 @@ set in the application will be used.
 There are two database options supported for the application. Redis and MongoDB,
 with Redis being the default database in use.
 
-For further instructions regarding configuration, check the `README` in each
+For further instructions regarding configuration, check the `README` for each
 of the services.
 
 ## API
