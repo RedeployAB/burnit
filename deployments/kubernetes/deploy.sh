@@ -25,9 +25,7 @@ fi
 
 MANIFESTS=`dirname "$0"`
 
-cat $MANIFESTS/burnitgen/deployment.yaml
-
-kubectl create namespace $BURNIT
+kubectl create namespace $NAMESPACE
 
 kubectl create secret generic burnitdb-config \
   --from-file=$BURNITDB_CONFIG \
