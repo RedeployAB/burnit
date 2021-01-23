@@ -167,13 +167,14 @@ func TestCreateSecret(t *testing.T) {
 	malformedJSONstr := []byte(`{"value)`)
 
 	var tests = []struct {
-		mode       string
-		body       []byte
-		wantCode   int
-		wantID     string
-		wantSecret string
+		mode         string
+		body         []byte
+		wantCode     int
+		wantID       string
+		wantSecret   string
+		wantLocation string
 	}{
-		{mode: "db-create-success", body: jsonStr, wantCode: 201, wantID: "4321", wantSecret: "value"},
+		{mode: "db-create-success", body: jsonStr, wantCode: 201, wantID: "4321", wantSecret: "value", wantLocation: "/secrets/4321"},
 		{mode: "db-create-fail", body: malformedJSONstr, wantCode: 500},
 	}
 
@@ -192,12 +193,15 @@ func TestCreateSecret(t *testing.T) {
 			if err = json.Unmarshal(b, &rb); err != nil {
 				t.Fatalf("error in test: %v", err)
 			}
-
 			if rb.ID != test.wantID {
 				t.Errorf("response incorrect, got: %s, want: %s", rb.ID, test.wantID)
 			}
 			if rb.Value != test.wantSecret {
 				t.Errorf("response incorrect, got: %s, want: %s", rb.Value, test.wantSecret)
+			}
+			locHdr := res.Header().Get("Location")
+			if locHdr != test.wantLocation {
+				t.Errorf("location header was incorrect, got: %s, want: %s", locHdr, test.wantLocation)
 			}
 		}
 	}

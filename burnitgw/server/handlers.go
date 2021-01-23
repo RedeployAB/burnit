@@ -64,6 +64,7 @@ func (s *Server) createSecret() http.Handler {
 		defer r.Body.Close()
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.Header().Set("Location", "/secrets/"+secret.ID)
 		w.WriteHeader(http.StatusCreated)
 		if err := json.NewEncoder(w).Encode(&secret); err != nil {
 			panic(err)
