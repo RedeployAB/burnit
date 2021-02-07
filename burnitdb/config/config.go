@@ -16,8 +16,8 @@ var (
 	defaultListenPort = "3001"
 	defaultAPIKey     = ""
 	defaultDriver     = "redis"
-	defaultAddress    = "localhost" // Change when "default" driver is updated.
-	defaultDBURI      = ""          // Change when "default" driver is updated.
+	defaultAddress    = "localhost"
+	defaultDBURI      = ""
 	defaultDB         = "burnit"
 	defaultDBSSL      = true
 )
