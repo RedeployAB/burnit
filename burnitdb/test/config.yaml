@@ -12,4 +12,5 @@ database:
   username: dbuser
   password: dbpassword
   ssl: false
+  directConnect: true
   uri: mongodb://localhost:27017

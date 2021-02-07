@@ -13,28 +13,30 @@ import (
 )
 
 var (
-	defaultListenPort = "3001"
-	defaultAPIKey     = ""
-	defaultDriver     = "redis"
-	defaultAddress    = "localhost"
-	defaultDBURI      = ""
-	defaultDB         = "burnit"
-	defaultDBSSL      = true
+	defaultListenPort      = "3001"
+	defaultAPIKey          = ""
+	defaultDriver          = "redis"
+	defaultAddress         = "localhost"
+	defaultDBURI           = ""
+	defaultDB              = "burnit"
+	defaultDBSSL           = true
+	defaultDBDirectConnect = false
 )
 
 // Flags is parsed flags.
 type Flags struct {
-	ConfigPath    string
-	Port          string
-	APIKey        string
-	EncryptionKey string
-	Driver        string
-	DBAddress     string
-	DBURI         string
-	DB            string
-	DBUser        string
-	DBPassword    string
-	DisableDBSSL  bool
+	ConfigPath      string
+	Port            string
+	APIKey          string
+	EncryptionKey   string
+	Driver          string
+	DBAddress       string
+	DBURI           string
+	DB              string
+	DBUser          string
+	DBPassword      string
+	DisableDBSSL    bool
+	DBDirectConnect bool
 }
 
 // ParseFlags runs flag.Parse and returns a flag object.
@@ -50,20 +52,22 @@ func ParseFlags() Flags {
 	dbUser := flag.String("db-user", "", "User for database connections")
 	dbPassword := flag.String("db-password", "", "Password for user for database connections")
 	disableDBSSL := flag.Bool("disable-db-ssl", false, "Disable SSL for database connections")
+	dbDirectConnect := flag.Bool("db-direct-connect", false, "Enable direct connect (mongodb only)")
 	flag.Parse()
 
 	return Flags{
-		ConfigPath:    *configPath,
-		Port:          *listenPort,
-		APIKey:        *apiKey,
-		EncryptionKey: *encryptionKey,
-		Driver:        *driver,
-		DBAddress:     *dbAddress,
-		DBURI:         *dbURI,
-		DB:            *db,
-		DBUser:        *dbUser,
-		DBPassword:    *dbPassword,
-		DisableDBSSL:  *disableDBSSL,
+		ConfigPath:      *configPath,
+		Port:            *listenPort,
+		APIKey:          *apiKey,
+		EncryptionKey:   *encryptionKey,
+		Driver:          *driver,
+		DBAddress:       *dbAddress,
+		DBURI:           *dbURI,
+		DB:              *db,
+		DBUser:          *dbUser,
+		DBPassword:      *dbPassword,
+		DisableDBSSL:    *disableDBSSL,
+		DBDirectConnect: *dbDirectConnect,
 	}
 }
 
@@ -86,13 +90,14 @@ type Encryption struct {
 
 // Database represents database part of configuration.
 type Database struct {
-	Driver   string `yaml:"driver"`
-	Address  string `yaml:"address"`
-	URI      string `yaml:"uri"`
-	Database string `yaml:"database"`
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
-	SSL      bool   `yaml:"ssl"`
+	Driver        string `yaml:"driver"`
+	Address       string `yaml:"address"`
+	URI           string `yaml:"uri"`
+	Database      string `yaml:"database"`
+	Username      string `yaml:"username"`
+	Password      string `yaml:"password"`
+	SSL           bool   `yaml:"ssl"`
+	DirectConnect bool   `yaml:"directConnect"`
 }
 
 // Configuration represents a configuration.
@@ -115,13 +120,14 @@ func Configure(f Flags) (*Configuration, error) {
 			},
 		},
 		Database{
-			Driver:   defaultDriver,
-			Address:  defaultAddress,
-			URI:      defaultDBURI,
-			Database: defaultDB,
-			Username: "",
-			Password: "",
-			SSL:      defaultDBSSL,
+			Driver:        defaultDriver,
+			Address:       defaultAddress,
+			URI:           defaultDBURI,
+			Database:      defaultDB,
+			Username:      "",
+			Password:      "",
+			SSL:           defaultDBSSL,
+			DirectConnect: defaultDBDirectConnect,
 		},
 	}
 
@@ -153,7 +159,6 @@ func Configure(f Flags) (*Configuration, error) {
 			config.Database.Address += ":6379"
 		}
 	}
-
 	return config, nil
 }
 
@@ -186,6 +191,7 @@ func mergeConfig(config *Configuration, srcCfg Configuration) {
 		config.Database.Password = srcCfg.Database.Password
 	}
 	config.Database.SSL = srcCfg.Database.SSL
+	config.Database.DirectConnect = srcCfg.Database.DirectConnect
 }
 
 // configureFromFile performs the necessary steps
@@ -217,11 +223,20 @@ func configureFromFile(config *Configuration, path string) error {
 // variables.
 func configureFromEnv(config *Configuration) {
 	var dbSSL bool
+	var dbDirect bool
+
 	dbSSLStr := os.Getenv("DB_SSL")
 	if len(dbSSLStr) == 0 {
 		dbSSL = config.Database.SSL
 	} else {
 		dbSSL, _ = strconv.ParseBool(dbSSLStr)
+	}
+
+	dbDirectStr := os.Getenv("DB_DIRECT_CONNECT")
+	if len(dbDirectStr) == 0 {
+		dbDirect = config.Database.DirectConnect
+	} else {
+		dbDirect, _ = strconv.ParseBool(dbDirectStr)
 	}
 
 	cfg := Configuration{
@@ -235,13 +250,14 @@ func configureFromEnv(config *Configuration) {
 			},
 		},
 		Database{
-			Driver:   strings.ToLower(os.Getenv("DB_DRIVER")),
-			Address:  os.Getenv("DB_HOST"),
-			URI:      os.Getenv("DB_CONNECTION_URI"),
-			Database: os.Getenv("DB"),
-			Username: os.Getenv("DB_USER"),
-			Password: os.Getenv("DB_PASSWORD"),
-			SSL:      dbSSL,
+			Driver:        strings.ToLower(os.Getenv("DB_DRIVER")),
+			Address:       os.Getenv("DB_HOST"),
+			URI:           os.Getenv("DB_CONNECTION_URI"),
+			Database:      os.Getenv("DB"),
+			Username:      os.Getenv("DB_USER"),
+			Password:      os.Getenv("DB_PASSWORD"),
+			SSL:           dbSSL,
+			DirectConnect: dbDirect,
 		},
 	}
 	mergeConfig(config, cfg)
@@ -255,6 +271,11 @@ func configureFromFlags(config *Configuration, f Flags) {
 		dbSSL = false
 	}
 
+	dbDirect := config.Database.DirectConnect
+	if f.DBDirectConnect == true {
+		dbDirect = true
+	}
+
 	cfg := Configuration{
 		Server{
 			Port: f.Port,
@@ -266,13 +287,14 @@ func configureFromFlags(config *Configuration, f Flags) {
 			},
 		},
 		Database{
-			Driver:   f.Driver,
-			Address:  f.DBAddress,
-			URI:      f.DBURI,
-			Database: f.DB,
-			Username: f.DBUser,
-			Password: f.DBPassword,
-			SSL:      dbSSL,
+			Driver:        f.Driver,
+			Address:       f.DBAddress,
+			URI:           f.DBURI,
+			Database:      f.DB,
+			Username:      f.DBUser,
+			Password:      f.DBPassword,
+			SSL:           dbSSL,
+			DirectConnect: dbDirect,
 		},
 	}
 	mergeConfig(config, cfg)

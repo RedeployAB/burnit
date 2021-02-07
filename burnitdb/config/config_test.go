@@ -16,6 +16,7 @@ func TestConfigureDefault(t *testing.T) {
 	expectedDBUser := ""
 	expectedDBPassword := ""
 	expectedDBSSL := true
+	exepctedDBDirectConnect := false
 
 	var flags Flags
 	config, err := Configure(flags)
@@ -54,6 +55,9 @@ func TestConfigureDefault(t *testing.T) {
 	if config.Database.SSL != expectedDBSSL {
 		t.Errorf("DB SSL was incorrect, got: %t, want: %t", config.Database.SSL, expectedDBSSL)
 	}
+	if config.Database.DirectConnect != exepctedDBDirectConnect {
+		t.Errorf("DB Direct Connect was incorrect, got: %t, want: %t", config.Database.DirectConnect, exepctedDBDirectConnect)
+	}
 }
 
 func TestConfigureFromFile(t *testing.T) {
@@ -67,6 +71,7 @@ func TestConfigureFromFile(t *testing.T) {
 	expectedDBUser := "dbuser"
 	expectedDBPassword := "dbpassword"
 	expectedDBSSL := false
+	exepctedDBDirectConnect := true
 	configPath := "../test/config.yaml"
 
 	config := &Configuration{}
@@ -104,6 +109,9 @@ func TestConfigureFromFile(t *testing.T) {
 	if config.Database.SSL != expectedDBSSL {
 		t.Errorf("DB SSL was incorrect, got: %t, want: %t", config.Database.SSL, expectedDBSSL)
 	}
+	if config.Database.DirectConnect != exepctedDBDirectConnect {
+		t.Errorf("DB Direct Connect was incorrect, got: %t, want: %t", config.Database.DirectConnect, exepctedDBDirectConnect)
+	}
 
 	if err := configureFromFile(config, "nonexisting.yml"); err == nil {
 		t.Errorf("should return error if file does not exist")
@@ -120,6 +128,7 @@ func TestConfigureFromEnv(t *testing.T) {
 	expectedDBUser := "dbuser"
 	expectedDBPassword := "dbpassword"
 	expectedDriver := "mongo"
+	exepctedDBDirectConnect := true
 	expectedDBSSL := false
 
 	config := &Configuration{}
@@ -133,6 +142,7 @@ func TestConfigureFromEnv(t *testing.T) {
 	os.Setenv("DB_USER", expectedDBUser)
 	os.Setenv("DB_PASSWORD", expectedDBPassword)
 	os.Setenv("DB_SSL", "false")
+	os.Setenv("DB_DIRECT_CONNECT", "true")
 
 	configureFromEnv(config)
 
@@ -166,6 +176,9 @@ func TestConfigureFromEnv(t *testing.T) {
 	if config.Database.SSL != expectedDBSSL {
 		t.Errorf("DB SSL was incorrect, got: %t, want: %t", config.Database.SSL, expectedDBSSL)
 	}
+	if config.Database.DirectConnect != exepctedDBDirectConnect {
+		t.Errorf("DB Direct Connect was incorrect, got: %t, want: %t", config.Database.DirectConnect, exepctedDBDirectConnect)
+	}
 
 	os.Setenv("BURNITDB_LISTEN_PORT", "")
 	os.Setenv("BURNITDB_API_KEY", "")
@@ -178,6 +191,7 @@ func TestConfigureFromEnv(t *testing.T) {
 	os.Setenv("DB_USER", "")
 	os.Setenv("DB_PASSWORD", "")
 	os.Setenv("DB_SSL", "")
+	os.Setenv("DB_DIRECT_CONNECT", "")
 }
 
 func TestConfigureFromFlags(t *testing.T) {
@@ -192,18 +206,20 @@ func TestConfigureFromFlags(t *testing.T) {
 	expectedDriver := "redis"
 	expectedDBSSL1 := false
 	expectedDBSSL2 := true
+	exepctedDBDirectConnect := true
 
 	flags := Flags{
-		Port:          expectedPort,
-		APIKey:        expectedAPIKey,
-		EncryptionKey: expectedEncryptionKey,
-		Driver:        expectedDriver,
-		DBAddress:     expectedDBAddress,
-		DBURI:         expectedDBURI,
-		DB:            expectedDB,
-		DBUser:        expectedDBUser,
-		DBPassword:    expectedDBPassword,
-		DisableDBSSL:  true,
+		Port:            expectedPort,
+		APIKey:          expectedAPIKey,
+		EncryptionKey:   expectedEncryptionKey,
+		Driver:          expectedDriver,
+		DBAddress:       expectedDBAddress,
+		DBURI:           expectedDBURI,
+		DB:              expectedDB,
+		DBUser:          expectedDBUser,
+		DBPassword:      expectedDBPassword,
+		DisableDBSSL:    true,
+		DBDirectConnect: true,
 	}
 
 	config := &Configuration{}
@@ -239,6 +255,9 @@ func TestConfigureFromFlags(t *testing.T) {
 	if config.Database.SSL != expectedDBSSL1 {
 		t.Errorf("DB SSL was incorrect, got: %t, want: %t", config.Database.SSL, expectedDBSSL1)
 	}
+	if config.Database.DirectConnect != exepctedDBDirectConnect {
+		t.Errorf("DB Direct Connect was incorrect, got: %t, want: %t", config.Database.DirectConnect, exepctedDBDirectConnect)
+	}
 
 	config.Database.SSL = true
 	flags.DisableDBSSL = false
@@ -262,6 +281,7 @@ func TestConfigure(t *testing.T) {
 	expectedDBUser := ""
 	expectedDBPassword := ""
 	expectedDBSSL := true
+	exepctedDBDirectConnect := false
 
 	var flags Flags
 	config, err := Configure(flags)
@@ -300,6 +320,9 @@ func TestConfigure(t *testing.T) {
 	if config.Database.SSL != expectedDBSSL {
 		t.Errorf("DB SSL was incorrect, got: %t, want: %t", config.Database.SSL, expectedDBSSL)
 	}
+	if config.Database.DirectConnect != exepctedDBDirectConnect {
+		t.Errorf("DB Direct Connect was incorrect, got: %t, want: %t", config.Database.DirectConnect, exepctedDBDirectConnect)
+	}
 	flags.EncryptionKey = ""
 
 	// Test with file. Should override default.
@@ -313,6 +336,7 @@ func TestConfigure(t *testing.T) {
 	expectedDBUser = "dbuser"
 	expectedDBPassword = "dbpassword"
 	expectedDBSSL = false
+	exepctedDBDirectConnect = true
 
 	flags.ConfigPath = configPath
 	config, err = Configure(flags)
@@ -350,6 +374,9 @@ func TestConfigure(t *testing.T) {
 	if config.Database.SSL != expectedDBSSL {
 		t.Errorf("DB SSL was incorrect, got: %t, want: %t", config.Database.SSL, expectedDBSSL)
 	}
+	if config.Database.DirectConnect != exepctedDBDirectConnect {
+		t.Errorf("DB Direct Connect was incorrect, got: %t, want: %t", config.Database.DirectConnect, exepctedDBDirectConnect)
+	}
 
 	// Test with environment variables. Should override file.
 	expectedPort = "3004"
@@ -362,6 +389,7 @@ func TestConfigure(t *testing.T) {
 	expectedDBPassword = "dbpassword"
 	expectedDriver = "mongo"
 	expectedDBSSL = false
+	exepctedDBDirectConnect = false
 
 	os.Setenv("BURNITDB_LISTEN_PORT", expectedPort)
 	os.Setenv("BURNITDB_API_KEY", expectedAPIKey)
@@ -373,6 +401,7 @@ func TestConfigure(t *testing.T) {
 	os.Setenv("DB_USER", expectedDBUser)
 	os.Setenv("DB_PASSWORD", expectedDBPassword)
 	os.Setenv("DB_SSL", "false")
+	os.Setenv("DB_DIRECT_CONNECT", "false")
 
 	config, err = Configure(flags)
 	if err != nil {
@@ -409,6 +438,9 @@ func TestConfigure(t *testing.T) {
 	if config.Database.SSL != expectedDBSSL {
 		t.Errorf("DB SSL was incorrect, got: %t, want: %t", config.Database.SSL, expectedDBSSL)
 	}
+	if config.Database.DirectConnect != exepctedDBDirectConnect {
+		t.Errorf("DB Direct Connect was incorrect, got: %t, want: %t", config.Database.DirectConnect, exepctedDBDirectConnect)
+	}
 
 	// Test with flags. Should override file and envrionment variables.
 	expectedPort = "4001"
@@ -422,18 +454,20 @@ func TestConfigure(t *testing.T) {
 	expectedDriver = "redis"
 	expectedDBSSL1 := false
 	expectedDBSSL2 := true
+	exepctedDBDirectConnect1 := false
 
 	flags = Flags{
-		Port:          expectedPort,
-		APIKey:        expectedAPIKey,
-		EncryptionKey: expectedEncryptionKey,
-		Driver:        expectedDriver,
-		DBAddress:     expectedDBAddress,
-		DBURI:         expectedDBURI,
-		DB:            expectedDB,
-		DBUser:        expectedDBUser,
-		DBPassword:    expectedDBPassword,
-		DisableDBSSL:  true,
+		Port:            expectedPort,
+		APIKey:          expectedAPIKey,
+		EncryptionKey:   expectedEncryptionKey,
+		Driver:          expectedDriver,
+		DBAddress:       expectedDBAddress,
+		DBURI:           expectedDBURI,
+		DB:              expectedDB,
+		DBUser:          expectedDBUser,
+		DBPassword:      expectedDBPassword,
+		DisableDBSSL:    true,
+		DBDirectConnect: false,
 	}
 
 	config, err = Configure(flags)
@@ -470,6 +504,9 @@ func TestConfigure(t *testing.T) {
 	}
 	if config.Database.SSL != expectedDBSSL1 {
 		t.Errorf("DB SSL was incorrect, got: %t, want: %t", config.Database.SSL, expectedDBSSL1)
+	}
+	if config.Database.DirectConnect != exepctedDBDirectConnect1 {
+		t.Errorf("DB Direct Connect was incorrect, got: %t, want: %t", config.Database.DirectConnect, exepctedDBDirectConnect1)
 	}
 
 	config.Database.SSL = true
