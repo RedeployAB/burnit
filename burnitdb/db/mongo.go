@@ -22,6 +22,7 @@ var (
 type mongoClient struct {
 	client     *mongo.Client
 	collection *mongo.Collection
+	address    string
 }
 
 // Connect wraps around mongoClients (mongo.Client)
@@ -34,6 +35,11 @@ func (c *mongoClient) Connect(ctx context.Context) error {
 // Disconnect method.
 func (c *mongoClient) Disconnect(ctx context.Context) error {
 	return c.client.Disconnect(ctx)
+}
+
+// GetAddress returns the address (host) of the client.
+func (c *mongoClient) GetAddress() string {
+	return c.address
 }
 
 // FindOne implements and calls the method FindOne from
@@ -121,7 +127,8 @@ func mongoConnect(opts config.Database) (*mongoClient, error) {
 		uri = toURI(opts)
 	}
 
-	client, err := mongo.NewClient(options.Client().ApplyURI(uri))
+	clientOpts := options.Client().ApplyURI(uri)
+	client, err := mongo.NewClient(clientOpts)
 	if err != nil {
 		return nil, err
 	}
@@ -140,6 +147,7 @@ func mongoConnect(opts config.Database) (*mongoClient, error) {
 	return &mongoClient{
 		client:     client,
 		collection: client.Database(database).Collection(collection),
+		address:    clientOpts.Hosts[0],
 	}, nil
 }
 
