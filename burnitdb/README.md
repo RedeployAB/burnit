@@ -5,8 +5,7 @@
 `burnitdb` is a service for handling database access for
 storing and handling secrets.
 
-It supports two different databases: `redis` (default) and `mongodb` and
-two hashing methods for the passphrase for protected secrets: `bcrypt` (default) and `md5`.
+It supports two different databases: `redis` (default) and `mongo`.
 
 * [Configuration](#configuration)
   * [Running MongoDB in memory](#running-mongodb-in-memory)
@@ -87,7 +86,7 @@ database:
   -disable-db-ssl
         Disable SSL for database connections
   -driver string
-        Database driver for storage of secrets: mongo|redis
+        Database driver for storage of secrets: redis|mongo
   -encryption-key string
         Encryption key for secrets in database
   -hash-method string
