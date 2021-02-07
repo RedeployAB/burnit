@@ -492,3 +492,43 @@ func TestConfigure(t *testing.T) {
 	os.Setenv("DB_PASSWORD", "")
 	os.Setenv("DB_SSL", "")
 }
+
+func TestAddressFromMongoURI(t *testing.T) {
+	var tests = []struct {
+		uri string
+	}{
+		{uri: "mongodb://localhost:27017"},
+		{uri: "mongodb://localhost:27017/?ssl=true"},
+		{uri: "mongodb://user:pass@localhost:27017"},
+		{uri: "mongodb://user:pass@localhost:27017/?ssl=true"},
+	}
+
+	expected := "localhost:27017"
+	for _, test := range tests {
+		addr := AddressFromMongoURI(test.uri)
+		if addr != expected {
+			t.Errorf("incorrect value, got: %s, want: %s", addr, expected)
+		}
+	}
+}
+
+func TestAddressFromRedisURI(t *testing.T) {
+	var tests = []struct {
+		uri string
+	}{
+		{uri: "localhost:6379"},
+		{uri: "redis://localhost:6379"},
+		{uri: "rediss://localhost:6379"},
+		{uri: "localhost:6379,password=1234,ssl=true"},
+		{uri: "redis://localhost:6379,password=1234,ssl=true"},
+		{uri: "rediss://localhost:6379,password=1234,ssl=true"},
+	}
+
+	expected := "localhost:6379"
+	for _, test := range tests {
+		addr := AddressFromRedisURI(test.uri)
+		if addr != expected {
+			t.Errorf("incorrect value, got: %s, want: %s", addr, expected)
+		}
+	}
+}

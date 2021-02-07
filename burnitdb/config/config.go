@@ -43,7 +43,7 @@ func ParseFlags() Flags {
 	listenPort := flag.String("port", "", "Port to listen on")
 	apiKey := flag.String("api-key", "", "API key for database endpoints")
 	encryptionKey := flag.String("encryption-key", "", "Encryption key for secrets in database")
-	driver := flag.String("driver", "", "Database driver for storage of secrets: mongo|redis")
+	driver := flag.String("driver", "", "Database driver for storage of secrets: redis|mongo")
 	dbAddress := flag.String("db-address", "", "Host name and port for database")
 	dbURI := flag.String("db-uri", "", "URI for database connection")
 	db := flag.String("db", "", "Database name")
@@ -138,12 +138,22 @@ func Configure(f Flags) (*Configuration, error) {
 		return config, errors.New("encryption key must be set")
 	}
 
+	if len(config.Database.URI) > 0 {
+		switch config.Database.Driver {
+		case "redis":
+			config.Database.Address = AddressFromRedisURI(config.Database.URI)
+		case "mongo":
+			config.Database.Address = AddressFromMongoURI(config.Database.URI)
+		}
+	}
+
 	if config.Database.Driver == "redis" {
 		re := regexp.MustCompile(`:\d+$`)
 		if !re.MatchString(config.Database.Address) {
 			config.Database.Address += ":6379"
 		}
 	}
+
 	return config, nil
 }
 
@@ -266,4 +276,28 @@ func configureFromFlags(config *Configuration, f Flags) {
 		},
 	}
 	mergeConfig(config, cfg)
+}
+
+// AddressFromMongoURI returns the address (<host>:<port>) from
+// a mongodb connection string.
+func AddressFromMongoURI(uri string) string {
+	if !strings.HasSuffix(uri, "/") {
+		uri += "/"
+	}
+	var address string
+	if strings.Contains(uri, "@") {
+		address = strings.Split(strings.Split(uri, "@")[1], "/")[0]
+	} else {
+		address = strings.Split(uri, "/")[2]
+	}
+
+	return address
+}
+
+// AddressFromRedisURI returns the address (<host>:<port>) from
+// a redis connection string.
+func AddressFromRedisURI(uri string) string {
+	reg := regexp.MustCompile("^redis://|^rediss://")
+	res := reg.ReplaceAllString(uri, "${1}")
+	return strings.Split(res, ",")[0]
 }
