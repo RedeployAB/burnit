@@ -43,11 +43,13 @@ type dbConnection struct {
 }
 
 func connectToDB(conf *config.Configuration) *dbConnection {
-	log.Printf("connecting to db (driver: %s) server: %s...\n", conf.Database.Driver, conf.Database.Address)
+	log.Printf("connecting to db, host: %s (driver: %s)...\n", conf.Database.Address, conf.Database.Driver)
 	client, err := db.Connect(conf.Database)
 	if err != nil {
+		log.Printf("could not connect to %s", conf.Database.Address)
 		log.Fatalf("error: %v", err)
 	}
+	log.Printf("connected to %s", client.GetAddress())
 	repo := db.NewSecretRepository(
 		client,
 		&db.SecretRepositoryOptions{
