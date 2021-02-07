@@ -23,6 +23,10 @@ func (c *mockClient) Disconnect(context.Context) error {
 	return nil
 }
 
+func (c *mockClient) GetAddress() string {
+	return ""
+}
+
 func (c *mockClient) Close(context.Context) error {
 	return nil
 }

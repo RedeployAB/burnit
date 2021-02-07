@@ -15,6 +15,7 @@ import (
 type Client interface {
 	Connect(context.Context) error
 	Disconnect(context.Context) error
+	GetAddress() string
 }
 
 // Database represents a connection/client/collection
