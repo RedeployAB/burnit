@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"time"
 
@@ -27,6 +28,10 @@ func (c *redisClient) Connect(ctx context.Context) error {
 
 // Disconnect closes connection to redis.
 func (c *redisClient) Disconnect(ctx context.Context) error {
+	_, err := c.client.Ping(ctx).Result()
+	if err != nil {
+		return err
+	}
 	if err := c.client.Close(); err != nil {
 		return err
 	}
@@ -98,7 +103,7 @@ func (c *redisClient) DeleteMany() (int64, error) {
 
 // newRedisClient creates a new redisClient object.
 func newRedisClient(opts config.Database) *redisClient {
-	client := redis.NewClient(&redis.Options{
+	clientOpts := &redis.Options{
 		Addr:            opts.Address,
 		Password:        opts.Password,
 		DB:              0,
@@ -106,7 +111,12 @@ func newRedisClient(opts config.Database) *redisClient {
 		MaxRetries:      20,
 		MinRetryBackoff: 1 * time.Second,
 		MaxRetryBackoff: 5 * time.Second,
-	})
+		ReadTimeout:     time.Minute,
+	}
+	if opts.SSL {
+		clientOpts.TLSConfig = &tls.Config{}
+	}
+	client := redis.NewClient(clientOpts)
 
 	return &redisClient{client: client}
 }
