@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"strings"
 	"time"
 
 	"github.com/RedeployAB/burnit/burnitdb/config"
@@ -36,6 +37,11 @@ func (c *redisClient) Disconnect(ctx context.Context) error {
 		return err
 	}
 	return nil
+}
+
+// GetAddress returns the address (host) of the client.
+func (c *redisClient) GetAddress() string {
+	return c.client.Options().Addr
 }
 
 // FindOne implements and calls the method Get from
@@ -124,6 +130,10 @@ func newRedisClient(opts config.Database) *redisClient {
 // redisConnect implements redis.Client connection methods,
 // helpers and connections checks.
 func redisConnect(opts config.Database) (*redisClient, error) {
+	if len(opts.URI) > 0 {
+		opts = fromURI(opts)
+	}
+
 	client := newRedisClient(opts)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -134,4 +144,25 @@ func redisConnect(opts config.Database) (*redisClient, error) {
 	}
 
 	return client, nil
+}
+
+func fromURI(opts config.Database) config.Database {
+	parts := strings.Split(opts.URI, ",")
+	opts.Address = config.AddressFromRedisURI(parts[0])
+
+	for i := 1; i < len(parts); i++ {
+		subParts := strings.SplitN(parts[i], "=", 2)
+		switch strings.ToLower(subParts[0]) {
+		case "password":
+			opts.Password = subParts[1]
+		case "ssl":
+			if strings.ToLower(subParts[1]) == "true" {
+				opts.SSL = true
+			} else {
+				opts.SSL = false
+			}
+		}
+	}
+
+	return opts
 }
