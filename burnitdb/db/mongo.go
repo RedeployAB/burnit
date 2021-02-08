@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"crypto/tls"
 	"strings"
 	"time"
 
@@ -122,13 +123,14 @@ func (c *mongoClient) DeleteMany() (int64, error) {
 // mongoConnect implements mongo.Clients connection methods,
 // helpers and connections checks.
 func mongoConnect(opts config.Database) (*mongoClient, error) {
+	clientOpts := options.Client()
 	uri := opts.URI
 	if len(uri) == 0 {
-		uri = toURI(opts)
+		uri = connectionURI(opts.Address, opts.Database)
+		clientOpts = setOptions(clientOpts, opts)
 	}
 
-	clientOpts := options.Client().ApplyURI(uri)
-	client, err := mongo.NewClient(clientOpts)
+	client, err := mongo.NewClient(clientOpts.ApplyURI(uri))
 	if err != nil {
 		return nil, err
 	}
@@ -162,12 +164,47 @@ func toURI(opts config.Database) string {
 		if opts.Password != "" {
 			b.WriteString(":" + opts.Password)
 		}
+		b.WriteString("@")
 	}
 
-	b.WriteString("@" + opts.Address + "/" + opts.Database)
+	b.WriteString(opts.Address)
+	if len(opts.Database) > 0 {
+		b.WriteString("/" + opts.Database)
+	}
+
 	if opts.SSL != false {
 		b.WriteString("?ssl=true")
 	}
 
+	return b.String()
+}
+
+func setOptions(clientOpts *options.ClientOptions, opts config.Database) *options.ClientOptions {
+	if len(opts.Username) > 0 {
+		credential := options.Credential{Username: opts.Username}
+		if len(opts.Password) > 0 {
+			credential.Password = opts.Password
+			credential.PasswordSet = true
+		}
+		clientOpts.SetAuth(credential)
+	}
+	if opts.SSL {
+		clientOpts.SetTLSConfig(&tls.Config{})
+	}
+	if opts.DirectConnect {
+		clientOpts.SetDirect(opts.DirectConnect)
+	}
+
+	return clientOpts
+}
+
+func connectionURI(address, database string) string {
+	var b strings.Builder
+	b.WriteString("mongodb://")
+	b.WriteString(address)
+	if len(database) > 0 {
+		b.WriteString("/")
+		b.WriteString(database)
+	}
 	return b.String()
 }
