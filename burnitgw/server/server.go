@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"crypto/tls"
 	"log"
 	"net/http"
 	"os"
@@ -23,6 +24,12 @@ type Server struct {
 	middlewareConfig middlewareConfig
 	generatorService generator.Service
 	dbService        db.Service
+	tlsConfig        tlsConfig
+}
+
+type tlsConfig struct {
+	certificate string
+	key         string
 }
 
 type middlewareConfig struct {
@@ -53,6 +60,16 @@ func New(conf *config.Configuration, r *mux.Router) *Server {
 		),
 	)
 
+	var tlsCfg tlsConfig
+	if len(conf.TLS.Certificate) > 0 && len(conf.TLS.Key) > 0 {
+		srv.TLSConfig = config.NewTLSConfig()
+		srv.TLSNextProto = make(map[string]func(*http.Server, *tls.Conn, http.Handler))
+		tlsCfg = tlsConfig{
+			certificate: conf.TLS.Certificate,
+			key:         conf.TLS.Key,
+		}
+	}
+
 	return &Server{
 		httpServer: srv,
 		router:     r,
@@ -61,6 +78,7 @@ func New(conf *config.Configuration, r *mux.Router) *Server {
 		},
 		generatorService: generatorService,
 		dbService:        dbService,
+		tlsConfig:        tlsCfg,
 	}
 }
 
@@ -69,13 +87,22 @@ func (s *Server) Start() {
 	s.routes()
 
 	go func() {
-		if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := s.listenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("server err: %v\n", err)
 		}
 	}()
 	log.Printf("server listening on: %s", s.httpServer.Addr)
 	s.shutdown()
 	log.Println("server has been stopped")
+}
+
+// listenAndServe wraps around httpServer.Server ListenAndServe and
+// ListenAndServeTLS depending on TLS configuration.
+func (s *Server) listenAndServe() error {
+	if (tlsConfig{}) != s.tlsConfig {
+		return s.httpServer.ListenAndServeTLS(s.tlsConfig.certificate, s.tlsConfig.key)
+	}
+	return s.httpServer.ListenAndServe()
 }
 
 // shutdown will shutdown server when interrupt or
