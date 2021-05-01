@@ -9,3 +9,5 @@ env.sh
 run.sh
 
 .DS_Store
+*.crt
+*.key
