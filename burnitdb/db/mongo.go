@@ -159,9 +159,9 @@ func toURI(opts config.Database) string {
 	var b strings.Builder
 
 	b.WriteString("mongodb://")
-	if opts.Username != "" {
+	if len(opts.Username) > 0 {
 		b.WriteString(opts.Username)
-		if opts.Password != "" {
+		if len(opts.Password) > 0 {
 			b.WriteString(":" + opts.Password)
 		}
 		b.WriteString("@")
