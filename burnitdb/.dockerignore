@@ -1,14 +1,6 @@
-api/*
-config/*
-db/*
-internal/*
-middleware/*
-model/*
-dto/*
-*.sh
-*.go
+release/
+test/
 *.md
-makefile
-
+LICENSE*
 .git
 .cache
