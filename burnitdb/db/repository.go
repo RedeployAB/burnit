@@ -20,11 +20,11 @@ type SecretRepository struct {
 // object.
 func NewSecretRepository(c Client, opts *SecretRepositoryOptions) *SecretRepository {
 	var db Database
-	switch c.(type) {
+	switch c := c.(type) {
 	case *mongoClient:
-		db = c.(*mongoClient)
+		db = c
 	case *redisClient:
-		db = c.(*redisClient)
+		db = c
 	}
 
 	return &SecretRepository{
