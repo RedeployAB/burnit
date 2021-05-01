@@ -1,6 +1,6 @@
 module github.com/RedeployAB/burnit/burnitgw
 
-go 1.15
+go 1.16
 
 replace github.com/RedeployAB/burnit/common => ../common
 
