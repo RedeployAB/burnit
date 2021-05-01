@@ -12,7 +12,6 @@ import (
 // notFoundHandler handles all non used routes.
 func (s *Server) notFound(w http.ResponseWriter, r *http.Request) {
 	httperror.Write(w, http.StatusNotFound, "", "")
-	return
 }
 
 // generateSecret makes calls to the burnitgen service

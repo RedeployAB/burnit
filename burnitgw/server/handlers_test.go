@@ -15,9 +15,7 @@ import (
 )
 
 type mockClient struct {
-	address string
-	path    string
-	mode    string
+	mode string
 }
 
 type mockGeneratorService struct {
@@ -113,8 +111,8 @@ func TestGenerateSecret(t *testing.T) {
 
 		if test.mode == "gen-success" {
 			var rb *generator.Secret
-			b, err := ioutil.ReadAll(res.Body)
-			if err = json.Unmarshal(b, &rb); err != nil {
+			b, _ := ioutil.ReadAll(res.Body)
+			if err := json.Unmarshal(b, &rb); err != nil {
 				t.Fatalf("error in test: %v", err)
 			}
 
@@ -147,8 +145,8 @@ func TestGetSecret(t *testing.T) {
 
 		if test.mode == "db-get-success" {
 			var rb *db.Secret
-			b, err := ioutil.ReadAll(res.Body)
-			if err = json.Unmarshal(b, &rb); err != nil {
+			b, _ := ioutil.ReadAll(res.Body)
+			if err := json.Unmarshal(b, &rb); err != nil {
 				t.Fatalf("error in test: %v", err)
 			}
 
@@ -189,8 +187,8 @@ func TestCreateSecret(t *testing.T) {
 
 		if test.mode == "db-create-success" {
 			var rb *db.Secret
-			b, err := ioutil.ReadAll(res.Body)
-			if err = json.Unmarshal(b, &rb); err != nil {
+			b, _ := ioutil.ReadAll(res.Body)
+			if err := json.Unmarshal(b, &rb); err != nil {
 				t.Fatalf("error in test: %v", err)
 			}
 			if rb.ID != test.wantID {
