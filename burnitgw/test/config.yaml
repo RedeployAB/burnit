@@ -5,3 +5,6 @@ server:
   dbAddress: "http://localhost:3003"
   dbServicePath: "/v1/secrets"
   dbApiKey: "aabbcc"
+  tls:
+    certificate: "path/to/cert"
+    key: "path/to/key"

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"crypto/tls"
 	"flag"
 	"io/ioutil"
 	"os"
@@ -16,6 +17,8 @@ var (
 	defaultDBAddress            = "http://localhost:3001"
 	defaultDBServicePath        = "/secrets"
 	defaultDBAPIKey             = ""
+	defaultTLSCert              = ""
+	defaultTLSKey               = ""
 )
 
 // Flags is parsed flags.
@@ -27,6 +30,8 @@ type Flags struct {
 	DBAddress            string
 	DBServicePath        string
 	DBAPIKey             string
+	TLSCert              string
+	TLSKey               string
 }
 
 // ParseFlags runs flag.Parse and returns a flag object.
@@ -38,6 +43,9 @@ func ParseFlags() Flags {
 	dbAddress := flag.String("db-address", "", "Address to DB service (burnitdb)")
 	dbServicePath := flag.String("db-service-path", "", "Path to DB service endpoint (burnitdb)")
 	dbAPIKey := flag.String("db-api-key", "", "API Key to DB service")
+	tlsCert := flag.String("tls-certificate", "", "Path to TLS certificate file")
+	tlsKey := flag.String("tls-key", "", "Path to TLS key file")
+
 	flag.Parse()
 
 	return Flags{
@@ -48,6 +56,8 @@ func ParseFlags() Flags {
 		DBAddress:            *dbAddress,
 		DBServicePath:        *dbServicePath,
 		DBAPIKey:             *dbAPIKey,
+		TLSCert:              *tlsCert,
+		TLSKey:               *tlsKey,
 	}
 }
 
@@ -59,6 +69,13 @@ type Server struct {
 	DBAddress            string `yaml:"dbAddress"`
 	DBServicePath        string `yaml:"dbServicePath"`
 	DBAPIKey             string `yaml:"dbApiKey"`
+	TLS                  `yaml:"tls"`
+}
+
+// TLS represents TLS part of server configuration.
+type TLS struct {
+	Certificate string `yaml:"certificate"`
+	Key         string `yaml:"key"`
 }
 
 // Configuration represents a configuration.
@@ -78,6 +95,10 @@ func Configure(f Flags) (*Configuration, error) {
 			DBAddress:            defaultDBAddress,
 			DBServicePath:        defaultDBServicePath,
 			DBAPIKey:             defaultDBAPIKey,
+			TLS: TLS{
+				Certificate: defaultTLSCert,
+				Key:         defaultTLSKey,
+			},
 		},
 	}
 
@@ -122,6 +143,12 @@ func mergeConfig(config *Configuration, srcCfg Configuration) {
 	if len(srcCfg.DBAPIKey) > 0 {
 		config.DBAPIKey = srcCfg.DBAPIKey
 	}
+	if len(srcCfg.TLS.Certificate) > 0 {
+		config.TLS.Certificate = srcCfg.TLS.Certificate
+	}
+	if len(srcCfg.TLS.Key) > 0 {
+		config.TLS.Key = srcCfg.TLS.Key
+	}
 }
 
 // configureFromFile performs the necessary steps
@@ -160,6 +187,10 @@ func configureFromEnv(config *Configuration) {
 			DBAddress:            os.Getenv("BURNITDB_ADDRESS"),
 			DBServicePath:        os.Getenv("BURNITDB_PATH"),
 			DBAPIKey:             os.Getenv("BURNITDB_API_KEY"),
+			TLS: TLS{
+				Certificate: os.Getenv("BURNITGW_TLS_CERTIFICATE"),
+				Key:         os.Getenv("BURNITGW_TLS_KEY"),
+			},
 		},
 	}
 	mergeConfig(config, cfg)
@@ -176,7 +207,27 @@ func configureFromFlags(config *Configuration, f Flags) {
 			DBAddress:            f.DBAddress,
 			DBServicePath:        f.DBServicePath,
 			DBAPIKey:             f.DBAPIKey,
+			TLS: TLS{
+				Certificate: f.TLSCert,
+				Key:         f.TLSKey,
+			},
 		},
 	}
 	mergeConfig(config, cfg)
+}
+
+func NewTLSConfig() *tls.Config {
+	return &tls.Config{
+		PreferServerCipherSuites: true,
+		CurvePreferences: []tls.CurveID{
+			tls.CurveP256,
+		},
+		MinVersion: tls.VersionTLS13,
+		CipherSuites: []uint16{
+			tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+		},
+	}
 }
