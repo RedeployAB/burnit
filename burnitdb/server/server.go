@@ -109,14 +109,14 @@ func (s *Server) shutdown(wg *sync.WaitGroup, cleanup chan<- bool) {
 	if err := db.Close(s.dbClient); err != nil {
 		log.Printf("database: %v", err)
 	}
-	log.Println("disonnected from database")
+	log.Println("disconnected from database")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	s.httpServer.SetKeepAlivesEnabled(false)
 	if err := s.httpServer.Shutdown(ctx); err != nil {
-		log.Fatalf("could not shutdown server gracefully: %v", err)
+		log.Fatalf("could not shutdown server gracefully: %v\n", err)
 	}
 }
 
@@ -133,7 +133,7 @@ func (s *Server) cleanup(wg *sync.WaitGroup, stop <-chan bool) {
 		case <-time.After(5 * time.Second):
 			_, err := s.secretService.DeleteExpired()
 			if err != nil {
-				log.Printf("error in db expired cleanup: %v\n", err)
+				log.Printf("db cleanup: %v\n", err)
 			}
 		}
 	}
