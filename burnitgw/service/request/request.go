@@ -1,7 +1,6 @@
 package request
 
 import (
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -96,5 +95,5 @@ type Error struct {
 }
 
 func (e *Error) Error() string {
-	return fmt.Sprintf("%s", e.Message)
+	return e.Message
 }
