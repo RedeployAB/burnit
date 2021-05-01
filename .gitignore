@@ -1,1 +1,13 @@
 build/
+release/
+*.exe
+*.out
+
+.env
+*.env
+env.sh
+run.sh
+
+.DS_Store
+*.crt
+*.key
