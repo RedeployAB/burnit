@@ -40,10 +40,10 @@ func NewClient(address, path string) Client {
 // Request performs a request against the target URL.
 func (c client) Request(o Options) (*Response, error) {
 	url := c.Address + c.Path
-	if o.Params["id"] != "" {
+	if len(o.Params["id"]) > 0 {
 		url += "/" + o.Params["id"]
 	}
-	if o.Query != "" {
+	if len(o.Query) > 0 {
 		url += "?" + o.Query
 	}
 
