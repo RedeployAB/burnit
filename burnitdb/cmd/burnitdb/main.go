@@ -47,7 +47,7 @@ func connectToDB(conf *config.Configuration) *dbConnection {
 	client, err := db.Connect(conf.Database)
 	if err != nil {
 		log.Printf("could not connect to %s", conf.Database.Address)
-		log.Fatalf("error: %v", err)
+		log.Fatalf("database: %v", err)
 	}
 	log.Printf("connected to %s", client.GetAddress())
 	repo := db.NewSecretRepository(

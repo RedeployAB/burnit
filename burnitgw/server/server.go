@@ -88,10 +88,10 @@ func (s *Server) Start() {
 
 	go func() {
 		if err := s.listenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("server err: %v\n", err)
+			log.Fatalf("server: %v\n", err)
 		}
 	}()
-	log.Printf("server listening on: %s", s.httpServer.Addr)
+	log.Printf("server listening on: %s\n", s.httpServer.Addr)
 	s.shutdown()
 	log.Println("server has been stopped")
 }
@@ -119,6 +119,6 @@ func (s *Server) shutdown() {
 
 	s.httpServer.SetKeepAlivesEnabled(false)
 	if err := s.httpServer.Shutdown(ctx); err != nil {
-		log.Fatalf("could not shutdown server gracefully: %v", err)
+		log.Fatalf("server: %v", err)
 	}
 }

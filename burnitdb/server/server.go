@@ -76,7 +76,7 @@ func (s *Server) Start() {
 
 	go func() {
 		if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("server err: %v\n", err)
+			log.Fatalf("server: %v\n", err)
 		}
 	}()
 
@@ -88,7 +88,7 @@ func (s *Server) Start() {
 		wg.Add(1)
 	}
 
-	log.Printf("server listening on: %s", s.httpServer.Addr)
+	log.Printf("server listening on: %s\n", s.httpServer.Addr)
 	s.shutdown(&wg, cleanup)
 	log.Println("server has been stopped")
 }
@@ -116,7 +116,7 @@ func (s *Server) shutdown(wg *sync.WaitGroup, cleanup chan<- bool) {
 
 	s.httpServer.SetKeepAlivesEnabled(false)
 	if err := s.httpServer.Shutdown(ctx); err != nil {
-		log.Fatalf("could not shutdown server gracefully: %v\n", err)
+		log.Fatalf("server: %v\n", err)
 	}
 }
 
