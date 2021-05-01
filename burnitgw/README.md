@@ -18,6 +18,8 @@ Order of precedence:
 **Environment variables**
 
 * `BURNITGW_LISTEN_PORT` - Port the service listens to. Defaults to `3000`
+* `BURNITGW_TLS_CERTIFICATE` - Path to TLS certificate file (.crt). Defaults to empty
+* `BURNITGW_TLS_KEY` - Path to TLS key file (.key). Defaults to empty
 * `BURNITGEN_ADDRESS` - URL with port to `burnitgen`. Defaults to `http://localhost:3002`
 * `BURNITGEN_PATH` - Path for service calls. Defaults to `/secret`
 * `BURNITDB_ADDRESS` - URL with port to `burnitdb`. Defaults to `http://localhost:3001`
@@ -41,6 +43,9 @@ server:
   dbAddress: "http://localhost:3001"
   dbServicePath: "/secrets"
   dbApiKey: "<DB-API-KEY>"
+  tls:
+    certificate: "path/to/certificate"
+    key: "path/to/key"
 ```
 
 **Command line arguments**
@@ -48,16 +53,20 @@ server:
 ```shell
   -config string
         Path to configuration file
+  -db-address string
+        Address to DB service (burnitdb)
   -db-api-key string
         API Key to DB service
-  -db-base-url string
-        Address to DB service (burnitdb)
   -db-service-path string
         Path to DB service endpoint (burnitdb)
-  -generator-base-url string
+  -generator-address string
         Address to generator service (burnitgen)
   -generator-service-path string
         Path to generator service endpoint (burnitgen)
   -port string
         Port to listen on
+  -tls-certificate string
+        Path to TLS certificate file
+  -tls-key string
+        Path to TLS key file
 ```
