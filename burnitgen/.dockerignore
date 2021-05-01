@@ -1,11 +1,6 @@
-api/*
-config/*
-middleware/*
-secrets/*
-*.sh
-*.go
+release/
+test/
 *.md
-makefile
-
+LICENSE*
 .git
 .cache
