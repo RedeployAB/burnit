@@ -90,8 +90,6 @@ sensitive information is commited).
 
 ### Provision environment with Terraform
 
-## Usage
-
 Minimum `terraform.tfvars` example (fill out as necessary):
 ```hcl
 # Resource group variables
@@ -114,6 +112,11 @@ ssl_key_path         = "<path-to-key>"
 nginx_config_path      = "./conf/nginx.conf"
 ```
 
+Then run:
+```sh
+terraform plan -out=deploy.plan
+```
+
 Or without `.tfvars`:
 
 ```
@@ -129,3 +132,10 @@ terraform plan -out=deploy.plan \
 ```
 
 For more available settings end methods of deployment see: `variables.tf`.
+
+If the output looks alright, continue to provision the environment
+with:
+
+```sh
+terraform apply "deploy.plan"
+```
