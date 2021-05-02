@@ -11,3 +11,10 @@ run.sh
 .DS_Store
 *.crt
 *.key
+
+.terraform
+*.terraform*
+.tfstate
+*.tfstate
+*.tfvars
+*.plan

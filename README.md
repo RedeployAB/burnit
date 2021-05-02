@@ -10,6 +10,7 @@
 * [Local development and testing](#loca-development-and-testing)
   * [docker-compose](#docker-compose)
 * [Deploy to Kubernetes](#deploy-to-kubernetes)
+* [Deploy to Azure Container Instances](#deploy-to-azure-container-instances)
 
 
 ## Introduction
@@ -108,14 +109,14 @@ Body:
 **Retreiving**
 ```
 // Retreive a secret without custom passphrase.
-GET /secrets/<secretId>
+GET /secrets/<id>
 
 // Retreive a secret with custom passphrase.
 // Provide Passphrase in request headers.
 HEADER:
 Passphrase: <passphrase>
 
-GET /secrets/<secretId>
+GET /secrets/<id>
 ```
 
 **Example responses**
@@ -229,7 +230,7 @@ server:
   dbApiKey: <same-api-key-as-above> # Optional if not set in DB.
 ```
 
-Deploying:
+Deploy:
 
 ```sh
 kubectl create namespace burnit
@@ -258,3 +259,6 @@ Or run the provided script:
 cd deployments/kubernetes
 ./deploy.sh --burnitdb-config /path/to/file --burnitgw-config /path/to/file
 ```
+## Deploy to Azure Container Instances
+
+Detail step by step can be located [here](./deployments/aci/terraform/README.md)
