@@ -14,7 +14,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var correctPassphrase = security.Bcrypt("passphrase")
 var id1 = "507f1f77bcf86cd799439011"
 var apiKey = "ABCDEF"
 

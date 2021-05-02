@@ -29,9 +29,8 @@ func TestGenerateSecret(t *testing.T) {
 	}
 
 	var rb secretResponse
-	b, err := ioutil.ReadAll(res.Body)
-
-	if err = json.Unmarshal(b, &rb); err != nil {
+	b, _ := ioutil.ReadAll(res.Body)
+	if err := json.Unmarshal(b, &rb); err != nil {
 		t.Errorf("error in test: %v", err)
 	}
 
@@ -57,9 +56,8 @@ func TestGenerateSecretHandlerParams(t *testing.T) {
 	}
 
 	var rb secretResponse
-	b, err := ioutil.ReadAll(res.Body)
-
-	if err = json.Unmarshal(b, &rb); err != nil {
+	b, _ := ioutil.ReadAll(res.Body)
+	if err := json.Unmarshal(b, &rb); err != nil {
 		t.Errorf("error in test: %v", err)
 	}
 
