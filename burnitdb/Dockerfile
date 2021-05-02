@@ -4,6 +4,8 @@ ARG OS=linux
 ARG ARCH=amd64
 ARG BIN=burnitdb
 
+RUN apk update && apk add --no-cache ca-certificates && update-ca-certificates
+
 ENV USER=${BIN}
 ENV UID=10001
 
@@ -29,6 +31,7 @@ FROM scratch
 ARG BIN=burnitdb
 ARG PORT=3002
 
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /etc/group /etc/group
 COPY --from=builder /src/${BIN}/build/${BIN} /usr/bin/${BIN}
