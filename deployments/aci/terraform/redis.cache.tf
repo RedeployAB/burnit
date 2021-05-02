@@ -2,7 +2,7 @@ resource "azurerm_redis_cache" "redis" {
   count = var.redis_cache_deploy == true ? 1 : 0
 
   name                = var.redis_cache_name
-  resource_group_name = var.resource_group_deploy
+  resource_group_name = var.resource_group_name
   location            = var.location
 
   capacity = 0
