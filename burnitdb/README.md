@@ -39,6 +39,7 @@ Order of precedence:
 * `DB_SSL` - True/False. If true, use SSL for DB communication. Defaults to `true`
 * `DB_DRIVER` - `redis`/`mongo`. The database engine to use for the service. Defaults to `redis`
 * `DB_CONNECTION_URI` - URI for database connection
+* `DB_DIRECT_CONNECT` - Enable direct connect (mongodb only)
 
 Use either `DB_CONNECTION_URI` or: `DB_HOST`, `DB`, `DB_USER`, `DB_PASSWORD`, `DB_SSL`.
 
@@ -66,6 +67,7 @@ database:
   password: dbpassword
   ssl: true # Set to false if burnitdb and redis/mongo is in the same pod if using Kubernetes.
   uri: localhost:6379|mongodb://localhost:27017 # Can be used instead of address, database, username, password and ssl.
+  directConnect: false # Set to true when using MongoDB and direct connect is required.
 ```
 
 **Command line arguments**
