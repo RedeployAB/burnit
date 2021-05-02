@@ -31,7 +31,7 @@ should be registered together with the FQDN specified in the certificate.
 # for access to the Container Registry from the Container Group.
 acr_rg_name=<acr-resource-group-name>
 acr_name=<acr-name>
-acr_url=$acr_url.azurecr.io
+acr_url=$acr_name.azurecr.io
 location=<location>
 
 az group create --name $acr_rg_name --location $location
@@ -67,7 +67,7 @@ docker tag $burnitdb_image $acr_url/$burnitdb_image
 docker push $acr_url/$burnitdb_image
 cd ..
 
-cd burnitdb
+cd burnitgw
 ./build --version $burnitgw_version --docker
 docker tag $burnitgw_image $acr_url/$burnitgw_image
 docker push $acr_url/$burnitgw_image
