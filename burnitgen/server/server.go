@@ -49,7 +49,7 @@ func (s *Server) Start() {
 // kill is received.
 func (s *Server) shutdown() {
 	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt, syscall.SIGTERM, os.Kill)
+	signal.Notify(stop, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	sig := <-stop
 
 	log.Printf("shutting down server. reason: %s\n", sig.String())

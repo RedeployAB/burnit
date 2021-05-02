@@ -77,7 +77,6 @@ func (s *Server) createSecret() http.Handler {
 func (s *Server) updateSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		httperror.Write(w, http.StatusNotImplemented, "", "")
-		return
 	})
 }
 
