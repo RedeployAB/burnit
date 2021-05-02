@@ -93,11 +93,11 @@ sensitive information is commited).
 Minimum `terraform.tfvars` example (fill out as necessary):
 ```hcl
 # Resource group variables
-resource_group_name   = "<resource-group-name>"
+resource_group_name = "<resource-group-name>"
 
 # All resources variables
 location = "<location>"
-tags = {}
+tags     = {}
 
 # Redis variables
 redis_cache_name = "<redis-cache-name>"
@@ -109,7 +109,7 @@ acr_resource_group_name = "<acr-resource-group-name>"
 # Service variables
 ssl_certificate_path = "<path-to-cert>"
 ssl_key_path         = "<path-to-key>"
-nginx_config_path      = "./conf/nginx.conf"
+nginx_config_path    = "./conf/nginx.conf"
 ```
 
 Then run:
