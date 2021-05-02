@@ -53,7 +53,7 @@ resource "azurerm_container_group" "container_group" {
       secret = {
         "ssl.crt"    = filebase64(var.ssl_certificate_path)
         "ssl.key"    = filebase64(var.ssl_key_path)
-        "nginx.conf" = filebase64(var.nginx_config)
+        "nginx.conf" = filebase64(var.nginx_config_path)
       }
     }
   }
@@ -82,7 +82,7 @@ resource "azurerm_container_group" "container_group" {
     }
 
     secure_environment_variables = {
-      DB_CONNECTION_URI       = var.redis_deploy == true ? azurerm_redis_cache.redis[0].primary_connection_string : data.azurerm_redis_cache.redis[0].primary_connection_string
+      DB_CONNECTION_URI       = var.redis_cache_deploy == true ? azurerm_redis_cache.redis[0].primary_connection_string : data.azurerm_redis_cache.redis[0].primary_connection_string
       BURNITDB_ENCRYPTION_KEY = var.encryption_key == "" ? random_password.encryption_key.result : var.encryption_key
     }
   }

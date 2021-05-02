@@ -1,5 +1,5 @@
 resource "azurerm_redis_cache" "redis" {
-  count = var.redis_deploy == true ? 1 : 0
+  count = var.redis_cache_deploy == true ? 1 : 0
 
   name                = var.redis_cache_name
   resource_group_name = var.resource_group_deploy
@@ -17,7 +17,7 @@ resource "azurerm_redis_cache" "redis" {
 }
 
 data "azurerm_redis_cache" "redis" {
-  count = var.redis_deploy == false ? 1 : 0
+  count = var.redis_cache_deploy == false ? 1 : 0
 
   name                = var.redis_cache_name
   resource_group_name = var.resource_group_name

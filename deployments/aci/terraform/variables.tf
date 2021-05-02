@@ -27,7 +27,7 @@ variable "redis_cache_name" {
   type = string
 }
 
-variable "redis_deploy" {
+variable "redis_cache_deploy" {
   type    = bool
   default = true
 }
@@ -157,7 +157,7 @@ variable "ssl_key_path" {
   type = string
 }
 
-variable "nginx_config" {
+variable "nginx_config_path" {
   type = string
 }
 
