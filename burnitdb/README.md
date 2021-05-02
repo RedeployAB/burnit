@@ -29,7 +29,6 @@ Order of precedence:
 * `BURNITDB_LISTEN_PORT` - Port the service listens to. Defaults to `3001`
 * `BURNITDB_API_KEY` - API key/token to access the service endpoints. Leave empty to not require an API key/token (**optional**)
 * `BURNITDB_ENCRYPTION_KEY` - Encryption key for the secrets in the database (**mandatory**)
-* `BURNITDB_HASH_METHOD` - Hash method for passphrases. Defaults to `bcrypt`
 
 *Database configuration*
 
@@ -39,6 +38,9 @@ Order of precedence:
 * `DB_PASSWORD` - Password for the database user
 * `DB_SSL` - True/False. If true, use SSL for DB communication. Defaults to `true`
 * `DB_DRIVER` - `redis`/`mongo`. The database engine to use for the service. Defaults to `redis`
+* `DB_CONNECTION_URI` - URI for database connection
+
+Use either `DB_CONNECTION_URI` or: `DB_HOST`, `DB`, `DB_USER`, `DB_PASSWORD`, `DB_SSL`.
 
 **Configuration file**
 
@@ -77,6 +79,8 @@ database:
         Database name
   -db-address string
         Host name and port for database
+  -db-direct-connect
+        Enable direct connect (mongodb only)
   -db-password string
         Password for user for database connections
   -db-uri string
@@ -89,10 +93,8 @@ database:
         Database driver for storage of secrets: redis|mongo
   -encryption-key string
         Encryption key for secrets in database
-  -hash-method string
-        Hash method for passphrase protected secrets
   -port string
-        Port to listen onq
+        Port to listen on
 ```
 ### Running MongoDB in memory
 
