@@ -33,9 +33,4 @@ func TestCORSHandler(t *testing.T) {
 	if res.Header().Get("Access-Control-Allow-Methods") != "GET, POST" {
 		t.Errorf("incorrect value, got: %s, want: %s", res.Header().Get("Access-Control-Allow-Methods"), "GET, POST")
 	}
-
-	req, _ = http.NewRequest(http.MethodGet, "/", nil)
-	res = httptest.NewRecorder()
-
-	corsHandler.Handle(h()).ServeHTTP(res, req)
 }
