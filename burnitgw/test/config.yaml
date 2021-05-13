@@ -8,3 +8,5 @@ server:
   tls:
     certificate: "path/to/cert"
     key: "path/to/key"
+  cors:
+    origin: http://localhost

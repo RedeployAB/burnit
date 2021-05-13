@@ -32,6 +32,7 @@ type Flags struct {
 	DBAPIKey             string
 	TLSCert              string
 	TLSKey               string
+	CORSOrigin           string
 }
 
 // ParseFlags runs flag.Parse and returns a flag object.
@@ -45,9 +46,9 @@ func ParseFlags() Flags {
 	dbAPIKey := flag.String("db-api-key", "", "API Key to DB service")
 	tlsCert := flag.String("tls-certificate", "", "Path to TLS certificate file")
 	tlsKey := flag.String("tls-key", "", "Path to TLS key file")
+	corsOrigin := flag.String("cors-origin", "", "Enable CORS and set origin")
 
 	flag.Parse()
-
 	return Flags{
 		ConfigPath:           *configPath,
 		Port:                 *listenPort,
@@ -58,6 +59,7 @@ func ParseFlags() Flags {
 		DBAPIKey:             *dbAPIKey,
 		TLSCert:              *tlsCert,
 		TLSKey:               *tlsKey,
+		CORSOrigin:           *corsOrigin,
 	}
 }
 
@@ -70,12 +72,18 @@ type Server struct {
 	DBServicePath        string `yaml:"dbServicePath"`
 	DBAPIKey             string `yaml:"dbApiKey"`
 	TLS                  `yaml:"tls"`
+	CORS                 `yaml:"cors"`
 }
 
 // TLS represents TLS part of server configuration.
 type TLS struct {
 	Certificate string `yaml:"certificate"`
 	Key         string `yaml:"key"`
+}
+
+// CORS represent CORS part of server configuration.
+type CORS struct {
+	Origin string `yaml:"origin,omitempty"`
 }
 
 // Configuration represents a configuration.
@@ -149,6 +157,9 @@ func mergeConfig(config *Configuration, srcCfg Configuration) {
 	if len(srcCfg.TLS.Key) > 0 {
 		config.TLS.Key = srcCfg.TLS.Key
 	}
+	if len(srcCfg.CORS.Origin) > 0 {
+		config.CORS.Origin = srcCfg.CORS.Origin
+	}
 }
 
 // configureFromFile performs the necessary steps
@@ -191,8 +202,12 @@ func configureFromEnv(config *Configuration) {
 				Certificate: os.Getenv("BURNITGW_TLS_CERTIFICATE"),
 				Key:         os.Getenv("BURNITGW_TLS_KEY"),
 			},
+			CORS: CORS{
+				Origin: os.Getenv("BURNITGW_CORS_ORIGIN"),
+			},
 		},
 	}
+
 	mergeConfig(config, cfg)
 }
 
@@ -210,6 +225,9 @@ func configureFromFlags(config *Configuration, f Flags) {
 			TLS: TLS{
 				Certificate: f.TLSCert,
 				Key:         f.TLSKey,
+			},
+			CORS: CORS{
+				Origin: f.CORSOrigin,
 			},
 		},
 	}
@@ -229,5 +247,12 @@ func NewTLSConfig() *tls.Config {
 			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
 			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
 		},
+	}
+}
+
+func CORSHeaders() map[string][]string {
+	return map[string][]string{
+		"Access-Control-Allow-Headers": {"Content-Type"},
+		"Access-Control-Allow-Methods": {"GET", "POST", "OPTIONS"},
 	}
 }
