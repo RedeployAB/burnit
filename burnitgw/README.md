@@ -20,6 +20,7 @@ Order of precedence:
 * `BURNITGW_LISTEN_PORT` - Port the service listens to. Defaults to `3000`
 * `BURNITGW_TLS_CERTIFICATE` - Path to TLS certificate file (.crt). Defaults to empty
 * `BURNITGW_TLS_KEY` - Path to TLS key file (.key). Defaults to empty
+* `BURNITGW_CORS_ORIGIN` - Enables CORS and sets `Access-Control-Allow-Origin` to provided value
 * `BURNITGEN_ADDRESS` - URL with port to `burnitgen`. Defaults to `http://localhost:3002`
 * `BURNITGEN_PATH` - Path for service calls. Defaults to `/secret`
 * `BURNITDB_ADDRESS` - URL with port to `burnitdb`. Defaults to `http://localhost:3001`
@@ -46,6 +47,8 @@ server:
   tls:
     certificate: "path/to/certificate"
     key: "path/to/key"
+  cors:
+    origin: <domain>
 ```
 
 **Command line arguments**
@@ -53,6 +56,8 @@ server:
 ```shell
   -config string
         Path to configuration file
+  -cors-origin string
+        Enable CORS and set origin
   -db-address string
         Address to DB service (burnitdb)
   -db-api-key string

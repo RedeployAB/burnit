@@ -21,7 +21,7 @@ func (h *HeaderStrip) Strip(next http.Handler) http.Handler {
 			header := http.Header{}
 			for k, v := range r.Header {
 				for _, e := range h.Exceptions {
-					if strings.ToLower(k) == strings.ToLower(e) {
+					if strings.EqualFold(k, e) {
 						header.Add(k, v[0])
 					}
 				}

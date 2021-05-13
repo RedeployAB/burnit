@@ -21,6 +21,7 @@ func TestConfigureDefault(t *testing.T) {
 			GeneratorServicePath: "/secret",
 			DBAddress:            "http://localhost:3001",
 			DBServicePath:        "/secrets",
+			CORS:                 CORS{},
 		},
 	}
 
@@ -43,6 +44,9 @@ func TestConfigureFromFile(t *testing.T) {
 			TLS: TLS{
 				Certificate: "path/to/cert",
 				Key:         "path/to/key",
+			},
+			CORS: CORS{
+				Origin: "http://localhost",
 			},
 		},
 	}
@@ -71,6 +75,9 @@ func TestConfigureFromEnv(t *testing.T) {
 				Certificate: "path/to/cert",
 				Key:         "path/to/key",
 			},
+			CORS: CORS{
+				Origin: "http://localhost",
+			},
 		},
 	}
 
@@ -83,6 +90,7 @@ func TestConfigureFromEnv(t *testing.T) {
 	os.Setenv("BURNITDB_API_KEY", expected.DBAPIKey)
 	os.Setenv("BURNITGW_TLS_CERTIFICATE", expected.TLS.Certificate)
 	os.Setenv("BURNITGW_TLS_KEY", expected.TLS.Key)
+	os.Setenv("BURNITGW_CORS_ORIGIN", expected.CORS.Origin)
 	configureFromEnv(config)
 
 	if !cmp.Equal(expected, config) {
@@ -98,6 +106,7 @@ func TestConfigureFromEnv(t *testing.T) {
 	os.Setenv("BURNITDB_API_KEY", "")
 	os.Setenv("BURNITGW_TLS_CERTIFICATE", "")
 	os.Setenv("BURNITGW_TLS_KEY", "")
+	os.Setenv("BURNITGW_CORS_ORIGIN", "")
 }
 
 func TestConfigureFromFlags(t *testing.T) {
@@ -113,6 +122,9 @@ func TestConfigureFromFlags(t *testing.T) {
 				Certificate: "path/to/cert",
 				Key:         "path/to/key",
 			},
+			CORS: CORS{
+				Origin: "http://localhost",
+			},
 		},
 	}
 
@@ -125,6 +137,7 @@ func TestConfigureFromFlags(t *testing.T) {
 		DBAPIKey:             expected.DBAPIKey,
 		TLSCert:              expected.TLS.Certificate,
 		TLSKey:               expected.TLS.Key,
+		CORSOrigin:           expected.CORS.Origin,
 	}
 
 	config := &Configuration{}
@@ -174,6 +187,9 @@ func TestConfigure(t *testing.T) {
 				Certificate: "path/to/cert",
 				Key:         "path/to/key",
 			},
+			CORS: CORS{
+				Origin: "http://localhost",
+			},
 		},
 	}
 
@@ -201,6 +217,9 @@ func TestConfigure(t *testing.T) {
 				Certificate: "another/path/to/cert",
 				Key:         "another/path/to/key",
 			},
+			CORS: CORS{
+				Origin: "*",
+			},
 		},
 	}
 
@@ -212,6 +231,7 @@ func TestConfigure(t *testing.T) {
 	os.Setenv("BURNITDB_API_KEY", expected.DBAPIKey)
 	os.Setenv("BURNITGW_TLS_CERTIFICATE", expected.TLS.Certificate)
 	os.Setenv("BURNITGW_TLS_KEY", expected.TLS.Key)
+	os.Setenv("BURNITGW_CORS_ORIGIN", expected.CORS.Origin)
 
 	config, err = Configure(flags)
 	if err != nil {
@@ -236,6 +256,9 @@ func TestConfigure(t *testing.T) {
 				Certificate: "third/path/to/cert",
 				Key:         "third/path/to/key",
 			},
+			CORS: CORS{
+				Origin: "http://localhost",
+			},
 		},
 	}
 
@@ -249,6 +272,7 @@ func TestConfigure(t *testing.T) {
 		DBAPIKey:             expected.DBAPIKey,
 		TLSCert:              expected.TLS.Certificate,
 		TLSKey:               expected.TLS.Key,
+		CORSOrigin:           expected.CORS.Origin,
 	}
 
 	config, err = Configure(flags)
@@ -269,6 +293,7 @@ func TestConfigure(t *testing.T) {
 	os.Setenv("BURNITDB_API_KEY", "")
 	os.Setenv("BURNITGW_TLS_CERTIFICATE", "")
 	os.Setenv("BURNITGW_TLS_KEY", "")
+	os.Setenv("BURNITGW_CORS_ORIGIN", "")
 
 	// Test with flags. Should override file and envrionment variables.
 	// Should not have prefix http:// or https:// in address arguments.
@@ -284,6 +309,9 @@ func TestConfigure(t *testing.T) {
 				Certificate: "path/to/cert",
 				Key:         "path/to/key",
 			},
+			CORS: CORS{
+				Origin: "*",
+			},
 		},
 	}
 
@@ -297,6 +325,7 @@ func TestConfigure(t *testing.T) {
 		DBAPIKey:             expected.DBAPIKey,
 		TLSCert:              "",
 		TLSKey:               "",
+		CORSOrigin:           "*",
 	}
 
 	config, err = Configure(flags)
