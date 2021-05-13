@@ -34,6 +34,13 @@ type tlsConfig struct {
 
 type middlewareConfig struct {
 	dbAPIkey string
+	cors     cors
+}
+
+type cors struct {
+	enabled bool
+	origin  string
+	headers map[string][]string
 }
 
 // New returns a configured Server.
@@ -70,11 +77,21 @@ func New(conf *config.Configuration, r *mux.Router) *Server {
 		}
 	}
 
+	var corsCfg cors
+	if len(conf.CORS.Origin) > 0 {
+		corsCfg = cors{
+			origin:  conf.CORS.Origin,
+			headers: config.CORSHeaders(),
+			enabled: true,
+		}
+	}
+
 	return &Server{
 		httpServer: srv,
 		router:     r,
 		middlewareConfig: middlewareConfig{
 			dbAPIkey: conf.Server.DBAPIKey,
+			cors:     corsCfg,
 		},
 		generatorService: generatorService,
 		dbService:        dbService,

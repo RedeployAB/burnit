@@ -21,4 +21,12 @@ func (s *Server) routes() {
 
 	s.router.PathPrefix("/").HandlerFunc(s.notFound)
 	s.router.Use(middleware.Logger)
+
+	if s.middlewareConfig.cors.enabled {
+		corsHandler := middleware.CORSHandler{
+			Origin:  s.middlewareConfig.cors.origin,
+			Headers: s.middlewareConfig.cors.headers,
+		}
+		s.router.Use(corsHandler.Handle)
+	}
 }
