@@ -4,11 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"strconv"
 	"time"
 
 	"github.com/RedeployAB/burnit/burnitdb/db"
 	"github.com/RedeployAB/burnit/common/security"
 )
+
+const maxLength = 5000
 
 // Secret is to be used as the middle-hand between
 // incoming JSON payload and the data model.
@@ -108,6 +111,10 @@ func NewFromJSON(b io.ReadCloser) (*Secret, error) {
 
 	if len(s.Value) == 0 {
 		return nil, errors.New("a provided secret (value) is missing")
+	}
+
+	if len(s.Value) > maxLength {
+		return nil, errors.New("provided value is too large, character limit exceeds: " + strconv.Itoa(maxLength))
 	}
 
 	if s.TTL != 0 {
