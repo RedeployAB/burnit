@@ -252,7 +252,7 @@ func NewTLSConfig() *tls.Config {
 
 func CORSHeaders() map[string][]string {
 	return map[string][]string{
-		"Access-Control-Allow-Headers": {"Content-Type"},
+		"Access-Control-Allow-Headers": {"Content-Type", "Passphrase"},
 		"Access-Control-Allow-Methods": {"GET", "POST", "OPTIONS"},
 	}
 }
