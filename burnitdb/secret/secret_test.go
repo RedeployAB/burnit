@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"errors"
 	"io/ioutil"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -253,14 +255,23 @@ func TestNewFromJSONMalformed(t *testing.T) {
 	str1 := []byte(`{}`)
 	str2 := []byte(`{"value":""}`)
 
-	wantErr := "a provided secret (value) is missing"
+	var str strings.Builder
+	maxLength := 5000
+	for i := 0; i < maxLength+1; i++ {
+		str.WriteString("a")
+	}
+	str3 := []byte(`{"value":"` + str.String() + `"}`)
+
+	wantErr1 := "a provided secret (value) is missing"
+	wantErr2 := "provided value is too large, character limit exceeds: " + strconv.Itoa(maxLength)
 
 	var tests = []struct {
 		input   []byte
 		wantErr string
 	}{
-		{input: str1, wantErr: wantErr},
-		{input: str2, wantErr: wantErr},
+		{input: str1, wantErr: wantErr1},
+		{input: str2, wantErr: wantErr1},
+		{input: str3, wantErr: wantErr2},
 	}
 
 	for _, test := range tests {
@@ -270,8 +281,8 @@ func TestNewFromJSONMalformed(t *testing.T) {
 			t.Errorf("incorrect value, should return an error")
 		}
 
-		if err.Error() != wantErr {
-			t.Errorf("incorrect value, got: %s, want: %s", err.Error(), wantErr)
+		if err.Error() != test.wantErr {
+			t.Errorf("incorrect value, got: %s, want: %s", err.Error(), test.wantErr)
 		}
 	}
 }
