@@ -64,7 +64,7 @@ func (c client) Request(o Options) (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Response{Header: req.Header, Body: b, StatusCode: res.StatusCode}, nil
+	return &Response{Header: res.Header, Body: b, StatusCode: res.StatusCode}, nil
 }
 
 // Options is options for an HTTP/HTTPs request.
