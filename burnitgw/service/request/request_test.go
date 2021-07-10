@@ -7,14 +7,6 @@ import (
 	"testing"
 )
 
-type mockResponse struct {
-	Value string `json:"value"`
-}
-
-type mockFullResponse struct {
-	Secret mockResponse
-}
-
 func TestBasicRequest(t *testing.T) {
 	jsonByte := []byte(`{"secret":{"value":"secret"}}`)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
