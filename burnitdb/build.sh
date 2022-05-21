@@ -11,7 +11,6 @@ function help {
 
 # Set defaults.
 BIN=burnitdb
-ARCH=amd64
 PLATFORM=linux/amd64
 VERSION=""
 CONTAINER=0
@@ -77,7 +76,7 @@ if [[ $CONTAINER -eq 1 && "$os" == "linux" ]]; then
   rm -rf build
 else
   bin_full_name=$BIN-$VERSION-$os-$arch
-  bin_path=release/$OS/bin
+  bin_path=release/$os/bin
   mkdir -p release
   GOOS=$os GOARCH=$arch go build -o release/$bin_full_name -ldflags="-w -s" -trimpath cmd/$BIN/main.go
 fi
