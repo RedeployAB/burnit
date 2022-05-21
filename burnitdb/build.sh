@@ -78,5 +78,5 @@ else
   bin_full_name=$BIN-$VERSION-$os-$arch
   bin_path=release/$os/bin
   mkdir -p release
-  GOOS=$os GOARCH=$arch go build -o release/$bin_full_name -ldflags="-w -s" -trimpath cmd/$BIN/main.go
+  GOOS=$os GOARCH=$arch go build -o $bin_path/$bin_full_name -ldflags="-w -s" -trimpath cmd/$BIN/main.go
 fi
