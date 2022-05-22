@@ -6,15 +6,6 @@ import (
 	"net/http"
 )
 
-const (
-	// GET represents string GET.
-	GET string = "GET"
-	// POST represents string POST.
-	POST string = "POST"
-	// PUT represents string PUT.
-	PUT string = "PUT"
-)
-
 // Client is an interface for HTTP requests.
 type Client interface {
 	Request(o Options) (*Response, error)

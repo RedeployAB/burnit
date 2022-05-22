@@ -42,7 +42,7 @@ func NewService(client request.Client) Service {
 // will be extracted from the request (id).
 func (s service) Get(r *http.Request, params map[string]string) (*Secret, error) {
 	res, err := s.client.Request(request.Options{
-		Method: request.GET,
+		Method: http.MethodGet,
 		Header: r.Header,
 		Params: params,
 	})
@@ -68,7 +68,7 @@ func (s service) Get(r *http.Request, params map[string]string) (*Secret, error)
 // Create a secret with a request to the sercret db service.
 func (s service) Create(r *http.Request) (*Secret, error) {
 	res, err := s.client.Request(request.Options{
-		Method: request.POST,
+		Method: http.MethodPost,
 		Header: r.Header,
 		Body:   r.Body,
 	})

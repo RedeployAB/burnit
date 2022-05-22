@@ -36,7 +36,7 @@ func NewService(client request.Client) Service {
 // generator service.
 func (s service) Generate(r *http.Request) (*Secret, error) {
 	res, err := s.client.Request(request.Options{
-		Method: request.GET,
+		Method: http.MethodGet,
 		Query:  r.URL.RawQuery,
 	})
 	if err != nil {

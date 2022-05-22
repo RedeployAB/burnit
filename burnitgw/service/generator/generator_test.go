@@ -10,9 +10,7 @@ import (
 )
 
 type mockClient struct {
-	address string
-	path    string
-	mode    string
+	mode string
 }
 
 func (c mockClient) Request(o request.Options) (*request.Response, error) {

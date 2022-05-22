@@ -15,7 +15,7 @@ func TestBasicRequest(t *testing.T) {
 	defer srv.Close()
 
 	client := NewClient(srv.URL, "/path")
-	opts := Options{Method: GET}
+	opts := Options{Method: http.MethodGet}
 	res, err := client.Request(opts)
 	if err != nil {
 		t.Fatalf("Error in setting client call: %v", err)
@@ -41,7 +41,7 @@ func TestRequestWithParams(t *testing.T) {
 
 	client := NewClient(srv.URL, "/path")
 	params := map[string]string{"id": expectedParam}
-	opts := Options{Method: GET, Params: params}
+	opts := Options{Method: http.MethodGet, Params: params}
 	_, err := client.Request(opts)
 	if err != nil {
 		t.Errorf("Incorrect value, got: %v, want: <nil>", err)
@@ -61,7 +61,7 @@ func TestBasicRequestWithQuery(t *testing.T) {
 	defer srv.Close()
 
 	client := NewClient(srv.URL, "/path")
-	opts := Options{Method: GET, Query: expectedQuery}
+	opts := Options{Method: http.MethodGet, Query: expectedQuery}
 	_, err := client.Request(opts)
 	if err != nil {
 		t.Errorf("Incorrect value, got: %v, want: <nil>", err)
@@ -84,6 +84,6 @@ func TestBasicRequestWithHeaders(t *testing.T) {
 
 	hdr := http.Header{}
 	hdr.Add(hdrName, "test")
-	opts := Options{Method: GET, Header: hdr}
+	opts := Options{Method: http.MethodGet, Header: hdr}
 	_, _ = client.Request(opts)
 }
