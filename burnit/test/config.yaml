@@ -1,0 +1,22 @@
+server:
+  host: "127.0.0.1"
+  port: 3003
+  security:
+    apiKey: aabbcc
+    encryption:
+      key: secretstring
+    tls:
+      certificate: path/to/cert
+      key: path/to/key
+    cors:
+      origin: http://localhost
+
+database:
+  driver: mongo
+  address: localhost:27017
+  database: burnit_db
+  username: dbuser
+  password: dbpassword
+  ssl: false
+  directConnect: true
+  uri: mongodb://localhost:27017
