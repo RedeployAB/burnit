@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/RedeployAB/burnit/burnit/secret"
 	"github.com/RedeployAB/burnit/common/httperror"
@@ -96,5 +97,31 @@ func (s *server) deleteSecret() http.Handler {
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
+	})
+}
+
+// generateSecret generates a secret.
+func (s *server) generateSecret() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		query := r.URL.Query()
+		length := query.Get("length")
+		specialchars := query.Get("specialchars")
+
+		l, err := strconv.Atoi(length)
+		if err != nil {
+			l = 16
+		}
+		sc, err := strconv.ParseBool(specialchars)
+		if err != nil {
+			sc = false
+		}
+
+		secret := s.secretService.Generate(l, sc)
+
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		if err := json.NewEncoder(w).Encode(newSecretResponse(secret)); err != nil {
+			panic(err)
+		}
 	})
 }

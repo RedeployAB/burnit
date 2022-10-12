@@ -70,6 +70,10 @@ func (r mockSecretService) DeleteExpired() (int64, error) {
 	return 0, nil
 }
 
+func (r mockSecretService) Generate(l int, sc bool) *secret.Secret {
+	return nil
+}
+
 func (r mockSecretService) Delete(id string) (int64, error) {
 	var result int64
 	var err error
