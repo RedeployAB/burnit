@@ -30,6 +30,7 @@ type Service interface {
 	Create(secret *Secret) (*Secret, error)
 	Delete(id string) (int64, error)
 	DeleteExpired() (int64, error)
+	Generate(l int, sc bool) *Secret
 }
 
 // service is the layer that handles translation
@@ -94,6 +95,12 @@ func (svc service) DeleteExpired() (int64, error) {
 		return 0, err
 	}
 	return deleted, nil
+}
+
+// Generate a secret with specified length (l) and special characters (sc).
+func (svc service) Generate(l int, sc bool) *Secret {
+	value := generate(l, sc)
+	return &Secret{Value: value}
 }
 
 // NewService creates a new service for handling secrets.

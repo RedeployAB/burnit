@@ -3,7 +3,7 @@ package secret
 import (
 	"bytes"
 	"errors"
-	"io/ioutil"
+	"io"
 	"strconv"
 	"strings"
 	"testing"
@@ -13,11 +13,11 @@ import (
 	"github.com/RedeployAB/burnit/common/security"
 )
 
-var correctPassphrase = security.Bcrypt("passphrase")
-var id1 = "507f1f77bcf86cd799439011"
-var apiKey = "ABCDEF"
-var encryptionKey = "abcdefg"
-var encrypted, _ = security.Encrypt([]byte("value"), encryptionKey)
+var (
+	id1           = "507f1f77bcf86cd799439011"
+	encryptionKey = "abcdefg"
+	encrypted, _  = security.Encrypt([]byte("value"), encryptionKey)
+)
 
 // Mock to handle repository answers in handler tests.
 type mockSecretRepository struct {
@@ -238,7 +238,7 @@ func TestNewFromJSON(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		got, err := NewFromJSON(ioutil.NopCloser(bytes.NewBuffer(test.input)))
+		got, err := NewFromJSON(io.NopCloser(bytes.NewBuffer(test.input)))
 		if got != nil && got.Value != test.want.Value {
 			t.Errorf("incorrect value, got: %s, want: %s", got.Value, test.want.Value)
 		}
@@ -275,7 +275,7 @@ func TestNewFromJSONMalformed(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		_, err := NewFromJSON(ioutil.NopCloser(bytes.NewBuffer(test.input)))
+		_, err := NewFromJSON(io.NopCloser(bytes.NewBuffer(test.input)))
 
 		if err == nil {
 			t.Errorf("incorrect value, should return an error")
