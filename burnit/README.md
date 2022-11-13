@@ -27,23 +27,23 @@ Order of precedence:
 **Environment variables**
 
 * `BURNIT_LISTEN_HOST` - Host (IP address) the service listens to. Defaults to `0.0.0.0`.
+* `BURNIT_LISTEN_PORT` - Port the service listens to. Defaults to `3001`.
+* `BURNIT_ENCRYPTION_KEY` - Encryption key for the secrets in the database (**mandatory**).
 * `BURNIT_TLS_CERTIFICATE` - Path to TLS certificate file (`.crt`). Defaults to empty.
 * `BURNIT_TLS_KEY` - Path to TLS key file (`.key`). Defaults to empty.
 * `BURNIT_CORS_ORIGIN` - Enable CORS and sets `Access-Control-Allow-Origin` to provided value.
-* `BURNIT_LISTEN_PORT` - Port the service listens to. Defaults to `3001`.
-* `BURNIT_API_KEY` - API key/token to access the service endpoints. Leave empty to not require an API key/token (**optional**).
-* `BURNIT_ENCRYPTION_KEY` - Encryption key for the secrets in the database (**mandatory**).
+
 
 *Database configuration*
 
-* `DB_HOST` - FQDN/IP address for the MongoDB host. Defaults to `localhost`
-* `DB` - Database for the secrets
-* `DB_USER` - Database user with read/write access
-* `DB_PASSWORD` - Password for the database user
-* `DB_SSL` - True/False. If true, use SSL for DB communication. Defaults to `true`
-* `DB_DRIVER` - `redis`/`mongo`. The database engine to use for the service. Defaults to `redis`
-* `DB_CONNECTION_URI` - URI for database connection
-* `DB_DIRECT_CONNECT` - Enable direct connect (mongodb only)
+* `DB_HOST` - FQDN/IP address for the MongoDB host. Defaults to `localhost`.
+* `DB` - Database for the secrets.
+* `DB_USER` - Database user with read/write access.
+* `DB_PASSWORD` - Password for the database user.
+* `DB_SSL` - True/False. If true, use SSL for DB communication. Defaults to `true`.
+* `DB_DRIVER` - `redis`/`mongo`. The database engine to use for the service. Defaults to `redis`.
+* `DB_CONNECTION_URI` - URI for database connection.
+* `DB_DIRECT_CONNECT` - Enable direct connect (mongodb only).
 
 Use either `DB_CONNECTION_URI` or: `DB_HOST`, `DB`, `DB_USER`, `DB_PASSWORD`, `DB_SSL`.
 
@@ -60,7 +60,6 @@ Pass `-config` with path when running service, like so:
 server:
   host: "0.0.0.0"
   port: 3000
-  apiKey: <db-api-key> # Mandatory
   security:
     encryption:
       key: secretstring # Mandatory

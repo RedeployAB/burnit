@@ -2,7 +2,6 @@ package config
 
 import (
 	"crypto/tls"
-	"errors"
 	"io"
 	"net/http"
 	"os"
@@ -10,18 +9,43 @@ import (
 	"strconv"
 	"strings"
 
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 var (
-	defaultHost            = "0.0.0.0"
-	defaultListenPort      = "3000"
-	defaultDriver          = "redis"
-	defaultAddress         = "localhost"
-	defaultDB              = "burnit"
-	defaultDBSSL           = true
-	defaultDBDirectConnect = false
+	defaultListenHost = "0.0.0.0"
+	defaultListenPort = "3000"
+	defaultDBDriver   = "redis"
+	defaultDBAddress  = "localhost"
+	defaultDB         = "burnit"
+	defaultDBSSL      = true
 )
+
+const (
+	DatabaseDriverRedis = "redis"
+	DatabaseDriverMongo = "mongo"
+)
+
+// Configuration represents a configuration.
+type Configuration struct {
+	Server   Server   `yaml:"server"`
+	Database Database `yaml:"database"`
+}
+
+func newConfiguration() *Configuration {
+	return &Configuration{
+		Server: Server{
+			Host: defaultListenHost,
+			Port: defaultListenPort,
+		},
+		Database: Database{
+			Driver:   defaultDBDriver,
+			Address:  defaultDBAddress,
+			Database: defaultDB,
+			SSL:      defaultDBSSL,
+		},
+	}
+}
 
 // Server defines server part of configuration.
 type Server struct {
@@ -32,7 +56,6 @@ type Server struct {
 
 // Security defines security part of server configuration.
 type Security struct {
-	APIKey     string     `yaml:"apiKey"`
 	Encryption Encryption `yaml:"encryption"`
 	TLS        TLS        `yaml:"tls"`
 	CORS       CORS       `yaml:"cors"`
@@ -66,109 +89,45 @@ type Database struct {
 	DirectConnect bool   `yaml:"directConnect"`
 }
 
-// Configuration represents a configuration.
-type Configuration struct {
-	Server   Server   `yaml:"server"`
-	Database Database `yaml:"database"`
+func New() (*Configuration, error) {
+	f := parseFlags()
+	return configure(f)
 }
 
-// Configure performs the necessary steps
-// for server configuration.
-func Configure(f Flags) (*Configuration, error) {
-	config := &Configuration{
-		Server{
-			Host: defaultHost,
-			Port: defaultListenPort,
-		},
-		Database{
-			Driver:        defaultDriver,
-			Address:       defaultAddress,
-			Database:      defaultDB,
-			SSL:           defaultDBSSL,
-			DirectConnect: defaultDBDirectConnect,
-		},
-	}
+func configure(f flags) (*Configuration, error) {
+	cfg := newConfiguration()
 
-	if len(f.ConfigPath) > 0 {
-		if err := configureFromFile(config, f.ConfigPath); err != nil {
+	if len(f.ConfigPath) != 0 {
+		if err := fromFile(cfg, f.ConfigPath); err != nil {
 			return nil, err
 		}
 	}
+	fromEnv(cfg)
+	fromFlags(cfg, f)
 
-	configureFromEnv(config)
-	configureFromFlags(config, f)
-
-	if len(config.Server.Security.Encryption.Key) == 0 {
-		return config, errors.New("encryption key must be set")
-	}
-
-	if len(config.Database.URI) > 0 {
-		switch config.Database.Driver {
-		case "redis":
-			config.Database.Address = AddressFromRedisURI(config.Database.URI)
-		case "mongo":
-			config.Database.Address = AddressFromMongoURI(config.Database.URI)
+	if len(cfg.Database.URI) > 0 {
+		switch cfg.Database.Driver {
+		case DatabaseDriverRedis:
+			cfg.Database.Address = AddressFromRedisURI(cfg.Database.URI)
+		case DatabaseDriverMongo:
+			cfg.Database.Address = AddressFromMongoURI(cfg.Database.URI)
 		}
 	}
 
-	if config.Database.Driver == "redis" {
+	if cfg.Database.Driver == DatabaseDriverRedis {
 		re := regexp.MustCompile(`:\d+$`)
-		if !re.MatchString(config.Database.Address) {
-			config.Database.Address += ":6379"
+		if !re.MatchString(cfg.Database.Address) {
+			cfg.Database.Address += ":6379"
 		}
 	}
-	return config, nil
+
+	return cfg, nil
 }
 
-func mergeConfig(config *Configuration, srcCfg Configuration) {
-	if len(srcCfg.Server.Host) > 0 {
-		config.Server.Host = srcCfg.Server.Host
-	}
-	if len(srcCfg.Server.Port) > 0 {
-		config.Server.Port = srcCfg.Server.Port
-	}
-	if len(srcCfg.Server.Security.TLS.Certificate) > 0 {
-		config.Server.Security.TLS.Certificate = srcCfg.Server.Security.TLS.Certificate
-	}
-	if len(srcCfg.Server.Security.TLS.Key) > 0 {
-		config.Server.Security.TLS.Key = srcCfg.Server.Security.TLS.Key
-	}
-	if len(srcCfg.Server.Security.CORS.Origin) > 0 {
-		config.Server.Security.CORS.Origin = srcCfg.Server.Security.CORS.Origin
-	}
-	if len(srcCfg.Server.Security.APIKey) > 0 {
-		config.Server.Security.APIKey = srcCfg.Server.Security.APIKey
-	}
-	if len(srcCfg.Server.Security.Encryption.Key) > 0 {
-		config.Server.Security.Encryption.Key = srcCfg.Server.Security.Encryption.Key
-	}
-
-	if len(srcCfg.Database.Driver) > 0 {
-		config.Database.Driver = strings.ToLower(srcCfg.Database.Driver)
-	}
-	if len(srcCfg.Database.Address) > 0 {
-		config.Database.Address = srcCfg.Database.Address
-	}
-	if len(srcCfg.Database.URI) > 0 {
-		config.Database.URI = srcCfg.Database.URI
-	}
-	if len(srcCfg.Database.Database) > 0 {
-		config.Database.Database = srcCfg.Database.Database
-	}
-	if len(srcCfg.Database.Username) > 0 {
-		config.Database.Username = srcCfg.Database.Username
-	}
-	if len(srcCfg.Database.Password) > 0 {
-		config.Database.Password = srcCfg.Database.Password
-	}
-	config.Database.SSL = srcCfg.Database.SSL
-	config.Database.DirectConnect = srcCfg.Database.DirectConnect
-}
-
-// configureFromFile performs the necessary steps
+// fromFile performs the necessary steps
 // for server configuration from environment
 // variables.
-func configureFromFile(config *Configuration, path string) error {
+func fromFile(config *Configuration, path string) error {
 	f, err := os.Open(path)
 	if err != nil {
 		return err
@@ -185,29 +144,33 @@ func configureFromFile(config *Configuration, path string) error {
 		return err
 	}
 
-	mergeConfig(config, cfg)
+	Merge(config, cfg)
 	return nil
 }
 
-// configureFromEnv performs the necessary steps
+// fromEnv performs the necessary steps
 // for server configuration from environment
 // variables.
-func configureFromEnv(config *Configuration) {
-	var dbSSL bool
-	var dbDirect bool
+func fromEnv(config *Configuration) {
+	var dbSSL, dbDirectConnect bool
+	var err error
 
-	dbSSLStr := os.Getenv("DB_SSL")
-	if len(dbSSLStr) == 0 {
-		dbSSL = config.Database.SSL
+	if dbSSLEnv, ok := os.LookupEnv("DB_SSL"); ok {
+		dbSSL, err = strconv.ParseBool(dbSSLEnv)
+		if err != nil {
+			dbSSL = config.Database.SSL
+		}
 	} else {
-		dbSSL, _ = strconv.ParseBool(dbSSLStr)
+		dbSSL = config.Database.SSL
 	}
 
-	dbDirectStr := os.Getenv("DB_DIRECT_CONNECT")
-	if len(dbDirectStr) == 0 {
-		dbDirect = config.Database.DirectConnect
+	if dbDirectConnectEnv, ok := os.LookupEnv("DB_DIRECT_CONNECT"); ok {
+		dbDirectConnect, err = strconv.ParseBool(dbDirectConnectEnv)
+		if err != nil {
+			dbDirectConnect = config.Database.DirectConnect
+		}
 	} else {
-		dbDirect, _ = strconv.ParseBool(dbDirectStr)
+		dbDirectConnect = config.Database.DirectConnect
 	}
 
 	cfg := Configuration{
@@ -215,7 +178,6 @@ func configureFromEnv(config *Configuration) {
 			Host: os.Getenv("BURNIT_LISTEN_HOST"),
 			Port: os.Getenv("BURNIT_LISTEN_PORT"),
 			Security: Security{
-				APIKey: os.Getenv("BURNIT_API_KEY"),
 				Encryption: Encryption{
 					Key: os.Getenv("BURNIT_ENCRYPTION_KEY"),
 				},
@@ -236,23 +198,23 @@ func configureFromEnv(config *Configuration) {
 			Username:      os.Getenv("DB_USER"),
 			Password:      os.Getenv("DB_PASSWORD"),
 			SSL:           dbSSL,
-			DirectConnect: dbDirect,
+			DirectConnect: dbDirectConnect,
 		},
 	}
-	mergeConfig(config, cfg)
+	Merge(config, cfg)
 }
 
-// configureFromFlags takes incoming flags and creates
+// fromFlags takes incoming flags and creates
 // a configuration object from it.
-func configureFromFlags(config *Configuration, f Flags) {
+func fromFlags(config *Configuration, f flags) {
 	dbSSL := config.Database.SSL
 	if f.DisableDBSSL {
 		dbSSL = false
 	}
 
-	dbDirect := config.Database.DirectConnect
+	dbDirectConnect := config.Database.DirectConnect
 	if f.DBDirectConnect {
-		dbDirect = true
+		dbDirectConnect = f.DBDirectConnect
 	}
 
 	cfg := Configuration{
@@ -260,7 +222,6 @@ func configureFromFlags(config *Configuration, f Flags) {
 			Host: f.Host,
 			Port: f.Port,
 			Security: Security{
-				APIKey: f.APIKey,
 				Encryption: Encryption{
 					Key: f.EncryptionKey,
 				},
@@ -281,10 +242,10 @@ func configureFromFlags(config *Configuration, f Flags) {
 			Username:      f.DBUser,
 			Password:      f.DBPassword,
 			SSL:           dbSSL,
-			DirectConnect: dbDirect,
+			DirectConnect: dbDirectConnect,
 		},
 	}
-	mergeConfig(config, cfg)
+	Merge(config, cfg)
 }
 
 // AddressFromMongoURI returns the address (<host>:<port>) from

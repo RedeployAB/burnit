@@ -14,7 +14,6 @@ import (
 	"github.com/RedeployAB/burnit/burnit/config"
 	"github.com/RedeployAB/burnit/burnit/db"
 	"github.com/RedeployAB/burnit/burnit/secret"
-	"github.com/RedeployAB/burnit/common/auth"
 	"github.com/gorilla/mux"
 )
 
@@ -26,7 +25,6 @@ type server struct {
 	middleware    middlewareConfig
 	dbClient      db.Client
 	secretService secret.Service
-	tokenStore    auth.TokenStore
 	driver        int
 }
 
@@ -36,7 +34,6 @@ type Options struct {
 	Router     *mux.Router
 	DBClient   db.Client
 	Repository db.Repository
-	TokenStore auth.TokenStore
 }
 
 // tls contains configuration for TLS.
@@ -111,13 +108,12 @@ func New(opts Options) *server {
 		dbClient:      opts.DBClient,
 		secretService: secretService,
 		driver:        driver,
-		tokenStore:    opts.TokenStore,
 	}
 }
 
 // Start creates an http server and runs ListenAndServe().
 func (s *server) Start() {
-	s.routes(s.tokenStore)
+	s.routes()
 
 	go func() {
 		if err := s.listenAndServe(); err != nil && err != http.ErrServerClosed {

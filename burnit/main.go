@@ -6,21 +6,13 @@ import (
 	"github.com/RedeployAB/burnit/burnit/config"
 	"github.com/RedeployAB/burnit/burnit/db"
 	"github.com/RedeployAB/burnit/burnit/server"
-	"github.com/RedeployAB/burnit/common/auth"
 	"github.com/gorilla/mux"
 )
 
 func main() {
-	flags := config.ParseFlags()
-	conf, err := config.Configure(flags)
+	conf, err := config.New()
 	if err != nil {
 		log.Fatalf("configuration: %v", err)
-	}
-
-	var ts *auth.MemoryTokenStore
-	if len(conf.Server.Security.APIKey) > 0 {
-		ts = auth.NewMemoryTokenStore()
-		ts.Set(conf.Server.Security.APIKey, "server")
 	}
 
 	conn := connectToDB(conf)
@@ -31,7 +23,6 @@ func main() {
 		Router:     r,
 		DBClient:   conn.client,
 		Repository: conn.repository,
-		TokenStore: ts,
 	})
 
 	srv.Start()

@@ -6,7 +6,6 @@ import (
 
 	"github.com/RedeployAB/burnit/burnit/config"
 	"github.com/RedeployAB/burnit/burnit/db"
-	"github.com/RedeployAB/burnit/common/auth"
 	"github.com/gorilla/mux"
 )
 
@@ -58,7 +57,6 @@ func SetupOptions() Options {
 			Host: "0.0.0.0",
 			Port: "5000",
 			Security: config.Security{
-				APIKey: "ABCDEF",
 				Encryption: config.Encryption{
 					Key: "testphrase",
 				},
@@ -76,8 +74,6 @@ func SetupOptions() Options {
 
 	client := &mockClient{}
 	repo := &mockRepository{}
-	ts := auth.NewMemoryTokenStore()
-	ts.Set(conf.Server.Security.APIKey, "server")
 
 	r := mux.NewRouter()
 	srvOpts := Options{
@@ -85,7 +81,6 @@ func SetupOptions() Options {
 		Router:     r,
 		DBClient:   client,
 		Repository: repo,
-		TokenStore: ts,
 	}
 
 	return srvOpts

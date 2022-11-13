@@ -7,9 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/RedeployAB/burnit/burnit/config"
 	"github.com/RedeployAB/burnit/burnit/secret"
-	"github.com/RedeployAB/burnit/common/auth"
 	"github.com/gorilla/mux"
 )
 
@@ -100,22 +98,16 @@ func (r mockSecretService) Delete(id string) (int64, error) {
 // The different methods on the handler will require
 // states. When creating
 func SetupServer(action, mode string) *server {
-	conf := config.Configuration{}
-	conf.Server.Security.APIKey = "ABCDEF"
-
 	client := &mockClient{}
 	service := &mockSecretService{action: action, mode: mode}
-	ts := auth.NewMemoryTokenStore()
-	ts.Set(conf.Server.Security.APIKey, "server")
 
 	r := mux.NewRouter()
 	srv := &server{
 		router:        r,
 		dbClient:      client,
 		secretService: service,
-		tokenStore:    ts,
 	}
-	srv.routes(ts)
+	srv.routes()
 	return srv
 }
 
@@ -135,31 +127,76 @@ func TestGetSecret(t *testing.T) {
 	}
 
 	var tests = []struct {
+		name    string
 		mode    string
 		headers map[string]string
 		param   string
 		want    int
 	}{
-		{mode: "find-success", headers: authHeaders, param: id1, want: 200},
-		{mode: "find-invalid-oid", headers: authHeaders, param: "1234", want: 404},
-		{mode: "find-not-found", headers: authHeaders, param: id1, want: 404},
-		{mode: "find-error", headers: authHeaders, param: id1, want: 500},
-		{mode: "find-delete-error", headers: authHeaders, param: id1, want: 500},
-		{mode: "find-passphrase-success", headers: authPassphraseSuccess, param: id1, want: 200},
-		{mode: "find-passphrase-error", headers: authPassphraseFail, param: id1, want: 401},
+		{
+			name:    "find",
+			mode:    "find-success",
+			headers: authHeaders,
+			param:   id1,
+			want:    200,
+		},
+		{
+			name:    "find - invalid oid",
+			mode:    "find-invalid-oid",
+			headers: authHeaders,
+			param:   "1234",
+			want:    404,
+		},
+		{
+			name:    "find - not found",
+			mode:    "find-not-found",
+			headers: authHeaders,
+			param:   id1,
+			want:    404,
+		},
+		{
+			name:    "find - error",
+			mode:    "find-error",
+			headers: authHeaders,
+			param:   id1,
+			want:    500,
+		},
+		{
+			name:    "find - delete error",
+			mode:    "find-delete-error",
+			headers: authHeaders,
+			param:   id1,
+			want:    500,
+		},
+		{
+			name:    "find - passphrase success",
+			mode:    "find-passphrase-success",
+			headers: authPassphraseSuccess,
+			param:   id1,
+			want:    200,
+		},
+		{
+			name:    "find - passphrase error",
+			mode:    "find-passphrase-error",
+			headers: authPassphraseFail,
+			param:   id1,
+			want:    401,
+		},
 	}
 
 	for _, test := range tests {
-		req, _ := http.NewRequest("GET", "/secrets/"+test.param, nil)
-		for k, v := range test.headers {
-			req.Header.Add(k, v)
-		}
-		res := httptest.NewRecorder()
-		SetupServer("find", test.mode).router.ServeHTTP(res, req)
+		t.Run(test.name, func(t *testing.T) {
+			req, _ := http.NewRequest("GET", "/secrets/"+test.param, nil)
+			for k, v := range test.headers {
+				req.Header.Add(k, v)
+			}
+			res := httptest.NewRecorder()
+			SetupServer("find", test.mode).router.ServeHTTP(res, req)
 
-		if res.Code != test.want {
-			t.Errorf("status code incorrect, got: %d, want: %d", res.Code, test.want)
-		}
+			if res.Code != test.want {
+				t.Errorf("status code incorrect, got: %d, want: %d", res.Code, test.want)
+			}
+		})
 	}
 }
 
@@ -172,32 +209,56 @@ func TestCreateSecret(t *testing.T) {
 	malformedJSONStr := []byte(`{"value":"value}`)
 
 	var tests = []struct {
+		name         string
 		mode         string
 		headers      map[string]string
 		body         []byte
 		want         int
 		wantLocation string
 	}{
-		{mode: "insert-success", headers: authHeaders, body: jsonStr, want: 201, wantLocation: "/secrets/" + id1},
-		{mode: "insert-success", headers: authHeaders, body: malformedJSONStr, want: 400, wantLocation: ""},
-		{mode: "insert-error", headers: authHeaders, body: jsonStr, want: 500, wantLocation: ""},
+		{
+			name:         "insert",
+			mode:         "insert-success",
+			headers:      authHeaders,
+			body:         jsonStr,
+			want:         201,
+			wantLocation: "/secrets/" + id1,
+		},
+		{
+			name:         "insert - malformed JSON",
+			mode:         "insert-success",
+			headers:      authHeaders,
+			body:         malformedJSONStr,
+			want:         400,
+			wantLocation: "",
+		},
+		{
+			name:         "insert - error",
+			mode:         "insert-error",
+			headers:      authHeaders,
+			body:         jsonStr,
+			want:         500,
+			wantLocation: "",
+		},
 	}
 
 	for _, test := range tests {
-		req, _ := http.NewRequest("POST", "/secrets", bytes.NewBuffer(test.body))
-		for k, v := range test.headers {
-			req.Header.Add(k, v)
-		}
-		res := httptest.NewRecorder()
-		SetupServer("create", test.mode).router.ServeHTTP(res, req)
+		t.Run(test.name, func(t *testing.T) {
+			req, _ := http.NewRequest("POST", "/secrets", bytes.NewBuffer(test.body))
+			for k, v := range test.headers {
+				req.Header.Add(k, v)
+			}
+			res := httptest.NewRecorder()
+			SetupServer("create", test.mode).router.ServeHTTP(res, req)
 
-		if res.Code != test.want {
-			t.Errorf("status code was incorrect, got: %d, want: %d", res.Code, test.want)
-		}
-		locHdr := res.Header().Get("Location")
-		if locHdr != test.wantLocation {
-			t.Errorf("location header was incorrect, got: %s, want: %s", locHdr, test.wantLocation)
-		}
+			if res.Code != test.want {
+				t.Errorf("status code was incorrect, got: %d, want: %d", res.Code, test.want)
+			}
+			locHdr := res.Header().Get("Location")
+			if locHdr != test.wantLocation {
+				t.Errorf("location header was incorrect, got: %s, want: %s", locHdr, test.wantLocation)
+			}
+		})
 	}
 }
 
@@ -219,27 +280,48 @@ func TestDeleteSecret(t *testing.T) {
 	}
 
 	var tests = []struct {
+		name    string
 		mode    string
 		headers map[string]string
 		param   string
 		want    int
 	}{
-		{mode: "delete-success", headers: authHeaders, param: id1, want: 200},
-		{mode: "delete-not-found", headers: authHeaders, param: id1, want: 404},
-		{mode: "delete-error", headers: authHeaders, param: id1, want: 500},
+		{
+			name:    "delete",
+			mode:    "delete-success",
+			headers: authHeaders,
+			param:   id1,
+			want:    200,
+		},
+		{
+			name:    "delete - not found",
+			mode:    "delete-not-found",
+			headers: authHeaders,
+			param:   id1,
+			want:    404,
+		},
+		{
+			name:    "delete - error",
+			mode:    "delete-error",
+			headers: authHeaders,
+			param:   id1,
+			want:    500,
+		},
 	}
 
 	for _, test := range tests {
-		req, _ := http.NewRequest("DELETE", "/secrets/"+test.param, nil)
-		for k, v := range test.headers {
-			req.Header.Add(k, v)
-		}
-		res := httptest.NewRecorder()
-		SetupServer("delete", test.mode).router.ServeHTTP(res, req)
+		t.Run(test.name, func(t *testing.T) {
+			req, _ := http.NewRequest("DELETE", "/secrets/"+test.param, nil)
+			for k, v := range test.headers {
+				req.Header.Add(k, v)
+			}
+			res := httptest.NewRecorder()
+			SetupServer("delete", test.mode).router.ServeHTTP(res, req)
 
-		if res.Code != test.want {
-			t.Errorf("status code incorrect, got: %d, want: %d", res.Code, test.want)
-		}
+			if res.Code != test.want {
+				t.Errorf("status code incorrect, got: %d, want: %d", res.Code, test.want)
+			}
+		})
 	}
 }
 

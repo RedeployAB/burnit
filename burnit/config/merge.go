@@ -38,7 +38,7 @@ func setFields(dst reflect.Value, src reflect.Value) {
 		src = src.Elem()
 	}
 	for i := 0; i < src.NumField(); i++ {
-		if isEmpty(src.Field(i)) {
+		if isEmpty(src.Field(i)) && src.Field(i).Kind() != reflect.Bool {
 			continue
 		}
 		if src.Field(i).Kind() == reflect.Pointer && src.Field(i).Elem().Kind() == reflect.Struct {
