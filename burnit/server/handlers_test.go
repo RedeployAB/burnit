@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/RedeployAB/burnit/burnit/secret"
+	"github.com/RedeployAB/burnit/burnit/secrets"
 	"github.com/gorilla/mux"
 )
 
@@ -20,42 +20,42 @@ type mockSecretService struct {
 	mode   string
 }
 
-func (r mockSecretService) Get(id, passphrase string) (*secret.Secret, error) {
+func (r mockSecretService) Get(id, passphrase string) (*secrets.Secret, error) {
 	// Return different results based on underlying structs
 	// state.
-	var sec *secret.Secret
+	var sec *secrets.Secret
 	var err error
 
 	switch r.mode {
 	case "find-success":
-		sec = &secret.Secret{ID: id1, Value: "value"}
+		sec = &secrets.Secret{ID: id1, Value: "value"}
 		err = nil
 	case "find-not-found":
 		sec = nil
 		err = nil
 	case "find-passphrase-success":
-		sec = &secret.Secret{ID: id1, Value: "value"}
+		sec = &secrets.Secret{ID: id1, Value: "value"}
 		err = nil
 	case "find-passphrase-error":
-		sec = &secret.Secret{ID: id1, Value: ""}
+		sec = &secrets.Secret{ID: id1, Value: ""}
 		err = nil
 	case "find-error":
 		sec = nil
 		err = errors.New("find error")
 	case "find-delete-error":
-		sec = &secret.Secret{ID: id1, Value: "value"}
+		sec = &secrets.Secret{ID: id1, Value: "value"}
 		err = nil
 	}
 	return sec, err
 }
 
-func (r mockSecretService) Create(s *secret.Secret) (*secret.Secret, error) {
-	var sec *secret.Secret
+func (r mockSecretService) Create(s *secrets.Secret) (*secrets.Secret, error) {
+	var sec *secrets.Secret
 	var err error
 
 	switch r.mode {
 	case "insert-success":
-		sec = &secret.Secret{ID: id1, Value: "value"}
+		sec = &secrets.Secret{ID: id1, Value: "value"}
 		err = nil
 	case "insert-error":
 		sec = nil
@@ -68,7 +68,7 @@ func (r mockSecretService) DeleteExpired() (int64, error) {
 	return 0, nil
 }
 
-func (r mockSecretService) Generate(l int, sc bool) *secret.Secret {
+func (r mockSecretService) Generate(l int, sc bool) *secrets.Secret {
 	return nil
 }
 
@@ -103,9 +103,9 @@ func SetupServer(action, mode string) *server {
 
 	r := mux.NewRouter()
 	srv := &server{
-		router:        r,
-		dbClient:      client,
-		secretService: service,
+		router:   r,
+		dbClient: client,
+		secrets:  service,
 	}
 	srv.routes()
 	return srv

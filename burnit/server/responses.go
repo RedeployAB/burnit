@@ -3,7 +3,7 @@ package server
 import (
 	"time"
 
-	"github.com/RedeployAB/burnit/burnit/secret"
+	"github.com/RedeployAB/burnit/burnit/secrets"
 )
 
 // secretResponse defines the structure of an outgoing
@@ -16,7 +16,7 @@ type secretResponse struct {
 }
 
 // newSecretResponse creates a secret response from a Secret (DTO).
-func newSecretResponse(s *secret.Secret) *secretResponse {
+func newSecretResponse(s *secrets.Secret) *secretResponse {
 	var createdAt, expiresAt *time.Time
 	if !s.CreatedAt.IsZero() {
 		createdAt = &s.CreatedAt

@@ -13,19 +13,19 @@ import (
 
 	"github.com/RedeployAB/burnit/burnit/config"
 	"github.com/RedeployAB/burnit/burnit/db"
-	"github.com/RedeployAB/burnit/burnit/secret"
+	"github.com/RedeployAB/burnit/burnit/secrets"
 	"github.com/gorilla/mux"
 )
 
 // server represents server with configuration.
 type server struct {
-	httpServer    *http.Server
-	router        *mux.Router
-	tls           tlsConfig
-	middleware    middlewareConfig
-	dbClient      db.Client
-	secretService secret.Service
-	driver        int
+	httpServer *http.Server
+	router     *mux.Router
+	tls        tlsConfig
+	middleware middlewareConfig
+	dbClient   db.Client
+	secrets    secrets.Service
+	driver     int
 }
 
 // Options represents options to be used with server.
@@ -74,9 +74,9 @@ func New(opts Options) *server {
 		driver = 2
 	}
 
-	secretService := secret.NewService(
+	secrets := secrets.NewService(
 		opts.Repository,
-		secret.Options{EncryptionKey: opts.Config.Server.Security.Encryption.Key},
+		secrets.Options{EncryptionKey: opts.Config.Server.Security.Encryption.Key},
 	)
 
 	var tlsCfg tlsConfig
@@ -105,9 +105,9 @@ func New(opts Options) *server {
 		middleware: middlewareConfig{
 			cors: corsCfg,
 		},
-		dbClient:      opts.DBClient,
-		secretService: secretService,
-		driver:        driver,
+		dbClient: opts.DBClient,
+		secrets:  secrets,
+		driver:   driver,
 	}
 }
 
@@ -181,7 +181,7 @@ func (s *server) cleanup(wg *sync.WaitGroup, stop <-chan bool) {
 			wg.Done()
 			return
 		case <-time.After(5 * time.Second):
-			_, err := s.secretService.DeleteExpired()
+			_, err := s.secrets.DeleteExpired()
 			if err != nil {
 				log.Printf("db cleanup: %v\n", err)
 			}

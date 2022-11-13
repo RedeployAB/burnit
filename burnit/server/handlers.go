@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/RedeployAB/burnit/burnit/secret"
+	"github.com/RedeployAB/burnit/burnit/secrets"
 	"github.com/RedeployAB/burnit/common/httperror"
 	"github.com/gorilla/mux"
 )
@@ -19,7 +19,7 @@ func (s *server) notFound(w http.ResponseWriter, r *http.Request) {
 func (s *server) getSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		sec, err := s.secretService.Get(vars["id"], r.Header.Get("passphrase"))
+		sec, err := s.secrets.Get(vars["id"], r.Header.Get("passphrase"))
 		if err != nil {
 			httperror.Write(w, http.StatusInternalServerError, "", "")
 			return
@@ -35,7 +35,7 @@ func (s *server) getSecret() http.Handler {
 			return
 		}
 
-		_, err = s.secretService.Delete(sec.ID)
+		_, err = s.secrets.Delete(sec.ID)
 		if err != nil {
 			httperror.Write(w, http.StatusInternalServerError, "", "")
 			return
@@ -52,14 +52,14 @@ func (s *server) getSecret() http.Handler {
 // createSecret inserts a secret into the database.
 func (s *server) createSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sec, err := secret.NewFromJSON(r.Body)
+		sec, err := secrets.NewFromJSON(r.Body)
 		if err != nil {
 			httperror.Write(w, http.StatusBadRequest, "", err.Error())
 			return
 		}
 		defer r.Body.Close()
 
-		sec, err = s.secretService.Create(sec)
+		sec, err = s.secrets.Create(sec)
 		if err != nil {
 			httperror.Write(w, http.StatusInternalServerError, "", "")
 			return
@@ -85,7 +85,7 @@ func (s *server) updateSecret() http.Handler {
 func (s *server) deleteSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		deleted, err := s.secretService.Delete(vars["id"])
+		deleted, err := s.secrets.Delete(vars["id"])
 		if err != nil {
 			httperror.Write(w, http.StatusInternalServerError, "", "")
 			return
@@ -116,7 +116,7 @@ func (s *server) generateSecret() http.Handler {
 			sc = false
 		}
 
-		secret := s.secretService.Generate(l, sc)
+		secret := s.secrets.Generate(l, sc)
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
