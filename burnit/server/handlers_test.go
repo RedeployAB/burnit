@@ -262,18 +262,6 @@ func TestCreateSecret(t *testing.T) {
 	}
 }
 
-func TestUpdateSecret(t *testing.T) {
-	req, _ := http.NewRequest("PUT", "/secrets/"+id1, nil)
-	req.Header.Add("api-key", apiKey)
-	res := httptest.NewRecorder()
-	SetupServer("", "").router.ServeHTTP(res, req)
-
-	expectedCode := 501
-	if res.Code != expectedCode {
-		t.Errorf("status code incorrect, got: %d, want: %d", res.Code, expectedCode)
-	}
-}
-
 func TestDeleteSecret(t *testing.T) {
 	authHeaders := map[string]string{
 		"api-key": apiKey,

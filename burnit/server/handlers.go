@@ -74,13 +74,6 @@ func (s *server) createSecret() http.Handler {
 	})
 }
 
-// updateSecret handler updates a secret in the database.
-func (s *server) updateSecret() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		httperror.Write(w, http.StatusNotImplemented, "", "")
-	})
-}
-
 // deleteSecret deletes a secret from the database.
 func (s *server) deleteSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

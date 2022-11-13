@@ -5,11 +5,13 @@ import (
 )
 
 func (s *server) routes() {
+	// Generate a secret.
+	s.router.Handle("/secret", s.generateSecret()).Methods("GET")
+	// Get, create and delete a secret.
 	s.router.Handle("/secrets/{id}", s.getSecret()).Methods("GET")
 	s.router.Handle("/secrets", s.createSecret()).Methods("POST")
-	s.router.Handle("/secrets/{id}", s.updateSecret()).Methods("PUT")
 	s.router.Handle("/secrets/{id}", s.deleteSecret()).Methods("DELETE")
-	s.router.Handle("/secret", s.generateSecret()).Methods("GET")
+
 	s.router.PathPrefix("/").HandlerFunc(s.notFound)
 
 	s.router.Use(middleware.Logger)
