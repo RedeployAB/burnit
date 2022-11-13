@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/RedeployAB/burnit/burnit/httperror"
 	"github.com/RedeployAB/burnit/burnit/secrets"
-	"github.com/RedeployAB/burnit/common/httperror"
 	"github.com/gorilla/mux"
 )
 

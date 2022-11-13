@@ -22,8 +22,6 @@ RUN adduser \
 WORKDIR /src/${BIN}
 COPY . .
 
-RUN mv build/common ../
-
 RUN CGO_ENABLED=0 GOOS=${OS} GOARCH=${ARCH} go build -o build/${BIN} -ldflags="-w -s" -trimpath main.go
 
 FROM scratch

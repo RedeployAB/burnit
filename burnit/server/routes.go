@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/RedeployAB/burnit/common/middleware"
+	"github.com/RedeployAB/burnit/burnit/middleware"
 )
 
 func (s *server) routes() {

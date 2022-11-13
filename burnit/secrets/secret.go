@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/RedeployAB/burnit/burnit/db"
-	"github.com/RedeployAB/burnit/common/security"
+	"github.com/RedeployAB/burnit/burnit/security"
 )
 
 const (

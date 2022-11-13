@@ -11,7 +11,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/RedeployAB/burnit/burnit/db"
-	"github.com/RedeployAB/burnit/common/security"
+	"github.com/RedeployAB/burnit/burnit/security"
 )
 
 func TestGenerate(t *testing.T) {

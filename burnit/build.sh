@@ -70,7 +70,6 @@ fi
 
 if [[ $CONTAINER -eq 1 && "$os" == "linux" ]]; then
   mkdir build
-  cp -r ../common build
   docker build -t $BIN:$VERSION --build-arg OS=$os --build-arg ARCH=$arch --build-arg BIN=$BIN --build-arg VERSION=$VERSION --platform $os/$arch .
   docker image prune -f
   rm -rf build

@@ -1,16 +1,14 @@
 module github.com/RedeployAB/burnit/burnit
 
-go 1.18
-
-replace github.com/RedeployAB/burnit/common => ../common
+go 1.19
 
 require (
-	github.com/RedeployAB/burnit/common v0.0.0-00010101000000-000000000000
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/google/go-cmp v0.5.9
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	go.mongodb.org/mongo-driver v1.9.1
+	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -26,7 +24,6 @@ require (
 	github.com/xdg-go/scram v1.0.2 // indirect
 	github.com/xdg-go/stringprep v1.0.2 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
-	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b // indirect
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e // indirect
 	golang.org/x/text v0.3.6 // indirect
 )
