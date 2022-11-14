@@ -1,22 +1,29 @@
 package server
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/RedeployAB/burnit/burnit/secrets"
 )
 
-// secretResponse defines the structure of an outgoing
+// secret defines the structure of an outgoing
 // secret response.
-type secretResponse struct {
+type secret struct {
 	ID        string     `json:"id,omitempty"`
 	Value     string     `json:"value,omitempty"`
 	CreatedAt *time.Time `json:"createdAt,omitempty"`
 	ExpiresAt *time.Time `json:"expiresAt,omitempty"`
 }
 
-// newSecretResponse creates a secret response from a Secret (DTO).
-func newSecretResponse(s *secrets.Secret) *secretResponse {
+// JSON marshals the secret to JSON.
+func (s *secret) JSON() []byte {
+	b, _ := json.Marshal(&s)
+	return b
+}
+
+// newSecret creates a secret response from a Secret (DTO).
+func newSecret(s *secrets.Secret) *secret {
 	var createdAt, expiresAt *time.Time
 	if !s.CreatedAt.IsZero() {
 		createdAt = &s.CreatedAt
@@ -29,7 +36,7 @@ func newSecretResponse(s *secrets.Secret) *secretResponse {
 		expiresAt = nil
 	}
 
-	return &secretResponse{
+	return &secret{
 		ID:        s.ID,
 		Value:     s.Value,
 		CreatedAt: createdAt,
