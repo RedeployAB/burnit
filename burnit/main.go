@@ -5,6 +5,7 @@ import (
 
 	"github.com/RedeployAB/burnit/burnit/config"
 	"github.com/RedeployAB/burnit/burnit/db"
+	"github.com/RedeployAB/burnit/burnit/secret"
 	"github.com/RedeployAB/burnit/burnit/server"
 	"github.com/gorilla/mux"
 )
@@ -19,10 +20,15 @@ func main() {
 
 	r := mux.NewRouter()
 	srv := server.New(server.Options{
-		Config:     conf,
-		Router:     r,
-		DBClient:   conn.client,
-		Repository: conn.repository,
+		Config:   conf,
+		Router:   r,
+		DBClient: conn.client,
+		Secrets: secret.NewService(
+			conn.repository,
+			secret.Options{
+				EncryptionKey: conf.Server.Security.Encryption.Key,
+			},
+		),
 	})
 
 	srv.Start()

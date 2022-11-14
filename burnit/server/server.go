@@ -13,7 +13,7 @@ import (
 
 	"github.com/RedeployAB/burnit/burnit/config"
 	"github.com/RedeployAB/burnit/burnit/db"
-	"github.com/RedeployAB/burnit/burnit/secrets"
+	"github.com/RedeployAB/burnit/burnit/secret"
 	"github.com/gorilla/mux"
 )
 
@@ -24,16 +24,16 @@ type server struct {
 	tls        tlsConfig
 	middleware middlewareConfig
 	dbClient   db.Client
-	secrets    secrets.Service
+	secrets    secret.Service
 	driver     int
 }
 
 // Options represents options to be used with server.
 type Options struct {
-	Config     *config.Configuration
-	Router     *mux.Router
-	DBClient   db.Client
-	Repository db.Repository
+	Config   *config.Configuration
+	Router   *mux.Router
+	DBClient db.Client
+	Secrets  secret.Service
 }
 
 // tls contains configuration for TLS.
@@ -74,11 +74,6 @@ func New(opts Options) *server {
 		driver = 2
 	}
 
-	secrets := secrets.NewService(
-		opts.Repository,
-		secrets.Options{EncryptionKey: opts.Config.Server.Security.Encryption.Key},
-	)
-
 	var tlsCfg tlsConfig
 	if len(opts.Config.Server.Security.TLS.Certificate) != 0 && len(opts.Config.Server.Security.TLS.Key) != 0 {
 		srv.TLSConfig = config.NewTLSConfig()
@@ -106,7 +101,7 @@ func New(opts Options) *server {
 			cors: corsCfg,
 		},
 		dbClient: opts.DBClient,
-		secrets:  secrets,
+		secrets:  opts.Secrets,
 		driver:   driver,
 	}
 }

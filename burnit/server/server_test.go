@@ -73,14 +73,12 @@ func SetupOptions() Options {
 	}
 
 	client := &mockClient{}
-	repo := &mockRepository{}
 
 	r := mux.NewRouter()
 	srvOpts := Options{
-		Config:     &conf,
-		Router:     r,
-		DBClient:   client,
-		Repository: repo,
+		Config:   &conf,
+		Router:   r,
+		DBClient: client,
 	}
 
 	return srvOpts

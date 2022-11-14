@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/RedeployAB/burnit/burnit/secrets"
+	"github.com/RedeployAB/burnit/burnit/secret"
 	"github.com/gorilla/mux"
 )
 
@@ -40,14 +40,14 @@ func (s *server) getSecret() http.Handler {
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
-		w.Write(newSecret(sec).JSON())
+		w.Write(newSecretResponse(sec).JSON())
 	})
 }
 
 // createSecret inserts a secret into the database.
 func (s *server) createSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sec, err := secrets.NewFromJSON(r.Body)
+		sec, err := secret.NewFromJSON(r.Body)
 		if err != nil {
 			writeError(w, http.StatusBadRequest, err.Error())
 			return
@@ -62,7 +62,7 @@ func (s *server) createSecret() http.Handler {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.Header().Set("Location", "/secrets/"+sec.ID)
 		w.WriteHeader(http.StatusCreated)
-		w.Write(newSecret(sec).JSON())
+		w.Write(newSecretResponse(sec).JSON())
 	})
 }
 
@@ -105,6 +105,6 @@ func (s *server) generateSecret() http.Handler {
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
-		w.Write(newSecret(secret).JSON())
+		w.Write(newSecretResponse(secret).JSON())
 	})
 }
