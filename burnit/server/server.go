@@ -12,28 +12,25 @@ import (
 	"time"
 
 	"github.com/RedeployAB/burnit/burnit/config"
-	"github.com/RedeployAB/burnit/burnit/db"
 	"github.com/RedeployAB/burnit/burnit/secret"
 	"github.com/gorilla/mux"
 )
 
 // server represents server with configuration.
 type server struct {
-	httpServer *http.Server
-	router     *mux.Router
-	tls        tlsConfig
-	middleware middlewareConfig
-	dbClient   db.Client
-	secrets    secret.Service
-	driver     int
+	httpServer    *http.Server
+	router        *mux.Router
+	tls           tlsConfig
+	configuration *config.Configuration
+	middleware    middlewareConfig
+	secrets       secret.Service
 }
 
 // Options represents options to be used with server.
 type Options struct {
-	Config   *config.Configuration
-	Router   *mux.Router
-	DBClient db.Client
-	Secrets  secret.Service
+	Router        *mux.Router
+	Configuration *config.Configuration
+	Secrets       secret.Service
 }
 
 // tls contains configuration for TLS.
@@ -59,50 +56,41 @@ type cors struct {
 // New returns a configured Server.
 func New(opts Options) *server {
 	srv := &http.Server{
-		Addr:         opts.Config.Server.Host + ":" + opts.Config.Server.Port,
+		Addr:         opts.Configuration.Server.Host + ":" + opts.Configuration.Server.Port,
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
 		Handler:      opts.Router,
 	}
 
-	var driver int
-	switch opts.Config.Database.Driver {
-	case "redis":
-		driver = 1
-	case "mongo":
-		driver = 2
-	}
-
 	var tlsCfg tlsConfig
-	if len(opts.Config.Server.Security.TLS.Certificate) != 0 && len(opts.Config.Server.Security.TLS.Key) != 0 {
+	if len(opts.Configuration.Server.Security.TLS.Certificate) != 0 && len(opts.Configuration.Server.Security.TLS.Key) != 0 {
 		srv.TLSConfig = config.NewTLSConfig()
 		srv.TLSNextProto = make(map[string]func(*http.Server, *tls.Conn, http.Handler))
 		tlsCfg = tlsConfig{
-			certificate: opts.Config.Server.Security.TLS.Certificate,
-			key:         opts.Config.Server.Security.TLS.Key,
+			certificate: opts.Configuration.Server.Security.TLS.Certificate,
+			key:         opts.Configuration.Server.Security.TLS.Key,
 		}
 	}
 
 	var corsCfg cors
-	if len(opts.Config.Server.Security.CORS.Origin) != 0 {
+	if len(opts.Configuration.Server.Security.CORS.Origin) != 0 {
 		corsCfg = cors{
-			origin:  opts.Config.Server.Security.CORS.Origin,
+			origin:  opts.Configuration.Server.Security.CORS.Origin,
 			headers: config.CORSHeaders(),
 			enabled: true,
 		}
 	}
 
 	return &server{
-		httpServer: srv,
-		router:     opts.Router,
-		tls:        tlsCfg,
+		httpServer:    srv,
+		router:        opts.Router,
+		tls:           tlsCfg,
+		configuration: opts.Configuration,
 		middleware: middlewareConfig{
 			cors: corsCfg,
 		},
-		dbClient: opts.DBClient,
-		secrets:  opts.Secrets,
-		driver:   driver,
+		secrets: opts.Secrets,
 	}
 }
 
@@ -112,21 +100,21 @@ func (s *server) Start() {
 
 	go func() {
 		if err := s.listenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("server: %v\n", err)
+			log.Fatalf("Server: %v\n", err)
 		}
 	}()
 
 	var wg sync.WaitGroup
 	cleanup := make(chan bool, 1)
 
-	if s.driver == 2 {
+	if s.configuration.Database.Driver == config.DatabaseDriverMongo {
 		go s.cleanup(&wg, cleanup)
 		wg.Add(1)
 	}
 
-	log.Printf("server listening on: %s\n", s.httpServer.Addr)
+	log.Printf("Server listening on: %s.\n", s.httpServer.Addr)
 	s.shutdown(&wg, cleanup)
-	log.Println("server has been stopped")
+	log.Println("Server has been stopped.")
 }
 
 // listenAndServer wraps around httpServer.Server methods ListenAndServer
@@ -145,23 +133,23 @@ func (s *server) shutdown(wg *sync.WaitGroup, cleanup chan<- bool) {
 	signal.Notify(stop, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	sig := <-stop
 
-	log.Printf("shutting down server. reason: %s\n", sig.String())
+	log.Printf("Shutting down server. Reason: %s\n", sig.String())
 
 	cleanup <- true
 	wg.Wait()
 
-	log.Println("closing connection to database...")
-	if err := db.Close(s.dbClient); err != nil {
-		log.Printf("database: %v", err)
-	}
-	log.Println("disconnected from database")
-
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
+	log.Println("Stopping service...")
+	if err := s.secrets.Stop(); err != nil {
+		log.Printf("Service: %v", err)
+	}
+	log.Println("Service stopped.")
+
 	s.httpServer.SetKeepAlivesEnabled(false)
 	if err := s.httpServer.Shutdown(ctx); err != nil {
-		log.Fatalf("server: %v\n", err)
+		log.Fatalf("Server: %v\n", err)
 	}
 }
 
@@ -172,13 +160,13 @@ func (s *server) cleanup(wg *sync.WaitGroup, stop <-chan bool) {
 	for {
 		select {
 		case <-stop:
-			log.Println("stopping cleanup task")
+			log.Println("Stopping cleanup task...")
 			wg.Done()
 			return
 		case <-time.After(5 * time.Second):
 			_, err := s.secrets.DeleteExpired()
 			if err != nil {
-				log.Printf("db cleanup: %v\n", err)
+				log.Printf("Database cleanup: %v\n", err)
 			}
 		}
 	}

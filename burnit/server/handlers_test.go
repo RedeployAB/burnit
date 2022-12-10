@@ -95,17 +95,19 @@ func (r mockSecretService) Delete(id string) (int64, error) {
 	return result, err
 }
 
+func (r mockSecretService) Stop() error {
+	return nil
+}
+
 // The different methods on the handler will require
 // states. When creating
 func SetupServer(action, mode string) *server {
-	client := &mockClient{}
 	service := &mockSecretService{action: action, mode: mode}
 
 	r := mux.NewRouter()
 	srv := &server{
-		router:   r,
-		dbClient: client,
-		secrets:  service,
+		router:  r,
+		secrets: service,
 	}
 	srv.routes()
 	return srv

@@ -1,55 +1,11 @@
 package server
 
 import (
-	"context"
 	"testing"
 
 	"github.com/RedeployAB/burnit/burnit/config"
-	"github.com/RedeployAB/burnit/burnit/db"
 	"github.com/gorilla/mux"
 )
-
-type mockClient struct {
-}
-
-func (c *mockClient) Connect(context.Context) error {
-	return nil
-}
-
-func (c *mockClient) Disconnect(context.Context) error {
-	return nil
-}
-
-func (c *mockClient) GetAddress() string {
-	return ""
-}
-
-func (c *mockClient) Close(context.Context) error {
-	return nil
-}
-
-func (c *mockClient) Database(name string) db.Database {
-	return nil
-}
-
-type mockRepository struct {
-}
-
-func (r *mockRepository) Find(id string) (*db.Secret, error) {
-	return &db.Secret{}, nil
-}
-
-func (r *mockRepository) Insert(s *db.Secret) (*db.Secret, error) {
-	return &db.Secret{}, nil
-}
-
-func (r *mockRepository) Delete(id string) (int64, error) {
-	return 0, nil
-}
-
-func (r *mockRepository) DeleteExpired() (int64, error) {
-	return 0, nil
-}
 
 func SetupOptions() Options {
 	conf := config.Configuration{
@@ -72,13 +28,10 @@ func SetupOptions() Options {
 		},
 	}
 
-	client := &mockClient{}
-
 	r := mux.NewRouter()
 	srvOpts := Options{
-		Config:   &conf,
-		Router:   r,
-		DBClient: client,
+		Configuration: &conf,
+		Router:        r,
 	}
 
 	return srvOpts
