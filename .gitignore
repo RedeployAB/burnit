@@ -19,3 +19,4 @@ run.sh
 *.tfvars
 *.plan
 *.backup
+burnit-frontend/

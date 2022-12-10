@@ -27,7 +27,7 @@ Order of precedence:
 **Environment variables**
 
 * `BURNIT_LISTEN_HOST` - Host (IP address) the service listens to. Defaults to `0.0.0.0`.
-* `BURNIT_LISTEN_PORT` - Port the service listens to. Defaults to `3001`.
+* `BURNIT_LISTEN_PORT` - Port the service listens to. Defaults to `3000`.
 * `BURNIT_ENCRYPTION_KEY` - Encryption key for the secrets in the database (**mandatory**).
 * `BURNIT_TLS_CERTIFICATE` - Path to TLS certificate file (`.crt`). Defaults to empty.
 * `BURNIT_TLS_KEY` - Path to TLS key file (`.key`). Defaults to empty.
