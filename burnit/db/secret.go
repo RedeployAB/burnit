@@ -1,6 +1,8 @@
 package db
 
-import "time"
+import (
+	"time"
+)
 
 // Secret represents a secret entry in database.
 type Secret struct {

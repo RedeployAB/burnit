@@ -1,8 +1,12 @@
 package db
 
 import (
+	"context"
 	"errors"
 	"testing"
+	"time"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 // mockClient is a struct to test the different
@@ -13,7 +17,15 @@ type mockClient struct {
 
 var id1 = "507f1f77bcf86cd799439011"
 
-func (c *mockClient) FindOne(id string) (*Secret, error) {
+func (c *mockClient) Connect(ctx context.Context) error {
+	return nil
+}
+
+func (c *mockClient) Disconnect(ctx context.Context) error {
+	return nil
+}
+
+func (c *mockClient) Find(ctx context.Context, id string) (*Secret, error) {
 	var secret *Secret
 	var err error
 
@@ -31,7 +43,7 @@ func (c *mockClient) FindOne(id string) (*Secret, error) {
 	return secret, err
 }
 
-func (c *mockClient) InsertOne(m *Secret) (*Secret, error) {
+func (c *mockClient) Insert(ctx context.Context, m *Secret) (*Secret, error) {
 	var secret *Secret
 	var err error
 
@@ -47,7 +59,7 @@ func (c *mockClient) InsertOne(m *Secret) (*Secret, error) {
 	return secret, err
 }
 
-func (c *mockClient) DeleteOne(id string) (int64, error) {
+func (c *mockClient) Delete(ctx context.Context, id string) (int64, error) {
 	var deleted int64
 	var err error
 
@@ -66,7 +78,7 @@ func (c *mockClient) DeleteOne(id string) (int64, error) {
 	return deleted, err
 }
 
-func (c *mockClient) DeleteMany() (int64, error) {
+func (c *mockClient) DeleteMany(ctx context.Context) (int64, error) {
 	var deleted int64
 	var err error
 
@@ -85,38 +97,24 @@ func (c *mockClient) DeleteMany() (int64, error) {
 }
 
 func SetupRepository(mode string) *SecretRepository {
-	opts := &SecretRepositoryOptions{}
 	return &SecretRepository{
-		db:      &mockClient{mode: mode},
-		options: opts,
+		client: &mockClient{mode: mode},
 	}
 }
 
 func TestNewSecretRepository(t *testing.T) {
-	// Test with redis driver and md5.
-	opts := &SecretRepositoryOptions{
-		Driver: "redis",
+	want := &SecretRepository{
+		client:  &mockClient{},
+		timeout: time.Second * 5,
 	}
+	got := NewSecretRepository(&mockClient{}, &SecretRepositoryOptions{})
 
-	rClient := &redisClient{}
-	repo := NewSecretRepository(rClient, opts)
-
-	expectedDriver := "redis"
-	if repo.options.Driver != expectedDriver {
-		t.Errorf("incorrect driver, got: %s, want: %s", repo.options.Driver, expectedDriver)
-	}
-	// Test with mongo driver and bcrypt.
-	opts = &SecretRepositoryOptions{
-		Driver: "redis",
-	}
-
-	repo = NewSecretRepository(rClient, opts)
-	if repo.options.Driver != expectedDriver {
-		t.Errorf("incorrect driver, got: %s, want: %s", repo.options.Driver, expectedDriver)
+	if diff := cmp.Diff(want, got, cmp.AllowUnexported(mockClient{}, SecretRepository{})); diff != "" {
+		t.Errorf("NewSecretRepository(%q, %q) = unexpected result (-want, +got)\n%s\n", &mockClient{}, &SecretRepositoryOptions{}, diff)
 	}
 }
 
-func TestSecretRepositoryFind(t *testing.T) {
+func TestSecretRepositoryGet(t *testing.T) {
 	var tests = []struct {
 		inputMode string
 		input     string
@@ -132,7 +130,7 @@ func TestSecretRepositoryFind(t *testing.T) {
 	for _, test := range tests {
 		repo := SetupRepository(test.inputMode)
 
-		res, err := repo.Find(test.input)
+		res, err := repo.Get(test.input)
 		if res != nil && res.Value != test.want.Value {
 			t.Errorf("incorrect value, got: %v, want: %v", res.Value, test.want.Value)
 		}
@@ -142,7 +140,7 @@ func TestSecretRepositoryFind(t *testing.T) {
 	}
 }
 
-func TestSecretRepositoryInsert(t *testing.T) {
+func TestSecretRepositoryCreate(t *testing.T) {
 	var tests = []struct {
 		inputMode string
 		input     *Secret
@@ -157,7 +155,7 @@ func TestSecretRepositoryInsert(t *testing.T) {
 	for _, test := range tests {
 		repo := SetupRepository(test.inputMode)
 
-		res, err := repo.Insert(test.input)
+		res, err := repo.Create(test.input)
 		if res != nil && res.ID != id1 {
 			t.Errorf("incorrect value, got: %v, want: %v", res.ID, id1)
 		}
