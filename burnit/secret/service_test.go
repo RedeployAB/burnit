@@ -20,7 +20,11 @@ type mockSecretRepository struct {
 	mode   string
 }
 
-func (r *mockSecretRepository) Find(id string) (*db.Secret, error) {
+func (r *mockSecretRepository) Client() db.Client {
+	return nil
+}
+
+func (r *mockSecretRepository) Get(id string) (*db.Secret, error) {
 	// Return different results based on underlying structs
 	// state.
 	var secret *db.Secret
@@ -46,7 +50,7 @@ func (r *mockSecretRepository) Find(id string) (*db.Secret, error) {
 	return secret, err
 }
 
-func (r *mockSecretRepository) Insert(s *db.Secret) (*db.Secret, error) {
+func (r *mockSecretRepository) Create(s *db.Secret) (*db.Secret, error) {
 	var secret *db.Secret
 	var err error
 
@@ -98,16 +102,20 @@ func (r *mockSecretRepository) DeleteExpired() (int64, error) {
 	return result, err
 }
 
-func SetupService(action, mode string) Service {
-	repo := &mockSecretRepository{action: action, mode: mode}
-	opts := Options{EncryptionKey: encryptionKey}
-	return NewService(repo, opts)
+func SetupService(action, mode string) *service {
+	opts := &ServiceOptions{
+		Secrets:       &mockSecretRepository{action: action, mode: mode},
+		EncryptionKey: encryptionKey,
+	}
+	return NewService(opts)
 }
 
 func TestNewService(t *testing.T) {
-	repo := &mockSecretRepository{action: "", mode: ""}
-	opts := Options{EncryptionKey: encryptionKey}
-	service := NewService(repo, opts)
+	opts := &ServiceOptions{
+		Secrets:       &mockSecretRepository{action: "", mode: ""},
+		EncryptionKey: encryptionKey,
+	}
+	service := NewService(opts)
 
 	if service == nil {
 		t.Errorf("error in creating service")
