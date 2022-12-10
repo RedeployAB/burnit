@@ -39,7 +39,7 @@ func TestConfigure(t *testing.T) {
 		name  string
 		input struct {
 			envVars map[string]string
-			flags   flags
+			flags   *flags
 		}
 		want    *Configuration
 		wantErr error
@@ -48,10 +48,10 @@ func TestConfigure(t *testing.T) {
 			name: "from file",
 			input: struct {
 				envVars map[string]string
-				flags   flags
+				flags   *flags
 			}{
 				envVars: map[string]string{},
-				flags: flags{
+				flags: &flags{
 					ConfigPath: configPath,
 				},
 			},
@@ -88,7 +88,7 @@ func TestConfigure(t *testing.T) {
 			name: "from file and environment",
 			input: struct {
 				envVars map[string]string
-				flags   flags
+				flags   *flags
 			}{
 				envVars: map[string]string{
 					"BURNIT_LISTEN_HOST":     "127.0.0.2",
@@ -106,7 +106,7 @@ func TestConfigure(t *testing.T) {
 					"DB_SSL":                 "true",
 					"DB_DIRECT_CONNECT":      "false",
 				},
-				flags: flags{},
+				flags: &flags{},
 			},
 			want: &Configuration{
 				Server: Server{
@@ -141,10 +141,10 @@ func TestConfigure(t *testing.T) {
 			name: "from file, environment and flags",
 			input: struct {
 				envVars map[string]string
-				flags   flags
+				flags   *flags
 			}{
 				envVars: map[string]string{},
-				flags: flags{
+				flags: &flags{
 					ConfigPath:      configPath,
 					Host:            "127.0.0.1",
 					Port:            "3003",
@@ -257,9 +257,10 @@ func TestFromFile(t *testing.T) {
 
 func TestFromEnv(t *testing.T) {
 	var tests = []struct {
-		name  string
-		input map[string]string
-		want  *Configuration
+		name    string
+		input   map[string]string
+		want    *Configuration
+		wantErr error
 	}{
 		{
 			name: "set from environment",
@@ -331,9 +332,9 @@ func TestFromEnv(t *testing.T) {
 			setEnvVars(test.input)
 
 			cfg := newConfiguration()
-			fromEnv(cfg)
+			gotErr := fromEnv(cfg)
 
-			handleTestResults(t, test.name, cfg, nil, test.want, nil)
+			handleTestResults(t, test.name, cfg, gotErr, test.want, test.wantErr)
 
 			unsetEnvVars(test.input)
 		})
@@ -342,13 +343,14 @@ func TestFromEnv(t *testing.T) {
 
 func TestFromFlags(t *testing.T) {
 	var tests = []struct {
-		name  string
-		input flags
-		want  *Configuration
+		name    string
+		input   *flags
+		want    *Configuration
+		wantErr error
 	}{
 		{
 			name: "set from flags",
-			input: flags{
+			input: &flags{
 				ConfigPath:      "../test/config.yaml",
 				Host:            "127.0.0.1",
 				Port:            "3003",
@@ -396,7 +398,7 @@ func TestFromFlags(t *testing.T) {
 		},
 		{
 			name:  "set from flags - keep values if empty",
-			input: flags{},
+			input: &flags{},
 			want: &Configuration{
 				Server: Server{
 					Host: defaultListenHost,
@@ -415,9 +417,10 @@ func TestFromFlags(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			cfg := newConfiguration()
-			fromFlags(cfg, test.input)
 
-			handleTestResults(t, test.name, cfg, nil, test.want, nil)
+			gotErr := fromFlags(cfg, test.input)
+
+			handleTestResults(t, test.name, cfg, gotErr, test.want, test.wantErr)
 		})
 	}
 }
@@ -434,7 +437,7 @@ func TestAddressFromMongoURI(t *testing.T) {
 
 	expected := "localhost:27017"
 	for _, test := range tests {
-		addr := AddressFromMongoURI(test.uri)
+		addr := addressFromMongoURI(test.uri)
 		if addr != expected {
 			t.Errorf("incorrect value, got: %s, want: %s", addr, expected)
 		}
@@ -455,7 +458,7 @@ func TestAddressFromRedisURI(t *testing.T) {
 
 	expected := "localhost:6379"
 	for _, test := range tests {
-		addr := AddressFromRedisURI(test.uri)
+		addr := addressFromRedisURI(test.uri)
 		if addr != expected {
 			t.Errorf("incorrect value, got: %s, want: %s", addr, expected)
 		}

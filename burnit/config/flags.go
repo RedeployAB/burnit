@@ -24,7 +24,7 @@ type flags struct {
 }
 
 // parseFlags runs flag.Parse and returns a flag object.
-func parseFlags() flags {
+func parseFlags() *flags {
 	var (
 		configPath      = flag.String("config", "", "Path to configuration file")
 		listenHost      = flag.String("host", "", "Host to listen on")
@@ -45,7 +45,7 @@ func parseFlags() flags {
 
 	flag.Parse()
 
-	return flags{
+	return &flags{
 		ConfigPath:      *configPath,
 		Host:            *listenHost,
 		Port:            *listenPort,

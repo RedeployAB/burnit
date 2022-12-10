@@ -94,7 +94,7 @@ func New() (*Configuration, error) {
 	return configure(f)
 }
 
-func configure(f flags) (*Configuration, error) {
+func configure(f *flags) (*Configuration, error) {
 	cfg := newConfiguration()
 
 	if len(f.ConfigPath) != 0 {
@@ -102,15 +102,19 @@ func configure(f flags) (*Configuration, error) {
 			return nil, err
 		}
 	}
-	fromEnv(cfg)
-	fromFlags(cfg, f)
+	if err := fromEnv(cfg); err != nil {
+		return nil, err
+	}
+	if err := fromFlags(cfg, f); err != nil {
+		return nil, err
+	}
 
 	if len(cfg.Database.URI) > 0 {
 		switch cfg.Database.Driver {
 		case DatabaseDriverRedis:
-			cfg.Database.Address = AddressFromRedisURI(cfg.Database.URI)
+			cfg.Database.Address = addressFromRedisURI(cfg.Database.URI)
 		case DatabaseDriverMongo:
-			cfg.Database.Address = AddressFromMongoURI(cfg.Database.URI)
+			cfg.Database.Address = addressFromMongoURI(cfg.Database.URI)
 		}
 	}
 
@@ -139,19 +143,21 @@ func fromFile(config *Configuration, path string) error {
 		return err
 	}
 
-	var cfg Configuration
+	var cfg *Configuration
 	if err = yaml.Unmarshal(b, &cfg); err != nil {
 		return err
 	}
 
-	Merge(config, cfg)
+	if err := merge(config, cfg); err != nil {
+		return err
+	}
 	return nil
 }
 
 // fromEnv performs the necessary steps
 // for server configuration from environment
 // variables.
-func fromEnv(config *Configuration) {
+func fromEnv(config *Configuration) error {
 	var dbSSL, dbDirectConnect bool
 	var err error
 
@@ -173,7 +179,7 @@ func fromEnv(config *Configuration) {
 		dbDirectConnect = config.Database.DirectConnect
 	}
 
-	cfg := Configuration{
+	cfg := &Configuration{
 		Server{
 			Host: os.Getenv("BURNIT_LISTEN_HOST"),
 			Port: os.Getenv("BURNIT_LISTEN_PORT"),
@@ -201,12 +207,15 @@ func fromEnv(config *Configuration) {
 			DirectConnect: dbDirectConnect,
 		},
 	}
-	Merge(config, cfg)
+	if err := merge(config, cfg); err != nil {
+		return err
+	}
+	return nil
 }
 
 // fromFlags takes incoming flags and creates
 // a configuration object from it.
-func fromFlags(config *Configuration, f flags) {
+func fromFlags(config *Configuration, f *flags) error {
 	dbSSL := config.Database.SSL
 	if f.DisableDBSSL {
 		dbSSL = false
@@ -217,7 +226,7 @@ func fromFlags(config *Configuration, f flags) {
 		dbDirectConnect = f.DBDirectConnect
 	}
 
-	cfg := Configuration{
+	cfg := &Configuration{
 		Server{
 			Host: f.Host,
 			Port: f.Port,
@@ -245,12 +254,15 @@ func fromFlags(config *Configuration, f flags) {
 			DirectConnect: dbDirectConnect,
 		},
 	}
-	Merge(config, cfg)
+	if err := merge(config, cfg); err != nil {
+		return err
+	}
+	return nil
 }
 
-// AddressFromMongoURI returns the address (<host>:<port>) from
+// addressFromMongoURI returns the address (<host>:<port>) from
 // a mongodb connection string.
-func AddressFromMongoURI(uri string) string {
+func addressFromMongoURI(uri string) string {
 	if !strings.HasSuffix(uri, "/") {
 		uri += "/"
 	}
@@ -264,9 +276,9 @@ func AddressFromMongoURI(uri string) string {
 	return address
 }
 
-// AddressFromRedisURI returns the address (<host>:<port>) from
+// addressFromRedisURI returns the address (<host>:<port>) from
 // a redis connection string.
-func AddressFromRedisURI(uri string) string {
+func addressFromRedisURI(uri string) string {
 	reg := regexp.MustCompile("^redis://|^rediss://")
 	res := reg.ReplaceAllString(uri, "${1}")
 	return strings.Split(res, ",")[0]
