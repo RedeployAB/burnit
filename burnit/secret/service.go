@@ -2,6 +2,7 @@ package secret
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/RedeployAB/burnit/burnit/db"
@@ -16,6 +17,7 @@ type Service interface {
 	Delete(id string) (int64, error)
 	DeleteExpired() (int64, error)
 	Generate(l int, sc bool) *Secret
+	Start() error
 	Stop() error
 }
 
@@ -122,6 +124,17 @@ func (svc service) DeleteExpired() (int64, error) {
 func (svc service) Generate(l int, sc bool) *Secret {
 	value := Generate(l, sc)
 	return &Secret{Value: value}
+}
+
+// Start the service and connect to the repository and database.
+func (svc service) Start() error {
+	ctx, cancel := context.WithTimeout(context.Background(), svc.timeout)
+	defer cancel()
+
+	if err := svc.secrets.Client().Connect(ctx); err != nil {
+		return fmt.Errorf("connecting to database: %v", err)
+	}
+	return nil
 }
 
 // Stop the service and disconnect from the repository and database.

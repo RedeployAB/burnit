@@ -98,6 +98,12 @@ func New(opts Options) *server {
 func (s *server) Start() {
 	s.routes()
 
+	log.Printf("Connecting to database (driver: %s) on host: %s...\n", s.configuration.Database.Driver, s.configuration.Database.Address)
+	if err := s.secrets.Start(); err != nil {
+		log.Fatalf("Service: %v.\n", err)
+	}
+	log.Println("Service started.")
+
 	go func() {
 		if err := s.listenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Server: %v.\n", err)

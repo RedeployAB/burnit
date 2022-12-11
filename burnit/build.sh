@@ -13,7 +13,7 @@ function help {
 BIN=burnit
 PLATFORM=linux/amd64
 VERSION=""
-CONTAINER=0
+IMAGE=0
 
 # Handle incoming parameters.
 for arg in "$@"
@@ -32,8 +32,8 @@ do
       PLATFORM=$1
       shift
       ;;
-    --docker)
-      CONTAINER=1
+    --image)
+      IMAGE=1
       shift
       ;;
     esac
@@ -47,6 +47,7 @@ fi
 platformParts=($(echo $PLATFORM | sed "s/\// /"))
 os=${platformParts[0]}
 arch=${platformParts[1]}
+outPath=build
 
 if [[ $os != "linux" ]] && [[ $os != "darwin" ]]; then
   echo "os: $os is not a supported operating system"
@@ -68,14 +69,9 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-if [[ $CONTAINER -eq 1 && "$os" == "linux" ]]; then
-  mkdir build
-  docker build -t $BIN:$VERSION --build-arg OS=$os --build-arg ARCH=$arch --build-arg BIN=$BIN --build-arg VERSION=$VERSION --platform $os/$arch .
+CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build -o $outPath/$BIN -ldflags="-w -s" -trimpath
+
+if [[ $IMAGE -eq 1 && "$os" == "linux" ]]; then
+  docker build -t $BIN:$VERSION --build-arg BIN=$BIN --platform $os/$arch .
   docker image prune -f
-  rm -rf build
-else
-  bin_full_name=$BIN-$VERSION-$os-$arch
-  bin_path=release/$os/bin
-  mkdir -p release
-  GOOS=$os GOARCH=$arch go build -o $bin_path/$bin_full_name -ldflags="-w -s" -trimpath main.go
 fi

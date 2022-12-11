@@ -20,13 +20,13 @@ type mockSecretService struct {
 	mode   string
 }
 
-func (r mockSecretService) Get(id, passphrase string) (*secret.Secret, error) {
+func (svc mockSecretService) Get(id, passphrase string) (*secret.Secret, error) {
 	// Return different results based on underlying structs
 	// state.
 	var sec *secret.Secret
 	var err error
 
-	switch r.mode {
+	switch svc.mode {
 	case "find-success":
 		sec = &secret.Secret{ID: id1, Value: "value"}
 		err = nil
@@ -49,11 +49,11 @@ func (r mockSecretService) Get(id, passphrase string) (*secret.Secret, error) {
 	return sec, err
 }
 
-func (r mockSecretService) Create(s *secret.Secret) (*secret.Secret, error) {
+func (svc mockSecretService) Create(s *secret.Secret) (*secret.Secret, error) {
 	var sec *secret.Secret
 	var err error
 
-	switch r.mode {
+	switch svc.mode {
 	case "insert-success":
 		sec = &secret.Secret{ID: id1, Value: "value"}
 		err = nil
@@ -64,23 +64,23 @@ func (r mockSecretService) Create(s *secret.Secret) (*secret.Secret, error) {
 	return sec, err
 }
 
-func (r mockSecretService) DeleteExpired() (int64, error) {
+func (svc mockSecretService) DeleteExpired() (int64, error) {
 	return 0, nil
 }
 
-func (r mockSecretService) Generate(l int, sc bool) *secret.Secret {
+func (svc mockSecretService) Generate(l int, sc bool) *secret.Secret {
 	return nil
 }
 
-func (r mockSecretService) Delete(id string) (int64, error) {
+func (svc mockSecretService) Delete(id string) (int64, error) {
 	var result int64
 	var err error
 
-	if r.action == "find" && r.mode == "find-delete-error" {
+	if svc.action == "find" && svc.mode == "find-delete-error" {
 		result = 0
 		err = errors.New("delete error")
-	} else if r.action == "delete" {
-		switch r.mode {
+	} else if svc.action == "delete" {
+		switch svc.mode {
 		case "delete-success":
 			result = 1
 			err = nil
@@ -95,7 +95,11 @@ func (r mockSecretService) Delete(id string) (int64, error) {
 	return result, err
 }
 
-func (r mockSecretService) Stop() error {
+func (svc mockSecretService) Start() error {
+	return nil
+}
+
+func (svc mockSecretService) Stop() error {
 	return nil
 }
 

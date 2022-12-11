@@ -1,7 +1,5 @@
-FROM golang@sha256:42d35674864fbb577594b60b84ddfba1be52b4d4298c961b46ba95e9fb4712e8 AS builder
+FROM golang@sha256:8558ae624304387d18694b9ea065cc9813dd4f7f9bd5073edb237541f2d0561b AS builder
 
-ARG OS=linux
-ARG ARCH=amd64
 ARG BIN=burnit
 
 RUN apk update && apk add --no-cache ca-certificates && update-ca-certificates
@@ -19,20 +17,16 @@ RUN adduser \
     --uid "${UID}" \
     "${USER}"
 
-WORKDIR /src/${BIN}
-COPY . .
-
-RUN CGO_ENABLED=0 GOOS=${OS} GOARCH=${ARCH} go build -o build/${BIN} -ldflags="-w -s" -trimpath main.go
 
 FROM scratch
 
 ARG BIN=burnit
-ARG PORT=3002
+ARG PORT=3000
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /etc/group /etc/group
-COPY --from=builder /src/${BIN}/build/${BIN} /usr/bin/${BIN}
+COPY ./build/${BIN} /usr/bin/${BIN}
 
 EXPOSE ${PORT}
 

@@ -1,11 +1,7 @@
 package main
 
 import (
-	"context"
 	"errors"
-	"fmt"
-	"log"
-	"time"
 
 	"github.com/RedeployAB/burnit/burnit/config"
 	"github.com/RedeployAB/burnit/burnit/db"
@@ -24,15 +20,6 @@ func SetupSecretService(opts *config.Configuration) (secret.Service, error) {
 	default:
 		return nil, errors.New("could not setup secret service")
 	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
-	defer cancel()
-
-	log.Printf("Connecting to database (driver: %s) on host: %s...\n", opts.Database.Driver, opts.Database.Address)
-	if err := client.Connect(ctx); err != nil {
-		return nil, fmt.Errorf("connecting to database failed: %v", err)
-	}
-	log.Printf("Connected to host: %s.\n", opts.Database.Address)
 
 	serviceOpts := &secret.ServiceOptions{
 		Secrets:       db.NewSecretRepository(client, &db.SecretRepositoryOptions{}),
