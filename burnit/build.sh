@@ -14,6 +14,7 @@ BIN=burnit
 PLATFORM=linux/amd64
 VERSION=""
 IMAGE=0
+OUTPATH=build
 
 # Handle incoming parameters.
 for arg in "$@"
@@ -47,7 +48,6 @@ fi
 platformParts=($(echo $PLATFORM | sed "s/\// /"))
 os=${platformParts[0]}
 arch=${platformParts[1]}
-outPath=build
 
 if [[ $os != "linux" ]] && [[ $os != "darwin" ]]; then
   echo "os: $os is not a supported operating system"
@@ -69,7 +69,13 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build -o $outPath/$BIN -ldflags="-w -s" -trimpath
+if [ ! -d $OUTPATH ]; then
+  mkdir $OUTPATH
+else
+  rm -rf $OUTPATH/*
+fi
+
+CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build -o $OUTPATH/$BIN -ldflags="-w -s" -trimpath
 
 if [[ $IMAGE -eq 1 && "$os" == "linux" ]]; then
   docker build -t $BIN:$VERSION --build-arg BIN=$BIN --platform $os/$arch .
