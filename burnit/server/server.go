@@ -100,7 +100,7 @@ func (s *server) Start() {
 
 	go func() {
 		if err := s.listenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Server: %v\n", err)
+			log.Fatalf("Server: %v.\n", err)
 		}
 	}()
 
@@ -133,7 +133,7 @@ func (s *server) shutdown(wg *sync.WaitGroup, cleanup chan<- bool) {
 	signal.Notify(stop, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	sig := <-stop
 
-	log.Printf("Shutting down server. Reason: %s\n", sig.String())
+	log.Printf("Shutting down server. Reason: %s.\n", sig.String())
 
 	cleanup <- true
 	wg.Wait()
@@ -143,7 +143,7 @@ func (s *server) shutdown(wg *sync.WaitGroup, cleanup chan<- bool) {
 
 	log.Println("Stopping service...")
 	if err := s.secrets.Stop(); err != nil {
-		log.Printf("Service: %v", err)
+		log.Printf("Service: %v.\n", err)
 	}
 	log.Println("Service stopped.")
 
@@ -166,7 +166,7 @@ func (s *server) cleanup(wg *sync.WaitGroup, stop <-chan bool) {
 		case <-time.After(5 * time.Second):
 			_, err := s.secrets.DeleteExpired()
 			if err != nil {
-				log.Printf("Database cleanup: %v\n", err)
+				log.Printf("Database cleanup: %v.\n", err)
 			}
 		}
 	}

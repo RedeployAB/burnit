@@ -11,12 +11,12 @@ import (
 func main() {
 	cfg, err := config.New()
 	if err != nil {
-		log.Fatalf("Configuration: %v\n", err)
+		log.Fatalf("Configuration: %v.\n", err)
 	}
 
 	secrets, err := SetupSecretService(cfg)
 	if err != nil {
-		log.Fatalf("Setup Secret Service: %v\n", err)
+		log.Fatalf("Setting up service: %v.\n", err)
 	}
 	srv := server.New(server.Options{
 		Configuration: cfg,
