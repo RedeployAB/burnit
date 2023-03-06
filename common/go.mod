@@ -2,4 +2,4 @@ module github.com/RedeployAB/burnit/common
 
 go 1.16
 
-require golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b
+require golang.org/x/crypto v0.1.0
