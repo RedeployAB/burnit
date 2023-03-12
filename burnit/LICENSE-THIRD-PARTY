@@ -3,7 +3,7 @@ their copyrights and licenses are provided below.
 
 Direct:
 
-* github.com/go-redis/redis/v8 (BSD 2-Clause)
+* github.com/redis/go-redis/v9 (BSD 2-Clause)
 * github.com/google/go-cmp (BSD 3-Clause)
 * github.com/google/uuid (BSD 3-Clause)
 * github.com/gorilla/mux (BSD 3-Clause)
