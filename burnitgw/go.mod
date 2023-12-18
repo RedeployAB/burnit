@@ -11,4 +11,4 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
-require golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b // indirect
+require golang.org/x/crypto v0.17.0 // indirect
