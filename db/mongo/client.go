@@ -15,7 +15,7 @@ type Result interface {
 	Decode(v any) error
 }
 
-// ClientOptions represents the options for the client.
+// ClientOptions contains options for the client.
 type ClientOptions = options.ClientOptions
 
 // Client is the interface for the MongoDB client. Contains
