@@ -73,11 +73,11 @@ func (r MongoSecretRepository) Create(ctx context.Context, secret Secret) (Secre
 	if secret.CreatedAt.IsZero() {
 		secret.CreatedAt = now()
 	}
+
 	id, err := r.client.Collection(r.collection).InsertOne(ctx, secret)
 	if err != nil {
 		return Secret{}, err
 	}
-
 	return r.Get(ctx, id)
 }
 
@@ -87,7 +87,6 @@ func (r MongoSecretRepository) Delete(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
-
 	return r.client.Collection(r.collection).DeleteOne(ctx, bson.D{{Key: "_id", Value: secret.ID}})
 }
 
