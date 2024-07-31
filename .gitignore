@@ -1,7 +1,6 @@
 build/
-release/
+testcmd/
 *.exe
-*.out
 
 .env
 *.env
