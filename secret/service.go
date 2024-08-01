@@ -2,8 +2,6 @@ package secret
 
 import (
 	"errors"
-	"math/rand"
-	"strings"
 	"time"
 
 	"github.com/RedeployAB/burnit/db"
@@ -62,22 +60,7 @@ func NewService(secrets db.SecretRepository, options ...ServiceOption) (*service
 // length argument (with a max of 512 characters, a longer length will be trimmed to this value).
 // If specialCharacters is set to true, the secret will contain special characters.
 func (s service) Generate(length int, specialCharacters bool) string {
-	if length > maxLength {
-		length = maxLength
-	}
-
-	var strb strings.Builder
-	strb.WriteString(stdCharacters)
-	if specialCharacters {
-		strb.WriteString(spcCharacters)
-	}
-	bltrs := []byte(strb.String())
-	b := make([]byte, length)
-	for i := range b {
-		b[i] = bltrs[rand.Intn(len(bltrs))]
-	}
-
-	return string(b)
+	return Generate(length, specialCharacters)
 }
 
 // Get a secret. The secret is deleted after it has been retrieved
