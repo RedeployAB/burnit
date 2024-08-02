@@ -176,7 +176,7 @@ var newUUID = func() string {
 // encrypt a value using a key and returns the encrypted value
 // as a base64 encoded string.
 func encrypt(value, key string) (string, error) {
-	encrypted, err := security.Encrypt([]byte(value), []byte(key))
+	encrypted, err := security.Encrypt([]byte(value), security.ToMD5([]byte(key)))
 	if err != nil {
 		return "", err
 	}
@@ -190,7 +190,7 @@ func decrypt(value, key string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	decrypted, err := security.Decrypt(decoded, []byte(key))
+	decrypted, err := security.Decrypt(decoded, security.ToMD5([]byte(key)))
 	if err != nil {
 		return "", err
 	}
