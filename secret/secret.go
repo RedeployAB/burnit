@@ -6,6 +6,15 @@ import (
 	"time"
 )
 
+const (
+	// stdCharacters is the standard letters used for generating a secret.
+	stdCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUWXYZ"
+	// spcCharacters is the special characters used for generating a secret.
+	spcCharacters = "_-!?=()&%"
+	// maxLength is the maximum length of a secret.
+	maxLength = 512
+)
+
 // Secret contains the secret data.
 type Secret struct {
 	ID         string

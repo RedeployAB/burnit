@@ -14,15 +14,6 @@ import (
 const (
 	// defaultTimeout is the default timeout for service operations.
 	defaultTimeout = 10 * time.Second
-)
-
-const (
-	// stdCharacters is the standard letters used for generating a secret.
-	stdCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUWXYZ"
-	// spcCharacters is the special characters used for generating a secret.
-	spcCharacters = "_-!?=()&%"
-	// maxLength is the maximum length of a secret.
-	maxLength = 512
 	// defaultTTL is the default TTL of a secret.
 	defaultTTL = 5 * time.Minute
 )
