@@ -4,10 +4,16 @@ import (
 	"context"
 	"errors"
 	"sync"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	mgoopts "go.mongodb.org/mongo-driver/mongo/options"
+)
+
+const (
+	// defaultConnectTimeout is the default timeout for connecting to the MongoDB client.
+	defaultConnectTimeout = 10 * time.Second
 )
 
 // Result is the interface for MongoDB results.
@@ -16,7 +22,14 @@ type Result interface {
 }
 
 // ClientOptions contains options for the client.
-type ClientOptions = options.ClientOptions
+type ClientOptions struct {
+	URI            string
+	Hosts          []string
+	ConnectTimeout time.Duration
+}
+
+// ClientOption is a function that sets options for the client.
+type ClientOption func(o *ClientOptions)
 
 // Client is the interface for the MongoDB client. Contains
 // methods for interacting with the database and collections.
@@ -27,6 +40,7 @@ type Client interface {
 	InsertOne(ctx context.Context, document any) (string, error)
 	DeleteOne(ctx context.Context, filter any) error
 	DeleteMany(ctx context.Context, filter any) error
+	Disconnect(ctx context.Context) error
 }
 
 // client wraps the MongoDB client.
@@ -38,8 +52,18 @@ type client struct {
 }
 
 // NewClient creates and configures a new client.
-func NewClient(ctx context.Context, options ...*ClientOptions) (*client, error) {
-	cl, err := mongo.Connect(ctx, options...)
+func NewClient(options ...ClientOption) (*client, error) {
+	opts := ClientOptions{
+		ConnectTimeout: defaultConnectTimeout,
+	}
+	for _, option := range options {
+		option(&opts)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), opts.ConnectTimeout)
+	defer cancel()
+
+	cl, err := mongo.Connect(ctx, createClientOptions(&opts))
 	if err != nil {
 		return nil, err
 	}
@@ -49,6 +73,23 @@ func NewClient(ctx context.Context, options ...*ClientOptions) (*client, error) 
 	return &client{
 		cl: cl,
 	}, nil
+}
+
+// createClientOptions creates a new client options for underlying MongoDB client.
+func createClientOptions(options *ClientOptions) *mgoopts.ClientOptions {
+	opts := mgoopts.Client()
+	if options == nil {
+		return opts
+	}
+
+	if len(options.URI) > 0 {
+		return opts.ApplyURI(options.URI)
+	}
+
+	if len(options.Hosts) > 0 {
+		opts.Hosts = options.Hosts
+	}
+	return opts
 }
 
 // Database sets the database and returns the client.
@@ -67,15 +108,6 @@ func (c *client) Collection(collection string) Client {
 
 	c.coll = c.db.Collection(collection)
 	return c
-}
-
-// Disconnect disconnects the client.
-func (c *client) Disconnect(ctx context.Context) error {
-	err := c.cl.Disconnect(ctx)
-	if err == nil || err == mongo.ErrClientDisconnected {
-		return nil
-	}
-	return err
 }
 
 // FindOne finds a document in the collection.
@@ -115,6 +147,15 @@ func (c *client) DeleteMany(ctx context.Context, filter any) error {
 		return ErrDocumentsNotDeleted
 	}
 	return nil
+}
+
+// Disconnect disconnects the client.
+func (c *client) Disconnect(ctx context.Context) error {
+	err := c.cl.Disconnect(ctx)
+	if err == nil || err == mongo.ErrClientDisconnected {
+		return nil
+	}
+	return err
 }
 
 // parseID parses the ID into a string.

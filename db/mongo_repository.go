@@ -14,18 +14,22 @@ const (
 	defaultMongoSecretRepositoryDatabase = "burnit"
 	// defaultMongoSecretRepositoryCollection is the default collection for the secret repository.
 	defaultMongoSecretRepositoryCollection = "secrets"
+	// defaultMongoSecretRepositoryTimeout is the default timeout for the secret repository.
+	defaultMongoSecretRepositoryTimeout = 10 * time.Second
 )
 
 // MongoSecretRepository is a MongoDB implementation of a SecretRepository.
 type MongoSecretRepository struct {
 	client     mongo.Client
 	collection string
+	timeout    time.Duration
 }
 
 // MongoSecretRepositoryOptions is the options for the SecretRepository.
 type MongoSecretRepositoryOptions struct {
 	Database   string
 	Collection string
+	Timeout    time.Duration
 }
 
 // MongoSecretRepositoryOption is a function that sets options for the SecretRepository.
@@ -40,6 +44,7 @@ func NewMongoSecretRepository(client mongo.Client, options ...MongoSecretReposit
 	opts := MongoSecretRepositoryOptions{
 		Database:   defaultMongoSecretRepositoryDatabase,
 		Collection: defaultMongoSecretRepositoryCollection,
+		Timeout:    defaultMongoSecretRepositoryTimeout,
 	}
 	for _, option := range options {
 		option(&opts)
@@ -70,10 +75,6 @@ func (r MongoSecretRepository) Get(ctx context.Context, id string) (Secret, erro
 
 // Create a new secret.
 func (r MongoSecretRepository) Create(ctx context.Context, secret Secret) (Secret, error) {
-	if secret.CreatedAt.IsZero() {
-		secret.CreatedAt = now()
-	}
-
 	id, err := r.client.Collection(r.collection).InsertOne(ctx, secret)
 	if err != nil {
 		return Secret{}, err
@@ -93,10 +94,22 @@ func (r MongoSecretRepository) Delete(ctx context.Context, id string) error {
 // DeleteExpired deletes all expired secrets.
 func (r MongoSecretRepository) DeleteExpired(ctx context.Context) error {
 	filter := bson.D{{Key: "expiresAt", Value: bson.D{{Key: "$lt", Value: now()}}}}
-	if err := r.client.Collection(r.collection).DeleteMany(ctx, filter); err != nil && err != mongo.ErrDocumentsNotDeleted {
+	err := r.client.Collection(r.collection).DeleteMany(ctx, filter)
+	if err != nil {
+		if errors.Is(err, mongo.ErrDocumentsNotDeleted) {
+			return ErrSecretsNotDeleted
+		}
 		return err
 	}
 	return nil
+}
+
+// Close the repository and its underlying connections.
+func (r MongoSecretRepository) Close() error {
+	ctx, cancel := context.WithTimeout(context.Background(), r.timeout)
+	defer cancel()
+
+	return r.client.Disconnect(ctx)
 }
 
 // now is a function that returns the current time.
