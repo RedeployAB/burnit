@@ -189,9 +189,8 @@ func TestMongoSecretRepository_Create(t *testing.T) {
 				},
 			},
 			want: Secret{
-				ID:        "1",
-				Value:     "secret",
-				CreatedAt: date,
+				ID:    "1",
+				Value: "secret",
 			},
 		},
 		{
@@ -443,6 +442,10 @@ func (c *mockMongoClient) DeleteMany(ctx context.Context, filter any) error {
 		}
 	}
 	c.secrets = secretsToKeep
+	return nil
+}
+
+func (c mockMongoClient) Disconnect(ctx context.Context) error {
 	return nil
 }
 
