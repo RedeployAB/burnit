@@ -16,7 +16,7 @@ var (
 
 // Encrypt data with 256-bit AES-GCM encryption using the given key.
 func Encrypt(data []byte, key []byte) ([]byte, error) {
-	block, err := aes.NewCipher(toMD5(key))
+	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func Encrypt(data []byte, key []byte) ([]byte, error) {
 
 // Decrypt data encrypted with 256-bit AES-GCM encryption using the given key.
 func Decrypt(data []byte, key []byte) ([]byte, error) {
-	block, err := aes.NewCipher(toMD5(key))
+	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func Decrypt(data []byte, key []byte) ([]byte, error) {
 }
 
 // toMD5 hashes the given key using MD5.
-func toMD5(key []byte) []byte {
+func ToMD5(key []byte) []byte {
 	hasher := md5.New()
 	hasher.Write(key)
 	return hasher.Sum(nil)
