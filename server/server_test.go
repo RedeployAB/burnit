@@ -84,6 +84,8 @@ func TestServer_Start(t *testing.T) {
 			httpServer: &http.Server{
 				Addr: "localhost:8080",
 			},
+			router:  &http.ServeMux{},
+			secrets: &mockSecretService{},
 			log: &mockLogger{
 				logs: &logs,
 			},
@@ -118,6 +120,8 @@ func TestServer_Start_Error(t *testing.T) {
 			httpServer: &http.Server{
 				Addr: "localhost:8080",
 			},
+			router:  &http.ServeMux{},
+			secrets: &mockSecretService{},
 			log: &mockLogger{
 				logs: &logs,
 			},

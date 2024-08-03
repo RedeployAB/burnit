@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"syscall"
 	"time"
+
+	"github.com/RedeployAB/burnit/secret"
 )
 
 // Defaults for server configuration.
@@ -23,6 +25,7 @@ const (
 type server struct {
 	httpServer *http.Server
 	router     *http.ServeMux
+	secrets    secret.Service
 	log        logger
 	stopCh     chan os.Signal
 	errCh      chan error

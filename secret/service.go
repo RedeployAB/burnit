@@ -21,7 +21,7 @@ const (
 // Service is the interface that provides methods for secret operations.
 type Service interface {
 	// Generate a new secret.
-	Generate() string
+	Generate(length int, specialCharacters bool) string
 	// Get a secret.
 	Get(id, passphrase string) (Secret, error)
 	// Create a secret.
