@@ -18,7 +18,7 @@ type CreateSecretRequest struct {
 // Valid validates the CreateSecretRequest.
 func (r CreateSecretRequest) Valid() map[string]string {
 	errs := make(map[string]string)
-	if r.Value == "" {
+	if len(r.Value) == 0 {
 		errs["value"] = "value is required"
 	}
 	return errs
