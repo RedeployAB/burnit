@@ -7,4 +7,6 @@ var (
 	ErrNilRepository = errors.New("nil repository")
 	// ErrSecretNotFound is returned when a secret is not found.
 	ErrSecretNotFound = errors.New("secret not found")
+	// ErrInvalidPassphrase is returned when the passphrase is invalid.
+	ErrInvalidPassphrase = errors.New("invalid passphrase")
 )
