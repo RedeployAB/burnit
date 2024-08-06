@@ -21,6 +21,7 @@ type Secret struct {
 	Value      string
 	Passphrase string
 	TTL        time.Duration
+	ExpiresAt  time.Time
 }
 
 // Generate a new secret. The length of the secret is set by the provided

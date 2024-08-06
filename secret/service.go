@@ -83,7 +83,7 @@ func (s service) Get(id, passphrase string) (Secret, error) {
 		return Secret{}, err
 	}
 
-	if dbSecret.ExpiresAt.Before(time.Now()) {
+	if dbSecret.ExpiresAt.Before(now()) {
 		if err := s.secrets.Delete(ctx, id); err != nil {
 			return Secret{}, err
 		}
@@ -97,6 +97,9 @@ func (s service) Get(id, passphrase string) (Secret, error) {
 
 	decrypted, err := decrypt(dbSecret.Value, key)
 	if err != nil {
+		if errors.Is(err, security.ErrInvalidKey) {
+			return Secret{}, ErrInvalidPassphrase
+		}
 		return Secret{}, err
 	}
 
@@ -132,14 +135,16 @@ func (s service) Create(secret Secret) (Secret, error) {
 	dbSecret, err := s.secrets.Create(ctx, db.Secret{
 		ID:        newUUID(),
 		Value:     encrypted,
-		ExpiresAt: time.Now().Add(secret.TTL),
+		ExpiresAt: now().Add(secret.TTL),
 	})
 	if err != nil {
 		return Secret{}, err
 	}
+
 	return Secret{
-		ID:  dbSecret.ID,
-		TTL: secret.TTL,
+		ID:        dbSecret.ID,
+		TTL:       secret.TTL,
+		ExpiresAt: dbSecret.ExpiresAt,
 	}, nil
 }
 
@@ -195,4 +200,9 @@ func decrypt(value, key string) (string, error) {
 		return "", err
 	}
 	return string(decrypted), nil
+}
+
+// now returns the current time.
+var now = func() time.Time {
+	return time.Now()
 }

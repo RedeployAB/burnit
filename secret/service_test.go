@@ -105,7 +105,7 @@ func TestService_Get(t *testing.T) {
 								v, _ := encrypt("secret", "key")
 								return v
 							}(),
-							ExpiresAt: time.Now().Add(1 * time.Hour),
+							ExpiresAt: now().Add(1 * time.Hour),
 						},
 					},
 				},
@@ -144,7 +144,7 @@ func TestService_Get(t *testing.T) {
 								v, _ := encrypt("secret", "key")
 								return v
 							}(),
-							ExpiresAt: time.Now().Add(-1 * time.Hour),
+							ExpiresAt: now().Add(-1 * time.Hour),
 						},
 					},
 				},
@@ -190,6 +190,12 @@ func TestService_Get(t *testing.T) {
 }
 
 func TestService_Create(t *testing.T) {
+	now = func() time.Time {
+		return time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+	}
+
+	n := now()
+
 	var tests = []struct {
 		name  string
 		input struct {
@@ -215,8 +221,9 @@ func TestService_Create(t *testing.T) {
 				id: "2",
 			},
 			want: Secret{
-				ID:  "2",
-				TTL: defaultTTL,
+				ID:        "2",
+				TTL:       defaultTTL,
+				ExpiresAt: n.Add(defaultTTL),
 			},
 		},
 		{
@@ -233,8 +240,9 @@ func TestService_Create(t *testing.T) {
 				id: "2",
 			},
 			want: Secret{
-				ID:  "2",
-				TTL: defaultTTL,
+				ID:        "2",
+				TTL:       defaultTTL,
+				ExpiresAt: n.Add(defaultTTL),
 			},
 		},
 		{
