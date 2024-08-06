@@ -3,6 +3,8 @@ package server
 import (
 	"errors"
 	"net/http"
+
+	"github.com/RedeployAB/burnit/secret"
 )
 
 var (
@@ -45,4 +47,31 @@ func writeError(w http.ResponseWriter, statusCode int, err error) {
 // writeServerError writes a server error response to the caller.
 func writeServerError(w http.ResponseWriter) {
 	writeError(w, http.StatusInternalServerError, nil)
+}
+
+// errorCode returns the status code for the given error.
+func errorCode(err error) int {
+	for statusCode, errs := range errorCodeMaps {
+		for _, e := range errs {
+			if errors.Is(err, e) {
+				return statusCode
+			}
+		}
+	}
+	return 0
+}
+
+// errorCodeMaps maps errors to status codes.
+var errorCodeMaps = map[int][]error{
+	http.StatusBadRequest: {
+		ErrEmptyRequest,
+		ErrInvalidRequest,
+		ErrMalformedRequest,
+	},
+	http.StatusUnauthorized: {
+		secret.ErrInvalidPassphrase,
+	},
+	http.StatusNotFound: {
+		secret.ErrSecretNotFound,
+	},
 }
