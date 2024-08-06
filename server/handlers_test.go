@@ -288,6 +288,30 @@ func TestServer_getSecret(t *testing.T) {
 				body:   []byte(`{"statusCode":404,"error":"secret not found"}` + "\n"),
 			},
 		},
+		{
+			name: "get secret - error from service",
+			input: struct {
+				secrets secret.Service
+				req     *http.Request
+				path    string
+			}{
+				secrets: &mockSecretService{
+					err: errSecretService,
+				},
+				req: func() *http.Request {
+					req := httptest.NewRequest("GET", "/secret/1", nil)
+					req.SetPathValue("id", "1")
+					return req
+				}(),
+			},
+			want: struct {
+				status int
+				body   []byte
+			}{
+				status: http.StatusInternalServerError,
+				body:   []byte(`{"statusCode":500,"error":"internal server error"}` + "\n"),
+			},
+		},
 	}
 
 	for _, test := range tests {
