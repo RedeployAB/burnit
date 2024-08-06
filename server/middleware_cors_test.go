@@ -12,9 +12,8 @@ func TestCORSHandler(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input struct {
-			origin  string
-			headers http.Header
-			req     *http.Request
+			origin string
+			req    *http.Request
 		}
 		want struct {
 			headers    http.Header
@@ -24,16 +23,11 @@ func TestCORSHandler(t *testing.T) {
 		{
 			name: "CORS handler with valid origin and headers",
 			input: struct {
-				origin  string
-				headers http.Header
-				req     *http.Request
+				origin string
+				req    *http.Request
 			}{
 				origin: "http://localhost:3000",
-				headers: http.Header{
-					"Access-Control-Allow-Methods": []string{"GET", "POST"},
-					"Access-Control-Allow-Headers": []string{"Content-Type", "Passphrase"},
-				},
-				req: httptest.NewRequest("GET", "/", nil),
+				req:    httptest.NewRequest("GET", "/", nil),
 			},
 			want: struct {
 				headers    http.Header
@@ -50,16 +44,11 @@ func TestCORSHandler(t *testing.T) {
 		{
 			name: "CORS handler with OPTIONS method",
 			input: struct {
-				origin  string
-				headers http.Header
-				req     *http.Request
+				origin string
+				req    *http.Request
 			}{
 				origin: "http://localhost:3000",
-				headers: http.Header{
-					"Access-Control-Allow-Methods": []string{"GET", "POST"},
-					"Access-Control-Allow-Headers": []string{"Content-Type", "Passphrase"},
-				},
-				req: httptest.NewRequest("OPTIONS", "/", nil),
+				req:    httptest.NewRequest("OPTIONS", "/", nil),
 			},
 			want: struct {
 				headers    http.Header
@@ -84,7 +73,7 @@ func TestCORSHandler(t *testing.T) {
 			rr := httptest.NewRecorder()
 			req := test.input.req
 
-			newCORSHandler(test.input.origin, test.input.headers)(handler).ServeHTTP(rr, req)
+			newCORSHandler(test.input.origin)(handler).ServeHTTP(rr, req)
 
 			gotCode := rr.Code
 			gotHeaders := rr.Header()
