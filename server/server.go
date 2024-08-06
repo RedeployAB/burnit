@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"crypto/tls"
 	"net/http"
 	"os"
 	"os/signal"
@@ -27,8 +28,15 @@ type server struct {
 	router     *http.ServeMux
 	secrets    secret.Service
 	log        logger
+	tls        TLSConfig
 	stopCh     chan os.Signal
 	errCh      chan error
+}
+
+// TLSConfig holds the configuration for the server's TLS settings.
+type TLSConfig struct {
+	Certificate string
+	Key         string
 }
 
 // Options holds the configuration for the server.
@@ -37,6 +45,7 @@ type Options struct {
 	Logger       logger
 	Host         string
 	Port         int
+	TLS          TLSConfig
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
 	IdleTimeout  time.Duration
@@ -79,7 +88,7 @@ func (s server) Start() error {
 	s.routes()
 
 	go func() {
-		if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := s.listenAndServe(); err != nil && err != http.ErrServerClosed {
 			s.errCh <- err
 		}
 	}()
@@ -100,6 +109,16 @@ func (s server) Start() error {
 			return nil
 		}
 	}
+}
+
+// listenAndServe wraps around http.Server ListenAndServe and
+// ListenAndServeTLS depending on TLS configuration.
+func (s *server) listenAndServe() error {
+	if s.tls != (TLSConfig{}) {
+		s.httpServer.TLSConfig = newTLSConfig()
+		return s.httpServer.ListenAndServeTLS(s.tls.Certificate, s.tls.Key)
+	}
+	return s.httpServer.ListenAndServe()
 }
 
 // stop the server.
@@ -141,5 +160,22 @@ func WithOptions(options Options) Option {
 		if options.IdleTimeout > 0 {
 			s.httpServer.IdleTimeout = options.IdleTimeout
 		}
+	}
+}
+
+// newTLSConfig returns a new tls.Config.
+func newTLSConfig() *tls.Config {
+	return &tls.Config{
+		MinVersion:               tls.VersionTLS13,
+		PreferServerCipherSuites: true,
+		CurvePreferences: []tls.CurveID{
+			tls.CurveP256,
+		},
+		CipherSuites: []uint16{
+			tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+		},
 	}
 }
