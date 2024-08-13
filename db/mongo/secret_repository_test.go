@@ -30,9 +30,10 @@ func TestNewSecretRepository(t *testing.T) {
 				client: &mockMongoClient{},
 			},
 			want: &SecretRepository{
-				client:     &mockMongoClient{},
-				collection: defaultSecretRepositoryCollection,
-				timeout:    defaultSecretRepositoryTimeout,
+				client:             &mockMongoClient{},
+				collection:         defaultSecretRepositoryCollection,
+				settingsCollection: defaultSettingsCollection,
+				timeout:            defaultSecretRepositoryTimeout,
 			},
 		},
 		{
@@ -46,13 +47,15 @@ func TestNewSecretRepository(t *testing.T) {
 					func(o *SecretRepositoryOptions) {
 						o.Database = "test"
 						o.Collection = "test"
+						o.SettingsCollection = "test"
 					},
 				},
 			},
 			want: &SecretRepository{
-				client:     &mockMongoClient{},
-				collection: "test",
-				timeout:    defaultSecretRepositoryTimeout,
+				client:             &mockMongoClient{},
+				collection:         "test",
+				settingsCollection: "test",
+				timeout:            defaultSecretRepositoryTimeout,
 			},
 		},
 		{
@@ -367,6 +370,235 @@ func TestSecretRepository_DeleteExpired(t *testing.T) {
 
 			if diff := cmp.Diff(test.wantErr, gotErr, cmpopts.EquateErrors()); diff != "" {
 				t.Errorf("DeleteExpired() = unexpected error (-want +got)\n%s\n", diff)
+			}
+		})
+	}
+}
+
+func TestSecretRepository_GetSettings(t *testing.T) {
+	var tests = []struct {
+		name  string
+		input struct {
+			settings []models.Settings
+			err      error
+		}
+		want    models.Settings
+		wantErr error
+	}{
+		{
+			name: "get settings",
+			input: struct {
+				settings []models.Settings
+				err      error
+			}{
+				settings: []models.Settings{
+					{
+						Security: models.Security{
+							ID:            "security",
+							EncryptionKey: "test",
+						},
+					},
+				},
+			},
+			want: models.Settings{
+				Security: models.Security{
+					ID:            "security",
+					EncryptionKey: "test",
+				},
+			},
+		},
+		{
+			name: "get settings - not found",
+			input: struct {
+				settings []models.Settings
+				err      error
+			}{},
+			wantErr: dberrors.ErrSettingsNotFound,
+		},
+		{
+			name: "get settings - error",
+			input: struct {
+				settings []models.Settings
+				err      error
+			}{
+				err: errFindOne,
+			},
+			wantErr: errFindOne,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			repo := &SecretRepository{
+				client: &mockMongoClient{
+					settings: test.input.settings,
+					err:      test.input.err,
+				},
+			}
+
+			got, gotErr := repo.GetSettings(context.Background())
+
+			if diff := cmp.Diff(test.want, got); diff != "" {
+				t.Errorf("GetSettings() = unexpected result (-want +got)\n%s\n", diff)
+			}
+
+			if diff := cmp.Diff(test.wantErr, gotErr, cmpopts.EquateErrors()); diff != "" {
+				t.Errorf("GetSettings() = unexpected error (-want +got)\n%s\n", diff)
+			}
+		})
+	}
+}
+
+func TestSecretRepository_CreateSettings(t *testing.T) {
+	var tests = []struct {
+		name  string
+		input struct {
+			settings   []models.Settings
+			inSettings models.Settings
+			err        error
+		}
+		want    models.Settings
+		wantErr error
+	}{
+		{
+			name: "create settings",
+			input: struct {
+				settings   []models.Settings
+				inSettings models.Settings
+				err        error
+			}{
+				settings: []models.Settings{},
+				inSettings: models.Settings{
+					Security: models.Security{
+						EncryptionKey: "test",
+					},
+				},
+			},
+			want: models.Settings{
+				Security: models.Security{
+					ID:            "security",
+					EncryptionKey: "test",
+				},
+			},
+		},
+		{
+			name: "create settings - error",
+			input: struct {
+				settings   []models.Settings
+				inSettings models.Settings
+				err        error
+			}{
+				settings: []models.Settings{},
+				inSettings: models.Settings{
+					Security: models.Security{
+						EncryptionKey: "test",
+					},
+				},
+				err: errInsertOne,
+			},
+			wantErr: errInsertOne,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			repo := &SecretRepository{
+				client: &mockMongoClient{
+					settings: test.input.settings,
+					err:      test.input.err,
+				},
+			}
+
+			got, gotErr := repo.CreateSettings(context.Background(), test.input.inSettings)
+
+			if diff := cmp.Diff(test.want, got); diff != "" {
+				t.Errorf("CreateSettings() = unexpected result (-want +got)\n%s\n", diff)
+			}
+
+			if diff := cmp.Diff(test.wantErr, gotErr, cmpopts.EquateErrors()); diff != "" {
+				t.Errorf("CreateSettings() = unexpected error (-want +got)\n%s\n", diff)
+			}
+		})
+	}
+}
+
+func TestSecretRepository_UpdateSettings(t *testing.T) {
+	var tests = []struct {
+		name  string
+		input struct {
+			settings   []models.Settings
+			inSettings models.Settings
+			err        error
+		}
+		want    models.Settings
+		wantErr error
+	}{
+		{
+			name: "update settings",
+			input: struct {
+				settings   []models.Settings
+				inSettings models.Settings
+				err        error
+			}{
+				settings: []models.Settings{
+					{
+						Security: models.Security{
+							ID:            "security",
+							EncryptionKey: "test",
+						},
+					},
+				},
+				inSettings: models.Settings{
+					Security: models.Security{
+						ID:            "security",
+						EncryptionKey: "test-updated",
+					},
+				},
+			},
+			want: models.Settings{
+				Security: models.Security{
+					ID:            "security",
+					EncryptionKey: "test-updated",
+				},
+			},
+		},
+		{
+			name: "update settings - error",
+			input: struct {
+				settings   []models.Settings
+				inSettings models.Settings
+				err        error
+			}{
+				settings: []models.Settings{},
+				inSettings: models.Settings{
+					Security: models.Security{
+						ID:            "security",
+						EncryptionKey: "test-updated",
+					},
+				},
+				err: errUpdateOne,
+			},
+			wantErr: errUpdateOne,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			repo := &SecretRepository{
+				client: &mockMongoClient{
+					settings: test.input.settings,
+					err:      test.input.err,
+				},
+			}
+
+			got, gotErr := repo.UpdateSettings(context.Background(), test.input.inSettings)
+
+			if diff := cmp.Diff(test.want, got); diff != "" {
+				t.Errorf("UpdateSettings() = unexpected result (-want +got)\n%s\n", diff)
+			}
+
+			if diff := cmp.Diff(test.wantErr, gotErr, cmpopts.EquateErrors()); diff != "" {
+				t.Errorf("UpdateSettings() = unexpected error (-want +got)\n%s\n", diff)
 			}
 		})
 	}

@@ -17,20 +17,24 @@ const (
 	defaultSecretRepositoryCollection = "secrets"
 	// defaultSecretRepositoryTimeout is the default timeout for the secret repository.
 	defaultSecretRepositoryTimeout = 10 * time.Second
+	// defaultSettingsCollection is the default collection for the settings.
+	defaultSettingsCollection = "settings"
 )
 
 // SecretRepository is a MongoDB implementation of a SecretRepository.
 type SecretRepository struct {
-	client     Client
-	collection string
-	timeout    time.Duration
+	client             Client
+	collection         string
+	settingsCollection string
+	timeout            time.Duration
 }
 
 // SecretRepositoryOptions is the options for the SecretRepository.
 type SecretRepositoryOptions struct {
-	Database   string
-	Collection string
-	Timeout    time.Duration
+	Database           string
+	Collection         string
+	SettingsCollection string
+	Timeout            time.Duration
 }
 
 // SecretRepositoryOption is a function that sets options for the SecretRepository.
@@ -43,18 +47,20 @@ func NewSecretRepository(client Client, options ...SecretRepositoryOption) (*Sec
 	}
 
 	opts := SecretRepositoryOptions{
-		Database:   defaultSecretRepositoryDatabase,
-		Collection: defaultSecretRepositoryCollection,
-		Timeout:    defaultSecretRepositoryTimeout,
+		Database:           defaultSecretRepositoryDatabase,
+		Collection:         defaultSecretRepositoryCollection,
+		SettingsCollection: defaultSettingsCollection,
+		Timeout:            defaultSecretRepositoryTimeout,
 	}
 	for _, option := range options {
 		option(&opts)
 	}
 
 	return &SecretRepository{
-		client:     client.Database(opts.Database),
-		collection: opts.Collection,
-		timeout:    opts.Timeout,
+		client:             client.Database(opts.Database),
+		collection:         opts.Collection,
+		settingsCollection: opts.SettingsCollection,
+		timeout:            opts.Timeout,
 	}, nil
 }
 
@@ -104,6 +110,49 @@ func (r SecretRepository) DeleteExpired(ctx context.Context) error {
 		return err
 	}
 	return nil
+}
+
+// GetSettings gets the settings.
+func (r SecretRepository) GetSettings(ctx context.Context) (models.Settings, error) {
+	res, err := r.client.Collection(r.settingsCollection).FindOne(ctx, bson.D{{Key: "_id", Value: "security"}})
+	if err != nil {
+		if errors.Is(err, ErrNoDocuments) {
+			return models.Settings{}, dberrors.ErrSettingsNotFound
+		}
+		return models.Settings{}, err
+	}
+
+	var s models.Security
+	if err := res.Decode(&s); err != nil {
+		return models.Settings{}, err
+	}
+
+	return models.Settings{Security: s}, nil
+}
+
+// CreateSettings creates settings.
+func (r SecretRepository) CreateSettings(ctx context.Context, settings models.Settings) (models.Settings, error) {
+	if len(settings.Security.ID) == 0 {
+		settings.Security.ID = "security"
+	}
+
+	if _, err := r.client.Collection(r.settingsCollection).InsertOne(ctx, settings.Security); err != nil {
+		return models.Settings{}, err
+	}
+
+	return r.GetSettings(ctx)
+}
+
+// UpdateSettings updates the settings.
+func (r SecretRepository) UpdateSettings(ctx context.Context, settings models.Settings) (models.Settings, error) {
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "encryptionKey", Value: settings.Security.EncryptionKey}}}}
+	if err := r.client.Collection(r.settingsCollection).UpdateOne(ctx, bson.D{{Key: "_id", Value: "security"}}, update); err != nil {
+		if errors.Is(err, ErrNoDocuments) {
+			return models.Settings{}, dberrors.ErrSettingsNotFound
+		}
+		return models.Settings{}, err
+	}
+	return r.GetSettings(ctx)
 }
 
 // Close the repository and its underlying connections.

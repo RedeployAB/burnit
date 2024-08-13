@@ -81,6 +81,24 @@ func (c *mockMongoClient) InsertOne(ctx context.Context, document any) (string, 
 }
 
 func (c *mockMongoClient) UpdateOne(ctx context.Context, filter, update any) error {
+	if c.err != nil {
+		return c.err
+	}
+	if c.settings != nil {
+		switch doc := update.(type) {
+		case bson.D:
+			value, ok := doc[0].Value.(bson.D)
+			if !ok {
+				return errors.New("invalid update")
+			}
+			if value[0].Key == "encryptionKey" {
+				c.settings[0].Security.EncryptionKey = value[0].Value.(string)
+				return nil
+			}
+		default:
+			return errors.New("invalid update")
+		}
+	}
 	return nil
 }
 
@@ -139,6 +157,7 @@ func (r mockResult) Decode(v any) error {
 var (
 	errFindOne    = errors.New("find one error")
 	errInsertOne  = errors.New("insert one error")
+	errUpdateOne  = errors.New("update one error")
 	errDeleteOne  = errors.New("delete one error")
 	errDeleteMany = errors.New("delete many error")
 )

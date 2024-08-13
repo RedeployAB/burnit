@@ -17,19 +17,12 @@ type SecretRepository interface {
 	Delete(ctx context.Context, id string) error
 	// DeleteExpired deletes all expired secrets.
 	DeleteExpired(ctx context.Context) error
-	// Close the repository and its underlying connections.
-	Close() error
-}
-
-// SettingRepository defines the methods needed for persisting
-// and retrieving settings.
-type SettingRepository interface {
-	// Get settings.
-	Get(ctx context.Context) (models.Settings, error)
-	// Create settings.
-	Create(ctx context.Context) (models.Settings, error)
-	// Update settings.
-	Update(ctx context.Context, settings models.Settings) (models.Settings, error)
+	// GetSettings gets the settings.
+	GetSettings(ctx context.Context) (models.Settings, error)
+	// CreateSettings creates settings.
+	CreateSettings(ctx context.Context, settings models.Settings) (models.Settings, error)
+	// UpdateSettings updates the settings.
+	UpdateSettings(ctx context.Context, settings models.Settings) (models.Settings, error)
 	// Close the repository and its underlying connections.
 	Close() error
 }
