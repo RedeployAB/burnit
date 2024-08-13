@@ -1,65 +1,65 @@
-package db
+package mongo
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 	"testing"
 	"time"
 
-	"github.com/RedeployAB/burnit/db/mongo"
+	dberrors "github.com/RedeployAB/burnit/db/errors"
+	"github.com/RedeployAB/burnit/db/models"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 func TestNewSecretRepository(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input struct {
-			client  mongo.Client
-			options []MongoSecretRepositoryOption
+			client  Client
+			options []SecretRepositoryOption
 		}
-		want    *MongoSecretRepository
+		want    *SecretRepository
 		wantErr error
 	}{
 		{
 			name: "new secret repository",
 			input: struct {
-				client  mongo.Client
-				options []MongoSecretRepositoryOption
+				client  Client
+				options []SecretRepositoryOption
 			}{
 				client: &mockMongoClient{},
 			},
-			want: &MongoSecretRepository{
+			want: &SecretRepository{
 				client:     &mockMongoClient{},
-				collection: defaultMongoSecretRepositoryCollection,
+				collection: defaultSecretRepositoryCollection,
+				timeout:    defaultSecretRepositoryTimeout,
 			},
 		},
 		{
 			name: "new secret repository - with options",
 			input: struct {
-				client  mongo.Client
-				options []MongoSecretRepositoryOption
+				client  Client
+				options []SecretRepositoryOption
 			}{
 				client: &mockMongoClient{},
-				options: []MongoSecretRepositoryOption{
-					func(o *MongoSecretRepositoryOptions) {
+				options: []SecretRepositoryOption{
+					func(o *SecretRepositoryOptions) {
 						o.Database = "test"
 						o.Collection = "test"
 					},
 				},
 			},
-			want: &MongoSecretRepository{
+			want: &SecretRepository{
 				client:     &mockMongoClient{},
 				collection: "test",
+				timeout:    defaultSecretRepositoryTimeout,
 			},
 		},
 		{
 			name: "new secret repository - nil client",
 			input: struct {
-				client  mongo.Client
-				options []MongoSecretRepositoryOption
+				client  Client
+				options []SecretRepositoryOption
 			}{
 				client: nil,
 			},
@@ -69,46 +69,46 @@ func TestNewSecretRepository(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			got, gotErr := NewMongoSecretRepository(test.input.client, test.input.options...)
+			got, gotErr := NewSecretRepository(test.input.client, test.input.options...)
 
-			if diff := cmp.Diff(test.want, got, cmp.AllowUnexported(MongoSecretRepository{}, mockMongoClient{})); diff != "" {
-				t.Errorf("NewMongoSecretRepository() = unexpected result (-want +got)\n%s\n", diff)
+			if diff := cmp.Diff(test.want, got, cmp.AllowUnexported(SecretRepository{}, mockMongoClient{})); diff != "" {
+				t.Errorf("NewSecretRepository() = unexpected result (-want +got)\n%s\n", diff)
 			}
 
 			if diff := cmp.Diff(test.wantErr, gotErr, cmpopts.EquateErrors()); diff != "" {
-				t.Errorf("NewMongoSecretRepository() = unexpected error (-want +got)\n%s\n", diff)
+				t.Errorf("NewSecretRepository() = unexpected error (-want +got)\n%s\n", diff)
 			}
 		})
 	}
 }
 
-func TestMongoSecretRepository_Get(t *testing.T) {
+func TestSecretRepository_Get(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input struct {
+			secrets []models.Secret
 			id      string
-			secrets []Secret
 			err     error
 		}
-		want    Secret
+		want    models.Secret
 		wantErr error
 	}{
 		{
 			name: "get secret",
 			input: struct {
+				secrets []models.Secret
 				id      string
-				secrets []Secret
 				err     error
 			}{
-				id: "1",
-				secrets: []Secret{
+				secrets: []models.Secret{
 					{
 						ID:    "1",
 						Value: "secret",
 					},
 				},
+				id: "1",
 			},
-			want: Secret{
+			want: models.Secret{
 				ID:    "1",
 				Value: "secret",
 			},
@@ -116,23 +116,25 @@ func TestMongoSecretRepository_Get(t *testing.T) {
 		{
 			name: "get secret - not found",
 			input: struct {
+				secrets []models.Secret
 				id      string
-				secrets []Secret
 				err     error
 			}{
-				id: "1",
+				secrets: []models.Secret{},
+				id:      "1",
 			},
-			wantErr: ErrSecretNotFound,
+			wantErr: dberrors.ErrSecretNotFound,
 		},
 		{
 			name: "get secret - error",
 			input: struct {
+				secrets []models.Secret
 				id      string
-				secrets []Secret
 				err     error
 			}{
-				id:  "1",
-				err: errFindOne,
+				secrets: []models.Secret{},
+				id:      "1",
+				err:     errFindOne,
 			},
 			wantErr: errFindOne,
 		},
@@ -140,7 +142,7 @@ func TestMongoSecretRepository_Get(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			repo := MongoSecretRepository{
+			repo := &SecretRepository{
 				client: &mockMongoClient{
 					secrets: test.input.secrets,
 					err:     test.input.err,
@@ -160,7 +162,7 @@ func TestMongoSecretRepository_Get(t *testing.T) {
 	}
 }
 
-func TestMongoSecretRepository_Create(t *testing.T) {
+func TestSecretRepository_Create(t *testing.T) {
 	date := time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC)
 	now = func() time.Time {
 		return date
@@ -169,26 +171,28 @@ func TestMongoSecretRepository_Create(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input struct {
-			secret  Secret
-			secrets []Secret
+			secrets []models.Secret
+			secret  models.Secret
 			err     error
 		}
-		want    Secret
+		want    models.Secret
 		wantErr error
 	}{
 		{
 			name: "create secret",
 			input: struct {
-				secret  Secret
-				secrets []Secret
-				err     error
+				secrets []models.Secret
+				secret  models.Secret
+
+				err error
 			}{
-				secret: Secret{
+				secrets: []models.Secret{},
+				secret: models.Secret{
 					ID:    "1",
 					Value: "secret",
 				},
 			},
-			want: Secret{
+			want: models.Secret{
 				ID:    "1",
 				Value: "secret",
 			},
@@ -196,11 +200,12 @@ func TestMongoSecretRepository_Create(t *testing.T) {
 		{
 			name: "create secret - error",
 			input: struct {
-				secret  Secret
-				secrets []Secret
+				secrets []models.Secret
+				secret  models.Secret
 				err     error
 			}{
-				secret: Secret{
+				secrets: []models.Secret{},
+				secret: models.Secret{
 					ID:    "1",
 					Value: "secret",
 				},
@@ -212,7 +217,7 @@ func TestMongoSecretRepository_Create(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			repo := MongoSecretRepository{
+			repo := &SecretRepository{
 				client: &mockMongoClient{
 					secrets: test.input.secrets,
 					err:     test.input.err,
@@ -232,12 +237,12 @@ func TestMongoSecretRepository_Create(t *testing.T) {
 	}
 }
 
-func TestMongoSecretRepository_Delete(t *testing.T) {
+func TestSecretRepository_Delete(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input struct {
+			secrets []models.Secret
 			id      string
-			secrets []Secret
 			err     error
 		}
 		wantErr error
@@ -245,39 +250,41 @@ func TestMongoSecretRepository_Delete(t *testing.T) {
 		{
 			name: "delete secret",
 			input: struct {
+				secrets []models.Secret
 				id      string
-				secrets []Secret
 				err     error
 			}{
-				id: "1",
-				secrets: []Secret{
+				secrets: []models.Secret{
 					{
 						ID:    "1",
 						Value: "secret",
 					},
 				},
+				id: "1",
 			},
 		},
 		{
 			name: "delete secret - not found",
 			input: struct {
+				secrets []models.Secret
 				id      string
-				secrets []Secret
 				err     error
 			}{
-				id: "1",
+				secrets: []models.Secret{},
+				id:      "1",
 			},
-			wantErr: ErrSecretNotFound,
+			wantErr: dberrors.ErrSecretNotFound,
 		},
 		{
 			name: "delete secret - error",
 			input: struct {
+				secrets []models.Secret
 				id      string
-				secrets []Secret
 				err     error
 			}{
-				id:  "1",
-				err: errDeleteOne,
+				secrets: []models.Secret{},
+				id:      "1",
+				err:     errDeleteOne,
 			},
 			wantErr: errDeleteOne,
 		},
@@ -285,7 +292,7 @@ func TestMongoSecretRepository_Delete(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			repo := MongoSecretRepository{
+			repo := &SecretRepository{
 				client: &mockMongoClient{
 					secrets: test.input.secrets,
 					err:     test.input.err,
@@ -301,7 +308,7 @@ func TestMongoSecretRepository_Delete(t *testing.T) {
 	}
 }
 
-func TestMongoSecretRepository_DeleteExpired(t *testing.T) {
+func TestSecretRepository_DeleteExpired(t *testing.T) {
 	date := time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC)
 	now = func() time.Time {
 		return date
@@ -310,7 +317,7 @@ func TestMongoSecretRepository_DeleteExpired(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input struct {
-			secrets []Secret
+			secrets []models.Secret
 			err     error
 		}
 		wantErr error
@@ -318,10 +325,10 @@ func TestMongoSecretRepository_DeleteExpired(t *testing.T) {
 		{
 			name: "delete expired secrets",
 			input: struct {
-				secrets []Secret
+				secrets []models.Secret
 				err     error
 			}{
-				secrets: []Secret{
+				secrets: []models.Secret{
 					{
 						ID:        "1",
 						Value:     "secret",
@@ -338,7 +345,7 @@ func TestMongoSecretRepository_DeleteExpired(t *testing.T) {
 		{
 			name: "delete expired secrets - error",
 			input: struct {
-				secrets []Secret
+				secrets []models.Secret
 				err     error
 			}{
 				err: errDeleteMany,
@@ -349,7 +356,7 @@ func TestMongoSecretRepository_DeleteExpired(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			repo := MongoSecretRepository{
+			repo := &SecretRepository{
 				client: &mockMongoClient{
 					secrets: test.input.secrets,
 					err:     test.input.err,
@@ -364,109 +371,3 @@ func TestMongoSecretRepository_DeleteExpired(t *testing.T) {
 		})
 	}
 }
-
-type mockMongoClient struct {
-	err     error
-	secrets []Secret
-}
-
-func (c *mockMongoClient) Database(database string) mongo.Client {
-	return c
-}
-
-func (c *mockMongoClient) Collection(collection string) mongo.Client {
-	return c
-}
-
-func (c mockMongoClient) FindOne(ctx context.Context, filter any) (mongo.Result, error) {
-	if c.err != nil {
-		return nil, c.err
-	}
-	for _, secret := range c.secrets {
-		switch f := filter.(type) {
-		case bson.D:
-			if f[0].Key == "id" || f[0].Key == "_id" && f[0].Value == secret.ID {
-				data, err := json.Marshal(secret)
-				if err != nil {
-					return nil, err
-				}
-				return mockResult{data: data}, nil
-			}
-		default:
-			return nil, errors.New("invalid filter")
-		}
-	}
-	return nil, mongo.ErrNoDocuments
-}
-
-func (c *mockMongoClient) InsertOne(ctx context.Context, document any) (string, error) {
-	if c.err != nil {
-		return "", c.err
-	}
-
-	secret, ok := document.(Secret)
-	if !ok {
-		return "", errors.New("invalid document")
-	}
-	c.secrets = append(c.secrets, secret)
-	return secret.ID, nil
-}
-
-func (c *mockMongoClient) DeleteOne(ctx context.Context, filter any) error {
-	if c.err != nil {
-		return c.err
-	}
-	for i, secret := range c.secrets {
-		switch f := filter.(type) {
-		case bson.D:
-			if f[0].Key == "id" || f[0].Key == "_id" && f[0].Value == secret.ID {
-				c.secrets = append(c.secrets[:i], c.secrets[i+1:]...)
-				return nil
-			}
-		default:
-			return errors.New("invalid filter")
-		}
-	}
-	return mongo.ErrNoDocuments
-}
-
-func (c *mockMongoClient) DeleteMany(ctx context.Context, filter any) error {
-	if c.err != nil {
-		return c.err
-	}
-
-	secretsToKeep := []Secret{}
-	for _, secret := range c.secrets {
-		if !secret.ExpiresAt.Before(time.Now()) {
-			secretsToKeep = append(secretsToKeep, secret)
-		}
-	}
-	c.secrets = secretsToKeep
-	return nil
-}
-
-func (c mockMongoClient) Disconnect(ctx context.Context) error {
-	return nil
-}
-
-type mockResult struct {
-	err  error
-	data []byte
-}
-
-func (r mockResult) Decode(v any) error {
-	if r.err != nil {
-		return r.err
-	}
-	if err := json.Unmarshal(r.data, v); err != nil {
-		return err
-	}
-	return nil
-}
-
-var (
-	errFindOne    = errors.New("find one error")
-	errInsertOne  = errors.New("insert one error")
-	errDeleteOne  = errors.New("delete one error")
-	errDeleteMany = errors.New("delete many error")
-)

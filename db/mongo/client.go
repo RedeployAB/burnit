@@ -25,6 +25,8 @@ type Result interface {
 type ClientOptions struct {
 	URI            string
 	Hosts          []string
+	Username       string
+	Password       string
 	ConnectTimeout time.Duration
 }
 
@@ -38,6 +40,7 @@ type Client interface {
 	Collection(collection string) Client
 	FindOne(ctx context.Context, filter any) (Result, error)
 	InsertOne(ctx context.Context, document any) (string, error)
+	UpdateOne(ctx context.Context, filter, update any) error
 	DeleteOne(ctx context.Context, filter any) error
 	DeleteMany(ctx context.Context, filter any) error
 	Disconnect(ctx context.Context) error
@@ -89,6 +92,12 @@ func createClientOptions(options *ClientOptions) *mgoopts.ClientOptions {
 	if len(options.Hosts) > 0 {
 		opts.Hosts = options.Hosts
 	}
+	if len(options.Username) > 0 && len(options.Password) > 0 {
+		opts.Auth = &mgoopts.Credential{
+			Username: options.Username,
+			Password: options.Password,
+		}
+	}
 	return opts
 }
 
@@ -123,6 +132,21 @@ func (c *client) InsertOne(ctx context.Context, document any) (string, error) {
 		return "", err
 	}
 	return parseID(res.InsertedID)
+}
+
+// UpdateOne updates a document in the collection.
+func (c *client) UpdateOne(ctx context.Context, filter, update any) error {
+	res, err := c.coll.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+	if res.MatchedCount == 0 {
+		return ErrNoDocuments
+	}
+	if res.ModifiedCount == 0 {
+		return ErrDocumentNotUpdated
+	}
+	return nil
 }
 
 // DeleteOne deletes a document from the collection.

@@ -7,8 +7,12 @@ import (
 )
 
 var (
+	// ErrNilClient is returned when the client is nil.
+	ErrNilClient = errors.New("client is nil")
 	// ErrCollectionNotSet is returned when the collection is not set.
 	ErrCollectionNotSet = errors.New("collection not set")
+	// ErrDocumentNotUpdated is returned when a document is not updated.
+	ErrDocumentNotUpdated = errors.New("document not updated")
 	// ErrDocumentNotDeleted is returned when a document is not deleted.
 	ErrDocumentNotDeleted = errors.New("document not deleted")
 	// ErrDocumentsNotDeleted is returned when documents are not deleted.
