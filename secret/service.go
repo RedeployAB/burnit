@@ -7,19 +7,37 @@ import (
 	"time"
 
 	"github.com/RedeployAB/burnit/db"
+	dberrors "github.com/RedeployAB/burnit/db/errors"
+	"github.com/RedeployAB/burnit/db/models"
 	"github.com/RedeployAB/burnit/security"
 	"github.com/google/uuid"
 )
 
 const (
-	// defaultTimeout is the default timeout for service operations.
-	defaultTimeout = 10 * time.Second
 	// defaultTTL is the default TTL of a secret.
 	defaultTTL = 5 * time.Minute
+	// defaultTimeout is the default timeout for service operations.
+	defaultTimeout = 10 * time.Second
+	// defaultCleanupInterval is the default interval for cleaning up expired secrets.
+	defaultCleanupInterval = 30 * time.Second
 )
+
+const (
+	// applicationName is the name of the application.
+	applicationName = "burnit"
+)
+
+// newUUID generates a new UUID.
+var newUUID = func() string {
+	return uuid.New().String()
+}
 
 // Service is the interface that provides methods for secret operations.
 type Service interface {
+	// Start the service and initialize its resources.
+	Start() error
+	// Close the service and its resources.
+	Close() error
 	// Generate a new secret.
 	Generate(length int, specialCharacters bool) string
 	// Get a secret.
@@ -30,15 +48,15 @@ type Service interface {
 	Delete(id string) error
 	// Delete expired secrets.
 	DeleteExpired() error
-	// Close the service and its resources.
-	Close() error
 }
 
 // service provides handling operations for secrets and satisfies Service.
 type service struct {
-	secrets       db.SecretRepository
-	encryptionKey string
-	timeout       time.Duration
+	secrets         db.SecretRepository
+	encryptionKey   string
+	timeout         time.Duration
+	cleanupInterval time.Duration
+	stopCh          chan struct{}
 }
 
 // ServiceOption is a function that sets options for the service.
@@ -51,8 +69,10 @@ func NewService(secrets db.SecretRepository, options ...ServiceOption) (*service
 	}
 
 	svc := &service{
-		secrets: secrets,
-		timeout: defaultTimeout,
+		secrets:         secrets,
+		timeout:         defaultTimeout,
+		cleanupInterval: defaultCleanupInterval,
+		stopCh:          make(chan struct{}),
 	}
 
 	for _, option := range options {
@@ -60,6 +80,31 @@ func NewService(secrets db.SecretRepository, options ...ServiceOption) (*service
 	}
 
 	return svc, nil
+}
+
+// Start the service and initialize its resources.
+func (s *service) Start() error {
+	if err := s.init(); err != nil {
+		return err
+	}
+
+	for {
+		select {
+		case <-time.After(s.cleanupInterval):
+			if err := s.DeleteExpired(); err != nil {
+				return err
+			}
+		case <-s.stopCh:
+			close(s.stopCh)
+			return nil
+		}
+	}
+}
+
+// Close the service and its resources.
+func (s *service) Close() error {
+	s.stopCh <- struct{}{}
+	return s.secrets.Close()
 }
 
 // Generate a new secret. The length of the secret is set by the provided
@@ -77,7 +122,7 @@ func (s service) Get(id, passphrase string) (Secret, error) {
 
 	dbSecret, err := s.secrets.Get(ctx, id)
 	if err != nil {
-		if errors.Is(err, db.ErrSecretNotFound) {
+		if errors.Is(err, dberrors.ErrSecretNotFound) {
 			return Secret{}, ErrSecretNotFound
 		}
 		return Secret{}, err
@@ -132,7 +177,7 @@ func (s service) Create(secret Secret) (Secret, error) {
 		return Secret{}, err
 	}
 
-	dbSecret, err := s.secrets.Create(ctx, db.Secret{
+	dbSecret, err := s.secrets.Create(ctx, models.Secret{
 		ID:        newUUID(),
 		Value:     encrypted,
 		ExpiresAt: now().Add(secret.TTL),
@@ -161,21 +206,65 @@ func (s service) DeleteExpired() error {
 	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
 	defer cancel()
 
-	if err := s.secrets.DeleteExpired(ctx); err != nil && !errors.Is(err, db.ErrSecretsNotDeleted) {
+	if err := s.secrets.DeleteExpired(ctx); err != nil && !errors.Is(err, dberrors.ErrSecretsNotDeleted) {
 		return err
 	}
 
 	return s.secrets.DeleteExpired(ctx)
 }
 
-// Close the service and its resources.
-func (s service) Close() error {
-	return s.secrets.Close()
+// init the service and its settings.
+// If an encryption key is provided in the service at initialization,
+// no further settings are needed.
+func (s *service) init() error {
+	if len(s.encryptionKey) > 0 {
+		return nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
+	defer cancel()
+
+	settings, err := s.getSettings(ctx)
+	if err != nil {
+		return err
+	}
+	if len(settings.Security.EncryptionKey) > 0 {
+		decrypted, err := decrypt(settings.Security.EncryptionKey, applicationName)
+		if err != nil {
+			return err
+		}
+		s.encryptionKey = decrypted
+	}
+
+	s.encryptionKey = s.Generate(32, true)
+
+	encrypted, err := encrypt(s.encryptionKey, applicationName)
+	if err != nil {
+		return err
+	}
+
+	settings, err = s.secrets.UpdateSettings(ctx, models.Settings{
+		Security: models.Security{
+			EncryptionKey: encrypted,
+		},
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-// newUUID generates a new UUID.
-var newUUID = func() string {
-	return uuid.New().String()
+// getSettings retrieves the settings from the repository.
+// If no settings are found, they are created.
+func (s service) getSettings(ctx context.Context) (models.Settings, error) {
+	settings, err := s.secrets.GetSettings(ctx)
+	if err != nil {
+		if errors.Is(err, dberrors.ErrSettingsNotFound) {
+			return s.secrets.CreateSettings(ctx, models.Settings{})
+		}
+		return models.Settings{}, err
+	}
+	return settings, nil
 }
 
 // encrypt a value using a key and returns the encrypted value

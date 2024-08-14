@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/RedeployAB/burnit/db"
+	dberrors "github.com/RedeployAB/burnit/db/errors"
+	"github.com/RedeployAB/burnit/db/models"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
@@ -98,7 +100,7 @@ func TestService_Get(t *testing.T) {
 				key     string
 			}{
 				secrets: &mockSecretRepository{
-					secrets: []db.Secret{
+					secrets: []models.Secret{
 						{
 							ID: "1",
 							Value: func() string {
@@ -137,7 +139,7 @@ func TestService_Get(t *testing.T) {
 				key     string
 			}{
 				secrets: &mockSecretRepository{
-					secrets: []db.Secret{
+					secrets: []models.Secret{
 						{
 							ID: "1",
 							Value: func() string {
@@ -161,7 +163,7 @@ func TestService_Get(t *testing.T) {
 				key     string
 			}{
 				secrets: &mockSecretRepository{
-					err: db.ErrSecretNotFound,
+					err: dberrors.ErrSecretNotFound,
 				},
 				id: "1",
 			},
@@ -285,7 +287,7 @@ func TestService_Create(t *testing.T) {
 }
 
 type mockSecretRepository struct {
-	secrets []db.Secret
+	secrets []models.Secret
 	err     error
 }
 
@@ -293,9 +295,9 @@ func (r mockSecretRepository) Generate(length int, specialCharacters bool) strin
 	return ""
 }
 
-func (r mockSecretRepository) Get(ctx context.Context, id string) (db.Secret, error) {
+func (r mockSecretRepository) Get(ctx context.Context, id string) (models.Secret, error) {
 	if r.err != nil {
-		return db.Secret{}, r.err
+		return models.Secret{}, r.err
 	}
 
 	for _, s := range r.secrets {
@@ -303,16 +305,16 @@ func (r mockSecretRepository) Get(ctx context.Context, id string) (db.Secret, er
 			return s, nil
 		}
 	}
-	return db.Secret{}, nil
+	return models.Secret{}, nil
 }
 
-func (r *mockSecretRepository) Create(ctx context.Context, s db.Secret) (db.Secret, error) {
+func (r *mockSecretRepository) Create(ctx context.Context, s models.Secret) (models.Secret, error) {
 	if r.err != nil {
-		return db.Secret{}, r.err
+		return models.Secret{}, r.err
 	}
 
 	r.secrets = append(r.secrets, s)
-	return db.Secret{
+	return models.Secret{
 		ID:        s.ID,
 		ExpiresAt: s.ExpiresAt,
 	}, nil
@@ -324,6 +326,18 @@ func (r mockSecretRepository) Delete(ctx context.Context, id string) error {
 
 func (r mockSecretRepository) DeleteExpired(ctx context.Context) error {
 	return nil
+}
+
+func (r mockSecretRepository) GetSettings(ctx context.Context) (models.Settings, error) {
+	return models.Settings{}, nil
+}
+
+func (r mockSecretRepository) CreateSettings(ctx context.Context, settings models.Settings) (models.Settings, error) {
+	return models.Settings{}, nil
+}
+
+func (r mockSecretRepository) UpdateSettings(ctx context.Context, settings models.Settings) (models.Settings, error) {
+	return models.Settings{}, nil
 }
 
 func (r mockSecretRepository) Close() error {
