@@ -105,10 +105,10 @@ GET /secret
 GET /secret?length=24
 
 // Generating a secret with special characters.
-GET /secret?specialchars=true
+GET /secret?specialCharacters=true
 
 // Generating a secret with specified length and special characters.
-GET /secret?length=24&specialchars=true
+GET /secret?length=24&specialCharacters=true
 ```
 
 **Example response**
