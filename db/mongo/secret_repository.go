@@ -19,6 +19,8 @@ const (
 	defaultSecretRepositoryTimeout = 10 * time.Second
 	// defaultSettingsCollection is the default collection for the settings.
 	defaultSettingsCollection = "settings"
+	// securityID is the ID for the security settings.
+	securityID = "security"
 )
 
 // SecretRepository is a MongoDB implementation of a SecretRepository.
@@ -114,7 +116,7 @@ func (r SecretRepository) DeleteExpired(ctx context.Context) error {
 
 // GetSettings gets the settings.
 func (r SecretRepository) GetSettings(ctx context.Context) (models.Settings, error) {
-	res, err := r.client.Collection(r.settingsCollection).FindOne(ctx, bson.D{{Key: "_id", Value: "security"}})
+	res, err := r.client.Collection(r.settingsCollection).FindOne(ctx, bson.D{{Key: "_id", Value: securityID}})
 	if err != nil {
 		if errors.Is(err, ErrNoDocuments) {
 			return models.Settings{}, dberrors.ErrSettingsNotFound
@@ -133,7 +135,7 @@ func (r SecretRepository) GetSettings(ctx context.Context) (models.Settings, err
 // CreateSettings creates settings.
 func (r SecretRepository) CreateSettings(ctx context.Context, settings models.Settings) (models.Settings, error) {
 	if len(settings.Security.ID) == 0 {
-		settings.Security.ID = "security"
+		settings.Security.ID = securityID
 	}
 
 	if _, err := r.client.Collection(r.settingsCollection).InsertOne(ctx, settings.Security); err != nil {
@@ -146,7 +148,7 @@ func (r SecretRepository) CreateSettings(ctx context.Context, settings models.Se
 // UpdateSettings updates the settings.
 func (r SecretRepository) UpdateSettings(ctx context.Context, settings models.Settings) (models.Settings, error) {
 	update := bson.D{{Key: "$set", Value: bson.D{{Key: "encryptionKey", Value: settings.Security.EncryptionKey}}}}
-	if err := r.client.Collection(r.settingsCollection).UpdateOne(ctx, bson.D{{Key: "_id", Value: "security"}}, update); err != nil {
+	if err := r.client.Collection(r.settingsCollection).UpdateOne(ctx, bson.D{{Key: "_id", Value: securityID}}, update); err != nil {
 		if errors.Is(err, ErrNoDocuments) {
 			return models.Settings{}, dberrors.ErrSettingsNotFound
 		}
