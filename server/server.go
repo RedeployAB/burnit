@@ -94,6 +94,12 @@ func (s server) Start() error {
 	}()
 
 	go func() {
+		if err := s.secrets.Start(); err != nil {
+			s.errCh <- err
+		}
+	}()
+
+	go func() {
 		s.stop()
 	}()
 
@@ -129,6 +135,10 @@ func (s server) stop() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
+
+	if err := s.secrets.Close(); err != nil {
+		s.errCh <- err
+	}
 
 	s.httpServer.SetKeepAlivesEnabled(false)
 	if err := s.httpServer.Shutdown(ctx); err != nil {

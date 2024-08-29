@@ -111,7 +111,7 @@ func (s *service) Close() error {
 // length argument (with a max of 512 characters, a longer length will be trimmed to this value).
 // If specialCharacters is set to true, the secret will contain special characters.
 func (s service) Generate(length int, specialCharacters bool) string {
-	return Generate(length, specialCharacters)
+	return generate(length, specialCharacters)
 }
 
 // Get a secret. The secret is deleted after it has been retrieved
@@ -198,7 +198,15 @@ func (s service) Delete(id string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
 	defer cancel()
 
-	return s.secrets.Delete(ctx, id)
+	err := s.secrets.Delete(ctx, id)
+	if err == nil {
+		return nil
+	}
+
+	if errors.Is(err, dberrors.ErrSecretNotFound) {
+		return ErrSecretNotFound
+	}
+	return err
 }
 
 // DeleteExpired deletes all expired secrets.
@@ -206,11 +214,15 @@ func (s service) DeleteExpired() error {
 	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
 	defer cancel()
 
-	if err := s.secrets.DeleteExpired(ctx); err != nil && !errors.Is(err, dberrors.ErrSecretsNotDeleted) {
-		return err
+	err := s.secrets.DeleteExpired(ctx)
+	if err == nil {
+		return nil
+	}
+	if errors.Is(err, dberrors.ErrSecretsNotDeleted) {
+		return nil
 	}
 
-	return s.secrets.DeleteExpired(ctx)
+	return err
 }
 
 // init the service and its settings.
@@ -234,11 +246,11 @@ func (s *service) init() error {
 			return err
 		}
 		s.encryptionKey = decrypted
+		return nil
 	}
 
-	s.encryptionKey = s.Generate(32, true)
-
-	encrypted, err := encrypt(s.encryptionKey, applicationName)
+	encryptionKey := generate(32, true)
+	encrypted, err := encrypt(encryptionKey, applicationName)
 	if err != nil {
 		return err
 	}
@@ -251,6 +263,7 @@ func (s *service) init() error {
 	if err != nil {
 		return err
 	}
+	s.encryptionKey = encryptionKey
 	return nil
 }
 
