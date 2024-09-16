@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
+	"github.com/RedeployAB/burnit/db"
 	dberrors "github.com/RedeployAB/burnit/db/errors"
-	"github.com/RedeployAB/burnit/db/models"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -67,27 +67,27 @@ func NewSecretRepository(client Client, options ...SecretRepositoryOption) (*Sec
 }
 
 // Get a secret by its ID.
-func (r SecretRepository) Get(ctx context.Context, id string) (models.Secret, error) {
+func (r SecretRepository) Get(ctx context.Context, id string) (db.Secret, error) {
 	res, err := r.client.Collection(r.collection).FindOne(ctx, bson.D{{Key: "_id", Value: id}})
 	if err != nil {
 		if errors.Is(err, ErrNoDocuments) {
-			return models.Secret{}, dberrors.ErrSecretNotFound
+			return db.Secret{}, dberrors.ErrSecretNotFound
 		}
-		return models.Secret{}, err
+		return db.Secret{}, err
 	}
 
-	var secret models.Secret
+	var secret db.Secret
 	if err := res.Decode(&secret); err != nil {
-		return models.Secret{}, err
+		return db.Secret{}, err
 	}
 	return secret, nil
 }
 
 // Create a new secret.
-func (r SecretRepository) Create(ctx context.Context, secret models.Secret) (models.Secret, error) {
+func (r SecretRepository) Create(ctx context.Context, secret db.Secret) (db.Secret, error) {
 	id, err := r.client.Collection(r.collection).InsertOne(ctx, secret)
 	if err != nil {
-		return models.Secret{}, err
+		return db.Secret{}, err
 	}
 	return r.Get(ctx, id)
 }
@@ -115,44 +115,44 @@ func (r SecretRepository) DeleteExpired(ctx context.Context) error {
 }
 
 // GetSettings gets the settings.
-func (r SecretRepository) GetSettings(ctx context.Context) (models.Settings, error) {
+func (r SecretRepository) GetSettings(ctx context.Context) (db.Settings, error) {
 	res, err := r.client.Collection(r.settingsCollection).FindOne(ctx, bson.D{{Key: "_id", Value: securityID}})
 	if err != nil {
 		if errors.Is(err, ErrNoDocuments) {
-			return models.Settings{}, dberrors.ErrSettingsNotFound
+			return db.Settings{}, dberrors.ErrSettingsNotFound
 		}
-		return models.Settings{}, err
+		return db.Settings{}, err
 	}
 
-	var s models.Security
+	var s db.Security
 	if err := res.Decode(&s); err != nil {
-		return models.Settings{}, err
+		return db.Settings{}, err
 	}
 
-	return models.Settings{Security: s}, nil
+	return db.Settings{Security: s}, nil
 }
 
 // CreateSettings creates settings.
-func (r SecretRepository) CreateSettings(ctx context.Context, settings models.Settings) (models.Settings, error) {
+func (r SecretRepository) CreateSettings(ctx context.Context, settings db.Settings) (db.Settings, error) {
 	if len(settings.Security.ID) == 0 {
 		settings.Security.ID = securityID
 	}
 
 	if _, err := r.client.Collection(r.settingsCollection).InsertOne(ctx, settings.Security); err != nil {
-		return models.Settings{}, err
+		return db.Settings{}, err
 	}
 
 	return r.GetSettings(ctx)
 }
 
 // UpdateSettings updates the settings.
-func (r SecretRepository) UpdateSettings(ctx context.Context, settings models.Settings) (models.Settings, error) {
+func (r SecretRepository) UpdateSettings(ctx context.Context, settings db.Settings) (db.Settings, error) {
 	update := bson.D{{Key: "$set", Value: bson.D{{Key: "encryptionKey", Value: settings.Security.EncryptionKey}}}}
 	if err := r.client.Collection(r.settingsCollection).UpdateOne(ctx, bson.D{{Key: "_id", Value: securityID}}, update); err != nil {
 		if errors.Is(err, ErrNoDocuments) {
-			return models.Settings{}, dberrors.ErrSettingsNotFound
+			return db.Settings{}, dberrors.ErrSettingsNotFound
 		}
-		return models.Settings{}, err
+		return db.Settings{}, err
 	}
 	return r.GetSettings(ctx)
 }

@@ -8,7 +8,6 @@ import (
 
 	"github.com/RedeployAB/burnit/db"
 	dberrors "github.com/RedeployAB/burnit/db/errors"
-	"github.com/RedeployAB/burnit/db/models"
 	"github.com/RedeployAB/burnit/security"
 	"github.com/google/uuid"
 )
@@ -177,7 +176,7 @@ func (s service) Create(secret Secret) (Secret, error) {
 		return Secret{}, err
 	}
 
-	dbSecret, err := s.secrets.Create(ctx, models.Secret{
+	dbSecret, err := s.secrets.Create(ctx, db.Secret{
 		ID:        newUUID(),
 		Value:     encrypted,
 		ExpiresAt: now().Add(secret.TTL),
@@ -255,8 +254,8 @@ func (s *service) init() error {
 		return err
 	}
 
-	settings, err = s.secrets.UpdateSettings(ctx, models.Settings{
-		Security: models.Security{
+	settings, err = s.secrets.UpdateSettings(ctx, db.Settings{
+		Security: db.Security{
 			EncryptionKey: encrypted,
 		},
 	})
@@ -269,13 +268,13 @@ func (s *service) init() error {
 
 // getSettings retrieves the settings from the repository.
 // If no settings are found, they are created.
-func (s service) getSettings(ctx context.Context) (models.Settings, error) {
+func (s service) getSettings(ctx context.Context) (db.Settings, error) {
 	settings, err := s.secrets.GetSettings(ctx)
 	if err != nil {
 		if errors.Is(err, dberrors.ErrSettingsNotFound) {
-			return s.secrets.CreateSettings(ctx, models.Settings{})
+			return s.secrets.CreateSettings(ctx, db.Settings{})
 		}
-		return models.Settings{}, err
+		return db.Settings{}, err
 	}
 	return settings, nil
 }

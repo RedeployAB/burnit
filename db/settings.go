@@ -1,4 +1,4 @@
-package models
+package db
 
 // Settings defines the settings for the application.
 type Settings struct {

@@ -6,14 +6,14 @@ import (
 	"errors"
 	"time"
 
-	"github.com/RedeployAB/burnit/db/models"
+	"github.com/RedeployAB/burnit/db"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 type mockMongoClient struct {
 	err      error
-	secrets  []models.Secret
-	settings []models.Settings
+	secrets  []db.Secret
+	settings []db.Settings
 }
 
 func (c *mockMongoClient) Database(database string) Client {
@@ -61,7 +61,7 @@ func (c *mockMongoClient) InsertOne(ctx context.Context, document any) (string, 
 	}
 
 	if c.secrets != nil {
-		secret, ok := document.(models.Secret)
+		secret, ok := document.(db.Secret)
 		if !ok {
 			return "", errors.New("invalid document")
 		}
@@ -70,8 +70,8 @@ func (c *mockMongoClient) InsertOne(ctx context.Context, document any) (string, 
 	}
 	if c.settings != nil {
 		switch doc := document.(type) {
-		case models.Security:
-			c.settings = append(c.settings, models.Settings{Security: doc})
+		case db.Security:
+			c.settings = append(c.settings, db.Settings{Security: doc})
 		default:
 			return "", errors.New("invalid document")
 		}
@@ -125,7 +125,7 @@ func (c *mockMongoClient) DeleteMany(ctx context.Context, filter any) error {
 		return c.err
 	}
 
-	secretsToKeep := []models.Secret{}
+	secretsToKeep := []db.Secret{}
 	for _, secret := range c.secrets {
 		if !secret.ExpiresAt.Before(time.Now()) {
 			secretsToKeep = append(secretsToKeep, secret)

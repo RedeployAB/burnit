@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/RedeployAB/burnit/db"
 	dberrors "github.com/RedeployAB/burnit/db/errors"
-	"github.com/RedeployAB/burnit/db/models"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
@@ -89,21 +89,21 @@ func TestSecretRepository_Get(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input struct {
-			secrets []models.Secret
+			secrets []db.Secret
 			id      string
 			err     error
 		}
-		want    models.Secret
+		want    db.Secret
 		wantErr error
 	}{
 		{
 			name: "get secret",
 			input: struct {
-				secrets []models.Secret
+				secrets []db.Secret
 				id      string
 				err     error
 			}{
-				secrets: []models.Secret{
+				secrets: []db.Secret{
 					{
 						ID:    "1",
 						Value: "secret",
@@ -111,7 +111,7 @@ func TestSecretRepository_Get(t *testing.T) {
 				},
 				id: "1",
 			},
-			want: models.Secret{
+			want: db.Secret{
 				ID:    "1",
 				Value: "secret",
 			},
@@ -119,11 +119,11 @@ func TestSecretRepository_Get(t *testing.T) {
 		{
 			name: "get secret - not found",
 			input: struct {
-				secrets []models.Secret
+				secrets []db.Secret
 				id      string
 				err     error
 			}{
-				secrets: []models.Secret{},
+				secrets: []db.Secret{},
 				id:      "1",
 			},
 			wantErr: dberrors.ErrSecretNotFound,
@@ -131,11 +131,11 @@ func TestSecretRepository_Get(t *testing.T) {
 		{
 			name: "get secret - error",
 			input: struct {
-				secrets []models.Secret
+				secrets []db.Secret
 				id      string
 				err     error
 			}{
-				secrets: []models.Secret{},
+				secrets: []db.Secret{},
 				id:      "1",
 				err:     errFindOne,
 			},
@@ -174,28 +174,28 @@ func TestSecretRepository_Create(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input struct {
-			secrets []models.Secret
-			secret  models.Secret
+			secrets []db.Secret
+			secret  db.Secret
 			err     error
 		}
-		want    models.Secret
+		want    db.Secret
 		wantErr error
 	}{
 		{
 			name: "create secret",
 			input: struct {
-				secrets []models.Secret
-				secret  models.Secret
+				secrets []db.Secret
+				secret  db.Secret
 
 				err error
 			}{
-				secrets: []models.Secret{},
-				secret: models.Secret{
+				secrets: []db.Secret{},
+				secret: db.Secret{
 					ID:    "1",
 					Value: "secret",
 				},
 			},
-			want: models.Secret{
+			want: db.Secret{
 				ID:    "1",
 				Value: "secret",
 			},
@@ -203,12 +203,12 @@ func TestSecretRepository_Create(t *testing.T) {
 		{
 			name: "create secret - error",
 			input: struct {
-				secrets []models.Secret
-				secret  models.Secret
+				secrets []db.Secret
+				secret  db.Secret
 				err     error
 			}{
-				secrets: []models.Secret{},
-				secret: models.Secret{
+				secrets: []db.Secret{},
+				secret: db.Secret{
 					ID:    "1",
 					Value: "secret",
 				},
@@ -244,7 +244,7 @@ func TestSecretRepository_Delete(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input struct {
-			secrets []models.Secret
+			secrets []db.Secret
 			id      string
 			err     error
 		}
@@ -253,11 +253,11 @@ func TestSecretRepository_Delete(t *testing.T) {
 		{
 			name: "delete secret",
 			input: struct {
-				secrets []models.Secret
+				secrets []db.Secret
 				id      string
 				err     error
 			}{
-				secrets: []models.Secret{
+				secrets: []db.Secret{
 					{
 						ID:    "1",
 						Value: "secret",
@@ -269,11 +269,11 @@ func TestSecretRepository_Delete(t *testing.T) {
 		{
 			name: "delete secret - not found",
 			input: struct {
-				secrets []models.Secret
+				secrets []db.Secret
 				id      string
 				err     error
 			}{
-				secrets: []models.Secret{},
+				secrets: []db.Secret{},
 				id:      "1",
 			},
 			wantErr: dberrors.ErrSecretNotFound,
@@ -281,11 +281,11 @@ func TestSecretRepository_Delete(t *testing.T) {
 		{
 			name: "delete secret - error",
 			input: struct {
-				secrets []models.Secret
+				secrets []db.Secret
 				id      string
 				err     error
 			}{
-				secrets: []models.Secret{},
+				secrets: []db.Secret{},
 				id:      "1",
 				err:     errDeleteOne,
 			},
@@ -320,7 +320,7 @@ func TestSecretRepository_DeleteExpired(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input struct {
-			secrets []models.Secret
+			secrets []db.Secret
 			err     error
 		}
 		wantErr error
@@ -328,10 +328,10 @@ func TestSecretRepository_DeleteExpired(t *testing.T) {
 		{
 			name: "delete expired secrets",
 			input: struct {
-				secrets []models.Secret
+				secrets []db.Secret
 				err     error
 			}{
-				secrets: []models.Secret{
+				secrets: []db.Secret{
 					{
 						ID:        "1",
 						Value:     "secret",
@@ -348,7 +348,7 @@ func TestSecretRepository_DeleteExpired(t *testing.T) {
 		{
 			name: "delete expired secrets - error",
 			input: struct {
-				secrets []models.Secret
+				secrets []db.Secret
 				err     error
 			}{
 				err: errDeleteMany,
@@ -379,29 +379,29 @@ func TestSecretRepository_GetSettings(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input struct {
-			settings []models.Settings
+			settings []db.Settings
 			err      error
 		}
-		want    models.Settings
+		want    db.Settings
 		wantErr error
 	}{
 		{
 			name: "get settings",
 			input: struct {
-				settings []models.Settings
+				settings []db.Settings
 				err      error
 			}{
-				settings: []models.Settings{
+				settings: []db.Settings{
 					{
-						Security: models.Security{
+						Security: db.Security{
 							ID:            "security",
 							EncryptionKey: "test",
 						},
 					},
 				},
 			},
-			want: models.Settings{
-				Security: models.Security{
+			want: db.Settings{
+				Security: db.Security{
 					ID:            "security",
 					EncryptionKey: "test",
 				},
@@ -410,7 +410,7 @@ func TestSecretRepository_GetSettings(t *testing.T) {
 		{
 			name: "get settings - not found",
 			input: struct {
-				settings []models.Settings
+				settings []db.Settings
 				err      error
 			}{},
 			wantErr: dberrors.ErrSettingsNotFound,
@@ -418,7 +418,7 @@ func TestSecretRepository_GetSettings(t *testing.T) {
 		{
 			name: "get settings - error",
 			input: struct {
-				settings []models.Settings
+				settings []db.Settings
 				err      error
 			}{
 				err: errFindOne,
@@ -453,29 +453,29 @@ func TestSecretRepository_CreateSettings(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input struct {
-			settings   []models.Settings
-			inSettings models.Settings
+			settings   []db.Settings
+			inSettings db.Settings
 			err        error
 		}
-		want    models.Settings
+		want    db.Settings
 		wantErr error
 	}{
 		{
 			name: "create settings",
 			input: struct {
-				settings   []models.Settings
-				inSettings models.Settings
+				settings   []db.Settings
+				inSettings db.Settings
 				err        error
 			}{
-				settings: []models.Settings{},
-				inSettings: models.Settings{
-					Security: models.Security{
+				settings: []db.Settings{},
+				inSettings: db.Settings{
+					Security: db.Security{
 						EncryptionKey: "test",
 					},
 				},
 			},
-			want: models.Settings{
-				Security: models.Security{
+			want: db.Settings{
+				Security: db.Security{
 					ID:            "security",
 					EncryptionKey: "test",
 				},
@@ -484,13 +484,13 @@ func TestSecretRepository_CreateSettings(t *testing.T) {
 		{
 			name: "create settings - error",
 			input: struct {
-				settings   []models.Settings
-				inSettings models.Settings
+				settings   []db.Settings
+				inSettings db.Settings
 				err        error
 			}{
-				settings: []models.Settings{},
-				inSettings: models.Settings{
-					Security: models.Security{
+				settings: []db.Settings{},
+				inSettings: db.Settings{
+					Security: db.Security{
 						EncryptionKey: "test",
 					},
 				},
@@ -526,37 +526,37 @@ func TestSecretRepository_UpdateSettings(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input struct {
-			settings   []models.Settings
-			inSettings models.Settings
+			settings   []db.Settings
+			inSettings db.Settings
 			err        error
 		}
-		want    models.Settings
+		want    db.Settings
 		wantErr error
 	}{
 		{
 			name: "update settings",
 			input: struct {
-				settings   []models.Settings
-				inSettings models.Settings
+				settings   []db.Settings
+				inSettings db.Settings
 				err        error
 			}{
-				settings: []models.Settings{
+				settings: []db.Settings{
 					{
-						Security: models.Security{
+						Security: db.Security{
 							ID:            "security",
 							EncryptionKey: "test",
 						},
 					},
 				},
-				inSettings: models.Settings{
-					Security: models.Security{
+				inSettings: db.Settings{
+					Security: db.Security{
 						ID:            "security",
 						EncryptionKey: "test-updated",
 					},
 				},
 			},
-			want: models.Settings{
-				Security: models.Security{
+			want: db.Settings{
+				Security: db.Security{
 					ID:            "security",
 					EncryptionKey: "test-updated",
 				},
@@ -565,13 +565,13 @@ func TestSecretRepository_UpdateSettings(t *testing.T) {
 		{
 			name: "update settings - error",
 			input: struct {
-				settings   []models.Settings
-				inSettings models.Settings
+				settings   []db.Settings
+				inSettings db.Settings
 				err        error
 			}{
-				settings: []models.Settings{},
-				inSettings: models.Settings{
-					Security: models.Security{
+				settings: []db.Settings{},
+				inSettings: db.Settings{
+					Security: db.Security{
 						ID:            "security",
 						EncryptionKey: "test-updated",
 					},

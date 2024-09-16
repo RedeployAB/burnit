@@ -8,7 +8,6 @@ import (
 
 	"github.com/RedeployAB/burnit/db"
 	dberrors "github.com/RedeployAB/burnit/db/errors"
-	"github.com/RedeployAB/burnit/db/models"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
@@ -103,7 +102,7 @@ func TestService_Get(t *testing.T) {
 				key     string
 			}{
 				secrets: &mockSecretRepository{
-					secrets: []models.Secret{
+					secrets: []db.Secret{
 						{
 							ID: "1",
 							Value: func() string {
@@ -142,7 +141,7 @@ func TestService_Get(t *testing.T) {
 				key     string
 			}{
 				secrets: &mockSecretRepository{
-					secrets: []models.Secret{
+					secrets: []db.Secret{
 						{
 							ID: "1",
 							Value: func() string {
@@ -305,7 +304,7 @@ func TestService_Delete(t *testing.T) {
 				id      string
 			}{
 				secrets: &mockSecretRepository{
-					secrets: []models.Secret{
+					secrets: []db.Secret{
 						{
 							ID:    "1",
 							Value: "secret",
@@ -334,7 +333,7 @@ func TestService_Delete(t *testing.T) {
 				id      string
 			}{
 				secrets: &mockSecretRepository{
-					secrets: []models.Secret{
+					secrets: []db.Secret{
 						{
 							ID:    "1",
 							Value: "secret",
@@ -378,7 +377,7 @@ func TestService_DeleteExpired(t *testing.T) {
 				secrets db.SecretRepository
 			}{
 				secrets: &mockSecretRepository{
-					secrets: []models.Secret{
+					secrets: []db.Secret{
 						{
 							ID:        "1",
 							Value:     "secret",
@@ -395,7 +394,7 @@ func TestService_DeleteExpired(t *testing.T) {
 				secrets db.SecretRepository
 			}{
 				secrets: &mockSecretRepository{
-					secrets: []models.Secret{},
+					secrets: []db.Secret{},
 				},
 			},
 			wantErr: nil,
@@ -406,7 +405,7 @@ func TestService_DeleteExpired(t *testing.T) {
 				secrets db.SecretRepository
 			}{
 				secrets: &mockSecretRepository{
-					secrets: []models.Secret{
+					secrets: []db.Secret{
 						{
 							ID:        "1",
 							Value:     "secret",
@@ -451,8 +450,8 @@ func TestService_init(t *testing.T) {
 				secrets db.SecretRepository
 			}{
 				secrets: &mockSecretRepository{
-					settings: models.Settings{
-						Security: models.Security{
+					settings: db.Settings{
+						Security: db.Security{
 							EncryptionKey: testEncryptedKey,
 						},
 					},
@@ -466,7 +465,7 @@ func TestService_init(t *testing.T) {
 				secrets db.SecretRepository
 			}{
 				secrets: &mockSecretRepository{
-					settings: models.Settings{},
+					settings: db.Settings{},
 				},
 			},
 			want: testKey,
@@ -533,14 +532,14 @@ func TestService_init(t *testing.T) {
 }
 
 type mockSecretRepository struct {
-	secrets  []models.Secret
-	settings models.Settings
+	secrets  []db.Secret
+	settings db.Settings
 	err      error
 }
 
-func (r mockSecretRepository) Get(ctx context.Context, id string) (models.Secret, error) {
+func (r mockSecretRepository) Get(ctx context.Context, id string) (db.Secret, error) {
 	if r.err != nil {
-		return models.Secret{}, r.err
+		return db.Secret{}, r.err
 	}
 
 	for _, s := range r.secrets {
@@ -548,16 +547,16 @@ func (r mockSecretRepository) Get(ctx context.Context, id string) (models.Secret
 			return s, nil
 		}
 	}
-	return models.Secret{}, dberrors.ErrSecretNotFound
+	return db.Secret{}, dberrors.ErrSecretNotFound
 }
 
-func (r *mockSecretRepository) Create(ctx context.Context, s models.Secret) (models.Secret, error) {
+func (r *mockSecretRepository) Create(ctx context.Context, s db.Secret) (db.Secret, error) {
 	if r.err != nil {
-		return models.Secret{}, r.err
+		return db.Secret{}, r.err
 	}
 
 	r.secrets = append(r.secrets, s)
-	return models.Secret{
+	return db.Secret{
 		ID:        s.ID,
 		ExpiresAt: s.ExpiresAt,
 	}, nil
@@ -591,26 +590,26 @@ func (r *mockSecretRepository) DeleteExpired(ctx context.Context) error {
 	return dberrors.ErrSecretsNotDeleted
 }
 
-func (r mockSecretRepository) GetSettings(ctx context.Context) (models.Settings, error) {
+func (r mockSecretRepository) GetSettings(ctx context.Context) (db.Settings, error) {
 	if r.err != nil && errors.Is(r.err, errGetSettings) {
-		return models.Settings{}, r.err
+		return db.Settings{}, r.err
 	}
-	if r.settings == (models.Settings{}) {
-		return models.Settings{}, dberrors.ErrSettingsNotFound
+	if r.settings == (db.Settings{}) {
+		return db.Settings{}, dberrors.ErrSettingsNotFound
 	}
 	return r.settings, nil
 }
 
-func (r mockSecretRepository) CreateSettings(ctx context.Context, settings models.Settings) (models.Settings, error) {
+func (r mockSecretRepository) CreateSettings(ctx context.Context, settings db.Settings) (db.Settings, error) {
 	if r.err != nil && errors.Is(r.err, errCreateSettings) {
-		return models.Settings{}, r.err
+		return db.Settings{}, r.err
 	}
-	return models.Settings{}, nil
+	return db.Settings{}, nil
 }
 
-func (r *mockSecretRepository) UpdateSettings(ctx context.Context, settings models.Settings) (models.Settings, error) {
+func (r *mockSecretRepository) UpdateSettings(ctx context.Context, settings db.Settings) (db.Settings, error) {
 	if r.err != nil && errors.Is(r.err, errUpdateSettings) {
-		return models.Settings{}, r.err
+		return db.Settings{}, r.err
 	}
 
 	r.settings = settings
