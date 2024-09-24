@@ -81,6 +81,11 @@ type Database struct {
 
 // New creates a new Configuration.
 func New() (*Configuration, error) {
+	flags, _, err := parseFlags(os.Args[1:])
+	if err != nil {
+		return nil, err
+	}
+
 	cfg := &Configuration{
 		Server: Server{
 			Host: defaultListenHost,
@@ -96,12 +101,6 @@ func New() (*Configuration, error) {
 				EnableTLS:      toPtr(true),
 			},
 		},
-	}
-
-	// Parse flags to see if a custom configuration path is provided.
-	flags, _, err := parseFlags(os.Args[1:])
-	if err != nil {
-		return nil, err
 	}
 
 	yamlCfg, err := configurationFromYAMLFile(flags.configPath)
@@ -132,7 +131,7 @@ func mergeConfigurations(dst *Configuration, srcs ...*Configuration) error {
 	for _, src := range srcs {
 		srcv := reflect.ValueOf(src)
 		if srcv.Kind() != reflect.Ptr || dstv.Kind() != reflect.Ptr {
-			return fmt.Errorf("src and dst must be pointers")
+			return fmt.Errorf("dst and src must be pointers")
 		}
 
 		if err := merge(dstv.Elem(), srcv.Elem()); err != nil {
