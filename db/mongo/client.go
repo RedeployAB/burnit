@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"sync"
 	"time"
@@ -28,6 +29,7 @@ type ClientOptions struct {
 	Username       string
 	Password       string
 	ConnectTimeout time.Duration
+	EnableTLS      bool
 }
 
 // ClientOption is a function that sets options for the client.
@@ -97,6 +99,9 @@ func createClientOptions(options *ClientOptions) *mgoopts.ClientOptions {
 			Username: options.Username,
 			Password: options.Password,
 		}
+	}
+	if options.EnableTLS {
+		opts.TLSConfig = &tls.Config{}
 	}
 	return opts
 }

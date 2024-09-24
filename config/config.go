@@ -20,11 +20,14 @@ const (
 )
 
 const (
+	// defaultConfigPath is the default path to the configuration file.
 	defaultConfigPath = "config.yaml"
 )
 
 const (
-	defaultDatabaseTimeout        = 10 * time.Second
+	// defaultDatabaseTimeout is the default timeout for the database.
+	defaultDatabaseTimeout = 10 * time.Second
+	// defaultDatabaseConnectTimeout is the default connect timeout for the database.
 	defaultDatabaseConnectTimeout = 10 * time.Second
 )
 
@@ -33,26 +36,33 @@ const (
 	defaultSecretServiceTimeout = 10 * time.Second
 )
 
-// Configuration contains the configuration for the application.
+// ConfigOruration contains the configuration for the application.
 type Configuration struct {
-	Server   Server
-	Services Services
+	Server   Server   `yaml:"server"`
+	Services Services `yaml:"services"`
 }
 
 // Server contains the configuration for the server.
 type Server struct {
-	Host string
-	Port string
+	Host string `env:"LISTEN_HOST" yaml:"host"`
+	Port string `env:"LISTEN_PORT" yaml:"port"`
+	TLS  TLS    `yaml:"tls"`
+}
+
+// TLS contains the configuration server TLS.
+type TLS struct {
+	CertFile string `env:"TLS_CERT_FILE" yaml:"certFile"`
+	KeyFile  string `env:"TLS_KEY_FILE" yaml:"keyFile"`
 }
 
 // Services contains the configuration for the services.
 type Services struct {
-	Secrets  Secrets  `yaml:"secrets"`
+	Secret   Secret   `yaml:"secret"`
 	Database Database `yaml:"database"`
 }
 
-// Secrets contains the configuration for the secret service.
-type Secrets struct {
+// Secret contains the configuration for the secret service.
+type Secret struct {
 	EncryptionKey string        `env:"SECRETS_ENCRYPTION_KEY" yaml:"encryptionKey"`
 	Timeout       time.Duration `env:"SECRETS_TIMEOUT" yaml:"timeout"`
 }
@@ -62,9 +72,8 @@ type Database struct {
 	URI            string        `env:"DATABASE_URI" yaml:"uri"`
 	Address        string        `env:"DATABASE_ADDRESS" yaml:"address"`
 	Database       string        `env:"DATABASE" yaml:"database"`
-	Username       string        `env:"DATABASE_USER" yaml:"username"`
+	Username       string        `env:"DATABASE_USERNAME" yaml:"username"`
 	Password       string        `env:"DATABASE_PASSWORD" yaml:"password"`
-	Collection     string        `env:"DATABASE_COLLECTION" yaml:"collection"`
 	Timeout        time.Duration `env:"DATABASE_TIMEOUT" yaml:"timeout"`
 	ConnectTimeout time.Duration `env:"DATABASE_CONNECT_TIMEOUT" yaml:"connectTimeout"`
 	EnableTLS      *bool         `env:"DATABASE_ENABLE_TLS" yaml:"enableTLS,omitempty"`
@@ -78,37 +87,57 @@ func New() (*Configuration, error) {
 			Port: defaultListenPort,
 		},
 		Services: Services{
-			Secrets: Secrets{
+			Secret: Secret{
 				Timeout: defaultSecretServiceTimeout,
 			},
 			Database: Database{
+				Timeout:        defaultDatabaseTimeout,
 				ConnectTimeout: defaultDatabaseConnectTimeout,
+				EnableTLS:      toPtr(true),
 			},
 		},
 	}
 
-	// Load YAML configuration.
-
-	if err := env.ParseWithOptions(cfg, env.Options{Prefix: "BURNIT_"}); err != nil {
+	// Parse flags to see if a custom configuration path is provided.
+	flags, _, err := parseFlags(os.Args[1:])
+	if err != nil {
 		return nil, err
 	}
 
-	// Parse flags.
+	yamlCfg, err := configurationFromYAMLFile(flags.configPath)
+	if err != nil {
+		return nil, err
+	}
+
+	envCfg, err := configurationFromEnvironment()
+	if err != nil {
+		return nil, err
+	}
+
+	flagCfg, err := configurationFromFlags(&flags)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := mergeConfigurations(cfg, &yamlCfg, &envCfg, &flagCfg); err != nil {
+		return nil, err
+	}
 
 	return cfg, nil
 }
 
 // mergeConfigurations merges the src configuration into the dst configuration.
-func mergeConfigurations(dst, src *Configuration) error {
+func mergeConfigurations(dst *Configuration, srcs ...*Configuration) error {
 	dstv := reflect.ValueOf(dst)
-	srcv := reflect.ValueOf(src)
+	for _, src := range srcs {
+		srcv := reflect.ValueOf(src)
+		if srcv.Kind() != reflect.Ptr || dstv.Kind() != reflect.Ptr {
+			return fmt.Errorf("src and dst must be pointers")
+		}
 
-	if srcv.Kind() != reflect.Ptr || dstv.Kind() != reflect.Ptr {
-		return fmt.Errorf("src and dst must be pointers")
-	}
-
-	if err := merge(dstv.Elem(), srcv.Elem()); err != nil {
-		return err
+		if err := merge(dstv.Elem(), srcv.Elem()); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -145,25 +174,73 @@ func merge(dstv, srcv reflect.Value) error {
 	return nil
 }
 
-// ReadYAMLConfiguration reads the configuration from the given path.
-func ReadYAMLConfiguration(path string) (*Configuration, error) {
+// configurationFromYAMLFile reads the configuration from the given path.
+func configurationFromYAMLFile(path string) (Configuration, error) {
+	if len(path) == 0 {
+		path = defaultConfigPath
+	}
+
 	file, err := os.Open(path)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) && path == defaultConfigPath {
-			return &Configuration{}, nil
+			return Configuration{}, nil
 		}
-		return nil, err
+		return Configuration{}, err
 	}
 
 	b, err := io.ReadAll(file)
 	if err != nil {
-		return nil, err
+		return Configuration{}, err
 	}
 
 	var cfg Configuration
 	if err := yaml.Unmarshal(b, &cfg); err != nil {
-		return nil, err
+		return Configuration{}, err
 	}
 
-	return &cfg, nil
+	return cfg, nil
+}
+
+// configurationFromEnvironment reads the configuration from the environment.
+func configurationFromEnvironment() (Configuration, error) {
+	var cfg Configuration
+	if err := env.ParseWithOptions(&cfg, env.Options{Prefix: "BURNIT_"}); err != nil {
+		return Configuration{}, err
+	}
+	return cfg, nil
+}
+
+// configurationFromFlags reads the configuration from the flags.
+func configurationFromFlags(flags *flags) (Configuration, error) {
+	return Configuration{
+		Server: Server{
+			Host: flags.host,
+			Port: flags.port,
+			TLS: TLS{
+				CertFile: flags.tlsCertFile,
+				KeyFile:  flags.tlsKeyFile,
+			},
+		},
+		Services: Services{
+			Secret: Secret{
+				EncryptionKey: flags.encryptionKey,
+				Timeout:       flags.timeout,
+			},
+			Database: Database{
+				URI:            flags.databaseURI,
+				Address:        flags.databaseAddr,
+				Database:       flags.database,
+				Username:       flags.databaseUser,
+				Password:       flags.databasePass,
+				Timeout:        flags.databaseTimeout,
+				ConnectTimeout: flags.databaseConnectTimeout,
+				EnableTLS:      flags.databaseEnableTLS,
+			},
+		},
+	}, nil
+}
+
+// toPtr returns a pointer to the value v.
+func toPtr[T any](v T) *T {
+	return &v
 }
