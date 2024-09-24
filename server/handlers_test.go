@@ -435,6 +435,14 @@ type mockSecretService struct {
 	err     error
 }
 
+func (s mockSecretService) Start() error {
+	return nil
+}
+
+func (s mockSecretService) Close() error {
+	return nil
+}
+
 func (s mockSecretService) Generate(length int, specialCharacters bool) string {
 	var builder strings.Builder
 	for i := 0; i < length; i++ {
@@ -508,10 +516,6 @@ func (s mockSecretService) Delete(id string) error {
 }
 
 func (s mockSecretService) DeleteExpired() error {
-	return nil
-}
-
-func (s mockSecretService) Close() error {
 	return nil
 }
 

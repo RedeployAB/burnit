@@ -1,0 +1,19 @@
+server:
+  host: localhost
+  port: 3001
+  tls:
+    certFile: cert.pem
+    keyFile: key.pem
+services:
+  secret:
+    encryptionKey: key
+    timeout: 15s
+  database:
+    uri: mongodb://localhost:27017
+    address: localhost:27017
+    database: test
+    username: test
+    password: test
+    timeout: 15s
+    connectTimeout: 15s
+    enableTLS: false

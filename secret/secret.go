@@ -24,7 +24,7 @@ type Secret struct {
 	ExpiresAt  time.Time
 }
 
-// Generate a new secret. The length of the secret is set by the provided
+// Generate new secret. The length of the secret is set by the provided
 // length argument (with a max of 512 characters, a longer length will be trimmed to this value).
 // If specialCharacters is set to true, the secret will contain special characters.
 func Generate(length int, specialCharacters bool) string {
@@ -45,3 +45,8 @@ func Generate(length int, specialCharacters bool) string {
 
 	return string(b)
 }
+
+// generate new secret. The length of the secret is set by the provided
+// length argument (with a max of 512 characters, a longer length will be trimmed to this value).
+// If specialCharacters is set to true, the secret will contain special characters.
+var generate = Generate
