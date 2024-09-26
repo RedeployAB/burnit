@@ -39,7 +39,7 @@ func TestParseFlags(t *testing.T) {
 			want: flags{
 				configPath:             "path",
 				host:                   "host",
-				port:                   "3001",
+				port:                   3001,
 				encryptionKey:          "key",
 				timeout:                time.Second * 15,
 				databaseURI:            "uri",

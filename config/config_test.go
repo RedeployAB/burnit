@@ -27,13 +27,14 @@ func TestNew(t *testing.T) {
 			want: &Configuration{
 				Server: Server{
 					Host: "0.0.0.0",
-					Port: "3000",
+					Port: 3000,
 				},
 				Services: Services{
 					Secret: Secret{
 						Timeout: defaultSecretServiceTimeout,
 					},
 					Database: Database{
+						Database:       defaultDatabaseName,
 						Timeout:        defaultDatabaseTimeout,
 						ConnectTimeout: defaultDatabaseConnectTimeout,
 						EnableTLS:      toPtr(true),
@@ -52,7 +53,7 @@ func TestNew(t *testing.T) {
 			want: &Configuration{
 				Server: Server{
 					Host: "localhost",
-					Port: "3001",
+					Port: 3001,
 					TLS: TLS{
 						CertFile: "cert.pem",
 						KeyFile:  "key.pem",
@@ -103,7 +104,7 @@ func TestNew(t *testing.T) {
 			want: &Configuration{
 				Server: Server{
 					Host: "localhost2",
-					Port: "3002",
+					Port: 3002,
 					TLS: TLS{
 						CertFile: "cert2.pem",
 						KeyFile:  "key2.pem",
@@ -170,7 +171,7 @@ func TestNew(t *testing.T) {
 			want: &Configuration{
 				Server: Server{
 					Host: "localhost3",
-					Port: "3003",
+					Port: 3003,
 					TLS: TLS{
 						CertFile: "cert3.pem",
 						KeyFile:  "key3.pem",
@@ -249,7 +250,7 @@ func TestMergeConfigurations(t *testing.T) {
 					{
 						Server: Server{
 							Host: "localhost",
-							Port: "8080",
+							Port: 8080,
 						},
 						Services: Services{
 							Secret: Secret{
@@ -273,7 +274,7 @@ func TestMergeConfigurations(t *testing.T) {
 			want: &Configuration{
 				Server: Server{
 					Host: "localhost",
-					Port: "8080",
+					Port: 8080,
 				},
 				Services: Services{
 					Secret: Secret{
@@ -302,7 +303,7 @@ func TestMergeConfigurations(t *testing.T) {
 				dst: &Configuration{
 					Server: Server{
 						Host: "localhost",
-						Port: "8080",
+						Port: 8080,
 					},
 					Services: Services{
 						Secret: Secret{
@@ -325,7 +326,7 @@ func TestMergeConfigurations(t *testing.T) {
 					{
 						Server: Server{
 							Host: "0.0.0.0",
-							Port: "8081",
+							Port: 8081,
 						},
 						Services: Services{
 							Secret: Secret{
@@ -349,7 +350,7 @@ func TestMergeConfigurations(t *testing.T) {
 			want: &Configuration{
 				Server: Server{
 					Host: "0.0.0.0",
-					Port: "8081",
+					Port: 8081,
 				},
 				Services: Services{
 					Secret: Secret{
@@ -378,7 +379,7 @@ func TestMergeConfigurations(t *testing.T) {
 				dst: &Configuration{
 					Server: Server{
 						Host: "localhost",
-						Port: "8080",
+						Port: 8080,
 					},
 					Services: Services{
 						Secret: Secret{
@@ -401,7 +402,7 @@ func TestMergeConfigurations(t *testing.T) {
 					{
 						Server: Server{
 							Host: "0.0.0.0",
-							Port: "8081",
+							Port: 8081,
 						},
 						Services: Services{
 							Secret: Secret{
@@ -423,7 +424,7 @@ func TestMergeConfigurations(t *testing.T) {
 					{
 						Server: Server{
 							Host: "0.0.0.0",
-							Port: "8082",
+							Port: 8082,
 						},
 						Services: Services{
 							Secret: Secret{
@@ -447,7 +448,7 @@ func TestMergeConfigurations(t *testing.T) {
 			want: &Configuration{
 				Server: Server{
 					Host: "0.0.0.0",
-					Port: "8082",
+					Port: 8082,
 				},
 				Services: Services{
 					Secret: Secret{
@@ -476,7 +477,7 @@ func TestMergeConfigurations(t *testing.T) {
 				dst: &Configuration{
 					Server: Server{
 						Host: "localhost",
-						Port: "8080",
+						Port: 8080,
 					},
 					Services: Services{
 						Secret: Secret{
@@ -500,7 +501,7 @@ func TestMergeConfigurations(t *testing.T) {
 			want: &Configuration{
 				Server: Server{
 					Host: "localhost",
-					Port: "8080",
+					Port: 8080,
 				},
 				Services: Services{
 					Secret: Secret{

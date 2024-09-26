@@ -3,6 +3,7 @@ package config
 import (
 	"bytes"
 	"flag"
+	"strconv"
 	"time"
 )
 
@@ -10,7 +11,7 @@ import (
 type flags struct {
 	configPath             string
 	host                   string
-	port                   string
+	port                   int
 	tlsCertFile            string
 	tlsKeyFile             string
 	encryptionKey          string
@@ -33,9 +34,10 @@ func parseFlags(args []string) (flags, string, error) {
 
 	var f flags
 	var enableDBTLS boolFlag
+
 	fs.StringVar(&f.configPath, "config-path", "", "Optional. Path to a configuration file. Defaults to: "+defaultConfigPath+".")
 	fs.StringVar(&f.host, "host", "", "Optional. Host to listen on. Defaults to: "+defaultListenHost+".")
-	fs.StringVar(&f.port, "port", "", "Optional. Port to listen on. Defaults to: "+defaultListenPort+".")
+	fs.IntVar(&f.port, "port", 0, "Optional. Port to listen on. Defaults to: "+strconv.Itoa(defaultListenPort)+".")
 	fs.StringVar(&f.tlsCertFile, "tls-cert-file", "", "Optional. TLS certificate file.")
 	fs.StringVar(&f.tlsKeyFile, "tls-key-file", "", "Optional. TLS key file.")
 	fs.StringVar(&f.encryptionKey, "encryption-key", "", "Optional. Default encryption key for the secrets service.")

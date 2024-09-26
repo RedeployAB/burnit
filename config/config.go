@@ -16,7 +16,7 @@ const (
 	// defaultListenHost is the default host to listen on.
 	defaultListenHost = "0.0.0.0"
 	// defaultListenPort is the default port to listen on.
-	defaultListenPort = "3000"
+	defaultListenPort = 3000
 )
 
 const (
@@ -29,6 +29,8 @@ const (
 	defaultDatabaseTimeout = 10 * time.Second
 	// defaultDatabaseConnectTimeout is the default connect timeout for the database.
 	defaultDatabaseConnectTimeout = 10 * time.Second
+	// defaultDatabaseName is the default name for the database.
+	defaultDatabaseName = "burnit"
 )
 
 const (
@@ -45,7 +47,7 @@ type Configuration struct {
 // Server contains the configuration for the server.
 type Server struct {
 	Host string `env:"LISTEN_HOST" yaml:"host"`
-	Port string `env:"LISTEN_PORT" yaml:"port"`
+	Port int    `env:"LISTEN_PORT" yaml:"port"`
 	TLS  TLS    `yaml:"tls"`
 }
 
@@ -96,6 +98,7 @@ func New() (*Configuration, error) {
 				Timeout: defaultSecretServiceTimeout,
 			},
 			Database: Database{
+				Database:       defaultDatabaseName,
 				Timeout:        defaultDatabaseTimeout,
 				ConnectTimeout: defaultDatabaseConnectTimeout,
 				EnableTLS:      toPtr(true),

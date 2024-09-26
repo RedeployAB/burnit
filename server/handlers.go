@@ -81,6 +81,7 @@ func (s server) createSecret() http.Handler {
 			return
 		}
 
+		w.Header().Set("Location", "/secrets/"+secret.ID)
 		if err := encode(w, http.StatusCreated, toAPISecret(&secret)); err != nil {
 			writeServerError(w)
 			return
