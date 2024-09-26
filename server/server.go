@@ -43,6 +43,7 @@ type TLSConfig struct {
 type Options struct {
 	Router       *http.ServeMux
 	Logger       logger
+	Secrets      secret.Service
 	Host         string
 	Port         int
 	TLS          TLSConfig
@@ -157,6 +158,9 @@ func WithOptions(options Options) Option {
 		}
 		if options.Logger != nil {
 			s.log = options.Logger
+		}
+		if options.Secrets != nil {
+			s.secrets = options.Secrets
 		}
 		if len(options.Host) > 0 || options.Port > 0 {
 			s.httpServer.Addr = options.Host + ":" + strconv.Itoa(options.Port)
