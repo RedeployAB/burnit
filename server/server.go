@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -48,7 +49,6 @@ func (c TLSConfig) isEmpty() bool {
 type Options struct {
 	Router       *http.ServeMux
 	Logger       logger
-	Secrets      secret.Service
 	Host         string
 	Port         int
 	TLS          TLSConfig
@@ -61,15 +61,20 @@ type Options struct {
 type Option func(*server)
 
 // New returns a new server.
-func New(options ...Option) *server {
+func New(secrets secret.Service, options ...Option) (*server, error) {
+	if secrets == nil {
+		return nil, fmt.Errorf("secrets service is nil")
+	}
+
 	s := &server{
 		httpServer: &http.Server{
 			ReadTimeout:  defaultReadTimeout,
 			WriteTimeout: defaultWriteTimeout,
 			IdleTimeout:  defaultIdleTimeout,
 		},
-		stopCh: make(chan os.Signal),
-		errCh:  make(chan error),
+		secrets: secrets,
+		stopCh:  make(chan os.Signal),
+		errCh:   make(chan error),
 	}
 	for _, option := range options {
 		option(s)
@@ -86,7 +91,7 @@ func New(options ...Option) *server {
 		s.httpServer.Addr = defaultHost + ":" + defaultPort
 	}
 
-	return s
+	return s, nil
 }
 
 // Start the server.
@@ -163,9 +168,6 @@ func WithOptions(options Options) Option {
 		}
 		if options.Logger != nil {
 			s.log = options.Logger
-		}
-		if options.Secrets != nil {
-			s.secrets = options.Secrets
 		}
 		if len(options.Host) > 0 || options.Port > 0 {
 			s.httpServer.Addr = options.Host + ":" + strconv.Itoa(options.Port)

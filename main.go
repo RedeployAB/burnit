@@ -18,16 +18,18 @@ func main() {
 		log.Error("Services setup error.", "error", err)
 	}
 
-	srv := server.New(server.WithOptions(server.Options{
-		Host:    cfg.Server.Host,
-		Port:    cfg.Server.Port,
-		Logger:  log,
-		Secrets: services.Secrets,
+	srv, err := server.New(services.Secrets, server.WithOptions(server.Options{
+		Host:   cfg.Server.Host,
+		Port:   cfg.Server.Port,
+		Logger: log,
 		TLS: server.TLSConfig{
 			Certificate: cfg.Server.TLS.CertFile,
 			Key:         cfg.Server.TLS.KeyFile,
 		},
 	}))
+	if err != nil {
+		log.Error("Server setup error.", "error", err)
+	}
 
 	if err := srv.Start(); err != nil {
 		log.Error("Server error.", "error", err)

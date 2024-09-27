@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/RedeployAB/burnit/secret"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
@@ -18,12 +19,21 @@ import (
 func TestNew(t *testing.T) {
 	var tests = []struct {
 		name  string
-		input []Option
-		want  *server
+		input struct {
+			secrets secret.Service
+			options []Option
+		}
+		want *server
 	}{
 		{
-			name:  "default",
-			input: []Option{},
+			name: "default",
+			input: struct {
+				secrets secret.Service
+				options []Option
+			}{
+				secrets: &mockSecretService{},
+				options: nil,
+			},
 			want: &server{
 				httpServer: &http.Server{
 					Addr:         defaultHost + ":" + defaultPort,
@@ -32,22 +42,29 @@ func TestNew(t *testing.T) {
 					WriteTimeout: defaultWriteTimeout,
 					IdleTimeout:  defaultIdleTimeout,
 				},
-				router: &http.ServeMux{},
-				log:    NewDefaultLogger(),
+				secrets: &mockSecretService{},
+				router:  &http.ServeMux{},
+				log:     NewDefaultLogger(),
 			},
 		},
 		{
 			name: "with options",
-			input: []Option{
-				WithOptions(Options{
-					Router:       http.NewServeMux(),
-					Logger:       NewDefaultLogger(),
-					Host:         "localhost",
-					Port:         8081,
-					ReadTimeout:  10 * time.Second,
-					WriteTimeout: 10 * time.Second,
-					IdleTimeout:  15 * time.Second,
-				}),
+			input: struct {
+				secrets secret.Service
+				options []Option
+			}{
+				secrets: &mockSecretService{},
+				options: []Option{
+					WithOptions(Options{
+						Router:       http.NewServeMux(),
+						Logger:       NewDefaultLogger(),
+						Host:         "localhost",
+						Port:         8081,
+						ReadTimeout:  10 * time.Second,
+						WriteTimeout: 10 * time.Second,
+						IdleTimeout:  15 * time.Second,
+					}),
+				},
 			},
 			want: &server{
 				httpServer: &http.Server{
@@ -57,20 +74,21 @@ func TestNew(t *testing.T) {
 					WriteTimeout: 10 * time.Second,
 					IdleTimeout:  15 * time.Second,
 				},
-				router: &http.ServeMux{},
-				log:    NewDefaultLogger(),
+				secrets: &mockSecretService{},
+				router:  &http.ServeMux{},
+				log:     NewDefaultLogger(),
 			},
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			got := New(test.input...)
+			got, _ := New(test.input.secrets, test.input.options...)
 			if got == nil {
 				t.Errorf("New(%v) = nil; want %v", test.input, test.want)
 			}
 
-			if diff := cmp.Diff(test.want, got, cmp.AllowUnexported(server{}), cmpopts.IgnoreUnexported(http.Server{}, http.ServeMux{}, slog.Logger{}), cmpopts.IgnoreFields(server{}, "stopCh", "errCh")); diff != "" {
+			if diff := cmp.Diff(test.want, got, cmp.AllowUnexported(server{}, mockSecretService{}), cmpopts.IgnoreUnexported(http.Server{}, http.ServeMux{}, slog.Logger{}), cmpopts.IgnoreFields(server{}, "stopCh", "errCh")); diff != "" {
 				t.Errorf("New(%v) = unexpected result (-want +got):\n%s\n", test.input, diff)
 			}
 		})
