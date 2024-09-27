@@ -58,6 +58,10 @@ func NewSecretRepository(client Client, options ...SecretRepositoryOption) (*Sec
 		option(&opts)
 	}
 
+	if len(opts.Database) == 0 {
+		return nil, ErrDatabaseNotSet
+	}
+
 	return &SecretRepository{
 		client:             client.Database(opts.Database),
 		collection:         opts.Collection,
