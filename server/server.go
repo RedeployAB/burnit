@@ -39,6 +39,11 @@ type TLSConfig struct {
 	Key         string
 }
 
+// isEmpty returns true if the TLSConfig is empty.
+func (c TLSConfig) isEmpty() bool {
+	return len(c.Certificate) == 0 && len(c.Key) == 0
+}
+
 // Options holds the configuration for the server.
 type Options struct {
 	Router       *http.ServeMux
@@ -121,7 +126,7 @@ func (s server) Start() error {
 // listenAndServe wraps around http.Server ListenAndServe and
 // ListenAndServeTLS depending on TLS configuration.
 func (s *server) listenAndServe() error {
-	if s.tls != (TLSConfig{}) {
+	if !s.tls.isEmpty() {
 		s.httpServer.TLSConfig = newTLSConfig()
 		return s.httpServer.ListenAndServeTLS(s.tls.Certificate, s.tls.Key)
 	}
@@ -173,6 +178,9 @@ func WithOptions(options Options) Option {
 		}
 		if options.IdleTimeout > 0 {
 			s.httpServer.IdleTimeout = options.IdleTimeout
+		}
+		if !options.TLS.isEmpty() {
+			s.tls = options.TLS
 		}
 	}
 }
