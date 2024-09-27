@@ -23,6 +23,10 @@ func main() {
 		Port:    cfg.Server.Port,
 		Logger:  log,
 		Secrets: services.Secrets,
+		TLS: server.TLSConfig{
+			Certificate: cfg.Server.TLS.CertFile,
+			Key:         cfg.Server.TLS.KeyFile,
+		},
 	}))
 
 	if err := srv.Start(); err != nil {
