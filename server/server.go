@@ -180,8 +180,7 @@ func WithOptions(options Options) Option {
 			s.httpServer.IdleTimeout = options.IdleTimeout
 		}
 		if !options.TLS.isEmpty() {
-			s.tls.Certificate = options.TLS.Certificate
-			s.tls.Key = options.TLS.Key
+			s.tls = options.TLS
 		}
 	}
 }
