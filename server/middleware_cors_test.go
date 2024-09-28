@@ -36,7 +36,7 @@ func TestCORSHandler(t *testing.T) {
 				statusCode: http.StatusOK,
 				headers: http.Header{
 					"Access-Control-Allow-Origin":  []string{"http://localhost:3000"},
-					"Access-Control-Allow-Methods": []string{"GET, POST"},
+					"Access-Control-Allow-Methods": []string{"GET, POST, DELETE"},
 					"Access-Control-Allow-Headers": []string{"Content-Type, Passphrase"},
 				},
 			},
@@ -57,7 +57,7 @@ func TestCORSHandler(t *testing.T) {
 				statusCode: http.StatusOK,
 				headers: http.Header{
 					"Access-Control-Allow-Origin":  []string{"http://localhost:3000"},
-					"Access-Control-Allow-Methods": []string{"GET, POST"},
+					"Access-Control-Allow-Methods": []string{"GET, POST, DELETE"},
 					"Access-Control-Allow-Headers": []string{"Content-Type, Passphrase"},
 				},
 			},
@@ -73,7 +73,7 @@ func TestCORSHandler(t *testing.T) {
 			rr := httptest.NewRecorder()
 			req := test.input.req
 
-			newCORSHandler(test.input.origin)(handler).ServeHTTP(rr, req)
+			corsHandler(test.input.origin)(handler).ServeHTTP(rr, req)
 
 			gotCode := rr.Code
 			gotHeaders := rr.Header()
