@@ -77,14 +77,14 @@ type Secret struct {
 
 // Database contains the configuration for the database.
 type Database struct {
-	URI            string        `env:"DATABASE_URI" yaml:"uri"`
-	Address        string        `env:"DATABASE_ADDRESS" yaml:"address"`
-	Database       string        `env:"DATABASE" yaml:"database"`
-	Username       string        `env:"DATABASE_USERNAME" yaml:"username"`
-	Password       string        `env:"DATABASE_PASSWORD" yaml:"password"`
-	Timeout        time.Duration `env:"DATABASE_TIMEOUT" yaml:"timeout"`
-	ConnectTimeout time.Duration `env:"DATABASE_CONNECT_TIMEOUT" yaml:"connectTimeout"`
-	EnableTLS      *bool         `env:"DATABASE_ENABLE_TLS" yaml:"enableTLS,omitempty"`
+	ConnectionString string        `env:"DATABASE_CONNECTION_STRING" yaml:"connectionString"`
+	Address          string        `env:"DATABASE_ADDRESS" yaml:"address"`
+	Database         string        `env:"DATABASE" yaml:"database"`
+	Username         string        `env:"DATABASE_USERNAME" yaml:"username"`
+	Password         string        `env:"DATABASE_PASSWORD" yaml:"password"`
+	Timeout          time.Duration `env:"DATABASE_TIMEOUT" yaml:"timeout"`
+	ConnectTimeout   time.Duration `env:"DATABASE_CONNECT_TIMEOUT" yaml:"connectTimeout"`
+	EnableTLS        *bool         `env:"DATABASE_ENABLE_TLS" yaml:"enableTLS,omitempty"`
 }
 
 // New creates a new Configuration.
@@ -235,14 +235,14 @@ func configurationFromFlags(flags *flags) (Configuration, error) {
 				Timeout:       flags.timeout,
 			},
 			Database: Database{
-				URI:            flags.databaseURI,
-				Address:        flags.databaseAddr,
-				Database:       flags.database,
-				Username:       flags.databaseUser,
-				Password:       flags.databasePass,
-				Timeout:        flags.databaseTimeout,
-				ConnectTimeout: flags.databaseConnectTimeout,
-				EnableTLS:      flags.databaseEnableTLS,
+				ConnectionString: flags.databaseConnStr,
+				Address:          flags.databaseAddr,
+				Database:         flags.database,
+				Username:         flags.databaseUser,
+				Password:         flags.databasePass,
+				Timeout:          flags.databaseTimeout,
+				ConnectTimeout:   flags.databaseConnectTimeout,
+				EnableTLS:        flags.databaseEnableTLS,
 			},
 		},
 	}, nil
