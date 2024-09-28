@@ -45,7 +45,7 @@ func setupSecretRepository(config *Database) (db.SecretRepository, error) {
 	switch databaseDriver(config) {
 	case databaseDriverMongo:
 		client, err := mongo.NewClient(func(o *mongo.ClientOptions) {
-			o.URI = config.URI
+			o.ConnectionString = config.ConnectionString
 			o.Hosts = []string{config.Address}
 			o.Username = config.Username
 			o.Password = config.Password
