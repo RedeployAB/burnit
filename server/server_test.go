@@ -177,6 +177,10 @@ type mockLogger struct {
 }
 
 func (l *mockLogger) Info(msg string, args ...any) {
+	if l.logs == nil {
+		l.logs = &[]string{}
+	}
+
 	messages := []string{msg}
 	for _, v := range args {
 		var val string
@@ -192,6 +196,10 @@ func (l *mockLogger) Info(msg string, args ...any) {
 }
 
 func (l *mockLogger) Error(msg string, args ...any) {
+	if l.logs == nil {
+		l.logs = &[]string{}
+	}
+
 	messages := []string{msg}
 	for _, v := range args {
 		var val string

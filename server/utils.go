@@ -26,7 +26,9 @@ type Validator interface {
 func encode[T any](w http.ResponseWriter, status int, v T) error {
 	w.Header().Set(contentType, contentTypeJSON)
 	w.WriteHeader(status)
-	if err := json.NewEncoder(w).Encode(v); err != nil {
+	encoder := json.NewEncoder(w)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(v); err != nil {
 		return fmt.Errorf("%w: %s", ErrMalformedRequest, err)
 	}
 	return nil
@@ -65,8 +67,21 @@ func writeValue(w http.ResponseWriter, value string) {
 // parseGenerateSecretQuery parses the query parameters for length
 // and special characters.
 func parseGenerateSecretQuery(v url.Values) (int, bool) {
-	length := v.Get("length")
-	specialCharacters := v.Get("specialCharacters")
+	var length string
+	if l, ok := v["length"]; ok {
+		length = l[0]
+	}
+	if l, ok := v["l"]; ok {
+		length = l[0]
+	}
+
+	var specialCharacters string
+	if sc, ok := v["specialCharacters"]; ok {
+		specialCharacters = sc[0]
+	}
+	if sc, ok := v["sc"]; ok {
+		specialCharacters = sc[0]
+	}
 
 	l, err := strconv.Atoi(length)
 	if err != nil {

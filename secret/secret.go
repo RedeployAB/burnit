@@ -7,10 +7,10 @@ import (
 )
 
 const (
-	// stdCharacters is the standard letters used for generating a secret.
-	stdCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUWXYZ"
-	// spcCharacters is the special characters used for generating a secret.
-	spcCharacters = "_-!?=()&%"
+	// charset is the standard letters used for generating a secret.
+	charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUWXYZ"
+	// specialCharset is the special characters used for generating a secret.
+	specialCharset = "_-!?=()&%"
 	// maxLength is the maximum length of a secret.
 	maxLength = 512
 )
@@ -32,18 +32,20 @@ func Generate(length int, specialCharacters bool) string {
 		length = maxLength
 	}
 
-	var strb strings.Builder
-	strb.WriteString(stdCharacters)
+	chars := charset
 	if specialCharacters {
-		strb.WriteString(spcCharacters)
-	}
-	bltrs := []byte(strb.String())
-	b := make([]byte, length)
-	for i := range b {
-		b[i] = bltrs[rand.Intn(len(bltrs))]
+		chars += specialCharset
 	}
 
-	return string(b)
+	var builder strings.Builder
+	builder.Grow(length)
+	len := len(chars)
+
+	for i := 0; i < length; i++ {
+		builder.WriteByte(chars[rand.Intn(len)])
+	}
+
+	return builder.String()
 }
 
 // generate new secret. The length of the secret is set by the provided

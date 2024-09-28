@@ -28,6 +28,7 @@ func (s server) generateSecret() http.Handler {
 		}
 
 		if err := encode(w, http.StatusOK, api.Secret{Value: secret}); err != nil {
+			s.log.Error("Failed to encode response.", "error", err)
 			writeServerError(w)
 			return
 		}
@@ -50,11 +51,13 @@ func (s server) getSecret() http.Handler {
 				writeError(w, statusCode, err)
 				return
 			}
+			s.log.Error("Failed to get secret.", "error", err)
 			writeServerError(w)
 			return
 		}
 
 		if err := encode(w, http.StatusOK, api.Secret{Value: secret.Value}); err != nil {
+			s.log.Error("Failed to encode response.", "error", err)
 			writeServerError(w)
 			return
 		}
@@ -66,8 +69,7 @@ func (s server) createSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		secretRequest, err := decode[api.CreateSecretRequest](r)
 		if err != nil {
-			statusCode := errorCode(err)
-			writeError(w, statusCode, err)
+			writeError(w, errorCode(err), err)
 			return
 		}
 
@@ -77,12 +79,14 @@ func (s server) createSecret() http.Handler {
 				writeError(w, statusCode, err)
 				return
 			}
+			s.log.Error("Failed to create secret.", "error", err)
 			writeServerError(w)
 			return
 		}
 
 		w.Header().Set("Location", "/secrets/"+secret.ID)
 		if err := encode(w, http.StatusCreated, toAPISecret(&secret)); err != nil {
+			s.log.Error("Failed to encode response.", "error", err)
 			writeServerError(w)
 			return
 		}
