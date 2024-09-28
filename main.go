@@ -36,9 +36,11 @@ func main() {
 	}))
 	if err != nil {
 		log.Error("Server setup error.", "error", err)
+		os.Exit(1)
 	}
 
 	if err := srv.Start(); err != nil {
 		log.Error("Server error.", "error", err)
+		os.Exit(1)
 	}
 }
