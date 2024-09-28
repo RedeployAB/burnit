@@ -318,6 +318,7 @@ func TestServer_getSecret(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			server := &server{
 				secrets: test.input.secrets,
+				log:     &mockLogger{},
 			}
 
 			rr := httptest.NewRecorder()
@@ -409,6 +410,7 @@ func TestServer_createSecret(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			server := &server{
 				secrets: test.input.secrets,
+				log:     &mockLogger{},
 			}
 
 			rr := httptest.NewRecorder()
