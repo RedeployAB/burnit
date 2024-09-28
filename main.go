@@ -26,6 +26,9 @@ func main() {
 			Certificate: cfg.Server.TLS.CertFile,
 			Key:         cfg.Server.TLS.KeyFile,
 		},
+		CORS: server.CORS{
+			Origin: cfg.Server.CORS.Origin,
+		},
 	}))
 	if err != nil {
 		log.Error("Server setup error.", "error", err)

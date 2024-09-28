@@ -49,12 +49,18 @@ type Server struct {
 	Host string `env:"LISTEN_HOST" yaml:"host"`
 	Port int    `env:"LISTEN_PORT" yaml:"port"`
 	TLS  TLS    `yaml:"tls"`
+	CORS CORS   `yaml:"cors"`
 }
 
 // TLS contains the configuration server TLS.
 type TLS struct {
 	CertFile string `env:"TLS_CERT_FILE" yaml:"certFile"`
 	KeyFile  string `env:"TLS_KEY_FILE" yaml:"keyFile"`
+}
+
+// CORS contains the configuration for CORS.
+type CORS struct {
+	Origin string `env:"CORS_ORIGIN" yaml:"origin"`
 }
 
 // Services contains the configuration for the services.

@@ -6,13 +6,13 @@ import (
 
 var (
 	// corsAllowMethods is the allowed methods for CORS.
-	corsAllowMethods = "GET, POST"
+	corsAllowMethods = "GET, POST, DELETE"
 	// corsAllowHeaders is the allowed headers for CORS.
 	corsAllowHeaders = "Content-Type, Passphrase"
 )
 
-// newCORSHandler creates a new CORS handler.
-func newCORSHandler(origin string) func(next http.Handler) http.Handler {
+// corsHandler creates a new CORS handler.
+func corsHandler(origin string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Access-Control-Allow-Origin", origin)

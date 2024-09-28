@@ -30,6 +30,7 @@ type server struct {
 	secrets    secret.Service
 	log        logger
 	tls        TLSConfig
+	cors       CORS
 	stopCh     chan os.Signal
 	errCh      chan error
 }
@@ -45,6 +46,16 @@ func (c TLSConfig) isEmpty() bool {
 	return len(c.Certificate) == 0 && len(c.Key) == 0
 }
 
+// CORS holds the configuration for the server's CORS settings.
+type CORS struct {
+	Origin string
+}
+
+// isEmpty returns true if the CORS is empty.
+func (c CORS) isEmpty() bool {
+	return len(c.Origin) == 0
+}
+
 // Options holds the configuration for the server.
 type Options struct {
 	Router       *http.ServeMux
@@ -52,6 +63,7 @@ type Options struct {
 	Host         string
 	Port         int
 	TLS          TLSConfig
+	CORS         CORS
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
 	IdleTimeout  time.Duration
@@ -183,6 +195,9 @@ func WithOptions(options Options) Option {
 		}
 		if !options.TLS.isEmpty() {
 			s.tls = options.TLS
+		}
+		if !options.CORS.isEmpty() {
+			s.cors = options.CORS
 		}
 	}
 }
