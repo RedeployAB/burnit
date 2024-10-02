@@ -26,9 +26,12 @@ func (r CreateSecretRequest) Valid(ctx context.Context) map[string]string {
 	if len(r.Value) == 0 {
 		errs["value"] = "value is required"
 	}
-	_, err := time.ParseDuration(r.TTL)
-	if err != nil {
-		errs["ttl"] = "ttl is invalid, expected format is 1h30m"
+	if len(r.TTL) > 0 {
+		_, err := time.ParseDuration(r.TTL)
+		if err != nil {
+			errs["ttl"] = "ttl is invalid, expected format is 1h30m"
+		}
 	}
+
 	return errs
 }

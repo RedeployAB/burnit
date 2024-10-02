@@ -358,14 +358,14 @@ func TestServer_createSecret(t *testing.T) {
 				req     *http.Request
 			}{
 				secrets: &mockSecretService{},
-				req:     httptest.NewRequest("POST", "/secret", strings.NewReader(`{"value":"1","ttl":300}`)),
+				req:     httptest.NewRequest("POST", "/secret", strings.NewReader(`{"value":"1","ttl":"1h"}`)),
 			},
 			want: struct {
 				status int
 				body   []byte
 			}{
 				status: http.StatusCreated,
-				body:   []byte(`{"id":"1","ttl":300}` + "\n"),
+				body:   []byte(`{"id":"1","ttl":"1h0m0s"}` + "\n"),
 			},
 		},
 		{
@@ -375,7 +375,7 @@ func TestServer_createSecret(t *testing.T) {
 				req     *http.Request
 			}{
 				secrets: &mockSecretService{},
-				req:     httptest.NewRequest("POST", "/secret", strings.NewReader(`{"value":"","ttl":300}`)),
+				req:     httptest.NewRequest("POST", "/secret", strings.NewReader(`{"value":"","ttl":"1h"}`)),
 			},
 			want: struct {
 				status int
@@ -394,7 +394,7 @@ func TestServer_createSecret(t *testing.T) {
 				secrets: &mockSecretService{
 					err: errSecretService,
 				},
-				req: httptest.NewRequest("POST", "/secret", strings.NewReader(`{"value":"1","ttl":300}`)),
+				req: httptest.NewRequest("POST", "/secret", strings.NewReader(`{"value":"1","ttl":"1h"}`)),
 			},
 			want: struct {
 				status int

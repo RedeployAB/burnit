@@ -11,9 +11,8 @@ import (
 )
 
 type mockMongoClient struct {
-	err      error
-	secrets  []db.Secret
-	settings []db.Settings
+	err     error
+	secrets []db.Secret
 }
 
 func (c *mockMongoClient) Database(database string) Client {
@@ -44,13 +43,6 @@ func (c mockMongoClient) FindOne(ctx context.Context, filter any) (Result, error
 			}
 		}
 	}
-	if c.settings != nil {
-		data, err := json.Marshal(c.settings[0].Security)
-		if err != nil {
-			return nil, err
-		}
-		return mockResult{data: data}, nil
-	}
 
 	return nil, ErrNoDocuments
 }
@@ -68,36 +60,13 @@ func (c *mockMongoClient) InsertOne(ctx context.Context, document any) (string, 
 		c.secrets = append(c.secrets, secret)
 		return secret.ID, nil
 	}
-	if c.settings != nil {
-		switch doc := document.(type) {
-		case db.Security:
-			c.settings = append(c.settings, db.Settings{Security: doc})
-		default:
-			return "", errors.New("invalid document")
-		}
-		return "settings", nil
-	}
+
 	return "", errors.New("could not determine database type")
 }
 
 func (c *mockMongoClient) UpdateOne(ctx context.Context, filter, update any) error {
 	if c.err != nil {
 		return c.err
-	}
-	if c.settings != nil {
-		switch doc := update.(type) {
-		case bson.D:
-			value, ok := doc[0].Value.(bson.D)
-			if !ok {
-				return errors.New("invalid update")
-			}
-			if value[0].Key == "encryptionKey" {
-				c.settings[0].Security.EncryptionKey = value[0].Value.(string)
-				return nil
-			}
-		default:
-			return errors.New("invalid update")
-		}
 	}
 	return nil
 }
@@ -157,7 +126,6 @@ func (r mockResult) Decode(v any) error {
 var (
 	errFindOne    = errors.New("find one error")
 	errInsertOne  = errors.New("insert one error")
-	errUpdateOne  = errors.New("update one error")
 	errDeleteOne  = errors.New("delete one error")
 	errDeleteMany = errors.New("delete many error")
 )

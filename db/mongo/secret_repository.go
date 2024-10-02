@@ -15,12 +15,10 @@ const (
 	defaultSecretRepositoryDatabase = "burnit"
 	// defaultSecretRepositoryCollection is the default collection for the secret repository.
 	defaultSecretRepositoryCollection = "secrets"
-	// defaultSecretRepositoryTimeout is the default timeout for the secret repository.
-	defaultSecretRepositoryTimeout = 10 * time.Second
 	// defaultSettingsCollection is the default collection for the settings.
 	defaultSettingsCollection = "settings"
-	// securityID is the ID for the security settings.
-	securityID = "security"
+	// defaultSecretRepositoryTimeout is the default timeout for the secret repository.
+	defaultSecretRepositoryTimeout = 10 * time.Second
 )
 
 // SecretRepository is a MongoDB implementation of a SecretRepository.
@@ -116,49 +114,6 @@ func (r SecretRepository) DeleteExpired(ctx context.Context) error {
 		return err
 	}
 	return nil
-}
-
-// GetSettings gets the settings.
-func (r SecretRepository) GetSettings(ctx context.Context) (db.Settings, error) {
-	res, err := r.client.Collection(r.settingsCollection).FindOne(ctx, bson.D{{Key: "_id", Value: securityID}})
-	if err != nil {
-		if errors.Is(err, ErrNoDocuments) {
-			return db.Settings{}, dberrors.ErrSettingsNotFound
-		}
-		return db.Settings{}, err
-	}
-
-	var s db.Security
-	if err := res.Decode(&s); err != nil {
-		return db.Settings{}, err
-	}
-
-	return db.Settings{Security: s}, nil
-}
-
-// CreateSettings creates settings.
-func (r SecretRepository) CreateSettings(ctx context.Context, settings db.Settings) (db.Settings, error) {
-	if len(settings.Security.ID) == 0 {
-		settings.Security.ID = securityID
-	}
-
-	if _, err := r.client.Collection(r.settingsCollection).InsertOne(ctx, settings.Security); err != nil {
-		return db.Settings{}, err
-	}
-
-	return r.GetSettings(ctx)
-}
-
-// UpdateSettings updates the settings.
-func (r SecretRepository) UpdateSettings(ctx context.Context, settings db.Settings) (db.Settings, error) {
-	update := bson.D{{Key: "$set", Value: bson.D{{Key: "encryptionKey", Value: settings.Security.EncryptionKey}}}}
-	if err := r.client.Collection(r.settingsCollection).UpdateOne(ctx, bson.D{{Key: "_id", Value: securityID}}, update); err != nil {
-		if errors.Is(err, ErrNoDocuments) {
-			return db.Settings{}, dberrors.ErrSettingsNotFound
-		}
-		return db.Settings{}, err
-	}
-	return r.GetSettings(ctx)
 }
 
 // Close the repository and its underlying connections.

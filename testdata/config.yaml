@@ -9,7 +9,7 @@ services:
     encryptionKey: key
     timeout: 15s
   database:
-    connectionString: mongodb://localhost:27017
+    uri: mongodb://localhost:27017
     address: localhost:27017
     database: test
     username: test
