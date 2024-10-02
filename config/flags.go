@@ -17,7 +17,8 @@ type flags struct {
 	encryptionKey          string
 	corsOrigin             string
 	timeout                time.Duration
-	databaseConnStr        string
+	databaseDriver         string
+	databaseURI            string
 	databaseAddr           string
 	database               string
 	databaseUser           string
@@ -44,7 +45,8 @@ func parseFlags(args []string) (flags, string, error) {
 	fs.StringVar(&f.encryptionKey, "encryption-key", "", "Optional. Default encryption key for the secrets service.")
 	fs.StringVar(&f.corsOrigin, "cors-origin", "", "Optional. CORS origin.")
 	fs.DurationVar(&f.timeout, "timeout", 0, "Optional. Default timeout for the service. Defaults to: "+defaultSecretServiceTimeout.String()+".")
-	fs.StringVar(&f.databaseConnStr, "database-connection-string", "", "Optional. Connection string for the database.")
+	fs.StringVar(&f.databaseDriver, "database-driver", "", "Optional. Database driver.")
+	fs.StringVar(&f.databaseURI, "database-uri", "", "Optional. URI for the database.")
 	fs.StringVar(&f.databaseAddr, "database-address", "", "Optional. Address for the database.")
 	fs.StringVar(&f.database, "database", "", "Optional. Database name.")
 	fs.StringVar(&f.databaseUser, "database-user", "", "Optional. Database username.")
