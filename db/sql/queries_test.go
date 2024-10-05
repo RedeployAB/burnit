@@ -50,38 +50,6 @@ func TestCreateQueries(t *testing.T) {
 			},
 		},
 		{
-			name: "mysql",
-			input: struct {
-				driver Driver
-				table  string
-			}{
-				driver: DriverMySQL,
-				table:  "secrets",
-			},
-			want: queries{
-				selectByID:    "SELECT id, value, expires_at FROM secrets WHERE id = ?",
-				insert:        "INSERT INTO secrets (id, value, expires_at) VALUES (?, ?, ?)",
-				delete:        "DELETE FROM secrets WHERE id = ?",
-				deleteExpired: "DELETE FROM secrets WHERE expires_at < NOW()",
-			},
-		},
-		{
-			name: "mariadb",
-			input: struct {
-				driver Driver
-				table  string
-			}{
-				driver: DriverMariaDB,
-				table:  "secrets",
-			},
-			want: queries{
-				selectByID:    "SELECT id, value, expires_at FROM secrets WHERE id = ?",
-				insert:        "INSERT INTO secrets (id, value, expires_at) VALUES (?, ?, ?)",
-				delete:        "DELETE FROM secrets WHERE id = ?",
-				deleteExpired: "DELETE FROM secrets WHERE expires_at < NOW()",
-			},
-		},
-		{
 			name: "sqlite",
 			input: struct {
 				driver Driver

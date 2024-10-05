@@ -12,10 +12,6 @@ const (
 	DriverPostgres Driver = "pgx"
 	// DriverMSSQL is the Microsoft SQL Server driver.
 	DriverMSSQL Driver = "sqlserver"
-	// DriverMySQL is the MySQL driver.
-	DriverMySQL Driver = "mysql"
-	// DriverMariaDB is the MariaDB driver.
-	DriverMariaDB Driver = "mariadb"
 	// DriverSQLite is the SQLite driver.
 	DriverSQLite Driver = "sqlite3"
 )

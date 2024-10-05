@@ -83,20 +83,14 @@ func (r SecretRepository) createTableIfNotExists(ctx context.Context) error {
 			value TEXT NOT NULL,
 			expires_at TIMESTAMPTZ NOT NULL
 		)`
+
 	case DriverMSSQL:
 		query = `
 		IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='%s' and xtype='U')
 		CREATE TABLE %s (
-    		id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
-    		value NVARCHAR(MAX) NOT NULL,
-    		expires_at DATETIMEOFFSET NOT NULL
-		)`
-	case DriverMySQL, DriverMariaDB:
-		query = `
-		CREATE TABLE IF NOT EXISTS %s (
-    		id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    		value TEXT NOT NULL,
-    		expires_at TIMESTAMP NOT NULL
+			id VARCHAR(36) NOT NULL PRIMARY KEY,
+			value NVARCHAR(MAX) NOT NULL,
+			expires_at DATETIMEOFFSET NOT NULL
 		)`
 	case DriverSQLite:
 		query = `
@@ -107,7 +101,7 @@ func (r SecretRepository) createTableIfNotExists(ctx context.Context) error {
 		)`
 	}
 
-	if _, err := r.db.ExecContext(ctx, fmt.Sprintf(query, r.table)); err != nil {
+	if _, err := r.db.ExecContext(ctx, fmt.Sprintf(query, r.table, r.table)); err != nil {
 		return err
 	}
 	return nil

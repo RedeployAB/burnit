@@ -11,6 +11,7 @@ import (
 	"github.com/RedeployAB/burnit/secret"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+	_ "github.com/microsoft/go-mssqldb"
 )
 
 // services contains the configured and setup services.
@@ -56,6 +57,8 @@ func setupSecretRepository(config *Database) (db.SecretRepository, error) {
 	case databaseDriverMongo:
 		repo, err = setupMongoSecretRepository(config, enableTLS)
 	case databaseDriverPostgres:
+		repo, err = setupSQLRepository(config, driver, enableTLS)
+	case databaseDriverMSSQL:
 		repo, err = setupSQLRepository(config, driver, enableTLS)
 	default:
 		return nil, fmt.Errorf("unsupported database driver")
@@ -150,7 +153,7 @@ func dbDriverFromAddress(addr string) string {
 // supportedDBDriver returns true if the driver is supported.
 func supportedDBDriver(driver string) bool {
 	switch driver {
-	case databaseDriverMongo, databaseDriverPostgres:
+	case databaseDriverMongo, databaseDriverPostgres, databaseDriverMSSQL:
 		return true
 	default:
 		return false
@@ -160,9 +163,11 @@ func supportedDBDriver(driver string) bool {
 var (
 	databaseDriverMongo    = "mongodb"
 	databaseDriverPostgres = "postgres"
+	databaseDriverMSSQL    = "sqlserver"
 
 	databasePorts = map[string]string{
 		databaseDriverMongo:    "27017",
 		databaseDriverPostgres: "5432",
+		databaseDriverMSSQL:    "1433",
 	}
 )

@@ -23,9 +23,6 @@ func createQueries(driver Driver, table string) (queries, error) {
 	case DriverMSSQL:
 		placeholders = []string{"@p1", "@p2", "@p3"}
 		now = "GETUTCDATE()"
-	case DriverMySQL, DriverMariaDB:
-		placeholders = []string{"?", "?", "?"}
-		now = "NOW()"
 	case DriverSQLite:
 		placeholders = []string{"?", "?", "?"}
 		now = "DATETIME('now')"
