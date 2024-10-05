@@ -75,6 +75,7 @@ func NewSecretRepository(db *DB, options ...SecretRepositoryOption) (*SecretRepo
 func (r SecretRepository) createTableIfNotExists(ctx context.Context) error {
 	var query string
 
+	var args []any
 	switch r.driver {
 	case DriverPostgres:
 		query = `
@@ -83,7 +84,7 @@ func (r SecretRepository) createTableIfNotExists(ctx context.Context) error {
 			value TEXT NOT NULL,
 			expires_at TIMESTAMPTZ NOT NULL
 		)`
-
+		args = append(args, r.table)
 	case DriverMSSQL:
 		query = `
 		IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='%s' and xtype='U')
@@ -92,16 +93,12 @@ func (r SecretRepository) createTableIfNotExists(ctx context.Context) error {
 			value NVARCHAR(MAX) NOT NULL,
 			expires_at DATETIMEOFFSET NOT NULL
 		)`
-	case DriverSQLite:
-		query = `
-		CREATE TABLE IF NOT EXISTS %s (
-			id TEXT PRIMARY KEY DEFAULT
-			value TEXT NOT NULL,
-			expires_at DATETIME NOT NULL
-		)`
+		args = append(args, r.table, r.table)
+	default:
+		return fmt.Errorf("unsupported driver: %s", r.driver)
 	}
 
-	if _, err := r.db.ExecContext(ctx, fmt.Sprintf(query, r.table, r.table)); err != nil {
+	if _, err := r.db.ExecContext(ctx, fmt.Sprintf(query, args...)); err != nil {
 		return err
 	}
 	return nil
@@ -163,4 +160,35 @@ func (r SecretRepository) DeleteExpired(ctx context.Context) error {
 // Close the repository and its underlying connections.
 func (r SecretRepository) Close() error {
 	return r.db.Close()
+}
+
+// querie contains queries used by the repository.
+type queries struct {
+	selectByID    string
+	insert        string
+	delete        string
+	deleteExpired string
+}
+
+// createQueries creates the queries used by the repository.
+func createQueries(driver Driver, table string) (queries, error) {
+	var placeholders []string
+	var now string
+	switch driver {
+	case DriverPostgres:
+		placeholders = []string{"$1", "$2", "$3"}
+		now = "NOW()"
+	case DriverMSSQL:
+		placeholders = []string{"@p1", "@p2", "@p3"}
+		now = "GETUTCDATE()"
+	default:
+		return queries{}, fmt.Errorf("unsupported driver: %s", driver)
+	}
+
+	return queries{
+		selectByID:    fmt.Sprintf("SELECT id, value, expires_at FROM %s WHERE id = %s", table, placeholders[0]),
+		insert:        fmt.Sprintf("INSERT INTO %s (id, value, expires_at) VALUES (%s, %s, %s)", table, placeholders[0], placeholders[1], placeholders[2]),
+		delete:        fmt.Sprintf("DELETE FROM %s WHERE id = %s", table, placeholders[0]),
+		deleteExpired: fmt.Sprintf("DELETE FROM %s WHERE expires_at < %s", table, now),
+	}, nil
 }

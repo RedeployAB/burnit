@@ -49,22 +49,6 @@ func TestCreateQueries(t *testing.T) {
 				deleteExpired: "DELETE FROM secrets WHERE expires_at < GETUTCDATE()",
 			},
 		},
-		{
-			name: "sqlite",
-			input: struct {
-				driver Driver
-				table  string
-			}{
-				driver: DriverSQLite,
-				table:  "secrets",
-			},
-			want: queries{
-				selectByID:    "SELECT id, value, expires_at FROM secrets WHERE id = ?",
-				insert:        "INSERT INTO secrets (id, value, expires_at) VALUES (?, ?, ?)",
-				delete:        "DELETE FROM secrets WHERE id = ?",
-				deleteExpired: "DELETE FROM secrets WHERE expires_at < DATETIME('now')",
-			},
-		},
 	}
 
 	for _, test := range tests {

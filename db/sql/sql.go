@@ -12,8 +12,6 @@ const (
 	DriverPostgres Driver = "pgx"
 	// DriverMSSQL is the Microsoft SQL Server driver.
 	DriverMSSQL Driver = "sqlserver"
-	// DriverSQLite is the SQLite driver.
-	DriverSQLite Driver = "sqlite3"
 )
 
 // DB is a database handle representing a pool of zero or more underlying connections.
