@@ -85,7 +85,7 @@ type Database struct {
 	Password       string        `env:"DATABASE_PASSWORD" yaml:"password"`
 	Timeout        time.Duration `env:"DATABASE_TIMEOUT" yaml:"timeout"`
 	ConnectTimeout time.Duration `env:"DATABASE_CONNECT_TIMEOUT" yaml:"connectTimeout"`
-	EnableTLS      *bool         `env:"DATABASE_ENABLE_TLS" yaml:"enableTLS,omitempty"`
+	TLS            string        `env:"DATABASE_TLS" yaml:"tls,omitempty"`
 }
 
 // New creates a new Configuration.
@@ -108,7 +108,7 @@ func New() (*Configuration, error) {
 				Database:       defaultDatabaseName,
 				Timeout:        defaultDatabaseTimeout,
 				ConnectTimeout: defaultDatabaseConnectTimeout,
-				EnableTLS:      toPtr(true),
+				TLS:            "require",
 			},
 		},
 	}
@@ -243,13 +243,8 @@ func configurationFromFlags(flags *flags) (Configuration, error) {
 				Password:       flags.databasePass,
 				Timeout:        flags.databaseTimeout,
 				ConnectTimeout: flags.databaseConnectTimeout,
-				EnableTLS:      flags.databaseEnableTLS,
+				TLS:            flags.databaseTLS,
 			},
 		},
 	}, nil
-}
-
-// toPtr returns a pointer to the value v.
-func toPtr[T any](v T) *T {
-	return &v
 }

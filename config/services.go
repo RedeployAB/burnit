@@ -42,11 +42,6 @@ func SetupServices(config Services) (*services, error) {
 
 // setupSecretRepository sets up the secret repository.
 func setupSecretRepository(config *Database) (db.SecretRepository, error) {
-	var enableTLS bool
-	if config.EnableTLS != nil {
-		enableTLS = *config.EnableTLS
-	}
-
 	var repo db.SecretRepository
 	driver, err := databaseDriver(config)
 	if err != nil {
@@ -55,11 +50,9 @@ func setupSecretRepository(config *Database) (db.SecretRepository, error) {
 
 	switch driver {
 	case databaseDriverMongo:
-		repo, err = setupMongoSecretRepository(config, enableTLS)
-	case databaseDriverPostgres:
-		repo, err = setupSQLRepository(config, driver, enableTLS)
-	case databaseDriverMSSQL:
-		repo, err = setupSQLRepository(config, driver, enableTLS)
+		repo, err = setupMongoSecretRepository(config)
+	case databaseDriverPostgres, databaseDriverMSSQL:
+		repo, err = setupSQLRepository(config, driver)
 	default:
 		return nil, fmt.Errorf("unsupported database driver")
 	}
@@ -72,14 +65,14 @@ func setupSecretRepository(config *Database) (db.SecretRepository, error) {
 }
 
 // setupMongoSecretRepository sets up the MongoDB secret repository.
-func setupMongoSecretRepository(config *Database, enableTLS bool) (db.SecretRepository, error) {
+func setupMongoSecretRepository(config *Database) (db.SecretRepository, error) {
 	client, err := mongo.NewClient(func(o *mongo.ClientOptions) {
 		o.URI = config.URI
 		o.Hosts = []string{config.Address}
 		o.Username = config.Username
 		o.Password = config.Password
 		o.ConnectTimeout = config.ConnectTimeout
-		o.EnableTLS = enableTLS
+		o.EnableTLS = parseBool(config.TLS)
 	})
 	if err != nil {
 		return nil, err
@@ -92,8 +85,16 @@ func setupMongoSecretRepository(config *Database, enableTLS bool) (db.SecretRepo
 }
 
 // setupSQLRepository sets up the SQL secret repository.
-func setupSQLRepository(config *Database, driver string, enableTLS bool) (db.SecretRepository, error) {
-	db, err := sql.Open(sql.Driver(driver), config.URI)
+func setupSQLRepository(config *Database, driver string) (db.SecretRepository, error) {
+	db, err := sql.Open(func(o *sql.Options) {
+		o.Driver = sql.Driver(driver)
+		o.DSN = config.URI
+		o.Address = config.Address
+		o.Database = config.Database
+		o.Username = config.Username
+		o.Password = config.Password
+		o.TLSMode = tlsMode(driver, config.TLS)
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -171,3 +172,22 @@ var (
 		databaseDriverMSSQL:    "1433",
 	}
 )
+
+// tlsMode returns the TLS mode based on the driver and TLS.
+func tlsMode(driver string, tls string) sql.TLSMode {
+	switch driver {
+	case databaseDriverMSSQL:
+		if tls == "require" {
+			return sql.TLSModeTrue
+		}
+		if tls == "disable" {
+			return sql.TLSModeFalse
+		}
+	}
+	return sql.TLSMode(tls)
+}
+
+// parseBool parses a string to a boolean.
+func parseBool(b string) bool {
+	return b == "true" || b == "1" || b == "require"
+}

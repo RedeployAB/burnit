@@ -25,7 +25,7 @@ type flags struct {
 	databasePass           string
 	databaseTimeout        time.Duration
 	databaseConnectTimeout time.Duration
-	databaseEnableTLS      *bool
+	databaseTLS            string
 }
 
 // parseFlags parses the flags.
@@ -53,14 +53,11 @@ func parseFlags(args []string) (flags, string, error) {
 	fs.StringVar(&f.databasePass, "database-password", "", "Optional. Database password.")
 	fs.DurationVar(&f.databaseTimeout, "database-timeout", 0, "Optional. Timeout for the database. Defaults to: "+defaultDatabaseTimeout.String()+".")
 	fs.DurationVar(&f.databaseConnectTimeout, "database-connect-timeout", 0, "Optional. Connect timeout for the database. Defaults to: "+defaultDatabaseConnectTimeout.String()+".")
+	fs.StringVar(&f.databaseTLS, "database-tls", "", "Optional. Enable and set TLS mode for the database.")
 	fs.Var(&enableDBTLS, "database-enable-tls", "Optional. Enable TLS for the database. Defaults to true.")
 
 	if err := fs.Parse(args); err != nil {
 		return f, buf.String(), err
-	}
-
-	if enableDBTLS.isSet {
-		f.databaseEnableTLS = &enableDBTLS.value
 	}
 
 	return f, buf.String(), nil
