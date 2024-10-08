@@ -486,7 +486,7 @@ func (r *mockSecretRepository) DeleteExpired(ctx context.Context) error {
 	}
 
 	for i, s := range r.secrets {
-		if s.ExpiresAt.Before(time.Now()) {
+		if s.ExpiresAt.Before(time.Now().UTC()) {
 			r.secrets = append(r.secrets[:i], r.secrets[i+1:]...)
 		}
 	}
@@ -505,5 +505,5 @@ var (
 )
 
 var (
-	pastHour = time.Now().Add(-1 * time.Hour)
+	pastHour = time.Now().UTC().Add(-1 * time.Hour)
 )

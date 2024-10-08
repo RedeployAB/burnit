@@ -96,7 +96,7 @@ func (c *mockMongoClient) DeleteMany(ctx context.Context, filter any) error {
 
 	secretsToKeep := []db.Secret{}
 	for _, secret := range c.secrets {
-		if !secret.ExpiresAt.Before(time.Now()) {
+		if !secret.ExpiresAt.Before(time.Now().UTC()) {
 			secretsToKeep = append(secretsToKeep, secret)
 		}
 	}

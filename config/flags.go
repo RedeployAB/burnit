@@ -26,6 +26,8 @@ type flags struct {
 	databaseTimeout        time.Duration
 	databaseConnectTimeout time.Duration
 	databaseTLS            string
+	databaseFile           string
+	databaseInMemory       *bool
 }
 
 // parseFlags parses the flags.
@@ -35,7 +37,7 @@ func parseFlags(args []string) (flags, string, error) {
 	fs.SetOutput(&buf)
 
 	var f flags
-	var enableDBTLS boolFlag
+	var databaseInMemory boolFlag
 
 	fs.StringVar(&f.configPath, "config-path", "", "Optional. Path to a configuration file. Defaults to: "+defaultConfigPath+".")
 	fs.StringVar(&f.host, "host", "", "Optional. Host to listen on. Defaults to: "+defaultListenHost+".")
@@ -54,10 +56,15 @@ func parseFlags(args []string) (flags, string, error) {
 	fs.DurationVar(&f.databaseTimeout, "database-timeout", 0, "Optional. Timeout for the database. Defaults to: "+defaultDatabaseTimeout.String()+".")
 	fs.DurationVar(&f.databaseConnectTimeout, "database-connect-timeout", 0, "Optional. Connect timeout for the database. Defaults to: "+defaultDatabaseConnectTimeout.String()+".")
 	fs.StringVar(&f.databaseTLS, "database-tls", "", "Optional. Enable and set TLS mode for the database.")
-	fs.Var(&enableDBTLS, "database-enable-tls", "Optional. Enable TLS for the database. Defaults to true.")
+	fs.StringVar(&f.databaseFile, "database-file", "", "Optional. Path to the database file for SQLite.")
+	fs.Var(&databaseInMemory, "database-in-memory", "Optional. Use an in-memory database for SQLite. Defaults to: false.")
 
 	if err := fs.Parse(args); err != nil {
 		return f, buf.String(), err
+	}
+
+	if databaseInMemory.isSet {
+		f.databaseInMemory = &databaseInMemory.value
 	}
 
 	return f, buf.String(), nil

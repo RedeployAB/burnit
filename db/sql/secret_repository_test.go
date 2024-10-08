@@ -30,7 +30,7 @@ func TestCreateQueries(t *testing.T) {
 				selectByID:    "SELECT id, value, expires_at FROM secrets WHERE id = $1",
 				insert:        "INSERT INTO secrets (id, value, expires_at) VALUES ($1, $2, $3)",
 				delete:        "DELETE FROM secrets WHERE id = $1",
-				deleteExpired: "DELETE FROM secrets WHERE expires_at < NOW()",
+				deleteExpired: "DELETE FROM secrets WHERE expires_at < NOW() AT TIME ZONE 'UTC'",
 			},
 		},
 		{
@@ -47,6 +47,22 @@ func TestCreateQueries(t *testing.T) {
 				insert:        "INSERT INTO secrets (id, value, expires_at) VALUES (@p1, @p2, @p3)",
 				delete:        "DELETE FROM secrets WHERE id = @p1",
 				deleteExpired: "DELETE FROM secrets WHERE expires_at < GETUTCDATE()",
+			},
+		},
+		{
+			name: "sqlite",
+			input: struct {
+				driver Driver
+				table  string
+			}{
+				driver: DriverSQLite,
+				table:  "secrets",
+			},
+			want: queries{
+				selectByID:    "SELECT id, value, expires_at FROM secrets WHERE id = ?1",
+				insert:        "INSERT INTO secrets (id, value, expires_at) VALUES (?1, ?2, ?3)",
+				delete:        "DELETE FROM secrets WHERE id = ?1",
+				deleteExpired: "DELETE FROM secrets WHERE expires_at < DATETIME('now')",
 			},
 		},
 	}

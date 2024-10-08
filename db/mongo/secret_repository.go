@@ -126,5 +126,5 @@ func (r SecretRepository) Close() error {
 
 // now is a function that returns the current time.
 var now = func() time.Time {
-	return time.Now()
+	return time.Now().UTC()
 }

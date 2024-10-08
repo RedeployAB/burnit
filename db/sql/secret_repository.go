@@ -94,6 +94,14 @@ func (r SecretRepository) createTableIfNotExists(ctx context.Context) error {
 			expires_at DATETIMEOFFSET NOT NULL
 		)`
 		args = append(args, r.table, r.table)
+	case DriverSQLite:
+		query = `
+		CREATE TABLE IF NOT EXISTS %s (
+		    id TEXT NOT NULL PRIMARY KEY,
+			value TEXT NOT NULL,
+			expires_at DATETIME NOT NULL
+		)`
+		args = append(args, r.table)
 	default:
 		return fmt.Errorf("unsupported driver: %s", r.driver)
 	}
@@ -177,10 +185,13 @@ func createQueries(driver Driver, table string) (queries, error) {
 	switch driver {
 	case DriverPostgres:
 		placeholders = []string{"$1", "$2", "$3"}
-		now = "NOW()"
+		now = "NOW() AT TIME ZONE 'UTC'"
 	case DriverMSSQL:
 		placeholders = []string{"@p1", "@p2", "@p3"}
 		now = "GETUTCDATE()"
+	case DriverSQLite:
+		placeholders = []string{"?1", "?2", "?3"}
+		now = "DATETIME('now')"
 	default:
 		return queries{}, fmt.Errorf("unsupported driver: %s", driver)
 	}

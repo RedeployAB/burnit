@@ -12,6 +12,7 @@ import (
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "github.com/microsoft/go-mssqldb"
+	_ "modernc.org/sqlite"
 )
 
 // services contains the configured and setup services.
@@ -51,7 +52,7 @@ func setupSecretRepository(config *Database) (db.SecretRepository, error) {
 	switch driver {
 	case databaseDriverMongo:
 		repo, err = setupMongoSecretRepository(config)
-	case databaseDriverPostgres, databaseDriverMSSQL:
+	case databaseDriverPostgres, databaseDriverMSSQL, databaseDriverSQLite:
 		repo, err = setupSQLRepository(config, driver)
 	default:
 		return nil, fmt.Errorf("unsupported database driver")
@@ -86,6 +87,11 @@ func setupMongoSecretRepository(config *Database) (db.SecretRepository, error) {
 
 // setupSQLRepository sets up the SQL secret repository.
 func setupSQLRepository(config *Database, driver string) (db.SecretRepository, error) {
+	var inMemory bool
+	if config.InMemory != nil {
+		inMemory = *config.InMemory
+	}
+
 	db, err := sql.Open(func(o *sql.Options) {
 		o.Driver = sql.Driver(driver)
 		o.DSN = config.URI
@@ -93,6 +99,8 @@ func setupSQLRepository(config *Database, driver string) (db.SecretRepository, e
 		o.Database = config.Database
 		o.Username = config.Username
 		o.Password = config.Password
+		o.File = config.File
+		o.InMemory = inMemory
 		o.TLSMode = tlsMode(driver, config.TLS)
 	})
 	if err != nil {
@@ -126,6 +134,10 @@ func databaseDriver(db *Database) (string, error) {
 		}
 	}
 
+	if len(db.File) > 0 || *db.InMemory {
+		return databaseDriverSQLite, nil
+	}
+
 	if len(driver) == 0 {
 		return "", fmt.Errorf("could not determine database driver")
 	}
@@ -154,7 +166,7 @@ func dbDriverFromAddress(addr string) string {
 // supportedDBDriver returns true if the driver is supported.
 func supportedDBDriver(driver string) bool {
 	switch driver {
-	case databaseDriverMongo, databaseDriverPostgres, databaseDriverMSSQL:
+	case databaseDriverMongo, databaseDriverPostgres, databaseDriverMSSQL, databaseDriverSQLite:
 		return true
 	default:
 		return false
@@ -165,6 +177,7 @@ var (
 	databaseDriverMongo    = "mongodb"
 	databaseDriverPostgres = "postgres"
 	databaseDriverMSSQL    = "sqlserver"
+	databaseDriverSQLite   = "sqlite"
 
 	databasePorts = map[string]string{
 		databaseDriverMongo:    "27017",

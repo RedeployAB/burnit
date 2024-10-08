@@ -86,6 +86,8 @@ type Database struct {
 	Timeout        time.Duration `env:"DATABASE_TIMEOUT" yaml:"timeout"`
 	ConnectTimeout time.Duration `env:"DATABASE_CONNECT_TIMEOUT" yaml:"connectTimeout"`
 	TLS            string        `env:"DATABASE_TLS" yaml:"tls,omitempty"`
+	File           string        `env:"DATABASE_FILE" yaml:"file,omitempty"`
+	InMemory       *bool         `env:"DATABASE_IN_MEMORY" yaml:"inMemory,omitempty"`
 }
 
 // New creates a new Configuration.

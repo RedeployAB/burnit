@@ -2,6 +2,7 @@ build/
 testcmd/
 burnit
 *.exe
+*.db
 
 .env
 *.env

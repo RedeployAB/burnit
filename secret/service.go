@@ -241,5 +241,5 @@ func decrypt(value, key string) (string, error) {
 
 // now returns the current time.
 var now = func() time.Time {
-	return time.Now()
+	return time.Now().UTC()
 }

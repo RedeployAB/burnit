@@ -9,6 +9,8 @@ import (
 const (
 	// defaultDatabase = "burnit" is the default name for the database.
 	defaultDatabase = "burnit"
+	// defaultDatabaseFile is the default file for the SQLite database.
+	defaultDatabaseFile = "burnit.db"
 )
 
 // Driver is the type for the database driver.
@@ -19,6 +21,8 @@ const (
 	DriverPostgres Driver = "pgx"
 	// DriverMSSQL is the Microsoft SQL Server driver.
 	DriverMSSQL Driver = "sqlserver"
+	// DriverSQLite is the SQLite driver.
+	DriverSQLite Driver = "sqlite"
 )
 
 // Scheme returns the scheme for the database driver, used for
@@ -29,6 +33,8 @@ func (d Driver) Scheme() string {
 		return "postgres"
 	case DriverMSSQL:
 		return "sqlserver"
+	case DriverSQLite:
+		return "sqlite"
 	}
 	return ""
 }
@@ -71,6 +77,8 @@ type Options struct {
 	Username string
 	Password string
 	TLSMode  TLSMode
+	File     string
+	InMemory bool
 }
 
 // Option is a function that sets options for the database.
@@ -80,6 +88,7 @@ type Option func(o *Options)
 func Open(options ...Option) (*DB, error) {
 	opts := Options{
 		Database: defaultDatabase,
+		File:     defaultDatabaseFile,
 	}
 	for _, option := range options {
 		option(&opts)
@@ -94,7 +103,11 @@ func Open(options ...Option) (*DB, error) {
 	if len(opts.DSN) > 0 {
 		dsn = opts.DSN
 	} else {
-		dsn = buildDSN(driver, &opts)
+		if driver != DriverSQLite {
+			dsn = buildDSN(driver, &opts)
+		} else {
+			dsn = databaseFile(opts.File, opts.InMemory)
+		}
 	}
 
 	db, err := sql.Open(string(driver), dsn)
@@ -113,6 +126,8 @@ func checkDriver(driver Driver) (Driver, error) {
 		return DriverPostgres, nil
 	case DriverMSSQL, "mssql":
 		return DriverMSSQL, nil
+	case DriverSQLite:
+		return DriverSQLite, nil
 	}
 	return "", fmt.Errorf("unsupported database driver: %s", driver)
 }
@@ -147,4 +162,15 @@ func buildDSN(driver Driver, options *Options) string {
 	}
 
 	return u.String()
+}
+
+// databaseFile returns the database file for SQLite.
+func databaseFile(file string, inMemory bool) string {
+	if inMemory {
+		return ":memory:"
+	}
+	if len(file) > 0 {
+		return "file:" + file
+	}
+	return "file:" + defaultDatabaseFile
 }
