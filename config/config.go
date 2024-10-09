@@ -246,6 +246,7 @@ func configurationFromFlags(flags *flags) (Configuration, error) {
 				Timeout:        flags.databaseTimeout,
 				ConnectTimeout: flags.databaseConnectTimeout,
 				TLS:            flags.databaseTLS,
+				InMemory:       flags.databaseInMemory,
 			},
 		},
 	}, nil
