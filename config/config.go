@@ -238,6 +238,7 @@ func configurationFromFlags(flags *flags) (Configuration, error) {
 				Timeout:       flags.timeout,
 			},
 			Database: Database{
+				Driver:         flags.databaseDriver,
 				URI:            flags.databaseURI,
 				Address:        flags.databaseAddr,
 				Database:       flags.database,
