@@ -18,7 +18,7 @@ const (
 	defaultSecretRepositoryTimeout = 10 * time.Second
 )
 
-// SecretRepository is a PostgreSQL implementation of a SecretRepository.
+// SecretRepository is a SQL implementation of a SecretRepository.
 type SecretRepository struct {
 	db      *sql.DB
 	driver  Driver
