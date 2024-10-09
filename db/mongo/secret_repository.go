@@ -100,7 +100,13 @@ func (r SecretRepository) Delete(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
-	return r.client.Collection(r.collection).DeleteOne(ctx, bson.D{{Key: "_id", Value: secret.ID}})
+	err = r.client.Collection(r.collection).DeleteOne(ctx, bson.D{{Key: "_id", Value: secret.ID}})
+	if err != nil {
+		if errors.Is(err, ErrDocumentNotDeleted) {
+			return dberrors.ErrSecretNotDeleted
+		}
+	}
+	return nil
 }
 
 // DeleteExpired deletes all expired secrets.

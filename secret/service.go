@@ -193,7 +193,7 @@ func (s service) Delete(id string) error {
 		return nil
 	}
 
-	if errors.Is(err, dberrors.ErrSecretNotFound) {
+	if errors.Is(err, dberrors.ErrSecretNotFound) || errors.Is(err, dberrors.ErrSecretNotDeleted) {
 		return ErrSecretNotFound
 	}
 	return err

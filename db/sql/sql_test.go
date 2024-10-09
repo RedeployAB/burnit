@@ -46,6 +46,20 @@ func TestBuildDSN(t *testing.T) {
 			want: "postgres://user:password@localhost/database?sslmode=require",
 		},
 		{
+			name: "postgres with DSN/URI",
+			input: struct {
+				driver  Driver
+				options *Options
+			}{
+				driver: DriverPostgres,
+				options: &Options{
+					Driver: DriverPostgres,
+					DSN:    "postgres://user:password@localhost/database?sslmode=prefer",
+				},
+			},
+			want: "postgres://user:password@localhost/database?sslmode=prefer",
+		},
+		{
 			name: "mssql",
 			input: struct {
 				driver  Driver
@@ -56,7 +70,7 @@ func TestBuildDSN(t *testing.T) {
 					Address: "localhost",
 				},
 			},
-			want: "sqlserver://localhost?database=burnit",
+			want: "sqlserver://localhost?database=Burnit",
 		},
 		{
 			name: "mssql - database, username, password and TLS mode",
@@ -74,6 +88,57 @@ func TestBuildDSN(t *testing.T) {
 				},
 			},
 			want: "sqlserver://user:password@localhost?database=database&encrypt=true",
+		},
+		{
+			name: "mssql with DSN/URI",
+			input: struct {
+				driver  Driver
+				options *Options
+			}{
+				driver: DriverMSSQL,
+				options: &Options{
+					Driver: DriverMSSQL,
+					DSN:    "sqlserver://user:password@localhost?database=database&encrypt=true",
+				},
+			},
+			want: "sqlserver://user:password@localhost?database=database&encrypt=true",
+		},
+		{
+			name: "sqlite - file",
+			input: struct {
+				driver  Driver
+				options *Options
+			}{
+				driver: DriverSQLite,
+				options: &Options{
+					File: "file.db",
+				},
+			},
+			want: "file:file.db",
+		},
+		{
+			name: "sqlite - default file",
+			input: struct {
+				driver  Driver
+				options *Options
+			}{
+				driver:  DriverSQLite,
+				options: &Options{},
+			},
+			want: "file:burnit.db",
+		},
+		{
+			name: "sqlite - in-memory",
+			input: struct {
+				driver  Driver
+				options *Options
+			}{
+				driver: DriverSQLite,
+				options: &Options{
+					InMemory: true,
+				},
+			},
+			want: ":memory:",
 		},
 	}
 

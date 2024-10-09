@@ -43,10 +43,10 @@ func TestCreateQueries(t *testing.T) {
 				table:  "secrets",
 			},
 			want: queries{
-				selectByID:    "SELECT id, value, expires_at FROM secrets WHERE id = @p1",
-				insert:        "INSERT INTO secrets (id, value, expires_at) VALUES (@p1, @p2, @p3)",
-				delete:        "DELETE FROM secrets WHERE id = @p1",
-				deleteExpired: "DELETE FROM secrets WHERE expires_at < GETUTCDATE()",
+				selectByID:    "SELECT ID, Value, ExpiresAt FROM Secrets WHERE ID = @p1",
+				insert:        "INSERT INTO Secrets (ID, Value, ExpiresAt) VALUES (@p1, @p2, @p3)",
+				delete:        "DELETE FROM Secrets WHERE ID = @p1",
+				deleteExpired: "DELETE FROM Secrets WHERE ExpiresAt < GETUTCDATE()",
 			},
 		},
 		{

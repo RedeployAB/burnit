@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/url"
+	"strings"
 )
 
 const (
@@ -99,16 +100,7 @@ func Open(options ...Option) (*DB, error) {
 		return nil, err
 	}
 
-	var dsn string
-	if len(opts.DSN) > 0 {
-		dsn = opts.DSN
-	} else {
-		if driver != DriverSQLite {
-			dsn = buildDSN(driver, &opts)
-		} else {
-			dsn = databaseFile(opts.File, opts.InMemory)
-		}
-	}
+	dsn := buildDSN(driver, &opts)
 
 	db, err := sql.Open(string(driver), dsn)
 	if err != nil {
@@ -134,6 +126,14 @@ func checkDriver(driver Driver) (Driver, error) {
 
 // buildDSN builds the data source name for the database connection.
 func buildDSN(driver Driver, options *Options) string {
+	if len(options.DSN) > 0 {
+		return options.DSN
+	}
+
+	if driver == DriverSQLite {
+		return databaseFileDSN(options.File, options.InMemory)
+	}
+
 	u := url.URL{
 		Scheme: driver.Scheme(),
 		Host:   options.Address,
@@ -155,6 +155,9 @@ func buildDSN(driver Driver, options *Options) string {
 			u.RawQuery = "sslmode=" + string(options.TLSMode)
 		}
 	case DriverMSSQL:
+		if database == defaultDatabase {
+			database = firstToUpper(database)
+		}
 		u.RawQuery = "database=" + database
 		if len(options.TLSMode) > 0 {
 			u.RawQuery += "&encrypt=" + string(options.TLSMode)
@@ -164,8 +167,8 @@ func buildDSN(driver Driver, options *Options) string {
 	return u.String()
 }
 
-// databaseFile returns the database file for SQLite.
-func databaseFile(file string, inMemory bool) string {
+// databaseFileDSN returns the database file for SQLite.
+func databaseFileDSN(file string, inMemory bool) string {
 	if inMemory {
 		return ":memory:"
 	}
@@ -173,4 +176,9 @@ func databaseFile(file string, inMemory bool) string {
 		return "file:" + file
 	}
 	return "file:" + defaultDatabaseFile
+}
+
+// firstToUpper returns the string with the first letter in uppercase.
+func firstToUpper(s string) string {
+	return strings.ToUpper(s[:1]) + s[1:]
 }

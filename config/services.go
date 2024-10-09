@@ -87,13 +87,18 @@ func setupMongoSecretRepository(config *Database) (db.SecretRepository, error) {
 
 // setupSQLRepository sets up the SQL secret repository.
 func setupSQLRepository(config *Database, driver string) (db.SecretRepository, error) {
+	drv := sql.Driver(driver)
+	if drv == sql.DriverMSSQL && config.Database == defaultDatabaseName {
+		config.Database = strings.ToUpper(config.Database[:1]) + config.Database[1:]
+	}
+
 	var inMemory bool
 	if config.InMemory != nil {
 		inMemory = *config.InMemory
 	}
 
 	db, err := sql.Open(func(o *sql.Options) {
-		o.Driver = sql.Driver(driver)
+		o.Driver = drv
 		o.DSN = config.URI
 		o.Address = config.Address
 		o.Database = config.Database

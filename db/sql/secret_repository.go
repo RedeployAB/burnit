@@ -3,10 +3,12 @@ package sql
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/RedeployAB/burnit/db"
+	dberrors "github.com/RedeployAB/burnit/db/errors"
 )
 
 const (
@@ -86,14 +88,15 @@ func (r SecretRepository) createTableIfNotExists(ctx context.Context) error {
 		)`
 		args = append(args, r.table)
 	case DriverMSSQL:
+		table := firstToUpper(r.table)
 		query = `
 		IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='%s' and xtype='U')
 		CREATE TABLE %s (
-			id VARCHAR(36) NOT NULL PRIMARY KEY,
-			value NVARCHAR(MAX) NOT NULL,
-			expires_at DATETIMEOFFSET NOT NULL
+			ID VARCHAR(36) NOT NULL PRIMARY KEY,
+			Value NVARCHAR(MAX) NOT NULL,
+			ExpiresAt DATETIMEOFFSET NOT NULL
 		)`
-		args = append(args, r.table, r.table)
+		args = append(args, table, table)
 	case DriverSQLite:
 		query = `
 		CREATE TABLE IF NOT EXISTS %s (
@@ -115,7 +118,11 @@ func (r SecretRepository) createTableIfNotExists(ctx context.Context) error {
 // Get a secret by its ID.
 func (r SecretRepository) Get(ctx context.Context, id string) (db.Secret, error) {
 	var secret db.Secret
+
 	if err := r.db.QueryRowContext(ctx, r.queries.selectByID, id).Scan(&secret.ID, &secret.Value, &secret.ExpiresAt); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return db.Secret{}, dberrors.ErrSecretNotFound
+		}
 		return db.Secret{}, err
 	}
 	return secret, nil
@@ -151,17 +158,44 @@ func (r SecretRepository) Create(ctx context.Context, secret db.Secret) (db.Secr
 
 // Delete a secret by its ID.
 func (r SecretRepository) Delete(ctx context.Context, id string) error {
-	if _, err := r.db.ExecContext(ctx, r.queries.delete, id); err != nil {
+	_, err := r.Get(ctx, id)
+	if err != nil {
 		return err
 	}
+
+	result, err := r.db.ExecContext(ctx, r.queries.delete, id)
+	if err != nil {
+		return err
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rows == 0 {
+		return dberrors.ErrSecretsNotDeleted
+	}
+
 	return nil
 }
 
 // DeleteExpired deletes all expired secrets.
 func (r SecretRepository) DeleteExpired(ctx context.Context) error {
-	if _, err := r.db.ExecContext(ctx, r.queries.deleteExpired); err != nil {
+	result, err := r.db.ExecContext(ctx, r.queries.deleteExpired)
+	if err != nil {
 		return err
 	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rows == 0 {
+		return dberrors.ErrSecretsNotDeleted
+	}
+
 	return nil
 }
 
@@ -180,16 +214,20 @@ type queries struct {
 
 // createQueries creates the queries used by the repository.
 func createQueries(driver Driver, table string) (queries, error) {
-	var placeholders []string
+	var columns, placeholders []string
 	var now string
 	switch driver {
 	case DriverPostgres:
+		columns = []string{"id", "value", "expires_at"}
 		placeholders = []string{"$1", "$2", "$3"}
 		now = "NOW() AT TIME ZONE 'UTC'"
 	case DriverMSSQL:
+		table = firstToUpper(table)
+		columns = []string{"ID", "Value", "ExpiresAt"}
 		placeholders = []string{"@p1", "@p2", "@p3"}
 		now = "GETUTCDATE()"
 	case DriverSQLite:
+		columns = []string{"id", "value", "expires_at"}
 		placeholders = []string{"?1", "?2", "?3"}
 		now = "DATETIME('now')"
 	default:
@@ -197,9 +235,9 @@ func createQueries(driver Driver, table string) (queries, error) {
 	}
 
 	return queries{
-		selectByID:    fmt.Sprintf("SELECT id, value, expires_at FROM %s WHERE id = %s", table, placeholders[0]),
-		insert:        fmt.Sprintf("INSERT INTO %s (id, value, expires_at) VALUES (%s, %s, %s)", table, placeholders[0], placeholders[1], placeholders[2]),
-		delete:        fmt.Sprintf("DELETE FROM %s WHERE id = %s", table, placeholders[0]),
-		deleteExpired: fmt.Sprintf("DELETE FROM %s WHERE expires_at < %s", table, now),
+		selectByID:    fmt.Sprintf("SELECT %s, %s, %s FROM %s WHERE %s = %s", columns[0], columns[1], columns[2], table, columns[0], placeholders[0]),
+		insert:        fmt.Sprintf("INSERT INTO %s (%s, %s, %s) VALUES (%s, %s, %s)", table, columns[0], columns[1], columns[2], placeholders[0], placeholders[1], placeholders[2]),
+		delete:        fmt.Sprintf("DELETE FROM %s WHERE %s = %s", table, columns[0], placeholders[0]),
+		deleteExpired: fmt.Sprintf("DELETE FROM %s WHERE %s < %s", table, columns[2], now),
 	}, nil
 }
