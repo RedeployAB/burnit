@@ -7,6 +7,7 @@ import (
 
 	"github.com/RedeployAB/burnit/db"
 	"github.com/RedeployAB/burnit/db/mongo"
+	"github.com/RedeployAB/burnit/db/redis"
 	"github.com/RedeployAB/burnit/db/sql"
 	"github.com/RedeployAB/burnit/secret"
 
@@ -53,7 +54,9 @@ func setupSecretRepository(config *Database) (db.SecretRepository, error) {
 	case databaseDriverMongo:
 		repo, err = setupMongoSecretRepository(config)
 	case databaseDriverPostgres, databaseDriverMSSQL, databaseDriverSQLite:
-		repo, err = setupSQLRepository(config, driver)
+		repo, err = setupSQLSecretRepository(config, driver)
+	case databaseDriverRedis:
+		repo, err = setupRedisSecretRepository(config)
 	default:
 		return nil, fmt.Errorf("unsupported database driver")
 	}
@@ -66,7 +69,7 @@ func setupSecretRepository(config *Database) (db.SecretRepository, error) {
 }
 
 // setupMongoSecretRepository sets up the MongoDB secret repository.
-func setupMongoSecretRepository(config *Database) (db.SecretRepository, error) {
+func setupMongoSecretRepository(config *Database) (*mongo.SecretRepository, error) {
 	client, err := mongo.NewClient(func(o *mongo.ClientOptions) {
 		o.URI = config.URI
 		o.Hosts = []string{config.Address}
@@ -85,8 +88,8 @@ func setupMongoSecretRepository(config *Database) (db.SecretRepository, error) {
 	})
 }
 
-// setupSQLRepository sets up the SQL secret repository.
-func setupSQLRepository(config *Database, driver string) (db.SecretRepository, error) {
+// setupSQLSecretRepository sets up the SQL secret repository.
+func setupSQLSecretRepository(config *Database, driver string) (*sql.SecretRepository, error) {
 	drv := sql.Driver(driver)
 	if drv == sql.DriverMSSQL && config.Database == defaultDatabaseName {
 		config.Database = strings.ToUpper(config.Database[:1]) + config.Database[1:]
@@ -117,6 +120,23 @@ func setupSQLRepository(config *Database, driver string) (db.SecretRepository, e
 	})
 }
 
+// setupRedisSecretRepository sets up the Redis secret repository.
+func setupRedisSecretRepository(config *Database) (*redis.SecretRepository, error) {
+	client, err := redis.NewClient(func(o *redis.ClientOptions) {
+		o.URI = config.URI
+		o.Address = config.Address
+		o.Username = config.Username
+		o.Password = config.Password
+		o.ConnectTimeout = config.ConnectTimeout
+		o.EnableTLS = parseBool(config.TLS)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return redis.NewSecretRepository(client, func(o *redis.SecretRepositoryOptions) {})
+}
+
 // databaseDriver returns the database driver.
 func databaseDriver(db *Database) (string, error) {
 	var driver string
@@ -139,15 +159,11 @@ func databaseDriver(db *Database) (string, error) {
 		}
 	}
 
-	if len(db.File) > 0 || *db.InMemory {
+	if len(db.File) > 0 || db.InMemory != nil && *db.InMemory {
 		return databaseDriverSQLite, nil
 	}
 
-	if len(driver) == 0 {
-		return "", fmt.Errorf("could not determine database driver")
-	}
-
-	return driver, nil
+	return driver, fmt.Errorf("could not determine database driver")
 }
 
 // dbDriverFromURI returns the database driver from the URI.
@@ -171,7 +187,7 @@ func dbDriverFromAddress(addr string) string {
 // supportedDBDriver returns true if the driver is supported.
 func supportedDBDriver(driver string) bool {
 	switch driver {
-	case databaseDriverMongo, databaseDriverPostgres, databaseDriverMSSQL, databaseDriverSQLite:
+	case databaseDriverMongo, databaseDriverPostgres, databaseDriverMSSQL, databaseDriverSQLite, databaseDriverRedis:
 		return true
 	default:
 		return false
@@ -183,11 +199,13 @@ var (
 	databaseDriverPostgres = "postgres"
 	databaseDriverMSSQL    = "sqlserver"
 	databaseDriverSQLite   = "sqlite"
+	databaseDriverRedis    = "redis"
 
 	databasePorts = map[string]string{
 		databaseDriverMongo:    "27017",
 		databaseDriverPostgres: "5432",
 		databaseDriverMSSQL:    "1433",
+		databaseDriverRedis:    "6379",
 	}
 )
 
