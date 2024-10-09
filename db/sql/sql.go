@@ -121,7 +121,7 @@ func checkDriver(driver Driver) (Driver, error) {
 	case DriverSQLite:
 		return DriverSQLite, nil
 	}
-	return "", fmt.Errorf("unsupported database driver: %s", driver)
+	return "", fmt.Errorf("%w: %s", ErrDriverNotSupported, driver)
 }
 
 // buildDSN builds the data source name for the database connection.

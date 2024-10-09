@@ -106,7 +106,7 @@ func (r SecretRepository) createTableIfNotExists(ctx context.Context) error {
 		)`
 		args = append(args, r.table)
 	default:
-		return fmt.Errorf("unsupported driver: %s", r.driver)
+		return fmt.Errorf("%w: %s", ErrDriverNotSupported, r.driver)
 	}
 
 	if _, err := r.db.ExecContext(ctx, fmt.Sprintf(query, args...)); err != nil {
@@ -230,7 +230,7 @@ func createQueries(driver Driver, table string) (queries, error) {
 		placeholders = []string{"?1", "?2", "?3"}
 		now = "DATETIME('now')"
 	default:
-		return queries{}, fmt.Errorf("unsupported driver: %s", driver)
+		return queries{}, fmt.Errorf("%w: %s", ErrDriverNotSupported, driver)
 	}
 
 	return queries{
