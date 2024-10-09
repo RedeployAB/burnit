@@ -102,6 +102,7 @@ func createClientOptions(options *ClientOptions) *mgoopts.ClientOptions {
 	if options.EnableTLS {
 		opts.TLSConfig = &tls.Config{}
 	}
+
 	return opts
 }
 

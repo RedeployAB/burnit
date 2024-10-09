@@ -79,7 +79,7 @@ func (c *mockMongoClient) DeleteOne(ctx context.Context, filter any) error {
 			return errors.New("invalid filter")
 		}
 	}
-	return ErrNoDocuments
+	return ErrDocumentNotDeleted
 }
 
 func (c *mockMongoClient) DeleteMany(ctx context.Context, filter any) error {
