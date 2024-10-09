@@ -96,15 +96,11 @@ func (r SecretRepository) Create(ctx context.Context, secret db.Secret) (db.Secr
 
 // Delete a secret by its ID.
 func (r SecretRepository) Delete(ctx context.Context, id string) error {
-	secret, err := r.Get(ctx, id)
-	if err != nil {
-		return err
-	}
-	err = r.client.Collection(r.collection).DeleteOne(ctx, bson.D{{Key: "_id", Value: secret.ID}})
-	if err != nil {
+	if err := r.client.Collection(r.collection).DeleteOne(ctx, bson.D{{Key: "_id", Value: id}}); err != nil {
 		if errors.Is(err, ErrDocumentNotDeleted) {
-			return dberrors.ErrSecretNotDeleted
+			return dberrors.ErrSecretNotFound
 		}
+		return err
 	}
 	return nil
 }
