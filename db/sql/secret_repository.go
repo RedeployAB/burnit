@@ -157,11 +157,6 @@ func (r SecretRepository) Create(ctx context.Context, secret db.Secret) (db.Secr
 
 // Delete a secret by its ID.
 func (r SecretRepository) Delete(ctx context.Context, id string) error {
-	_, err := r.Get(ctx, id)
-	if err != nil {
-		return err
-	}
-
 	result, err := r.db.ExecContext(ctx, r.queries.delete, id)
 	if err != nil {
 		return err
@@ -173,7 +168,7 @@ func (r SecretRepository) Delete(ctx context.Context, id string) error {
 	}
 
 	if rows == 0 {
-		return dberrors.ErrSecretsNotDeleted
+		return dberrors.ErrSecretNotFound
 	}
 
 	return nil
