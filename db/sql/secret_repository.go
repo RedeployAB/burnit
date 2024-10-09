@@ -76,8 +76,8 @@ func NewSecretRepository(db *DB, options ...SecretRepositoryOption) (*SecretRepo
 // createTableIfNotExists creates the table if it does not exist.
 func (r SecretRepository) createTableIfNotExists(ctx context.Context) error {
 	var query string
-
 	var args []any
+
 	switch r.driver {
 	case DriverPostgres:
 		query = `
@@ -100,7 +100,7 @@ func (r SecretRepository) createTableIfNotExists(ctx context.Context) error {
 	case DriverSQLite:
 		query = `
 		CREATE TABLE IF NOT EXISTS %s (
-		    id TEXT NOT NULL PRIMARY KEY,
+			id TEXT NOT NULL PRIMARY KEY,
 			value TEXT NOT NULL,
 			expires_at DATETIME NOT NULL
 		)`
@@ -118,7 +118,6 @@ func (r SecretRepository) createTableIfNotExists(ctx context.Context) error {
 // Get a secret by its ID.
 func (r SecretRepository) Get(ctx context.Context, id string) (db.Secret, error) {
 	var secret db.Secret
-
 	if err := r.db.QueryRowContext(ctx, r.queries.selectByID, id).Scan(&secret.ID, &secret.Value, &secret.ExpiresAt); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return db.Secret{}, dberrors.ErrSecretNotFound
