@@ -95,10 +95,20 @@ func (s server) createSecret() http.Handler {
 
 // toCreateSecret converts a CreateSecretRequest to a secret.
 func toCreateSecret(s *api.CreateSecretRequest) secret.Secret {
+	var ttl time.Duration
+	if len(s.TTL) > 0 {
+		var err error
+		ttl, err = time.ParseDuration(s.TTL)
+		if err != nil {
+			// This should never happen since the request is validated.
+			ttl = 5 * time.Minute
+		}
+	}
+
 	return secret.Secret{
 		Value:      s.Value,
 		Passphrase: s.Passphrase,
-		TTL:        s.TTL,
+		TTL:        ttl,
 	}
 }
 
@@ -111,7 +121,7 @@ func toAPISecret(s *secret.Secret) api.Secret {
 
 	return api.Secret{
 		ID:        s.ID,
-		TTL:       s.TTL,
+		TTL:       s.TTL.String(),
 		ExpiresAt: expiresAt,
 	}
 }

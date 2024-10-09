@@ -15,12 +15,6 @@ type SecretRepository interface {
 	Delete(ctx context.Context, id string) error
 	// DeleteExpired deletes all expired secrets.
 	DeleteExpired(ctx context.Context) error
-	// GetSettings gets the settings.
-	GetSettings(ctx context.Context) (Settings, error)
-	// CreateSettings creates settings.
-	CreateSettings(ctx context.Context, settings Settings) (Settings, error)
-	// UpdateSettings updates the settings.
-	UpdateSettings(ctx context.Context, settings Settings) (Settings, error)
 	// Close the repository and its underlying connections.
 	Close() error
 }

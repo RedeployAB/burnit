@@ -21,11 +21,6 @@ const (
 	defaultCleanupInterval = 30 * time.Second
 )
 
-const (
-	// applicationName is the name of the application.
-	applicationName = "burnit"
-)
-
 // newUUID generates a new UUID.
 var newUUID = func() string {
 	return uuid.New().String()
@@ -83,10 +78,6 @@ func NewService(secrets db.SecretRepository, options ...ServiceOption) (*service
 
 // Start the service and initialize its resources.
 func (s *service) Start() error {
-	if err := s.init(); err != nil {
-		return err
-	}
-
 	for {
 		select {
 		case <-time.After(s.cleanupInterval):
@@ -202,7 +193,7 @@ func (s service) Delete(id string) error {
 		return nil
 	}
 
-	if errors.Is(err, dberrors.ErrSecretNotFound) {
+	if errors.Is(err, dberrors.ErrSecretNotFound) || errors.Is(err, dberrors.ErrSecretNotDeleted) {
 		return ErrSecretNotFound
 	}
 	return err
@@ -222,61 +213,6 @@ func (s service) DeleteExpired() error {
 	}
 
 	return err
-}
-
-// init the service and its settings.
-// If an encryption key is provided in the service at initialization,
-// no further settings are needed.
-func (s *service) init() error {
-	if len(s.encryptionKey) > 0 {
-		return nil
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
-	defer cancel()
-
-	settings, err := s.getSettings(ctx)
-	if err != nil {
-		return err
-	}
-	if len(settings.Security.EncryptionKey) > 0 {
-		decrypted, err := decrypt(settings.Security.EncryptionKey, applicationName)
-		if err != nil {
-			return err
-		}
-		s.encryptionKey = decrypted
-		return nil
-	}
-
-	encryptionKey := generate(32, true)
-	encrypted, err := encrypt(encryptionKey, applicationName)
-	if err != nil {
-		return err
-	}
-
-	settings, err = s.secrets.UpdateSettings(ctx, db.Settings{
-		Security: db.Security{
-			EncryptionKey: encrypted,
-		},
-	})
-	if err != nil {
-		return err
-	}
-	s.encryptionKey = encryptionKey
-	return nil
-}
-
-// getSettings retrieves the settings from the repository.
-// If no settings are found, they are created.
-func (s service) getSettings(ctx context.Context) (db.Settings, error) {
-	settings, err := s.secrets.GetSettings(ctx)
-	if err != nil {
-		if errors.Is(err, dberrors.ErrSettingsNotFound) {
-			return s.secrets.CreateSettings(ctx, db.Settings{})
-		}
-		return db.Settings{}, err
-	}
-	return settings, nil
 }
 
 // encrypt a value using a key and returns the encrypted value
@@ -305,5 +241,5 @@ func decrypt(value, key string) (string, error) {
 
 // now returns the current time.
 var now = func() time.Time {
-	return time.Now()
+	return time.Now().UTC()
 }

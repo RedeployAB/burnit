@@ -435,106 +435,9 @@ func TestService_DeleteExpired(t *testing.T) {
 	}
 }
 
-func TestService_init(t *testing.T) {
-	var tests = []struct {
-		name  string
-		input struct {
-			secrets db.SecretRepository
-		}
-		want    string
-		wantErr error
-	}{
-		{
-			name: "settings present with encryption key",
-			input: struct {
-				secrets db.SecretRepository
-			}{
-				secrets: &mockSecretRepository{
-					settings: db.Settings{
-						Security: db.Security{
-							EncryptionKey: testEncryptedKey,
-						},
-					},
-				},
-			},
-			want: testKey,
-		},
-		{
-			name: "settings present without encryption key",
-			input: struct {
-				secrets db.SecretRepository
-			}{
-				secrets: &mockSecretRepository{
-					settings: db.Settings{},
-				},
-			},
-			want: testKey,
-		},
-		{
-			name: "error getting settings",
-			input: struct {
-				secrets db.SecretRepository
-			}{
-				secrets: &mockSecretRepository{
-					err: errGetSettings,
-				},
-			},
-			wantErr: errGetSettings,
-		},
-		{
-			name: "error creating settings",
-			input: struct {
-				secrets db.SecretRepository
-			}{
-				secrets: &mockSecretRepository{
-					err: errCreateSettings,
-				},
-			},
-			wantErr: errCreateSettings,
-		},
-		{
-			name: "error updating settings",
-			input: struct {
-				secrets db.SecretRepository
-			}{
-				secrets: &mockSecretRepository{
-					err: errUpdateSettings,
-				},
-			},
-			wantErr: errUpdateSettings,
-		},
-	}
-
-	generate = func(_ int, _ bool) string {
-		return testKey
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			svc := &service{
-				secrets: test.input.secrets,
-				timeout: defaultTimeout,
-			}
-
-			gotErr := svc.init()
-			got := svc.encryptionKey
-
-			if test.want != got {
-				t.Errorf("init() = unexpected result, want %q, got %q", test.want, got)
-			}
-
-			if diff := cmp.Diff(test.wantErr, gotErr, cmpopts.EquateErrors()); diff != "" {
-				t.Errorf("init() = unexpected error (-want +got)\n%s\n", diff)
-			}
-
-		})
-	}
-}
-
 type mockSecretRepository struct {
-	secrets  []db.Secret
-	settings db.Settings
-	err      error
+	secrets []db.Secret
+	err     error
 }
 
 func (r mockSecretRepository) Get(ctx context.Context, id string) (db.Secret, error) {
@@ -583,37 +486,11 @@ func (r *mockSecretRepository) DeleteExpired(ctx context.Context) error {
 	}
 
 	for i, s := range r.secrets {
-		if s.ExpiresAt.Before(time.Now()) {
+		if s.ExpiresAt.Before(time.Now().UTC()) {
 			r.secrets = append(r.secrets[:i], r.secrets[i+1:]...)
 		}
 	}
 	return dberrors.ErrSecretsNotDeleted
-}
-
-func (r mockSecretRepository) GetSettings(ctx context.Context) (db.Settings, error) {
-	if r.err != nil && errors.Is(r.err, errGetSettings) {
-		return db.Settings{}, r.err
-	}
-	if r.settings == (db.Settings{}) {
-		return db.Settings{}, dberrors.ErrSettingsNotFound
-	}
-	return r.settings, nil
-}
-
-func (r mockSecretRepository) CreateSettings(ctx context.Context, settings db.Settings) (db.Settings, error) {
-	if r.err != nil && errors.Is(r.err, errCreateSettings) {
-		return db.Settings{}, r.err
-	}
-	return db.Settings{}, nil
-}
-
-func (r *mockSecretRepository) UpdateSettings(ctx context.Context, settings db.Settings) (db.Settings, error) {
-	if r.err != nil && errors.Is(r.err, errUpdateSettings) {
-		return db.Settings{}, r.err
-	}
-
-	r.settings = settings
-	return r.settings, nil
 }
 
 func (r mockSecretRepository) Close() error {
@@ -625,13 +502,8 @@ var (
 	errCreateSecret      = errors.New("create secret error")
 	errDeleteSecret      = errors.New("delete secret error")
 	errDeleteManySecrets = errors.New("delete many secrets error")
-	errGetSettings       = errors.New("get settings error")
-	errCreateSettings    = errors.New("create settings error")
-	errUpdateSettings    = errors.New("update settings error")
 )
 
 var (
-	testKey             = "key"
-	testEncryptedKey, _ = encrypt(testKey, applicationName)
-	pastHour            = time.Now().Add(-1 * time.Hour)
+	pastHour = time.Now().UTC().Add(-1 * time.Hour)
 )

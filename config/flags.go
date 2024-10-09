@@ -17,14 +17,17 @@ type flags struct {
 	encryptionKey          string
 	corsOrigin             string
 	timeout                time.Duration
-	databaseConnStr        string
+	databaseDriver         string
+	databaseURI            string
 	databaseAddr           string
 	database               string
 	databaseUser           string
 	databasePass           string
 	databaseTimeout        time.Duration
 	databaseConnectTimeout time.Duration
-	databaseEnableTLS      *bool
+	databaseTLS            string
+	databaseFile           string
+	databaseInMemory       *bool
 }
 
 // parseFlags parses the flags.
@@ -34,7 +37,7 @@ func parseFlags(args []string) (flags, string, error) {
 	fs.SetOutput(&buf)
 
 	var f flags
-	var enableDBTLS boolFlag
+	var databaseInMemory boolFlag
 
 	fs.StringVar(&f.configPath, "config-path", "", "Optional. Path to a configuration file. Defaults to: "+defaultConfigPath+".")
 	fs.StringVar(&f.host, "host", "", "Optional. Host to listen on. Defaults to: "+defaultListenHost+".")
@@ -44,21 +47,24 @@ func parseFlags(args []string) (flags, string, error) {
 	fs.StringVar(&f.encryptionKey, "encryption-key", "", "Optional. Default encryption key for the secrets service.")
 	fs.StringVar(&f.corsOrigin, "cors-origin", "", "Optional. CORS origin.")
 	fs.DurationVar(&f.timeout, "timeout", 0, "Optional. Default timeout for the service. Defaults to: "+defaultSecretServiceTimeout.String()+".")
-	fs.StringVar(&f.databaseConnStr, "database-connection-string", "", "Optional. Connection string for the database.")
+	fs.StringVar(&f.databaseDriver, "database-driver", "", "Optional. Database driver.")
+	fs.StringVar(&f.databaseURI, "database-uri", "", "Optional. URI for the database.")
 	fs.StringVar(&f.databaseAddr, "database-address", "", "Optional. Address for the database.")
 	fs.StringVar(&f.database, "database", "", "Optional. Database name.")
 	fs.StringVar(&f.databaseUser, "database-user", "", "Optional. Database username.")
 	fs.StringVar(&f.databasePass, "database-password", "", "Optional. Database password.")
 	fs.DurationVar(&f.databaseTimeout, "database-timeout", 0, "Optional. Timeout for the database. Defaults to: "+defaultDatabaseTimeout.String()+".")
 	fs.DurationVar(&f.databaseConnectTimeout, "database-connect-timeout", 0, "Optional. Connect timeout for the database. Defaults to: "+defaultDatabaseConnectTimeout.String()+".")
-	fs.Var(&enableDBTLS, "database-enable-tls", "Optional. Enable TLS for the database. Defaults to true.")
+	fs.StringVar(&f.databaseTLS, "database-tls", "", "Optional. Enable and set TLS mode for the database.")
+	fs.StringVar(&f.databaseFile, "database-file", "", "Optional. Path to the database file for SQLite.")
+	fs.Var(&databaseInMemory, "database-in-memory", "Optional. Use an in-memory database for SQLite. Defaults to: false.")
 
 	if err := fs.Parse(args); err != nil {
 		return f, buf.String(), err
 	}
 
-	if enableDBTLS.isSet {
-		f.databaseEnableTLS = &enableDBTLS.value
+	if databaseInMemory.isSet {
+		f.databaseInMemory = &databaseInMemory.value
 	}
 
 	return f, buf.String(), nil

@@ -24,12 +24,12 @@ type Result interface {
 
 // ClientOptions contains options for the client.
 type ClientOptions struct {
-	ConnectionString string
-	Hosts            []string
-	Username         string
-	Password         string
-	ConnectTimeout   time.Duration
-	EnableTLS        bool
+	URI            string
+	Hosts          []string
+	Username       string
+	Password       string
+	ConnectTimeout time.Duration
+	EnableTLS      bool
 }
 
 // ClientOption is a function that sets options for the client.
@@ -42,7 +42,6 @@ type Client interface {
 	Collection(collection string) Client
 	FindOne(ctx context.Context, filter any) (Result, error)
 	InsertOne(ctx context.Context, document any) (string, error)
-	UpdateOne(ctx context.Context, filter, update any) error
 	DeleteOne(ctx context.Context, filter any) error
 	DeleteMany(ctx context.Context, filter any) error
 	Disconnect(ctx context.Context) error
@@ -87,8 +86,8 @@ func createClientOptions(options *ClientOptions) *mgoopts.ClientOptions {
 		return opts
 	}
 
-	if len(options.ConnectionString) > 0 {
-		return opts.ApplyURI(options.ConnectionString)
+	if len(options.URI) > 0 {
+		return opts.ApplyURI(options.URI)
 	}
 
 	if len(options.Hosts) > 0 {
@@ -137,21 +136,6 @@ func (c *client) InsertOne(ctx context.Context, document any) (string, error) {
 		return "", err
 	}
 	return parseID(res.InsertedID)
-}
-
-// UpdateOne updates a document in the collection.
-func (c *client) UpdateOne(ctx context.Context, filter, update any) error {
-	res, err := c.coll.UpdateOne(ctx, filter, update)
-	if err != nil {
-		return err
-	}
-	if res.MatchedCount == 0 {
-		return ErrNoDocuments
-	}
-	if res.ModifiedCount == 0 {
-		return ErrDocumentNotUpdated
-	}
-	return nil
 }
 
 // DeleteOne deletes a document from the collection.
