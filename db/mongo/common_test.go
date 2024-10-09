@@ -64,13 +64,6 @@ func (c *mockMongoClient) InsertOne(ctx context.Context, document any) (string, 
 	return "", errors.New("could not determine database type")
 }
 
-func (c *mockMongoClient) UpdateOne(ctx context.Context, filter, update any) error {
-	if c.err != nil {
-		return c.err
-	}
-	return nil
-}
-
 func (c *mockMongoClient) DeleteOne(ctx context.Context, filter any) error {
 	if c.err != nil {
 		return c.err
