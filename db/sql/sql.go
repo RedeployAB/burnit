@@ -40,27 +40,29 @@ func (d Driver) Scheme() string {
 	return ""
 }
 
-// TLSMode is the available settings for SQL encryption and SSL/TLS
-// settings accross drivers. All modes are not supported by all drivers.
-type TLSMode string
+// PostgresSSLMode is the available settings for PostgreSQL SSL/TLS settings.
+type PostgresSSLMode string
+
+// MSSQLEncrypt is the available settings for MSSQL encryption.
+type MSSQLEncrypt string
 
 const (
-	// TLSModeDisable disables encryption for PostgreSQL.
-	TLSModeDisable TLSMode = "disable"
-	// TLSModePrefer sets encryption to prefer for PostgreSQL.
-	TLSModePrefer TLSMode = "prefer"
-	// TLSModeRequire sets encryption to require for PostgreSQL.
-	TLSModeRequire TLSMode = "require"
-	// TLSModeVerifyCA sets encryption to verify-ca for PostgreSQL.
-	TLSModeVerifyCA TLSMode = "verify-ca"
-	// TLSModeVerifyFull sets encryption to verify-full for PostgreSQL.
-	TLSModeVerifyFull TLSMode = "verify-full"
-	// TLSModeTrue sets encryption to true for MSSQL.
-	TLSModeTrue TLSMode = "true"
-	// TLSModeFalse sets encryption to false for MSSQL.
-	TLSModeFalse TLSMode = "false"
-	// TLSModeStrict sets encryption to strict for MSSQL.
-	TLSModeStrict TLSMode = "strict"
+	// PostgresSSLModeDisable disables encryption for PostgreSQL.
+	PostgresSSLModeDisable PostgresSSLMode = "disable"
+	// PostgresSSLModePrefer sets encryption to prefer for PostgreSQL.
+	PostgresSSLModePrefer PostgresSSLMode = "prefer"
+	// PostgresSSLModeRequire sets encryption to require for PostgreSQL.
+	PostgresSSLModeRequire PostgresSSLMode = "require"
+	// PostgresSSLModeVerifyCA sets encryption to verify-ca for PostgreSQL.
+	PostgresSSLModeVerifyCA PostgresSSLMode = "verify-ca"
+	// PostgresSSLModeVerifyFull sets encryption to verify-full for PostgreSQL.
+	PostgresSSLModeVerifyFull PostgresSSLMode = "verify-full"
+	// MSSQLEncryptTrue sets encryption to true for MSSQL.
+	MSSQLEncryptTrue MSSQLEncrypt = "true"
+	// MSSQLEncryptFalse sets encryption to false for MSSQL.
+	MSSQLEncryptFalse MSSQLEncrypt = "false"
+	// MSSQLEncryptStrict sets encryption to strict for MSSQL.
+	MSSQLEncryptStrict MSSQLEncrypt = "strict"
 )
 
 // DB is a database handle representing a pool of zero or more underlying connections.
@@ -77,7 +79,23 @@ type Options struct {
 	Database string
 	Username string
 	Password string
-	TLSMode  TLSMode
+	Postgres PostgresOptions
+	MSSQL    MSSQLOptions
+	SQLite   SQLiteOptions
+}
+
+// PostgresOptions contains the options for PostgreSQL.
+type PostgresOptions struct {
+	SSLMode PostgresSSLMode
+}
+
+// MSSQLOptions contains the options for MSSQL.
+type MSSQLOptions struct {
+	Encrypt MSSQLEncrypt
+}
+
+// SQLiteOptions contains the options for SQLite.
+type SQLiteOptions struct {
 	File     string
 	InMemory bool
 }
@@ -89,7 +107,9 @@ type Option func(o *Options)
 func Open(options ...Option) (*DB, error) {
 	opts := Options{
 		Database: defaultDatabase,
-		File:     defaultDatabaseFile,
+		SQLite: SQLiteOptions{
+			File: defaultDatabaseFile,
+		},
 	}
 	for _, option := range options {
 		option(&opts)
@@ -126,12 +146,16 @@ func checkDriver(driver Driver) (Driver, error) {
 
 // buildDSN builds the data source name for the database connection.
 func buildDSN(driver Driver, options *Options) string {
+	if options == nil {
+		return ""
+	}
+
 	if len(options.DSN) > 0 {
 		return options.DSN
 	}
 
 	if driver == DriverSQLite {
-		return databaseFileDSN(options.File, options.InMemory)
+		return databaseFileDSN(options.SQLite.File, options.SQLite.InMemory)
 	}
 
 	u := url.URL{
@@ -151,16 +175,16 @@ func buildDSN(driver Driver, options *Options) string {
 	switch driver {
 	case DriverPostgres:
 		u.Path = database
-		if len(options.TLSMode) > 0 {
-			u.RawQuery = "sslmode=" + string(options.TLSMode)
+		if len(options.Postgres.SSLMode) > 0 {
+			u.RawQuery = "sslmode=" + string(options.Postgres.SSLMode)
 		}
 	case DriverMSSQL:
 		if database == defaultDatabase {
 			database = firstToUpper(database)
 		}
 		u.RawQuery = "database=" + database
-		if len(options.TLSMode) > 0 {
-			u.RawQuery += "&encrypt=" + string(options.TLSMode)
+		if len(options.MSSQL.Encrypt) > 0 {
+			u.RawQuery += "&encrypt=" + string(options.MSSQL.Encrypt)
 		}
 	}
 

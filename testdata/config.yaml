@@ -16,4 +16,3 @@ services:
     password: test
     timeout: 15s
     connectTimeout: 15s
-    tls: disable

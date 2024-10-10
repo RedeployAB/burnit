@@ -35,7 +35,6 @@ func TestParseFlags(t *testing.T) {
 				"-database-password", "password",
 				"-database-timeout", "15s",
 				"-database-connect-timeout", "15s",
-				"-database-tls", "false",
 			},
 			want: flags{
 				configPath:             "path",
@@ -51,7 +50,6 @@ func TestParseFlags(t *testing.T) {
 				databasePass:           "password",
 				databaseTimeout:        time.Second * 15,
 				databaseConnectTimeout: time.Second * 15,
-				databaseTLS:            "false",
 			},
 		},
 	}

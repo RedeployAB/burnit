@@ -40,7 +40,9 @@ func TestBuildDSN(t *testing.T) {
 					Database: "database",
 					Username: "user",
 					Password: "password",
-					TLSMode:  TLSModeRequire,
+					Postgres: PostgresOptions{
+						SSLMode: PostgresSSLModeRequire,
+					},
 				},
 			},
 			want: "postgres://user:password@localhost/database?sslmode=require",
@@ -84,7 +86,9 @@ func TestBuildDSN(t *testing.T) {
 					Database: "database",
 					Username: "user",
 					Password: "password",
-					TLSMode:  TLSModeTrue,
+					MSSQL: MSSQLOptions{
+						Encrypt: MSSQLEncryptTrue,
+					},
 				},
 			},
 			want: "sqlserver://user:password@localhost?database=database&encrypt=true",
@@ -111,7 +115,9 @@ func TestBuildDSN(t *testing.T) {
 			}{
 				driver: DriverSQLite,
 				options: &Options{
-					File: "file.db",
+					SQLite: SQLiteOptions{
+						File: "file.db",
+					},
 				},
 			},
 			want: "file:file.db",
@@ -135,7 +141,9 @@ func TestBuildDSN(t *testing.T) {
 			}{
 				driver: DriverSQLite,
 				options: &Options{
-					InMemory: true,
+					SQLite: SQLiteOptions{
+						InMemory: true,
+					},
 				},
 			},
 			want: ":memory:",

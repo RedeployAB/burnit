@@ -70,13 +70,18 @@ func setupSecretRepository(config *Database) (db.SecretRepository, error) {
 
 // setupMongoSecretRepository sets up the MongoDB secret repository.
 func setupMongoSecretRepository(config *Database) (*mongo.SecretRepository, error) {
+	var enableTLS bool
+	if config.Redis.EnableTLS != nil {
+		enableTLS = *config.Redis.EnableTLS
+	}
+
 	client, err := mongo.NewClient(func(o *mongo.ClientOptions) {
 		o.URI = config.URI
 		o.Hosts = []string{config.Address}
 		o.Username = config.Username
 		o.Password = config.Password
 		o.ConnectTimeout = config.ConnectTimeout
-		o.EnableTLS = parseBool(config.TLS)
+		o.EnableTLS = enableTLS
 	})
 	if err != nil {
 		return nil, err
@@ -107,9 +112,10 @@ func setupSQLSecretRepository(config *Database, driver string) (*sql.SecretRepos
 		o.Database = config.Database
 		o.Username = config.Username
 		o.Password = config.Password
-		o.File = config.SQLite.File
-		o.InMemory = inMemory
-		o.TLSMode = tlsMode(driver, config.TLS)
+		o.Postgres.SSLMode = sql.PostgresSSLMode(config.Postgres.SSLMode)
+		o.MSSQL.Encrypt = sql.MSSQLEncrypt(config.MSSQL.Encrypt)
+		o.SQLite.File = config.SQLite.File
+		o.SQLite.InMemory = inMemory
 	})
 	if err != nil {
 		return nil, err
@@ -122,13 +128,18 @@ func setupSQLSecretRepository(config *Database, driver string) (*sql.SecretRepos
 
 // setupRedisSecretRepository sets up the Redis secret repository.
 func setupRedisSecretRepository(config *Database) (*redis.SecretRepository, error) {
+	var enableTLS bool
+	if config.Redis.EnableTLS != nil {
+		enableTLS = *config.Redis.EnableTLS
+	}
+
 	client, err := redis.NewClient(func(o *redis.ClientOptions) {
 		o.URI = config.URI
 		o.Address = config.Address
 		o.Username = config.Username
 		o.Password = config.Password
 		o.ConnectTimeout = config.ConnectTimeout
-		o.EnableTLS = parseBool(config.TLS)
+		o.EnableTLS = enableTLS
 		o.DialTimeout = config.Redis.DialTimeout
 		o.MaxRetries = config.Redis.MaxRetries
 		o.MinRetryBackoff = config.Redis.MinRetryBackoff
@@ -212,22 +223,3 @@ var (
 		databaseDriverRedis:    "6379",
 	}
 )
-
-// tlsMode returns the TLS mode based on the driver and TLS.
-func tlsMode(driver string, tls string) sql.TLSMode {
-	switch driver {
-	case databaseDriverMSSQL:
-		if tls == "require" {
-			return sql.TLSModeTrue
-		}
-		if tls == "disable" {
-			return sql.TLSModeFalse
-		}
-	}
-	return sql.TLSMode(tls)
-}
-
-// parseBool parses a string to a boolean.
-func parseBool(b string) bool {
-	return b == "true" || b == "1" || b == "require"
-}

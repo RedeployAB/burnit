@@ -83,11 +83,28 @@ type Database struct {
 	Database       string        `env:"DATABASE" yaml:"database"`
 	Username       string        `env:"DATABASE_USERNAME" yaml:"username"`
 	Password       string        `env:"DATABASE_PASSWORD" yaml:"password"`
-	TLS            string        `env:"DATABASE_TLS" yaml:"tls,omitempty"`
 	Timeout        time.Duration `env:"DATABASE_TIMEOUT" yaml:"timeout"`
 	ConnectTimeout time.Duration `env:"DATABASE_CONNECT_TIMEOUT" yaml:"connectTimeout"`
+	Mongo          Mongo         `yaml:"mongo"`
+	Postgres       Postgres      `yaml:"postgres"`
+	MSSQL          MSSQL         `yaml:"mssql"`
 	SQLite         SQLite        `yaml:"sqlite"`
 	Redis          Redis         `yaml:"redis"`
+}
+
+// Mongo contains the configuration for the Mongo database.
+type Mongo struct {
+	EnableTLS *bool `env:"DATABASE_MONGO_ENABLE_TLS" yaml:"enableTLS"`
+}
+
+// Postgres contains the configuration for the Postgres database.
+type Postgres struct {
+	SSLMode string `env:"DATABASE_POSTGRES_SSL_MODE" yaml:"sslMode"`
+}
+
+// MSSQL contains the configuration for the MSSQL database.
+type MSSQL struct {
+	Encrypt string `env:"DATABASE_MSSQL_ENCRYPT" yaml:"encrypt"`
 }
 
 // SQLite contains the configuration for the SQLite database.
@@ -102,6 +119,7 @@ type Redis struct {
 	MaxRetries      int           `env:"DATABASE_REDIS_MAX_RETRIES" yaml:"maxRetries"`
 	MinRetryBackoff time.Duration `env:"DATABASE_REDIS_MIN_RETRY_BACKOFF" yaml:"minRetryBackoff"`
 	MaxRetryBackoff time.Duration `env:"DATABASE_REDIS_MAX_RETRY_BACKOFF" yaml:"maxRetryBackoff"`
+	EnableTLS       *bool         `env:"DATABASE_MONGO_ENABLE_TLS" yaml:"enableTLS"`
 }
 
 // New creates a new Configuration.
@@ -124,7 +142,18 @@ func New() (*Configuration, error) {
 				Database:       defaultDatabaseName,
 				Timeout:        defaultDatabaseTimeout,
 				ConnectTimeout: defaultDatabaseConnectTimeout,
-				TLS:            "require",
+				Mongo: Mongo{
+					EnableTLS: toPtr(true),
+				},
+				Postgres: Postgres{
+					SSLMode: "require",
+				},
+				MSSQL: MSSQL{
+					Encrypt: "true",
+				},
+				Redis: Redis{
+					EnableTLS: toPtr(true),
+				},
 			},
 		},
 	}
@@ -260,7 +289,15 @@ func configurationFromFlags(flags *flags) (Configuration, error) {
 				Password:       flags.databasePass,
 				Timeout:        flags.databaseTimeout,
 				ConnectTimeout: flags.databaseConnectTimeout,
-				TLS:            flags.databaseTLS,
+				Mongo: Mongo{
+					EnableTLS: flags.databaseMongoEnableTLS,
+				},
+				Postgres: Postgres{
+					SSLMode: flags.databasePostgresSSLMode,
+				},
+				MSSQL: MSSQL{
+					Encrypt: flags.databaseMSSQLEncrypt,
+				},
 				SQLite: SQLite{
 					File:     flags.databaseSQLiteFile,
 					InMemory: flags.databaseSQLiteInMemory,
@@ -274,4 +311,9 @@ func configurationFromFlags(flags *flags) (Configuration, error) {
 			},
 		},
 	}, nil
+}
+
+// toPtr returns a pointer to the given value.
+func toPtr[T any](v T) *T {
+	return &v
 }
