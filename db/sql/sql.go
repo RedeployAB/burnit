@@ -43,9 +43,6 @@ func (d Driver) Scheme() string {
 // PostgresSSLMode is the available settings for PostgreSQL SSL/TLS settings.
 type PostgresSSLMode string
 
-// MSSQLEncrypt is the available settings for MSSQL encryption.
-type MSSQLEncrypt string
-
 const (
 	// PostgresSSLModeDisable disables encryption for PostgreSQL.
 	PostgresSSLModeDisable PostgresSSLMode = "disable"
@@ -57,6 +54,12 @@ const (
 	PostgresSSLModeVerifyCA PostgresSSLMode = "verify-ca"
 	// PostgresSSLModeVerifyFull sets encryption to verify-full for PostgreSQL.
 	PostgresSSLModeVerifyFull PostgresSSLMode = "verify-full"
+)
+
+// MSSQLEncrypt is the available settings for MSSQL encryption.
+type MSSQLEncrypt string
+
+const (
 	// MSSQLEncryptTrue sets encryption to true for MSSQL.
 	MSSQLEncryptTrue MSSQLEncrypt = "true"
 	// MSSQLEncryptFalse sets encryption to false for MSSQL.
