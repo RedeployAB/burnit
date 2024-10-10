@@ -307,6 +307,7 @@ func configurationFromFlags(flags *flags) (Configuration, error) {
 					MaxRetries:      flags.databaseRedisMaxRetries,
 					MinRetryBackoff: flags.databaseRedisMinRetryBackoff,
 					MaxRetryBackoff: flags.databaseRedisMaxRetryBackoff,
+					EnableTLS:       flags.databaseRedisEnableTLS,
 				},
 			},
 		},
