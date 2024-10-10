@@ -83,11 +83,25 @@ type Database struct {
 	Database       string        `env:"DATABASE" yaml:"database"`
 	Username       string        `env:"DATABASE_USERNAME" yaml:"username"`
 	Password       string        `env:"DATABASE_PASSWORD" yaml:"password"`
+	TLS            string        `env:"DATABASE_TLS" yaml:"tls,omitempty"`
 	Timeout        time.Duration `env:"DATABASE_TIMEOUT" yaml:"timeout"`
 	ConnectTimeout time.Duration `env:"DATABASE_CONNECT_TIMEOUT" yaml:"connectTimeout"`
-	TLS            string        `env:"DATABASE_TLS" yaml:"tls,omitempty"`
-	File           string        `env:"DATABASE_FILE" yaml:"file,omitempty"`
-	InMemory       *bool         `env:"DATABASE_IN_MEMORY" yaml:"inMemory,omitempty"`
+	SQLite         SQLite        `yaml:"sqlite"`
+	Redis          Redis         `yaml:"redis"`
+}
+
+// SQLite contains the configuration for the SQLite database.
+type SQLite struct {
+	File     string `env:"DATABASE_SQLITE_FILE" yaml:"file"`
+	InMemory *bool  `env:"DATABASE_SQLITE_IN_MEMORY" yaml:"inMemory"`
+}
+
+// Redis contains the configuration for the Redis database.
+type Redis struct {
+	DialTimeout     time.Duration `env:"DATABASE_REDIS_DIAL_TIMEOUT" yaml:"dialTimeout"`
+	MaxRetries      int           `env:"DATABASE_REDIS_MAX_RETRIES" yaml:"maxRetries"`
+	MinRetryBackoff time.Duration `env:"DATABASE_REDIS_MIN_RETRY_BACKOFF" yaml:"minRetryBackoff"`
+	MaxRetryBackoff time.Duration `env:"DATABASE_REDIS_MAX_RETRY_BACKOFF" yaml:"maxRetryBackoff"`
 }
 
 // New creates a new Configuration.
@@ -247,8 +261,16 @@ func configurationFromFlags(flags *flags) (Configuration, error) {
 				Timeout:        flags.databaseTimeout,
 				ConnectTimeout: flags.databaseConnectTimeout,
 				TLS:            flags.databaseTLS,
-				File:           flags.databaseFile,
-				InMemory:       flags.databaseInMemory,
+				SQLite: SQLite{
+					File:     flags.databaseSQLiteFile,
+					InMemory: flags.databaseSQLiteInMemory,
+				},
+				Redis: Redis{
+					DialTimeout:     flags.databaseRedisDialTimeout,
+					MaxRetries:      flags.databaseRedisMaxRetries,
+					MinRetryBackoff: flags.databaseRedisMinRetryBackoff,
+					MaxRetryBackoff: flags.databaseRedisMaxRetryBackoff,
+				},
 			},
 		},
 	}, nil

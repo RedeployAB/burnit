@@ -9,25 +9,29 @@ import (
 
 // flags contains the flags.
 type flags struct {
-	configPath             string
-	host                   string
-	port                   int
-	tlsCertFile            string
-	tlsKeyFile             string
-	encryptionKey          string
-	corsOrigin             string
-	timeout                time.Duration
-	databaseDriver         string
-	databaseURI            string
-	databaseAddr           string
-	database               string
-	databaseUser           string
-	databasePass           string
-	databaseTimeout        time.Duration
-	databaseConnectTimeout time.Duration
-	databaseTLS            string
-	databaseFile           string
-	databaseInMemory       *bool
+	configPath                   string
+	host                         string
+	port                         int
+	tlsCertFile                  string
+	tlsKeyFile                   string
+	encryptionKey                string
+	corsOrigin                   string
+	timeout                      time.Duration
+	databaseDriver               string
+	databaseURI                  string
+	databaseAddr                 string
+	database                     string
+	databaseUser                 string
+	databasePass                 string
+	databaseTimeout              time.Duration
+	databaseConnectTimeout       time.Duration
+	databaseTLS                  string
+	databaseSQLiteFile           string
+	databaseSQLiteInMemory       *bool
+	databaseRedisDialTimeout     time.Duration
+	databaseRedisMaxRetries      int
+	databaseRedisMinRetryBackoff time.Duration
+	databaseRedisMaxRetryBackoff time.Duration
 }
 
 // parseFlags parses the flags.
@@ -37,7 +41,7 @@ func parseFlags(args []string) (flags, string, error) {
 	fs.SetOutput(&buf)
 
 	var f flags
-	var databaseInMemory boolFlag
+	var databaseSQLiteInMemory boolFlag
 
 	fs.StringVar(&f.configPath, "config-path", "", "Optional. Path to a configuration file. Defaults to: "+defaultConfigPath+".")
 	fs.StringVar(&f.host, "host", "", "Optional. Host to listen on. Defaults to: "+defaultListenHost+".")
@@ -56,15 +60,19 @@ func parseFlags(args []string) (flags, string, error) {
 	fs.DurationVar(&f.databaseTimeout, "database-timeout", 0, "Optional. Timeout for the database. Defaults to: "+defaultDatabaseTimeout.String()+".")
 	fs.DurationVar(&f.databaseConnectTimeout, "database-connect-timeout", 0, "Optional. Connect timeout for the database. Defaults to: "+defaultDatabaseConnectTimeout.String()+".")
 	fs.StringVar(&f.databaseTLS, "database-tls", "", "Optional. Enable and set TLS mode for the database.")
-	fs.StringVar(&f.databaseFile, "database-file", "", "Optional. Path to the database file for SQLite.")
-	fs.Var(&databaseInMemory, "database-in-memory", "Optional. Use an in-memory database for SQLite. Defaults to: false.")
+	fs.StringVar(&f.databaseSQLiteFile, "database-sqlite-file", "", "Optional. Path to the database file for SQLite.")
+	fs.Var(&databaseSQLiteInMemory, "database-sqlite-in-memory", "Optional. Use an in-memory database for SQLite. Defaults to: false.")
+	fs.DurationVar(&f.databaseRedisDialTimeout, "database-redis-dial-timeout", 0, "Optional. Dial timeout for the Redis client.")
+	fs.IntVar(&f.databaseRedisMaxRetries, "database-redis-max-retries", 0, "Optional. Maximum number of retries for the Redis client.")
+	fs.DurationVar(&f.databaseRedisMinRetryBackoff, "database-redis-min-retry-backoff", 0, "Optional. Minimum retry backoff for the Redis client.")
+	fs.DurationVar(&f.databaseRedisMaxRetryBackoff, "database-redis-max-retry-backoff", 0, "Optional. Maximum retry backoff for the Redis client.")
 
 	if err := fs.Parse(args); err != nil {
 		return f, buf.String(), err
 	}
 
-	if databaseInMemory.isSet {
-		f.databaseInMemory = &databaseInMemory.value
+	if databaseSQLiteInMemory.isSet {
+		f.databaseSQLiteInMemory = &databaseSQLiteInMemory.value
 	}
 
 	return f, buf.String(), nil

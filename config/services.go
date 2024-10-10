@@ -96,8 +96,8 @@ func setupSQLSecretRepository(config *Database, driver string) (*sql.SecretRepos
 	}
 
 	var inMemory bool
-	if config.InMemory != nil {
-		inMemory = *config.InMemory
+	if config.SQLite.InMemory != nil {
+		inMemory = *config.SQLite.InMemory
 	}
 
 	db, err := sql.Open(func(o *sql.Options) {
@@ -107,7 +107,7 @@ func setupSQLSecretRepository(config *Database, driver string) (*sql.SecretRepos
 		o.Database = config.Database
 		o.Username = config.Username
 		o.Password = config.Password
-		o.File = config.File
+		o.File = config.SQLite.File
 		o.InMemory = inMemory
 		o.TLSMode = tlsMode(driver, config.TLS)
 	})
@@ -129,6 +129,10 @@ func setupRedisSecretRepository(config *Database) (*redis.SecretRepository, erro
 		o.Password = config.Password
 		o.ConnectTimeout = config.ConnectTimeout
 		o.EnableTLS = parseBool(config.TLS)
+		o.DialTimeout = config.Redis.DialTimeout
+		o.MaxRetries = config.Redis.MaxRetries
+		o.MinRetryBackoff = config.Redis.MinRetryBackoff
+		o.MaxRetryBackoff = config.Redis.MaxRetryBackoff
 	})
 	if err != nil {
 		return nil, err
@@ -159,7 +163,7 @@ func databaseDriver(db *Database) (string, error) {
 		}
 	}
 
-	if len(db.File) > 0 || db.InMemory != nil && *db.InMemory {
+	if len(db.SQLite.File) > 0 || db.SQLite.InMemory != nil && *db.SQLite.InMemory {
 		return databaseDriverSQLite, nil
 	}
 
