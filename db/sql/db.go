@@ -1,10 +1,12 @@
 package sql
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 )
 
 const (
@@ -12,6 +14,8 @@ const (
 	defaultDatabase = "burnit"
 	// defaultDatabaseFile is the default file for the SQLite database.
 	defaultDatabaseFile = "burnit.db"
+	// defaultConnectTimeout is the default timeout for the database connection.
+	defaultConnectTimeout = 10 * time.Second
 )
 
 // Driver is the type for the database driver.
@@ -76,15 +80,16 @@ type DB struct {
 
 // Options contains the options for the database.
 type Options struct {
-	Driver   Driver
-	DSN      string
-	Address  string
-	Database string
-	Username string
-	Password string
-	Postgres PostgresOptions
-	MSSQL    MSSQLOptions
-	SQLite   SQLiteOptions
+	Driver         Driver
+	DSN            string
+	Address        string
+	Database       string
+	Username       string
+	Password       string
+	ConnectTimeout time.Duration
+	Postgres       PostgresOptions
+	MSSQL          MSSQLOptions
+	SQLite         SQLiteOptions
 }
 
 // PostgresOptions contains the options for PostgreSQL.
@@ -109,7 +114,8 @@ type Option func(o *Options)
 // Open a database specified by its database driver and data source name.
 func Open(options ...Option) (*DB, error) {
 	opts := Options{
-		Database: defaultDatabase,
+		Database:       defaultDatabase,
+		ConnectTimeout: defaultConnectTimeout,
 		SQLite: SQLiteOptions{
 			File: defaultDatabaseFile,
 		},
@@ -127,6 +133,13 @@ func Open(options ...Option) (*DB, error) {
 
 	db, err := sql.Open(string(driver), dsn)
 	if err != nil {
+		return nil, err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), opts.ConnectTimeout)
+	defer cancel()
+
+	if err := db.PingContext(ctx); err != nil {
 		return nil, err
 	}
 

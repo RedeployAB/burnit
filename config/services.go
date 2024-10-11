@@ -116,6 +116,7 @@ func setupSQLSecretRepository(config *Database, driver string) (*sql.SecretRepos
 		o.MSSQL.Encrypt = sql.MSSQLEncrypt(config.MSSQL.Encrypt)
 		o.SQLite.File = config.SQLite.File
 		o.SQLite.InMemory = inMemory
+		o.ConnectTimeout = config.ConnectTimeout
 	})
 	if err != nil {
 		return nil, err
