@@ -10,6 +10,8 @@ import (
 )
 
 const (
+	// defaultDatabase is the default database for the Redis client.
+	defaultDatabase = 0
 	// defaultConnectTimeout is the default timeout for connecting to the Redis client.
 	defaultConnectTimeout = 10 * time.Second
 )
@@ -49,6 +51,7 @@ type ClientOption func(o *ClientOptions)
 // NewClient creates and configures a new client.
 func NewClient(options ...ClientOption) (*client, error) {
 	opts := ClientOptions{
+		Database:       defaultDatabase,
 		ConnectTimeout: defaultConnectTimeout,
 	}
 	for _, option := range options {
