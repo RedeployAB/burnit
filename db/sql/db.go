@@ -129,6 +129,13 @@ func Open(options ...Option) (*DB, error) {
 		return nil, err
 	}
 
+	if len(opts.Postgres.SSLMode) > 0 && !validPostgresSSLMode(opts.Postgres.SSLMode) {
+		return nil, fmt.Errorf("invalid postgres sslmode: %s", opts.Postgres.SSLMode)
+	}
+	if len(opts.MSSQL.Encrypt) > 0 && !validMSSQLEncrypt(opts.MSSQL.Encrypt) {
+		return nil, fmt.Errorf("invalid mssql encrypt setting: %s", opts.MSSQL.Encrypt)
+	}
+
 	dsn := buildDSN(driver, &opts)
 
 	db, err := sql.Open(string(driver), dsn)
@@ -221,4 +228,22 @@ func databaseFileDSN(file string, inMemory bool) string {
 // firstToUpper returns the string with the first letter in uppercase.
 func firstToUpper(s string) string {
 	return strings.ToUpper(s[:1]) + s[1:]
+}
+
+// validPostgresSSLMode checks if the PostgreSQL SSL mode is valid.
+func validPostgresSSLMode(mode PostgresSSLMode) bool {
+	switch mode {
+	case PostgresSSLModeDisable, PostgresSSLModePrefer, PostgresSSLModeRequire, PostgresSSLModeVerifyCA, PostgresSSLModeVerifyFull:
+		return true
+	}
+	return false
+}
+
+// validMSSQLEncrypt checks if the MSSQL encrypt setting is valid.
+func validMSSQLEncrypt(encrypt MSSQLEncrypt) bool {
+	switch encrypt {
+	case MSSQLEncryptTrue, MSSQLEncryptFalse, MSSQLEncryptStrict:
+		return true
+	}
+	return false
 }
