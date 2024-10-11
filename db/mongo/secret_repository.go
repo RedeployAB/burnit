@@ -15,26 +15,22 @@ const (
 	defaultSecretRepositoryDatabase = "burnit"
 	// defaultSecretRepositoryCollection is the default collection for the secret repository.
 	defaultSecretRepositoryCollection = "secrets"
-	// defaultSettingsCollection is the default collection for the settings.
-	defaultSettingsCollection = "settings"
 	// defaultSecretRepositoryTimeout is the default timeout for the secret repository.
 	defaultSecretRepositoryTimeout = 10 * time.Second
 )
 
 // SecretRepository is a MongoDB implementation of a SecretRepository.
 type SecretRepository struct {
-	client             Client
-	collection         string
-	settingsCollection string
-	timeout            time.Duration
+	client     Client
+	collection string
+	timeout    time.Duration
 }
 
 // SecretRepositoryOptions is the options for the SecretRepository.
 type SecretRepositoryOptions struct {
-	Database           string
-	Collection         string
-	SettingsCollection string
-	Timeout            time.Duration
+	Database   string
+	Collection string
+	Timeout    time.Duration
 }
 
 // SecretRepositoryOption is a function that sets options for the SecretRepository.
@@ -47,10 +43,9 @@ func NewSecretRepository(client Client, options ...SecretRepositoryOption) (*Sec
 	}
 
 	opts := SecretRepositoryOptions{
-		Database:           defaultSecretRepositoryDatabase,
-		Collection:         defaultSecretRepositoryCollection,
-		SettingsCollection: defaultSettingsCollection,
-		Timeout:            defaultSecretRepositoryTimeout,
+		Database:   defaultSecretRepositoryDatabase,
+		Collection: defaultSecretRepositoryCollection,
+		Timeout:    defaultSecretRepositoryTimeout,
 	}
 	for _, option := range options {
 		option(&opts)
@@ -61,10 +56,9 @@ func NewSecretRepository(client Client, options ...SecretRepositoryOption) (*Sec
 	}
 
 	return &SecretRepository{
-		client:             client.Database(opts.Database),
-		collection:         opts.Collection,
-		settingsCollection: opts.SettingsCollection,
-		timeout:            opts.Timeout,
+		client:     client.Database(opts.Database),
+		collection: opts.Collection,
+		timeout:    opts.Timeout,
 	}, nil
 }
 

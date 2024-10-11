@@ -30,10 +30,9 @@ func TestNewSecretRepository(t *testing.T) {
 				client: &mockMongoClient{},
 			},
 			want: &SecretRepository{
-				client:             &mockMongoClient{},
-				collection:         defaultSecretRepositoryCollection,
-				settingsCollection: defaultSettingsCollection,
-				timeout:            defaultSecretRepositoryTimeout,
+				client:     &mockMongoClient{},
+				collection: defaultSecretRepositoryCollection,
+				timeout:    defaultSecretRepositoryTimeout,
 			},
 		},
 		{
@@ -47,15 +46,13 @@ func TestNewSecretRepository(t *testing.T) {
 					func(o *SecretRepositoryOptions) {
 						o.Database = "test"
 						o.Collection = "test"
-						o.SettingsCollection = "test"
 					},
 				},
 			},
 			want: &SecretRepository{
-				client:             &mockMongoClient{},
-				collection:         "test",
-				settingsCollection: "test",
-				timeout:            defaultSecretRepositoryTimeout,
+				client:     &mockMongoClient{},
+				collection: "test",
+				timeout:    defaultSecretRepositoryTimeout,
 			},
 		},
 		{
