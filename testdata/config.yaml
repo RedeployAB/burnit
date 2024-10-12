@@ -4,6 +4,13 @@ server:
   tls:
     certFile: cert.pem
     keyFile: key.pem
+  cors:
+    origin: "example.com"
+  rateLimiter:
+    rate: 2
+    burst: 4
+    cleanupInterval: 5m
+    ttl: 10m
 services:
   secret:
     encryptionKey: key

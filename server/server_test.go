@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/RedeployAB/burnit/log"
 	"github.com/RedeployAB/burnit/secret"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -44,7 +45,7 @@ func TestNew(t *testing.T) {
 				},
 				secrets: &mockSecretService{},
 				router:  &http.ServeMux{},
-				log:     NewDefaultLogger(),
+				log:     log.New(),
 			},
 		},
 		{
@@ -57,7 +58,7 @@ func TestNew(t *testing.T) {
 				options: []Option{
 					WithOptions(Options{
 						Router:       http.NewServeMux(),
-						Logger:       NewDefaultLogger(),
+						Logger:       log.New(),
 						Host:         "localhost",
 						Port:         8081,
 						ReadTimeout:  10 * time.Second,
@@ -76,7 +77,7 @@ func TestNew(t *testing.T) {
 				},
 				secrets: &mockSecretService{},
 				router:  &http.ServeMux{},
-				log:     NewDefaultLogger(),
+				log:     log.New(),
 			},
 		},
 	}
@@ -88,7 +89,7 @@ func TestNew(t *testing.T) {
 				t.Errorf("New(%v) = nil; want %v", test.input, test.want)
 			}
 
-			if diff := cmp.Diff(test.want, got, cmp.AllowUnexported(server{}, mockSecretService{}), cmpopts.IgnoreUnexported(http.Server{}, http.ServeMux{}, slog.Logger{}), cmpopts.IgnoreFields(server{}, "stopCh", "errCh")); diff != "" {
+			if diff := cmp.Diff(test.want, got, cmp.AllowUnexported(server{}, mockSecretService{}), cmpopts.IgnoreUnexported(http.Server{}, http.ServeMux{}, slog.Logger{}, log.Logger{}), cmpopts.IgnoreFields(server{}, "stopCh", "errCh")); diff != "" {
 				t.Errorf("New(%v) = unexpected result (-want +got):\n%s\n", test.input, diff)
 			}
 		})

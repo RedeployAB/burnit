@@ -37,18 +37,6 @@ func TestNew(t *testing.T) {
 						Database:       defaultDatabaseName,
 						Timeout:        defaultDatabaseTimeout,
 						ConnectTimeout: defaultDatabaseConnectTimeout,
-						Mongo: Mongo{
-							EnableTLS: toPtr(true),
-						},
-						Postgres: Postgres{
-							SSLMode: "require",
-						},
-						MSSQL: MSSQL{
-							Encrypt: "true",
-						},
-						Redis: Redis{
-							EnableTLS: toPtr(true),
-						},
 					},
 				},
 			},
@@ -69,6 +57,15 @@ func TestNew(t *testing.T) {
 						CertFile: "cert.pem",
 						KeyFile:  "key.pem",
 					},
+					CORS: CORS{
+						Origin: "example.com",
+					},
+					RateLimiter: RateLimiter{
+						Rate:            2,
+						Burst:           4,
+						CleanupInterval: 5 * time.Minute,
+						TTL:             10 * time.Minute,
+					},
 				},
 				Services: Services{
 					Secret: Secret{
@@ -83,18 +80,6 @@ func TestNew(t *testing.T) {
 						Password:       "test",
 						Timeout:        15 * time.Second,
 						ConnectTimeout: 15 * time.Second,
-						Mongo: Mongo{
-							EnableTLS: toPtr(true),
-						},
-						Postgres: Postgres{
-							SSLMode: "require",
-						},
-						MSSQL: MSSQL{
-							Encrypt: "true",
-						},
-						Redis: Redis{
-							EnableTLS: toPtr(true),
-						},
 					},
 				},
 			},
@@ -107,19 +92,24 @@ func TestNew(t *testing.T) {
 			}{
 				args: []string{"-config-path", "../testdata/config.yaml"},
 				envs: map[string]string{
-					"BURNIT_LISTEN_HOST":              "localhost2",
-					"BURNIT_LISTEN_PORT":              "3002",
-					"BURNIT_TLS_CERT_FILE":            "cert2.pem",
-					"BURNIT_TLS_KEY_FILE":             "key2.pem",
-					"BURNIT_SECRETS_ENCRYPTION_KEY":   "key2",
-					"BURNIT_SECRETS_TIMEOUT":          "20s",
-					"BURNIT_DATABASE_URI":             "mongodb://localhost2:27018",
-					"BURNIT_DATABASE_ADDRESS":         "localhost2:27018",
-					"BURNIT_DATABASE":                 "test2",
-					"BURNIT_DATABASE_USERNAME":        "test2",
-					"BURNIT_DATABASE_PASSWORD":        "test2",
-					"BURNIT_DATABASE_TIMEOUT":         "20s",
-					"BURNIT_DATABASE_CONNECT_TIMEOUT": "20s",
+					"BURNIT_LISTEN_HOST":                   "localhost2",
+					"BURNIT_LISTEN_PORT":                   "3002",
+					"BURNIT_TLS_CERT_FILE":                 "cert2.pem",
+					"BURNIT_TLS_KEY_FILE":                  "key2.pem",
+					"BURNIT_CORS_ORIGIN":                   "sub1.example.com",
+					"BURNIT_RATE_LIMITER_RATE":             "3",
+					"BURNIT_RATE_LIMITER_BURST":            "6",
+					"BURNIT_RATE_LIMITER_CLEANUP_INTERVAL": "10m",
+					"BURNIT_RATE_LIMITER_TTL":              "15m",
+					"BURNIT_SECRETS_ENCRYPTION_KEY":        "key2",
+					"BURNIT_SECRETS_TIMEOUT":               "20s",
+					"BURNIT_DATABASE_URI":                  "mongodb://localhost2:27018",
+					"BURNIT_DATABASE_ADDRESS":              "localhost2:27018",
+					"BURNIT_DATABASE":                      "test2",
+					"BURNIT_DATABASE_USERNAME":             "test2",
+					"BURNIT_DATABASE_PASSWORD":             "test2",
+					"BURNIT_DATABASE_TIMEOUT":              "20s",
+					"BURNIT_DATABASE_CONNECT_TIMEOUT":      "20s",
 				},
 			},
 			want: &Configuration{
@@ -129,6 +119,15 @@ func TestNew(t *testing.T) {
 					TLS: TLS{
 						CertFile: "cert2.pem",
 						KeyFile:  "key2.pem",
+					},
+					CORS: CORS{
+						Origin: "sub1.example.com",
+					},
+					RateLimiter: RateLimiter{
+						Rate:            3,
+						Burst:           6,
+						CleanupInterval: 10 * time.Minute,
+						TTL:             15 * time.Minute,
 					},
 				},
 				Services: Services{
@@ -144,18 +143,6 @@ func TestNew(t *testing.T) {
 						Password:       "test2",
 						Timeout:        20 * time.Second,
 						ConnectTimeout: 20 * time.Second,
-						Mongo: Mongo{
-							EnableTLS: toPtr(true),
-						},
-						Postgres: Postgres{
-							SSLMode: "require",
-						},
-						MSSQL: MSSQL{
-							Encrypt: "true",
-						},
-						Redis: Redis{
-							EnableTLS: toPtr(true),
-						},
 					},
 				},
 			},
@@ -172,6 +159,11 @@ func TestNew(t *testing.T) {
 					"-port", "3003",
 					"-tls-cert-file", "cert3.pem",
 					"-tls-key-file", "key3.pem",
+					"-cors-origin", "sub2.example.com",
+					"-rate-limiter-rate", "4",
+					"-rate-limiter-burst", "8",
+					"-rate-limiter-cleanup-interval", "15m",
+					"-rate-limiter-ttl", "20m",
 					"-encryption-key", "key3",
 					"-timeout", "25s",
 					"-database-uri", "mongodb://localhost3:27019",
@@ -183,19 +175,24 @@ func TestNew(t *testing.T) {
 					"-database-connect-timeout", "25s",
 				},
 				envs: map[string]string{
-					"BURNIT_LISTEN_HOST":              "localhost2",
-					"BURNIT_LISTEN_PORT":              "3002",
-					"BURNIT_TLS_CERT_FILE":            "cert2.pem",
-					"BURNIT_TLS_KEY_FILE":             "key2.pem",
-					"BURNIT_SECRETS_ENCRYPTION_KEY":   "key2",
-					"BURNIT_SECRETS_TIMEOUT":          "20s",
-					"BURNIT_DATABASE_URI":             "mongodb://localhost2:27018",
-					"BURNIT_DATABASE_ADDRESS":         "localhost2:27018",
-					"BURNIT_DATABASE":                 "test2",
-					"BURNIT_DATABASE_USERNAME":        "test2",
-					"BURNIT_DATABASE_PASSWORD":        "test2",
-					"BURNIT_DATABASE_TIMEOUT":         "20s",
-					"BURNIT_DATABASE_CONNECT_TIMEOUT": "20s",
+					"BURNIT_LISTEN_HOST":                   "localhost2",
+					"BURNIT_LISTEN_PORT":                   "3002",
+					"BURNIT_TLS_CERT_FILE":                 "cert2.pem",
+					"BURNIT_TLS_KEY_FILE":                  "key2.pem",
+					"BURNIT_CORS_ORIGIN":                   "sub1.example.com",
+					"BURNIT_RATE_LIMITER_RATE":             "3",
+					"BURNIT_RATE_LIMITER_BURST":            "6",
+					"BURNIT_RATE_LIMITER_CLEANUP_INTERVAL": "10m",
+					"BURNIT_RATE_LIMITER_TTL":              "15m",
+					"BURNIT_SECRETS_ENCRYPTION_KEY":        "key2",
+					"BURNIT_SECRETS_TIMEOUT":               "20s",
+					"BURNIT_DATABASE_URI":                  "mongodb://localhost2:27018",
+					"BURNIT_DATABASE_ADDRESS":              "localhost2:27018",
+					"BURNIT_DATABASE":                      "test2",
+					"BURNIT_DATABASE_USERNAME":             "test2",
+					"BURNIT_DATABASE_PASSWORD":             "test2",
+					"BURNIT_DATABASE_TIMEOUT":              "20s",
+					"BURNIT_DATABASE_CONNECT_TIMEOUT":      "20s",
 				},
 			},
 			want: &Configuration{
@@ -205,6 +202,15 @@ func TestNew(t *testing.T) {
 					TLS: TLS{
 						CertFile: "cert3.pem",
 						KeyFile:  "key3.pem",
+					},
+					CORS: CORS{
+						Origin: "sub2.example.com",
+					},
+					RateLimiter: RateLimiter{
+						Rate:            4,
+						Burst:           8,
+						CleanupInterval: 15 * time.Minute,
+						TTL:             20 * time.Minute,
 					},
 				},
 				Services: Services{
@@ -220,18 +226,6 @@ func TestNew(t *testing.T) {
 						Password:       "test3",
 						Timeout:        25 * time.Second,
 						ConnectTimeout: 25 * time.Second,
-						Mongo: Mongo{
-							EnableTLS: toPtr(true),
-						},
-						Postgres: Postgres{
-							SSLMode: "require",
-						},
-						MSSQL: MSSQL{
-							Encrypt: "true",
-						},
-						Redis: Redis{
-							EnableTLS: toPtr(true),
-						},
 					},
 				},
 			},

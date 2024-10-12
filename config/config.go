@@ -1,11 +1,13 @@
 package config
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"reflect"
+	"regexp"
 	"time"
 
 	"github.com/caarlos0/env/v11"
@@ -46,10 +48,36 @@ type Configuration struct {
 
 // Server contains the configuration for the server.
 type Server struct {
-	Host string `env:"LISTEN_HOST" yaml:"host"`
-	Port int    `env:"LISTEN_PORT" yaml:"port"`
-	TLS  TLS    `yaml:"tls"`
-	CORS CORS   `yaml:"cors"`
+	Host        string      `env:"LISTEN_HOST" yaml:"host"`
+	Port        int         `env:"LISTEN_PORT" yaml:"port"`
+	TLS         TLS         `yaml:"tls"`
+	CORS        CORS        `yaml:"cors"`
+	RateLimiter RateLimiter `yaml:"rateLimiter"`
+}
+
+// MarshalJSON returns the JSON encoding of Server. A custom marshalling method
+// is defined to hide sensitive values. The reason for not just using the struct tag
+// `json:"-"` is that this way we must explicitly set the properties to be marshalled
+// and thus output to the logs.
+func (s Server) MarshalJSON() ([]byte, error) {
+	var rateLimiter *RateLimiter
+	if s.RateLimiter.Burst > 0 || s.RateLimiter.Rate > 0 || s.RateLimiter.TTL > 0 || s.RateLimiter.CleanupInterval > 0 {
+		rateLimiter = &s.RateLimiter
+	}
+
+	return json.Marshal(struct {
+		Host        string       `json:",omitempty"`
+		Port        int          `json:",omitempty"`
+		TLS         *TLS         `json:",omitempty"`
+		CORS        *CORS        `json:",omitempty"`
+		RateLimiter *RateLimiter `json:",omitempty"`
+	}{
+		Host:        s.Host,
+		Port:        s.Port,
+		TLS:         &s.TLS,
+		CORS:        &s.CORS,
+		RateLimiter: rateLimiter,
+	})
 }
 
 // TLS contains the configuration server TLS.
@@ -63,6 +91,14 @@ type CORS struct {
 	Origin string `env:"CORS_ORIGIN" yaml:"origin"`
 }
 
+// RateLimiter contains the configuration for the rate limiter.
+type RateLimiter struct {
+	Rate            float64       `env:"RATE_LIMITER_RATE" yaml:"rate"`
+	Burst           int           `env:"RATE_LIMITER_BURST" yaml:"burst"`
+	TTL             time.Duration `env:"RATE_LIMITER_TTL" yaml:"ttl"`
+	CleanupInterval time.Duration `env:"RATE_LIMITER_CLEANUP_INTERVAL" yaml:"cleanupInterval"`
+}
+
 // Services contains the configuration for the services.
 type Services struct {
 	Secret   Secret   `yaml:"secret"`
@@ -73,6 +109,18 @@ type Services struct {
 type Secret struct {
 	EncryptionKey string        `env:"SECRETS_ENCRYPTION_KEY" yaml:"encryptionKey"`
 	Timeout       time.Duration `env:"SECRETS_TIMEOUT" yaml:"timeout"`
+}
+
+// MarshalJSON returns the JSON encoding of Secret. A custom marshalling method
+// is defined to hide sensitive values. The reason for not just using the struct tag
+// `json:"-"` is that this way we must explicitly set the properties to be marshalled
+// and thus output to the logs.
+func (s Secret) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Timeout time.Duration `json:",omitempty"`
+	}{
+		Timeout: s.Timeout,
+	})
 }
 
 // Database contains the configuration for the database.
@@ -90,6 +138,65 @@ type Database struct {
 	MSSQL          MSSQL         `yaml:"mssql"`
 	SQLite         SQLite        `yaml:"sqlite"`
 	Redis          Redis         `yaml:"redis"`
+}
+
+// MarshalJSON returns the JSON encoding of Database. A custom marshalling method
+// is defined to hide sensitive values. The reason for not just using the struct tag
+// `json:"-"` is that this way we must explicitly set the properties to be marshalled
+// and thus output to the logs.
+func (d Database) MarshalJSON() ([]byte, error) {
+	var uri string
+	reg := regexp.MustCompile(`://.*:.*@`)
+	if len(d.URI) > 0 && reg.MatchString(d.URI) {
+		uri = reg.ReplaceAllString(d.URI, "://***:***@")
+	}
+
+	var mongo *Mongo
+	if d.Mongo.EnableTLS != nil {
+		mongo = &d.Mongo
+	}
+	var postgres *Postgres
+	if len(d.Postgres.SSLMode) > 0 {
+		postgres = &d.Postgres
+	}
+	var mssql *MSSQL
+	if len(d.MSSQL.Encrypt) > 0 {
+		mssql = &d.MSSQL
+	}
+	var sqlite *SQLite
+	if len(d.SQLite.File) > 0 || d.SQLite.InMemory != nil {
+		sqlite = &d.SQLite
+	}
+	var redis *Redis
+	if d.Redis.DialTimeout > 0 || d.Redis.MaxRetries > 0 || d.Redis.MinRetryBackoff > 0 || d.Redis.MaxRetryBackoff > 0 || d.Redis.EnableTLS != nil {
+		redis = &d.Redis
+	}
+
+	return json.Marshal(struct {
+		Driver         string        `json:",omitempty"`
+		URI            string        `json:",omitempty"`
+		Address        string        `json:",omitempty"`
+		Database       string        `json:",omitempty"`
+		Timeout        time.Duration `json:",omitempty"`
+		ConnectTimeout time.Duration `json:",omitempty"`
+		Mongo          *Mongo        `json:",omitempty"`
+		Postgres       *Postgres     `json:",omitempty"`
+		MSSQL          *MSSQL        `json:",omitempty"`
+		SQLite         *SQLite       `json:",omitempty"`
+		Redis          *Redis        `json:",omitempty"`
+	}{
+		Driver:         d.Driver,
+		URI:            uri,
+		Address:        d.Address,
+		Database:       d.Database,
+		Timeout:        d.Timeout,
+		ConnectTimeout: d.ConnectTimeout,
+		Mongo:          mongo,
+		Postgres:       postgres,
+		MSSQL:          mssql,
+		SQLite:         sqlite,
+		Redis:          redis,
+	})
 }
 
 // Mongo contains the configuration for the Mongo database.
@@ -142,18 +249,6 @@ func New() (*Configuration, error) {
 				Database:       defaultDatabaseName,
 				Timeout:        defaultDatabaseTimeout,
 				ConnectTimeout: defaultDatabaseConnectTimeout,
-				Mongo: Mongo{
-					EnableTLS: toPtr(true),
-				},
-				Postgres: Postgres{
-					SSLMode: "require",
-				},
-				MSSQL: MSSQL{
-					Encrypt: "true",
-				},
-				Redis: Redis{
-					EnableTLS: toPtr(true),
-				},
 			},
 		},
 	}
@@ -274,6 +369,15 @@ func configurationFromFlags(flags *flags) (Configuration, error) {
 				CertFile: flags.tlsCertFile,
 				KeyFile:  flags.tlsKeyFile,
 			},
+			CORS: CORS{
+				Origin: flags.corsOrigin,
+			},
+			RateLimiter: RateLimiter{
+				Rate:            flags.rateLimiterRate,
+				Burst:           flags.rateLimiterBurst,
+				CleanupInterval: flags.rateLimiterCleanupInterval,
+				TTL:             flags.rateLimiterTTL,
+			},
 		},
 		Services: Services{
 			Secret: Secret{
@@ -312,9 +416,4 @@ func configurationFromFlags(flags *flags) (Configuration, error) {
 			},
 		},
 	}, nil
-}
-
-// toPtr returns a pointer to the given value.
-func toPtr[T any](v T) *T {
-	return &v
 }

@@ -45,16 +45,17 @@ func SetupServices(config Services) (*services, error) {
 // setupSecretRepository sets up the secret repository.
 func setupSecretRepository(config *Database) (db.SecretRepository, error) {
 	var repo db.SecretRepository
-	driver, err := databaseDriver(config)
+	var err error
+	config.Driver, err = databaseDriver(config)
 	if err != nil {
 		return nil, err
 	}
 
-	switch driver {
+	switch config.Driver {
 	case databaseDriverMongo:
 		repo, err = setupMongoSecretRepository(config)
 	case databaseDriverPostgres, databaseDriverMSSQL, databaseDriverSQLite:
-		repo, err = setupSQLSecretRepository(config, driver)
+		repo, err = setupSQLSecretRepository(config, config.Driver)
 	case databaseDriverRedis:
 		repo, err = setupRedisSecretRepository(config)
 	default:

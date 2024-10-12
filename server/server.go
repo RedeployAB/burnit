@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 
+	"github.com/RedeployAB/burnit/log"
 	"github.com/RedeployAB/burnit/secret"
 )
 
@@ -23,22 +23,43 @@ const (
 	defaultIdleTimeout  = 30 * time.Second
 )
 
+// logger is an interface for logging.
+type logger interface {
+	Error(msg string, args ...any)
+	Info(msg string, args ...any)
+}
+
 // server holds an http.Server, a router and it's configured options.
 type server struct {
-	httpServer *http.Server
-	router     *http.ServeMux
-	secrets    secret.Service
-	log        logger
-	tls        TLSConfig
-	cors       CORS
-	stopCh     chan os.Signal
-	errCh      chan error
+	httpServer    *http.Server
+	router        *http.ServeMux
+	secrets       secret.Service
+	log           logger
+	tls           TLSConfig
+	rateLimiter   RateLimiter
+	cors          CORS
+	shutdownFuncs []func() error
+	stopCh        chan os.Signal
+	errCh         chan error
 }
 
 // TLSConfig holds the configuration for the server's TLS settings.
 type TLSConfig struct {
 	Certificate string
 	Key         string
+}
+
+// RateLimiter holds the configuration for the server's rate limiter settings.
+type RateLimiter struct {
+	Rate            float64
+	Burst           int
+	TTL             time.Duration
+	CleanupInterval time.Duration
+}
+
+// isEmpty returns true if the RateLimiter is empty.
+func (r RateLimiter) isEmpty() bool {
+	return r.Rate == 0 && r.Burst == 0 && r.TTL == 0 && r.CleanupInterval == 0
 }
 
 // isEmpty returns true if the TLSConfig is empty.
@@ -63,6 +84,7 @@ type Options struct {
 	Host         string
 	Port         int
 	TLS          TLSConfig
+	RateLimiter  RateLimiter
 	CORS         CORS
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
@@ -97,7 +119,7 @@ func New(secrets secret.Service, options ...Option) (*server, error) {
 		s.httpServer.Handler = s.router
 	}
 	if s.log == nil {
-		s.log = NewDefaultLogger()
+		s.log = log.New()
 	}
 	if len(s.httpServer.Addr) == 0 {
 		s.httpServer.Addr = defaultHost + ":" + defaultPort
@@ -163,43 +185,18 @@ func (s server) stop() {
 		s.errCh <- err
 	}
 
+	for _, fn := range s.shutdownFuncs {
+		if err := fn(); err != nil {
+			s.errCh <- err
+		}
+	}
+
 	s.httpServer.SetKeepAlivesEnabled(false)
 	if err := s.httpServer.Shutdown(ctx); err != nil {
 		s.errCh <- err
 	}
 
 	s.stopCh <- sig
-}
-
-// WithOptions configures the server with the given Options.
-func WithOptions(options Options) Option {
-	return func(s *server) {
-		if options.Router != nil {
-			s.router = options.Router
-			s.httpServer.Handler = s.router
-		}
-		if options.Logger != nil {
-			s.log = options.Logger
-		}
-		if len(options.Host) > 0 || options.Port > 0 {
-			s.httpServer.Addr = options.Host + ":" + strconv.Itoa(options.Port)
-		}
-		if options.ReadTimeout > 0 {
-			s.httpServer.ReadTimeout = options.ReadTimeout
-		}
-		if options.WriteTimeout > 0 {
-			s.httpServer.WriteTimeout = options.WriteTimeout
-		}
-		if options.IdleTimeout > 0 {
-			s.httpServer.IdleTimeout = options.IdleTimeout
-		}
-		if !options.TLS.isEmpty() {
-			s.tls = options.TLS
-		}
-		if !options.CORS.isEmpty() {
-			s.cors = options.CORS
-		}
-	}
 }
 
 // newTLSConfig returns a new tls.Config.

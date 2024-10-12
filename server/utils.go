@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -93,4 +94,27 @@ func parseGenerateSecretQuery(v url.Values) (int, bool) {
 	}
 
 	return l, sc
+}
+
+// resolveIP checks request for headers Forwarded, X-Forwarded-For, and X-Real-Ip
+// and falls back to the RemoteAddr if none are found.
+func resolveIP(r *http.Request) string {
+	var addr string
+	if f := r.Header.Get("Forwarded"); f != "" {
+		for _, segment := range strings.Split(f, ",") {
+			addr = strings.TrimPrefix(segment, "for=")
+			break
+		}
+	} else if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
+		addr = strings.Split(xff, ",")[0]
+	} else if xrip := r.Header.Get("X-Real-Ip"); xrip != "" {
+		addr = xrip
+	} else {
+		addr = r.RemoteAddr
+	}
+	ip := strings.Split(addr, ":")[0]
+	if net.ParseIP(ip) == nil {
+		return "N/A"
+	}
+	return ip
 }
