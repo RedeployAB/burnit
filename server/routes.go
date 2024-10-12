@@ -24,4 +24,5 @@ func (s *server) routes() {
 	s.router.Handle("GET /secrets/{id}", s.getSecret())
 	s.router.Handle("GET /secrets/{id}/{passphrase}", s.getSecret())
 	s.router.Handle("POST /secrets", s.createSecret())
+	s.router.Handle("DELETE /secrets/{id}", s.deleteSecret())
 }

@@ -93,6 +93,22 @@ func (s server) createSecret() http.Handler {
 	})
 }
 
+// deleteSecret deletes a secret.
+func (s server) deleteSecret() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := s.secrets.Delete(r.PathValue("id")); err != nil {
+			if statusCode := errorCode(err); statusCode != 0 {
+				writeError(w, statusCode, err)
+				return
+			}
+			s.log.Error("Failed to delete secret.", "error", err)
+			writeServerError(w)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	})
+}
+
 // toCreateSecret converts a CreateSecretRequest to a secret.
 func toCreateSecret(s *api.CreateSecretRequest) secret.Secret {
 	var ttl time.Duration
