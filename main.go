@@ -1,27 +1,36 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 
 	"github.com/RedeployAB/burnit/config"
 	"github.com/RedeployAB/burnit/log"
 	"github.com/RedeployAB/burnit/server"
+	"github.com/RedeployAB/burnit/version"
 )
 
 func main() {
 	log := log.New()
+	if err := run(log); err != nil {
+		log.Error("Server error.", "error", err)
+		os.Exit(1)
+	}
 
+}
+
+// run the application.
+func run(log *log.Logger) error {
+	log.Info("Starting service.", "version", version.Version())
 	cfg, err := config.New()
 	if err != nil {
-		log.Error("Configuration error.", "error", err)
-		os.Exit(1)
+		return fmt.Errorf("could not load configuration: %w", err)
 	}
 
 	services, err := config.SetupServices(cfg.Services)
 	if err != nil {
-		log.Error("Services setup error.", "error", err)
-		os.Exit(1)
+		return fmt.Errorf("could not setup services: %w", err)
 	}
 
 	srv, err := server.New(
@@ -38,17 +47,12 @@ func main() {
 		}),
 	)
 	if err != nil {
-		log.Error("Server setup error.", "error", err)
-		os.Exit(1)
+		return fmt.Errorf("could not create and configure server: %w", err)
 	}
 
 	if err := srv.Start(); err != nil {
-		log.Error("Server error.", "error", err)
-		os.Exit(1)
+		return fmt.Errorf("server error: %w", err)
 	}
-}
 
-// run the application.
-func run(log log.Logger) error {
 	return nil
 }
