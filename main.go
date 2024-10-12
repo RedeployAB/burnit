@@ -47,7 +47,7 @@ func run(log *log.Logger) error {
 		}),
 	)
 	if err != nil {
-		return fmt.Errorf("could not create and configure server: %w", err)
+		return fmt.Errorf("could setup server: %w", err)
 	}
 
 	if err := srv.Start(); err != nil {
