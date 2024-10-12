@@ -27,6 +27,7 @@ func run(log *log.Logger) error {
 	if err != nil {
 		return fmt.Errorf("could not load configuration: %w", err)
 	}
+	log.Info("Configuration loaded.", "config", cfg)
 
 	services, err := config.SetupServices(cfg.Services)
 	if err != nil {

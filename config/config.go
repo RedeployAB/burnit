@@ -1,11 +1,14 @@
 package config
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"reflect"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/caarlos0/env/v11"
@@ -53,6 +56,26 @@ type Server struct {
 	RateLimiter RateLimiter `yaml:"rateLimiter"`
 }
 
+// MarshalJSON returns the JSON encoding of Server. A custom marshalling method
+// is defined to hide sensitive values. The reason for not just using the struct tag
+// `json:"-"` is that this way we must explicitly set the properties to be marshalled
+// and thus output to the logs.
+func (s Server) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Host        string       `json:",omitempty"`
+		Port        int          `json:",omitempty"`
+		TLS         *TLS         `json:",omitempty"`
+		CORS        *CORS        `json:",omitempty"`
+		RateLimiter *RateLimiter `json:",omitempty"`
+	}{
+		Host:        s.Host,
+		Port:        s.Port,
+		TLS:         &s.TLS,
+		CORS:        &s.CORS,
+		RateLimiter: &s.RateLimiter,
+	})
+}
+
 // TLS contains the configuration server TLS.
 type TLS struct {
 	CertFile string `env:"TLS_CERT_FILE" yaml:"certFile"`
@@ -84,6 +107,18 @@ type Secret struct {
 	Timeout       time.Duration `env:"SECRETS_TIMEOUT" yaml:"timeout"`
 }
 
+// MarshalJSON returns the JSON encoding of Secret. A custom marshalling method
+// is defined to hide sensitive values. The reason for not just using the struct tag
+// `json:"-"` is that this way we must explicitly set the properties to be marshalled
+// and thus output to the logs.
+func (s Secret) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Timeout time.Duration `json:",omitempty"`
+	}{
+		Timeout: s.Timeout,
+	})
+}
+
 // Database contains the configuration for the database.
 type Database struct {
 	Driver         string        `env:"DATABASE_DRIVER" yaml:"driver"`
@@ -99,6 +134,44 @@ type Database struct {
 	MSSQL          MSSQL         `yaml:"mssql"`
 	SQLite         SQLite        `yaml:"sqlite"`
 	Redis          Redis         `yaml:"redis"`
+}
+
+// MarshalJSON returns the JSON encoding of Database. A custom marshalling method
+// is defined to hide sensitive values. The reason for not just using the struct tag
+// `json:"-"` is that this way we must explicitly set the properties to be marshalled
+// and thus output to the logs.
+func (d Database) MarshalJSON() ([]byte, error) {
+	var uri string
+	if len(d.URI) > 0 && strings.Contains(d.URI, "://") {
+		reg := regexp.MustCompile(`://.*:.*@`)
+		uri = reg.ReplaceAllString(d.URI, "://***:***@")
+	}
+
+	return json.Marshal(struct {
+		Driver         string        `json:",omitempty"`
+		URI            string        `json:",omitempty"`
+		Address        string        `json:",omitempty"`
+		Database       string        `json:",omitempty"`
+		Timeout        time.Duration `json:",omitempty"`
+		ConnectTimeout time.Duration `json:",omitempty"`
+		Mongo          *Mongo        `json:",omitempty"`
+		Postgres       *Postgres     `json:",omitempty"`
+		MSSQL          *MSSQL        `json:",omitempty"`
+		SQLite         *SQLite       `json:",omitempty"`
+		Redis          *Redis        `json:",omitempty"`
+	}{
+		Driver:         d.Driver,
+		URI:            uri,
+		Address:        d.Address,
+		Database:       d.Database,
+		Timeout:        d.Timeout,
+		ConnectTimeout: d.ConnectTimeout,
+		Mongo:          &d.Mongo,
+		Postgres:       &d.Postgres,
+		MSSQL:          &d.MSSQL,
+		SQLite:         &d.SQLite,
+		Redis:          &d.Redis,
+	})
 }
 
 // Mongo contains the configuration for the Mongo database.
