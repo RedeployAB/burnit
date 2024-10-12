@@ -10,6 +10,7 @@ require (
 	github.com/microsoft/go-mssqldb v1.7.2
 	github.com/redis/go-redis/v9 v9.6.1
 	go.mongodb.org/mongo-driver v1.17.0
+	golang.org/x/time v0.7.0
 	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/sqlite v1.33.1
 )
