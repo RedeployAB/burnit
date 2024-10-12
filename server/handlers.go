@@ -103,6 +103,7 @@ func (s server) deleteSecret() http.Handler {
 			}
 			s.log.Error("Failed to delete secret.", "error", err)
 			writeServerError(w)
+			return
 		}
 		w.WriteHeader(http.StatusNoContent)
 	})
