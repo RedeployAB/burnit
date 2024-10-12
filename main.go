@@ -42,8 +42,8 @@ func run(log *log.Logger) error {
 		server.WithRateLimiter(server.RateLimiter{
 			Rate:            float64(cfg.Server.RateLimiter.Rate),
 			Burst:           cfg.Server.RateLimiter.Burst,
-			CleanupInterval: cfg.Server.RateLimiter.CleanupInterval,
 			TTL:             cfg.Server.RateLimiter.TTL,
+			CleanupInterval: cfg.Server.RateLimiter.CleanupInterval,
 		}),
 	)
 	if err != nil {

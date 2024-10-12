@@ -37,8 +37,8 @@ type rateLimiters struct {
 	limiters        map[string]*rateLimiter
 	rate            rate.Limit
 	burst           int
-	cleanupInterval time.Duration
 	ttl             time.Duration
+	cleanupInterval time.Duration
 	stop            chan struct{}
 	mu              sync.Mutex
 }
@@ -89,8 +89,8 @@ func (c *rateLimiters) cleanup() {
 type rateLimiterOptions struct {
 	rate            rate.Limit
 	burst           int
-	cleanupInterval time.Duration
 	ttl             time.Duration
+	cleanupInterval time.Duration
 }
 
 // rateLimiterOption is a function that configures the rate limiter options.
@@ -100,10 +100,10 @@ type rateLimiterOption func(o *rateLimiterOptions)
 // on a per-IP basis.
 func rateLimitHandler(options ...rateLimiterOption) func(next http.Handler) (http.Handler, func() error) {
 	opts := rateLimiterOptions{
-		cleanupInterval: defaultRateLimiterCleanupInterval,
-		ttl:             defaultRateLimiterTTL,
 		rate:            defaultRateLimiterRate,
 		burst:           defaultRateLimiterBurst,
+		ttl:             defaultRateLimiterTTL,
+		cleanupInterval: defaultRateLimiterCleanupInterval,
 	}
 	for _, option := range options {
 		option(&opts)

@@ -53,13 +53,13 @@ type TLSConfig struct {
 type RateLimiter struct {
 	Rate            float64
 	Burst           int
-	CleanupInterval time.Duration
 	TTL             time.Duration
+	CleanupInterval time.Duration
 }
 
 // isEmpty returns true if the RateLimiter is empty.
 func (r RateLimiter) isEmpty() bool {
-	return r.Rate == 0 && r.Burst == 0 && r.CleanupInterval == 0 && r.TTL == 0
+	return r.Rate == 0 && r.Burst == 0 && r.TTL == 0 && r.CleanupInterval == 0
 }
 
 // isEmpty returns true if the TLSConfig is empty.

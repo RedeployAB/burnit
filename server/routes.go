@@ -12,8 +12,8 @@ func (s *server) routes() {
 		handler, closeRateLimiter = rateLimitHandler(
 			withRateLimiterRate(s.rateLimiter.Rate),
 			withRateLimiterBurst(s.rateLimiter.Burst),
-			withRateLimiterCleanupInterval(s.rateLimiter.CleanupInterval),
 			withRateLimiterTTL(s.rateLimiter.TTL),
+			withRateLimiterCleanupInterval(s.rateLimiter.CleanupInterval),
 		)(handler)
 		s.shutdownFuncs = append(s.shutdownFuncs, closeRateLimiter)
 	}

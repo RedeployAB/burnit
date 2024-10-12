@@ -61,7 +61,7 @@ type Server struct {
 // and thus output to the logs.
 func (s Server) MarshalJSON() ([]byte, error) {
 	var rateLimiter *RateLimiter
-	if s.RateLimiter.Burst > 0 || s.RateLimiter.Rate > 0 || s.RateLimiter.CleanupInterval > 0 || s.RateLimiter.TTL > 0 {
+	if s.RateLimiter.Burst > 0 || s.RateLimiter.Rate > 0 || s.RateLimiter.TTL > 0 || s.RateLimiter.CleanupInterval > 0 {
 		rateLimiter = &s.RateLimiter
 	}
 
@@ -95,8 +95,8 @@ type CORS struct {
 type RateLimiter struct {
 	Rate            float64       `env:"RATE_LIMITER_RATE" yaml:"rate"`
 	Burst           int           `env:"RATE_LIMITER_BURST" yaml:"burst"`
-	CleanupInterval time.Duration `env:"RATE_LIMITER_CLEANUP_INTERVAL" yaml:"cleanupInterval"`
 	TTL             time.Duration `env:"RATE_LIMITER_TTL" yaml:"ttl"`
+	CleanupInterval time.Duration `env:"RATE_LIMITER_CLEANUP_INTERVAL" yaml:"cleanupInterval"`
 }
 
 // Services contains the configuration for the services.
