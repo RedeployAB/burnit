@@ -37,18 +37,6 @@ func TestNew(t *testing.T) {
 						Database:       defaultDatabaseName,
 						Timeout:        defaultDatabaseTimeout,
 						ConnectTimeout: defaultDatabaseConnectTimeout,
-						Mongo: Mongo{
-							EnableTLS: toPtr(true),
-						},
-						Postgres: Postgres{
-							SSLMode: "require",
-						},
-						MSSQL: MSSQL{
-							Encrypt: "true",
-						},
-						Redis: Redis{
-							EnableTLS: toPtr(true),
-						},
 					},
 				},
 			},
@@ -92,18 +80,6 @@ func TestNew(t *testing.T) {
 						Password:       "test",
 						Timeout:        15 * time.Second,
 						ConnectTimeout: 15 * time.Second,
-						Mongo: Mongo{
-							EnableTLS: toPtr(true),
-						},
-						Postgres: Postgres{
-							SSLMode: "require",
-						},
-						MSSQL: MSSQL{
-							Encrypt: "true",
-						},
-						Redis: Redis{
-							EnableTLS: toPtr(true),
-						},
 					},
 				},
 			},
@@ -167,18 +143,6 @@ func TestNew(t *testing.T) {
 						Password:       "test2",
 						Timeout:        20 * time.Second,
 						ConnectTimeout: 20 * time.Second,
-						Mongo: Mongo{
-							EnableTLS: toPtr(true),
-						},
-						Postgres: Postgres{
-							SSLMode: "require",
-						},
-						MSSQL: MSSQL{
-							Encrypt: "true",
-						},
-						Redis: Redis{
-							EnableTLS: toPtr(true),
-						},
 					},
 				},
 			},
@@ -262,18 +226,6 @@ func TestNew(t *testing.T) {
 						Password:       "test3",
 						Timeout:        25 * time.Second,
 						ConnectTimeout: 25 * time.Second,
-						Mongo: Mongo{
-							EnableTLS: toPtr(true),
-						},
-						Postgres: Postgres{
-							SSLMode: "require",
-						},
-						MSSQL: MSSQL{
-							Encrypt: "true",
-						},
-						Redis: Redis{
-							EnableTLS: toPtr(true),
-						},
 					},
 				},
 			},

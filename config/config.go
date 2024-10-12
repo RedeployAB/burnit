@@ -8,7 +8,6 @@ import (
 	"os"
 	"reflect"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/caarlos0/env/v11"
@@ -61,6 +60,11 @@ type Server struct {
 // `json:"-"` is that this way we must explicitly set the properties to be marshalled
 // and thus output to the logs.
 func (s Server) MarshalJSON() ([]byte, error) {
+	var rateLimiter *RateLimiter
+	if s.RateLimiter.Burst > 0 || s.RateLimiter.Rate > 0 || s.RateLimiter.CleanupInterval > 0 || s.RateLimiter.TTL > 0 {
+		rateLimiter = &s.RateLimiter
+	}
+
 	return json.Marshal(struct {
 		Host        string       `json:",omitempty"`
 		Port        int          `json:",omitempty"`
@@ -72,7 +76,7 @@ func (s Server) MarshalJSON() ([]byte, error) {
 		Port:        s.Port,
 		TLS:         &s.TLS,
 		CORS:        &s.CORS,
-		RateLimiter: &s.RateLimiter,
+		RateLimiter: rateLimiter,
 	})
 }
 
@@ -142,9 +146,30 @@ type Database struct {
 // and thus output to the logs.
 func (d Database) MarshalJSON() ([]byte, error) {
 	var uri string
-	if len(d.URI) > 0 && strings.Contains(d.URI, "://") {
-		reg := regexp.MustCompile(`://.*:.*@`)
+	reg := regexp.MustCompile(`://.*:.*@`)
+	if len(d.URI) > 0 && reg.MatchString(d.URI) {
 		uri = reg.ReplaceAllString(d.URI, "://***:***@")
+	}
+
+	var mongo *Mongo
+	if d.Mongo.EnableTLS != nil {
+		mongo = &d.Mongo
+	}
+	var postgres *Postgres
+	if len(d.Postgres.SSLMode) > 0 {
+		postgres = &d.Postgres
+	}
+	var mssql *MSSQL
+	if len(d.MSSQL.Encrypt) > 0 {
+		mssql = &d.MSSQL
+	}
+	var sqlite *SQLite
+	if len(d.SQLite.File) > 0 || d.SQLite.InMemory != nil {
+		sqlite = &d.SQLite
+	}
+	var redis *Redis
+	if d.Redis.DialTimeout > 0 || d.Redis.MaxRetries > 0 || d.Redis.MinRetryBackoff > 0 || d.Redis.MaxRetryBackoff > 0 || d.Redis.EnableTLS != nil {
+		redis = &d.Redis
 	}
 
 	return json.Marshal(struct {
@@ -166,11 +191,11 @@ func (d Database) MarshalJSON() ([]byte, error) {
 		Database:       d.Database,
 		Timeout:        d.Timeout,
 		ConnectTimeout: d.ConnectTimeout,
-		Mongo:          &d.Mongo,
-		Postgres:       &d.Postgres,
-		MSSQL:          &d.MSSQL,
-		SQLite:         &d.SQLite,
-		Redis:          &d.Redis,
+		Mongo:          mongo,
+		Postgres:       postgres,
+		MSSQL:          mssql,
+		SQLite:         sqlite,
+		Redis:          redis,
 	})
 }
 
@@ -224,18 +249,6 @@ func New() (*Configuration, error) {
 				Database:       defaultDatabaseName,
 				Timeout:        defaultDatabaseTimeout,
 				ConnectTimeout: defaultDatabaseConnectTimeout,
-				Mongo: Mongo{
-					EnableTLS: toPtr(true),
-				},
-				Postgres: Postgres{
-					SSLMode: "require",
-				},
-				MSSQL: MSSQL{
-					Encrypt: "true",
-				},
-				Redis: Redis{
-					EnableTLS: toPtr(true),
-				},
 			},
 		},
 	}
@@ -403,9 +416,4 @@ func configurationFromFlags(flags *flags) (Configuration, error) {
 			},
 		},
 	}, nil
-}
-
-// toPtr returns a pointer to the given value.
-func toPtr[T any](v T) *T {
-	return &v
 }
