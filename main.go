@@ -2,13 +2,15 @@ package main
 
 import (
 	"os"
+	"strconv"
 
 	"github.com/RedeployAB/burnit/config"
+	"github.com/RedeployAB/burnit/log"
 	"github.com/RedeployAB/burnit/server"
 )
 
 func main() {
-	log := server.NewDefaultLogger()
+	log := log.New()
 
 	cfg, err := config.New()
 	if err != nil {
@@ -22,18 +24,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	srv, err := server.New(services.Secrets, server.WithOptions(server.Options{
-		Host:   cfg.Server.Host,
-		Port:   cfg.Server.Port,
-		Logger: log,
-		TLS: server.TLSConfig{
-			Certificate: cfg.Server.TLS.CertFile,
-			Key:         cfg.Server.TLS.KeyFile,
-		},
-		CORS: server.CORS{
-			Origin: cfg.Server.CORS.Origin,
-		},
-	}))
+	srv, err := server.New(
+		services.Secrets,
+		server.WithAddress(cfg.Server.Host+":"+strconv.Itoa(cfg.Server.Port)),
+		server.WithLogger(log),
+		server.WithTLS(server.TLSConfig{Certificate: cfg.Server.TLS.CertFile, Key: cfg.Server.TLS.KeyFile}),
+		server.WithCORS(server.CORS{Origin: cfg.Server.CORS.Origin}),
+		server.WithRateLimiter(server.RateLimiter{
+			Rate:            float64(cfg.Server.RateLimiter.Rate),
+			Burst:           cfg.Server.RateLimiter.Burst,
+			CleanupInterval: cfg.Server.RateLimiter.CleanupInterval,
+			TTL:             cfg.Server.RateLimiter.TTL,
+		}),
+	)
 	if err != nil {
 		log.Error("Server setup error.", "error", err)
 		os.Exit(1)
@@ -43,4 +46,9 @@ func main() {
 		log.Error("Server error.", "error", err)
 		os.Exit(1)
 	}
+}
+
+// run the application.
+func run(log log.Logger) error {
+	return nil
 }

@@ -16,6 +16,10 @@ type flags struct {
 	tlsKeyFile                   string
 	encryptionKey                string
 	corsOrigin                   string
+	rateLimiterRate              float64
+	rateLimiterBurst             int
+	rateLimiterCleanupInterval   time.Duration
+	rateLimiterTTL               time.Duration
 	timeout                      time.Duration
 	databaseDriver               string
 	databaseURI                  string
@@ -53,6 +57,10 @@ func parseFlags(args []string) (flags, string, error) {
 	fs.StringVar(&f.tlsKeyFile, "tls-key-file", "", "Optional. TLS key file.")
 	fs.StringVar(&f.encryptionKey, "encryption-key", "", "Optional. Default encryption key for the secrets service.")
 	fs.StringVar(&f.corsOrigin, "cors-origin", "", "Optional. CORS origin.")
+	fs.Float64Var(&f.rateLimiterRate, "rate-limiter-rate", 0, "Optional. The average number of requests per second.")
+	fs.IntVar(&f.rateLimiterBurst, "rate-limiter-burst", 0, "Optional. The maximum burst of requests.")
+	fs.DurationVar(&f.rateLimiterCleanupInterval, "rate-limiter-cleanup-interval", 0, "Optional. The interval at which to clean up stale rate limiters.")
+	fs.DurationVar(&f.rateLimiterTTL, "rate-limiter-ttl", 0, "Optional. The time-to-live for rate limiters.")
 	fs.DurationVar(&f.timeout, "timeout", 0, "Optional. Default timeout for the service. Defaults to: "+defaultSecretServiceTimeout.String()+".")
 	fs.StringVar(&f.databaseDriver, "database-driver", "", "Optional. Database driver.")
 	fs.StringVar(&f.databaseURI, "database-uri", "", "Optional. URI for the database.")

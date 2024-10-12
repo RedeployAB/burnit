@@ -46,10 +46,11 @@ type Configuration struct {
 
 // Server contains the configuration for the server.
 type Server struct {
-	Host string `env:"LISTEN_HOST" yaml:"host"`
-	Port int    `env:"LISTEN_PORT" yaml:"port"`
-	TLS  TLS    `yaml:"tls"`
-	CORS CORS   `yaml:"cors"`
+	Host        string      `env:"LISTEN_HOST" yaml:"host"`
+	Port        int         `env:"LISTEN_PORT" yaml:"port"`
+	TLS         TLS         `yaml:"tls"`
+	CORS        CORS        `yaml:"cors"`
+	RateLimiter RateLimiter `yaml:"rateLimiter"`
 }
 
 // TLS contains the configuration server TLS.
@@ -61,6 +62,14 @@ type TLS struct {
 // CORS contains the configuration for CORS.
 type CORS struct {
 	Origin string `env:"CORS_ORIGIN" yaml:"origin"`
+}
+
+// RateLimiter contains the configuration for the rate limiter.
+type RateLimiter struct {
+	Rate            float64       `env:"RATE_LIMITER_RATE" yaml:"rate"`
+	Burst           int           `env:"RATE_LIMITER_BURST" yaml:"burst"`
+	CleanupInterval time.Duration `env:"RATE_LIMITER_CLEANUP_INTERVAL" yaml:"cleanupInterval"`
+	TTL             time.Duration `env:"RATE_LIMITER_TTL" yaml:"ttl"`
 }
 
 // Services contains the configuration for the services.
@@ -273,6 +282,15 @@ func configurationFromFlags(flags *flags) (Configuration, error) {
 			TLS: TLS{
 				CertFile: flags.tlsCertFile,
 				KeyFile:  flags.tlsKeyFile,
+			},
+			CORS: CORS{
+				Origin: flags.corsOrigin,
+			},
+			RateLimiter: RateLimiter{
+				Rate:            flags.rateLimiterRate,
+				Burst:           flags.rateLimiterBurst,
+				CleanupInterval: flags.rateLimiterCleanupInterval,
+				TTL:             flags.rateLimiterTTL,
 			},
 		},
 		Services: Services{
