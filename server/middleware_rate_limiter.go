@@ -15,14 +15,14 @@ var (
 )
 
 const (
-	// defaultRateLimiterCleanupInterval is the default rate limiter cleanup interval.
-	defaultRateLimiterCleanupInterval = 10 * time.Second /* 1 * time.Minute */
-	// defaultRateLimiterTTL is the default rate limiter time-to-live.
-	defaultRateLimiterTTL = 5 * time.Minute /* 5 * time.Minute */
 	// defaultRateLimiterRate is the default rate limiter rate.
 	defaultRateLimiterRate = 1
 	// defaultRateLimiterBurst is the default rate limiter burst.
 	defaultRateLimiterBurst = 3
+	// defaultRateLimiterCleanupInterval is the default rate limiter cleanup interval.
+	defaultRateLimiterCleanupInterval = 10 * time.Second
+	// defaultRateLimiterTTL is the default rate limiter time-to-live.
+	defaultRateLimiterTTL = 5 * time.Minute
 )
 
 // rateLimiter represents a rate limiter for an IP address.
