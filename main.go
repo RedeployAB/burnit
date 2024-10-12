@@ -17,7 +17,6 @@ func main() {
 		log.Error("Server error.", "error", err)
 		os.Exit(1)
 	}
-
 }
 
 // run the application.
