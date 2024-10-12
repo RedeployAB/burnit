@@ -151,20 +151,20 @@ func withRateLimiterBurst(burst int) rateLimiterOption {
 	}
 }
 
-// withRateLimiterCleanupInterval sets the rate limiter cleanup interval.
-func withRateLimiterCleanupInterval(interval time.Duration) rateLimiterOption {
-	return func(o *rateLimiterOptions) {
-		if interval != 0 {
-			o.cleanupInterval = interval
-		}
-	}
-}
-
 // withRateLimiterTTL sets the rate limiter time-to-live.
 func withRateLimiterTTL(ttl time.Duration) rateLimiterOption {
 	return func(o *rateLimiterOptions) {
 		if ttl != 0 {
 			o.ttl = ttl
+		}
+	}
+}
+
+// withRateLimiterCleanupInterval sets the rate limiter cleanup interval.
+func withRateLimiterCleanupInterval(interval time.Duration) rateLimiterOption {
+	return func(o *rateLimiterOptions) {
+		if interval != 0 {
+			o.cleanupInterval = interval
 		}
 	}
 }
