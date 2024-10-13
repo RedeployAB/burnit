@@ -21,6 +21,11 @@ const (
 	defaultCleanupInterval = 30 * time.Second
 )
 
+const (
+	// defaultPassphraseLength is the default length of a passphrase.
+	defaultDefaultPassphraseLength = 32
+)
+
 // newUUID generates a new UUID.
 var newUUID = func() string {
 	return uuid.New().String()
@@ -47,7 +52,6 @@ type Service interface {
 // service provides handling operations for secrets and satisfies Service.
 type service struct {
 	secrets         db.SecretRepository
-	encryptionKey   string
 	timeout         time.Duration
 	cleanupInterval time.Duration
 	stopCh          chan struct{}
@@ -125,12 +129,7 @@ func (s service) Get(id, passphrase string) (Secret, error) {
 		return Secret{}, ErrSecretNotFound
 	}
 
-	key := passphrase
-	if len(key) == 0 {
-		key = s.encryptionKey
-	}
-
-	decrypted, err := decrypt(dbSecret.Value, key)
+	decrypted, err := decrypt(dbSecret.Value, passphrase)
 	if err != nil {
 		if errors.Is(err, security.ErrInvalidKey) {
 			return Secret{}, ErrInvalidPassphrase
@@ -157,12 +156,12 @@ func (s service) Create(secret Secret) (Secret, error) {
 		secret.TTL = defaultTTL
 	}
 
-	key := secret.Passphrase
-	if len(key) == 0 {
-		key = s.encryptionKey
+	passphrase := secret.Passphrase
+	if len(passphrase) == 0 {
+		passphrase = generate(defaultDefaultPassphraseLength, true)
 	}
 
-	encrypted, err := encrypt(secret.Value, key)
+	encrypted, hash, err := encrypt(secret.Value, passphrase)
 	if err != nil {
 		return Secret{}, err
 	}
@@ -177,9 +176,11 @@ func (s service) Create(secret Secret) (Secret, error) {
 	}
 
 	return Secret{
-		ID:        dbSecret.ID,
-		TTL:       secret.TTL,
-		ExpiresAt: dbSecret.ExpiresAt,
+		ID:             dbSecret.ID,
+		TTL:            secret.TTL,
+		Passphrase:     passphrase,
+		PassphraseHash: hash,
+		ExpiresAt:      dbSecret.ExpiresAt,
 	}, nil
 }
 
@@ -217,12 +218,13 @@ func (s service) DeleteExpired() error {
 
 // encrypt a value using a key and returns the encrypted value
 // as a base64 encoded string.
-func encrypt(value, key string) (string, error) {
-	encrypted, err := security.Encrypt([]byte(value), security.ToMD5([]byte(key)))
+func encrypt(value string, key string) (string, string, error) {
+	hash := security.ToSHA256([]byte(key))
+	encrypted, err := security.Encrypt([]byte(value), hash)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	return base64.StdEncoding.EncodeToString(encrypted), nil
+	return base64.StdEncoding.EncodeToString(encrypted), security.SHA256ToHex(hash), nil
 }
 
 // decrypt a value using a key and returns the decrypted value
@@ -232,7 +234,13 @@ func decrypt(value, key string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	decrypted, err := security.Decrypt(decoded, security.ToMD5([]byte(key)))
+
+	hash, err := security.DecodeSHA256HexString(key)
+	if err != nil {
+		hash = security.ToSHA256([]byte(key))
+	}
+
+	decrypted, err := security.Decrypt(decoded, hash)
 	if err != nil {
 		return "", err
 	}

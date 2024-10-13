@@ -3,8 +3,9 @@ package security
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/md5"
 	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"io"
 )
@@ -64,9 +65,22 @@ func Decrypt(data []byte, key []byte) ([]byte, error) {
 	return decrypted, nil
 }
 
-// toMD5 hashes the given key using MD5.
-func ToMD5(key []byte) []byte {
-	hasher := md5.New()
-	hasher.Write(key)
+// ToSHA256 hashes the given data using SHA-256.
+func ToSHA256(data []byte) []byte {
+	hasher := sha256.New()
+	hasher.Write(data)
 	return hasher.Sum(nil)
+}
+
+// SHA256ToHex encodes a SHA-256 hash to a hex string.
+func SHA256ToHex(hash []byte) string {
+	return hex.EncodeToString(hash)
+}
+
+// DecodeSHA256HexString decodes a SHA-256 hash from a hex string.
+func DecodeSHA256HexString(hash string) ([]byte, error) {
+	if len(hash) != 64 {
+		return nil, ErrInvalidKey
+	}
+	return hex.DecodeString(hash)
 }

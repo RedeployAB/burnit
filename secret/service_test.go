@@ -106,7 +106,7 @@ func TestService_Get(t *testing.T) {
 						{
 							ID: "1",
 							Value: func() string {
-								v, _ := encrypt("secret", "key")
+								v, _, _ := encrypt("secret", "key")
 								return v
 							}(),
 							ExpiresAt: now().Add(1 * time.Hour),
@@ -145,7 +145,7 @@ func TestService_Get(t *testing.T) {
 						{
 							ID: "1",
 							Value: func() string {
-								v, _ := encrypt("secret", "key")
+								v, _, _ := encrypt("secret", "key")
 								return v
 							}(),
 							ExpiresAt: now().Add(-1 * time.Hour),
@@ -225,28 +225,11 @@ func TestService_Create(t *testing.T) {
 				id: "2",
 			},
 			want: Secret{
-				ID:        "2",
-				TTL:       defaultTTL,
-				ExpiresAt: n.Add(defaultTTL),
-			},
-		},
-		{
-			name: "create secret - no passphrase",
-			input: struct {
-				secrets db.SecretRepository
-				secret  Secret
-				id      string
-			}{
-				secrets: &mockSecretRepository{},
-				secret: Secret{
-					Value: "secret",
-				},
-				id: "2",
-			},
-			want: Secret{
-				ID:        "2",
-				TTL:       defaultTTL,
-				ExpiresAt: n.Add(defaultTTL),
+				ID:             "2",
+				Passphrase:     "key",
+				PassphraseHash: "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+				TTL:            defaultTTL,
+				ExpiresAt:      n.Add(defaultTTL),
 			},
 		},
 		{
