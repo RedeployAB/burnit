@@ -69,8 +69,7 @@ func TestNew(t *testing.T) {
 				},
 				Services: Services{
 					Secret: Secret{
-						EncryptionKey: "key",
-						Timeout:       15 * time.Second,
+						Timeout: 15 * time.Second,
 					},
 					Database: Database{
 						URI:            "mongodb://localhost:27017",
@@ -132,8 +131,7 @@ func TestNew(t *testing.T) {
 				},
 				Services: Services{
 					Secret: Secret{
-						EncryptionKey: "key2",
-						Timeout:       20 * time.Second,
+						Timeout: 20 * time.Second,
 					},
 					Database: Database{
 						URI:            "mongodb://localhost2:27018",
@@ -164,7 +162,6 @@ func TestNew(t *testing.T) {
 					"-rate-limiter-burst", "8",
 					"-rate-limiter-cleanup-interval", "15m",
 					"-rate-limiter-ttl", "20m",
-					"-encryption-key", "key3",
 					"-timeout", "25s",
 					"-database-uri", "mongodb://localhost3:27019",
 					"-database-address", "localhost3:27019",
@@ -215,8 +212,7 @@ func TestNew(t *testing.T) {
 				},
 				Services: Services{
 					Secret: Secret{
-						EncryptionKey: "key3",
-						Timeout:       25 * time.Second,
+						Timeout: 25 * time.Second,
 					},
 					Database: Database{
 						URI:            "mongodb://localhost3:27019",
@@ -289,8 +285,7 @@ func TestMergeConfigurations(t *testing.T) {
 						},
 						Services: Services{
 							Secret: Secret{
-								EncryptionKey: "key",
-								Timeout:       10 * time.Second,
+								Timeout: 10 * time.Second,
 							},
 							Database: Database{
 								URI:            "mongodb://localhost:27017",
@@ -312,8 +307,7 @@ func TestMergeConfigurations(t *testing.T) {
 				},
 				Services: Services{
 					Secret: Secret{
-						EncryptionKey: "key",
-						Timeout:       10 * time.Second,
+						Timeout: 10 * time.Second,
 					},
 					Database: Database{
 						URI:            "mongodb://localhost:27017",
@@ -340,8 +334,7 @@ func TestMergeConfigurations(t *testing.T) {
 					},
 					Services: Services{
 						Secret: Secret{
-							EncryptionKey: "key",
-							Timeout:       10 * time.Second,
+							Timeout: 10 * time.Second,
 						},
 						Database: Database{
 							URI:            "mongodb://localhost:27017",
@@ -362,8 +355,7 @@ func TestMergeConfigurations(t *testing.T) {
 						},
 						Services: Services{
 							Secret: Secret{
-								EncryptionKey: "new-key",
-								Timeout:       20 * time.Second,
+								Timeout: 20 * time.Second,
 							},
 							Database: Database{
 								URI:            "mongodb://0.0.0.0:27017",
@@ -385,8 +377,7 @@ func TestMergeConfigurations(t *testing.T) {
 				},
 				Services: Services{
 					Secret: Secret{
-						EncryptionKey: "new-key",
-						Timeout:       20 * time.Second,
+						Timeout: 20 * time.Second,
 					},
 					Database: Database{
 						URI:            "mongodb://0.0.0.0:27017",
@@ -413,8 +404,7 @@ func TestMergeConfigurations(t *testing.T) {
 					},
 					Services: Services{
 						Secret: Secret{
-							EncryptionKey: "key",
-							Timeout:       10 * time.Second,
+							Timeout: 10 * time.Second,
 						},
 						Database: Database{
 							URI:            "mongodb://localhost:27017",
@@ -435,8 +425,7 @@ func TestMergeConfigurations(t *testing.T) {
 						},
 						Services: Services{
 							Secret: Secret{
-								EncryptionKey: "new-key",
-								Timeout:       20 * time.Second,
+								Timeout: 20 * time.Second,
 							},
 							Database: Database{
 								URI:            "mongodb://0.0.0.0:27017",
@@ -456,8 +445,7 @@ func TestMergeConfigurations(t *testing.T) {
 						},
 						Services: Services{
 							Secret: Secret{
-								EncryptionKey: "new-key-2",
-								Timeout:       30 * time.Second,
+								Timeout: 30 * time.Second,
 							},
 							Database: Database{
 								URI:            "mongodb://0.0.0.0:27017",
@@ -479,8 +467,7 @@ func TestMergeConfigurations(t *testing.T) {
 				},
 				Services: Services{
 					Secret: Secret{
-						EncryptionKey: "new-key-2",
-						Timeout:       30 * time.Second,
+						Timeout: 30 * time.Second,
 					},
 					Database: Database{
 						URI:            "mongodb://0.0.0.0:27017",
@@ -507,8 +494,7 @@ func TestMergeConfigurations(t *testing.T) {
 					},
 					Services: Services{
 						Secret: Secret{
-							EncryptionKey: "key",
-							Timeout:       10 * time.Second,
+							Timeout: 10 * time.Second,
 						},
 						Database: Database{
 							URI:            "mongodb://localhost:27017",
@@ -530,8 +516,7 @@ func TestMergeConfigurations(t *testing.T) {
 				},
 				Services: Services{
 					Secret: Secret{
-						EncryptionKey: "key",
-						Timeout:       10 * time.Second,
+						Timeout: 10 * time.Second,
 					},
 					Database: Database{
 						URI:            "mongodb://localhost:27017",

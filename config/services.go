@@ -30,7 +30,6 @@ func SetupServices(config Services) (*services, error) {
 
 	secrets, err := secret.NewService(
 		repo,
-		secret.WithEncryptionKey(config.Secret.EncryptionKey),
 		secret.WithTimeout(config.Secret.Timeout),
 	)
 	if err != nil {
