@@ -14,6 +14,8 @@ var (
 	ErrMalformedRequest = errors.New("malformed request")
 	// ErrInvalidRequest is returned when the request is invalid.
 	ErrInvalidRequest = errors.New("invalid request")
+	// ErrInvalidPath is returned when the path is invalid.
+	ErrInvalidPath = errors.New("invalid path")
 )
 
 // responseError represents an error response.
