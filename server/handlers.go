@@ -42,6 +42,7 @@ func (s server) getSecret() http.Handler {
 		id, passphrase, err := extractIDAndPassphrase(r.URL.Path)
 		if err != nil {
 			writeError(w, http.StatusNotFound, err)
+			return
 		}
 		if len(passphrase) == 0 {
 			passphrase = r.Header.Get("Passphrase")
