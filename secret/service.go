@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/RedeployAB/burnit/db"
@@ -14,7 +15,11 @@ import (
 
 const (
 	// defaultTTL is the default TTL of a secret.
-	defaultTTL = 5 * time.Minute
+	defaultTTL = 1 * time.Hour
+	// defaultMinTTL is the default minimum TTL of a secret.
+	defaultMinTTL = 1*time.Minute - 5*time.Second
+	// defaultMaxTTL is the default maximum TTL of a secret.
+	defaultMaxTTL = 168*time.Hour + 5*time.Second
 	// defaultTimeout is the default timeout for service operations.
 	defaultTimeout = 10 * time.Second
 	// defaultCleanupInterval is the default interval for cleaning up expired secrets.
@@ -167,8 +172,9 @@ func (s service) Create(secret Secret) (Secret, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
 	defer cancel()
 
-	if secret.TTL == 0 {
-		secret.TTL = defaultTTL
+	expiresAt, err := expirationTime(secret.TTL, secret.ExpiresAt)
+	if err != nil {
+		return Secret{}, err
 	}
 
 	passphrase := secret.Passphrase
@@ -184,7 +190,7 @@ func (s service) Create(secret Secret) (Secret, error) {
 	dbSecret, err := s.secrets.Create(ctx, db.Secret{
 		ID:        newUUID(),
 		Value:     encrypted,
-		ExpiresAt: now().Add(secret.TTL),
+		ExpiresAt: expiresAt,
 	})
 	if err != nil {
 		return Secret{}, err
@@ -194,7 +200,7 @@ func (s service) Create(secret Secret) (Secret, error) {
 		ID:             dbSecret.ID,
 		Passphrase:     passphrase,
 		PassphraseHash: hash,
-		TTL:            secret.TTL,
+		TTL:            time.Until(dbSecret.ExpiresAt).Round(time.Minute),
 		ExpiresAt:      dbSecret.ExpiresAt,
 	}, nil
 }
@@ -284,6 +290,31 @@ func decrypt(value, key string) (string, error) {
 		return "", err
 	}
 	return string(decrypted), nil
+}
+
+// expirationTime returns the expiration time of a secret. It
+// validates the provided duration and expiration time and returns
+// the expiration time based on the provided values.
+func expirationTime(ttl time.Duration, expiresAt time.Time) (time.Time, error) {
+	current := now()
+	n := current
+	if ttl > 0 {
+		n = n.Add(ttl)
+	} else if !expiresAt.IsZero() {
+		n = expiresAt
+	} else {
+		return n.Add(defaultTTL), nil
+	}
+
+	if n.Before(current) {
+		return time.Time{}, fmt.Errorf("%w: must be in the future", ErrInvalidExpirationTime)
+	}
+
+	if n.Before(current.Add(defaultMinTTL)) || n.After(current.Add(defaultMaxTTL)) {
+		return time.Time{}, fmt.Errorf("%w: must be between 1 minutes and 7 days", ErrInvalidExpirationTime)
+	}
+
+	return n, nil
 }
 
 // now returns the current time.

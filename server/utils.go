@@ -11,6 +11,8 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+
+	"github.com/RedeployAB/burnit/api"
 )
 
 const (
@@ -45,6 +47,9 @@ func decode[T Validator](r *http.Request) (T, error) {
 		}
 		if errors.Is(err, io.EOF) {
 			err = ErrEmptyRequest
+		}
+		if errors.Is(err, api.ErrInvalidTimeFormat) {
+			err = fmt.Errorf("%w: %s", ErrInvalidRequest, err)
 		}
 		return v, err
 	}

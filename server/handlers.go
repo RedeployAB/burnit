@@ -137,19 +137,24 @@ func toCreateSecret(s *api.CreateSecretRequest) secret.Secret {
 			ttl = 5 * time.Minute
 		}
 	}
+	var expiresAt time.Time
+	if s.ExpiresAt != nil {
+		expiresAt = s.ExpiresAt.Time
+	}
 
 	return secret.Secret{
 		Value:      s.Value,
 		Passphrase: s.Passphrase,
 		TTL:        ttl,
+		ExpiresAt:  expiresAt,
 	}
 }
 
 // toAPISecret converts a secret to an API secret.
 func toAPISecret(s *secret.Secret) api.Secret {
-	var expiresAt *time.Time
+	var expiresAt *api.Time
 	if !s.ExpiresAt.IsZero() {
-		expiresAt = &s.ExpiresAt
+		expiresAt = &api.Time{Time: s.ExpiresAt}
 	}
 
 	return api.Secret{
