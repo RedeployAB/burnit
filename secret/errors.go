@@ -9,4 +9,6 @@ var (
 	ErrSecretNotFound = errors.New("secret not found")
 	// ErrInvalidPassphrase is returned when the passphrase is invalid.
 	ErrInvalidPassphrase = errors.New("invalid passphrase")
+	// ErrInvalidExpirationTime is returned when the expiration time is invalid.
+	ErrInvalidExpirationTime = errors.New("invalid expiration time")
 )
