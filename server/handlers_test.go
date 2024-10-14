@@ -517,7 +517,7 @@ func (s mockSecretService) Generate(length int, specialCharacters bool) string {
 	return builder.String()
 }
 
-func (s mockSecretService) Get(id, passphrase string) (secret.Secret, error) {
+func (s mockSecretService) Get(id, passphrase string, options ...secret.GetOption) (secret.Secret, error) {
 	if s.err != nil {
 		return secret.Secret{}, s.err
 	}
@@ -573,7 +573,7 @@ func (s *mockSecretService) Create(se secret.Secret) (secret.Secret, error) {
 	return secret, nil
 }
 
-func (s mockSecretService) Delete(id string) error {
+func (s mockSecretService) Delete(id string, options ...secret.DeleteOption) error {
 	return nil
 }
 
