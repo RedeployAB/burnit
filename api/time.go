@@ -12,13 +12,13 @@ var (
 )
 
 // Time is a wrapper around time.Time that supports JSON marshalling/unmarshalling
-// with format ISO8601 with and without timezone.
+// with a more concise error message.
 type Time struct {
 	time.Time
 }
 
-// UnmarshalJSON unmarshals a JSON time string into a Time.
-// It supports with and without timezone.
+// UnmarshalJSON unmarshals a JSON time string into a Time. It provides a more
+// concise error message than the default time.Time implementation.
 func (t *Time) UnmarshalJSON(b []byte) error {
 	s := strings.Trim(string(b), "\"")
 	if s == "null" || len(s) == 0 {
