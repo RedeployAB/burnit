@@ -298,16 +298,15 @@ func decrypt(value, key string) (string, error) {
 func expirationTime(ttl time.Duration, expiresAt time.Time) (time.Time, error) {
 	current := now()
 	n := current
-	if ttl > 0 {
-		n = n.Add(ttl)
-	} else if !expiresAt.IsZero() {
+	if !expiresAt.IsZero() {
 		n = expiresAt
+		if n.Before(current) {
+			return time.Time{}, fmt.Errorf("%w: must be in the future", ErrInvalidExpirationTime)
+		}
+	} else if ttl > 0 {
+		n = n.Add(ttl)
 	} else {
 		return n.Add(defaultTTL), nil
-	}
-
-	if n.Before(current) {
-		return time.Time{}, fmt.Errorf("%w: must be in the future", ErrInvalidExpirationTime)
 	}
 
 	if n.Before(current.Add(defaultMinTTL)) || n.After(current.Add(defaultMaxTTL)) {
