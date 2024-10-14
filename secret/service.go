@@ -23,7 +23,7 @@ const (
 
 const (
 	// defaultPassphraseLength is the default length of a passphrase.
-	defaultDefaultPassphraseLength = 32
+	defaultPassphraseLength = 32
 )
 
 // newUUID generates a new UUID.
@@ -158,7 +158,7 @@ func (s service) Create(secret Secret) (Secret, error) {
 
 	passphrase := secret.Passphrase
 	if len(passphrase) == 0 {
-		passphrase = generate(defaultDefaultPassphraseLength, true)
+		passphrase = generate(defaultPassphraseLength, true)
 	}
 
 	encrypted, hash, err := encrypt(secret.Value, passphrase)
