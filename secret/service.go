@@ -177,9 +177,9 @@ func (s service) Create(secret Secret) (Secret, error) {
 
 	return Secret{
 		ID:             dbSecret.ID,
-		TTL:            secret.TTL,
 		Passphrase:     passphrase,
 		PassphraseHash: hash,
+		TTL:            secret.TTL,
 		ExpiresAt:      dbSecret.ExpiresAt,
 	}, nil
 }
