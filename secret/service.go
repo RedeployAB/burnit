@@ -40,11 +40,11 @@ type Service interface {
 	// Generate a new secret.
 	Generate(length int, specialCharacters bool) string
 	// Get a secret.
-	Get(id, passphrase string) (Secret, error)
+	Get(id, passphrase string, options ...GetOption) (Secret, error)
 	// Create a secret.
 	Create(secret Secret) (Secret, error)
 	// Delete a secret.
-	Delete(id string) error
+	Delete(id string, options ...DeleteOption) error
 	// Delete expired secrets.
 	DeleteExpired() error
 }
@@ -108,9 +108,22 @@ func (s service) Generate(length int, specialCharacters bool) string {
 	return generate(length, specialCharacters)
 }
 
+// GetOptions contains options for getting a secret.
+type GetOptions struct {
+	Delete bool
+}
+
+// GetOption is a function that sets options for getting a secret.
+type GetOption func(o *GetOptions)
+
 // Get a secret. The secret is deleted after it has been retrieved
-// and successfully decrypted.
-func (s service) Get(id, passphrase string) (Secret, error) {
+// and successfully decrypted if the option to delete it is set.
+func (s service) Get(id, passphrase string, options ...GetOption) (Secret, error) {
+	opts := GetOptions{}
+	for _, option := range options {
+		option(&opts)
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
 	defer cancel()
 
@@ -137,8 +150,10 @@ func (s service) Get(id, passphrase string) (Secret, error) {
 		return Secret{}, err
 	}
 
-	if err := s.secrets.Delete(ctx, id); err != nil {
-		return Secret{}, err
+	if opts.Delete {
+		if err := s.secrets.Delete(ctx, id); err != nil {
+			return Secret{}, err
+		}
 	}
 
 	return Secret{
@@ -184,10 +199,34 @@ func (s service) Create(secret Secret) (Secret, error) {
 	}, nil
 }
 
+// DeleteOptions contains options for deleting a secret.
+type DeleteOptions struct {
+	Passphrase       string
+	VerifyPassphrase bool
+}
+
+// DeleteOption is a function that sets options for deleting a secret.
+type DeleteOption func(o *DeleteOptions)
+
 // Delete a secret.
-func (s service) Delete(id string) error {
+func (s service) Delete(id string, options ...DeleteOption) error {
+	opts := DeleteOptions{}
+	for _, option := range options {
+		option(&opts)
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
 	defer cancel()
+
+	if opts.VerifyPassphrase {
+		_, err := s.Get(id, opts.Passphrase, func(o *GetOptions) {
+			o.Delete = true
+		})
+		if err != nil {
+			return err
+		}
+		return nil
+	}
 
 	err := s.secrets.Delete(ctx, id)
 	if err == nil {

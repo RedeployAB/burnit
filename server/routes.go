@@ -23,5 +23,5 @@ func (s *server) routes() {
 	s.router.Handle("GET /secret", s.generateSecret())
 	s.router.Handle("GET /secrets/", s.getSecret())
 	s.router.Handle("POST /secrets", s.createSecret())
-	s.router.Handle("DELETE /secrets/{id}", s.deleteSecret())
+	s.router.Handle("DELETE /secrets/", s.deleteSecret())
 }

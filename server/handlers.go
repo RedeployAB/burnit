@@ -48,7 +48,9 @@ func (s server) getSecret() http.Handler {
 			passphrase = r.Header.Get("Passphrase")
 		}
 
-		secret, err := s.secrets.Get(id, passphrase)
+		secret, err := s.secrets.Get(id, passphrase, func(o *secret.GetOptions) {
+			o.Delete = true
+		})
 		if err != nil {
 			if statusCode := errorCode(err); statusCode != 0 {
 				writeError(w, statusCode, err)
@@ -99,7 +101,19 @@ func (s server) createSecret() http.Handler {
 // deleteSecret deletes a secret.
 func (s server) deleteSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if err := s.secrets.Delete(r.PathValue("id")); err != nil {
+		id, passphrase, err := extractIDAndPassphrase(r.URL.Path)
+		if err != nil {
+			writeError(w, http.StatusNotFound, err)
+			return
+		}
+		if len(passphrase) == 0 {
+			passphrase = r.Header.Get("Passphrase")
+		}
+
+		if err := s.secrets.Delete(id, func(o *secret.DeleteOptions) {
+			o.VerifyPassphrase = true
+			o.Passphrase = passphrase
+		}); err != nil {
 			if statusCode := errorCode(err); statusCode != 0 {
 				writeError(w, statusCode, err)
 				return
