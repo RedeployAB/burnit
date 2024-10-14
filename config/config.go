@@ -107,8 +107,7 @@ type Services struct {
 
 // Secret contains the configuration for the secret service.
 type Secret struct {
-	EncryptionKey string        `env:"SECRETS_ENCRYPTION_KEY" yaml:"encryptionKey"`
-	Timeout       time.Duration `env:"SECRETS_TIMEOUT" yaml:"timeout"`
+	Timeout time.Duration `env:"SECRETS_TIMEOUT" yaml:"timeout"`
 }
 
 // MarshalJSON returns the JSON encoding of Secret. A custom marshalling method
@@ -381,8 +380,7 @@ func configurationFromFlags(flags *flags) (Configuration, error) {
 		},
 		Services: Services{
 			Secret: Secret{
-				EncryptionKey: flags.encryptionKey,
-				Timeout:       flags.timeout,
+				Timeout: flags.timeout,
 			},
 			Database: Database{
 				Driver:         flags.databaseDriver,

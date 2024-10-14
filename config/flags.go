@@ -14,7 +14,6 @@ type flags struct {
 	port                         int
 	tlsCertFile                  string
 	tlsKeyFile                   string
-	encryptionKey                string
 	corsOrigin                   string
 	rateLimiterRate              float64
 	rateLimiterBurst             int
@@ -55,7 +54,6 @@ func parseFlags(args []string) (flags, string, error) {
 	fs.IntVar(&f.port, "port", 0, "Optional. Port to listen on. Defaults to: "+strconv.Itoa(defaultListenPort)+".")
 	fs.StringVar(&f.tlsCertFile, "tls-cert-file", "", "Optional. TLS certificate file.")
 	fs.StringVar(&f.tlsKeyFile, "tls-key-file", "", "Optional. TLS key file.")
-	fs.StringVar(&f.encryptionKey, "encryption-key", "", "Optional. Default encryption key for the secrets service.")
 	fs.StringVar(&f.corsOrigin, "cors-origin", "", "Optional. CORS origin.")
 	fs.Float64Var(&f.rateLimiterRate, "rate-limiter-rate", 0, "Optional. The average number of requests per second.")
 	fs.IntVar(&f.rateLimiterBurst, "rate-limiter-burst", 0, "Optional. The maximum burst of requests.")

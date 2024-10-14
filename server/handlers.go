@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/RedeployAB/burnit/api"
@@ -38,14 +39,16 @@ func (s server) generateSecret() http.Handler {
 // getSecret retrieves a secret.
 func (s server) getSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var passphrase string
-		if p := r.PathValue("passphrase"); len(p) > 0 {
-			passphrase = p
-		} else if p := r.Header.Get("Passphrase"); len(p) > 0 {
-			passphrase = p
+		id, passphrase, err := extractIDAndPassphrase(r.URL.Path)
+		if err != nil {
+			writeError(w, http.StatusNotFound, err)
+			return
+		}
+		if len(passphrase) == 0 {
+			passphrase = r.Header.Get("Passphrase")
 		}
 
-		secret, err := s.secrets.Get(r.PathValue("id"), passphrase)
+		secret, err := s.secrets.Get(id, passphrase)
 		if err != nil {
 			if statusCode := errorCode(err); statusCode != 0 {
 				writeError(w, statusCode, err)
@@ -136,8 +139,22 @@ func toAPISecret(s *secret.Secret) api.Secret {
 	}
 
 	return api.Secret{
-		ID:        s.ID,
-		TTL:       s.TTL.String(),
-		ExpiresAt: expiresAt,
+		ID:         s.ID,
+		Passphrase: s.Passphrase,
+		Path:       "/secrets/" + s.ID + "/" + s.PassphraseHash,
+		TTL:        s.TTL.String(),
+		ExpiresAt:  expiresAt,
 	}
+}
+
+// extractIDAndPassphrase extracts the ID and passphrase from the path.
+func extractIDAndPassphrase(path string) (string, string, error) {
+	parts := strings.Split(path, "/")[2:]
+	if len(parts) > 2 {
+		return "", "", ErrInvalidPath
+	}
+	if len(parts) == 1 {
+		return parts[0], "", nil
+	}
+	return parts[0], parts[1], nil
 }

@@ -7,10 +7,12 @@ import (
 
 // Secret represents a secret.
 type Secret struct {
-	ID        string     `json:"id,omitempty"`
-	Value     string     `json:"value,omitempty"`
-	TTL       string     `json:"ttl,omitempty"`
-	ExpiresAt *time.Time `json:"expiresAt,omitempty"`
+	ID         string     `json:"id,omitempty"`
+	Value      string     `json:"value,omitempty"`
+	Passphrase string     `json:"passphrase,omitempty"`
+	Path       string     `json:"path,omitempty"`
+	TTL        string     `json:"ttl,omitempty"`
+	ExpiresAt  *time.Time `json:"expiresAt,omitempty"`
 }
 
 // CreateSecretRequest represents a request to create a secret.

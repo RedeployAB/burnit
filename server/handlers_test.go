@@ -10,7 +10,9 @@ import (
 	"testing"
 
 	"github.com/RedeployAB/burnit/secret"
+	"github.com/RedeployAB/burnit/security"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func TestServer_generateSecret(t *testing.T) {
@@ -166,8 +168,7 @@ func TestServer_getSecret(t *testing.T) {
 					},
 				},
 				req: func() *http.Request {
-					req := httptest.NewRequest("GET", "/secret/1", nil)
-					req.SetPathValue("id", "1")
+					req := httptest.NewRequest("GET", "/secrets/1", nil)
 					return req
 				}(),
 				path: "/secret/1",
@@ -193,8 +194,7 @@ func TestServer_getSecret(t *testing.T) {
 					},
 				},
 				req: func() *http.Request {
-					req := httptest.NewRequest("GET", "/secret/1", nil)
-					req.SetPathValue("id", "1")
+					req := httptest.NewRequest("GET", "/secrets/1", nil)
 					req.Header.Set("Passphrase", "passphrase")
 					return req
 				}(),
@@ -221,9 +221,7 @@ func TestServer_getSecret(t *testing.T) {
 					},
 				},
 				req: func() *http.Request {
-					req := httptest.NewRequest("GET", "/secret/1", nil)
-					req.SetPathValue("id", "1")
-					req.SetPathValue("passphrase", "passphrase")
+					req := httptest.NewRequest("GET", "/secrets/1/passphrase", nil)
 					return req
 				}(),
 				path: "/secret/1/passphrase",
@@ -249,9 +247,7 @@ func TestServer_getSecret(t *testing.T) {
 					},
 				},
 				req: func() *http.Request {
-					req := httptest.NewRequest("GET", "/secret/1", nil)
-					req.SetPathValue("id", "1")
-					req.SetPathValue("passphrase", "")
+					req := httptest.NewRequest("GET", "/secrets/1", nil)
 					return req
 				}(),
 			},
@@ -365,7 +361,7 @@ func TestServer_createSecret(t *testing.T) {
 				body   []byte
 			}{
 				status: http.StatusCreated,
-				body:   []byte(`{"id":"1","ttl":"1h0m0s"}` + "\n"),
+				body:   []byte(`{"id":"1","passphrase":"key","path":"/secrets/1/2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683","ttl":"1h0m0s"}` + "\n"),
 			},
 		},
 		{
@@ -429,7 +425,71 @@ func TestServer_createSecret(t *testing.T) {
 			}
 		})
 	}
+}
 
+func TestExtractIDAndPassphrase(t *testing.T) {
+	var tests = []struct {
+		name  string
+		input string
+		want  struct {
+			id         string
+			passphrase string
+		}
+		wantErr error
+	}{
+		{
+			name:  "extract id and passphrase - id only",
+			input: "/secrets/1",
+			want: struct {
+				id         string
+				passphrase string
+			}{
+				id:         "1",
+				passphrase: "",
+			},
+		},
+		{
+			name:  "extract id and passphrase - id and passphrase",
+			input: "/secrets/1/passphrase",
+			want: struct {
+				id         string
+				passphrase string
+			}{
+				id:         "1",
+				passphrase: "passphrase",
+			},
+		},
+		{
+			name:  "extract id and passphrase - invalid path",
+			input: "/secrets/1/passphrase/extra",
+			want: struct {
+				id         string
+				passphrase string
+			}{
+				id:         "",
+				passphrase: "",
+			},
+			wantErr: ErrInvalidPath,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			gotID, gotPassphrase, gotErr := extractIDAndPassphrase(test.input)
+
+			if diff := cmp.Diff(test.want.id, gotID); diff != "" {
+				t.Errorf("extractIDAndPassphrase() = unexpected id (-want +got)\n%s\n", diff)
+			}
+
+			if diff := cmp.Diff(test.want.passphrase, gotPassphrase); diff != "" {
+				t.Errorf("extractIDAndPassphrase() = unexpected passphrase (-want +got)\n%s\n", diff)
+			}
+
+			if diff := cmp.Diff(test.wantErr, gotErr, cmpopts.EquateErrors()); diff != "" {
+				t.Errorf("extractIDAndPassphrase() = unexpected error (-want +got)\n%s\n", diff)
+			}
+		})
+	}
 }
 
 type mockSecretService struct {
@@ -508,7 +568,7 @@ func (s *mockSecretService) Create(se secret.Secret) (secret.Secret, error) {
 		id = strconv.Itoa(lastNum)
 	}
 
-	secret := secret.Secret{ID: id, Value: se.Value, TTL: se.TTL}
+	secret := secret.Secret{ID: id, Value: se.Value, Passphrase: _passphrase, PassphraseHash: _hashedPassphraseHex, TTL: se.TTL}
 	s.secrets = append(s.secrets, secret)
 	return secret, nil
 }
@@ -523,4 +583,10 @@ func (s mockSecretService) DeleteExpired() error {
 
 var (
 	errSecretService = errors.New("secret service error")
+)
+
+var (
+	_passphrase          = "key"
+	_hashedPassphrase    = security.ToSHA256([]byte(_passphrase))
+	_hashedPassphraseHex = security.SHA256ToHex(_hashedPassphrase)
 )
