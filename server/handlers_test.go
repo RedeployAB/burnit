@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/RedeployAB/burnit/secret"
-	"github.com/RedeployAB/burnit/security"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
@@ -361,7 +360,7 @@ func TestServer_createSecret(t *testing.T) {
 				body   []byte
 			}{
 				status: http.StatusCreated,
-				body:   []byte(`{"id":"1","passphrase":"key","path":"/secrets/1/2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683","ttl":"1h0m0s"}` + "\n"),
+				body:   []byte(`{"id":"1","passphrase":"passphrase","path":"/secrets/1/hash","ttl":"1h0m0s"}` + "\n"),
 			},
 		},
 		{
@@ -568,7 +567,7 @@ func (s *mockSecretService) Create(se secret.Secret) (secret.Secret, error) {
 		id = strconv.Itoa(lastNum)
 	}
 
-	secret := secret.Secret{ID: id, Value: se.Value, Passphrase: _passphrase, PassphraseHash: _hashedPassphraseHex, TTL: se.TTL}
+	secret := secret.Secret{ID: id, Value: se.Value, Passphrase: "passphrase", PassphraseHash: "hash", TTL: se.TTL}
 	s.secrets = append(s.secrets, secret)
 	return secret, nil
 }
@@ -583,10 +582,4 @@ func (s mockSecretService) DeleteExpired() error {
 
 var (
 	errSecretService = errors.New("secret service error")
-)
-
-var (
-	_passphrase          = "key"
-	_hashedPassphrase    = security.ToSHA256([]byte(_passphrase))
-	_hashedPassphraseHex = security.SHA256ToHex(_hashedPassphrase)
 )

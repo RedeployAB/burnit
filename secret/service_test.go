@@ -2,6 +2,7 @@ package secret
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"testing"
 	"time"
@@ -227,7 +228,7 @@ func TestService_Create(t *testing.T) {
 			want: Secret{
 				ID:             "2",
 				Passphrase:     "key",
-				PassphraseHash: "2c70e12b7a0646f92279f427c7b38e7334d8e5389cff167a1dc30e73f826b683",
+				PassphraseHash: base64.RawURLEncoding.EncodeToString(toSHA256([]byte("key"))),
 				TTL:            time.Until(n.Add(defaultTTL)).Round(time.Minute),
 				ExpiresAt:      n.Add(defaultTTL),
 			},
