@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/RedeployAB/burnit/internal/db"
@@ -326,18 +327,20 @@ func toSHA256(data []byte) []byte {
 }
 
 // decodeBase64SHA256 decodes a base64 SHA-256 hash and returns the decoded
-// value as a byte slice. Supports both standard and raw URL encoding.
+// value as a byte slice. Supports both standard and URL (safe) encoding, both
+// with and without padding.
 func decodeBase64SHA256(hash string) ([]byte, error) {
 	if len(hash) < 43 || len(hash) > 44 {
 		return nil, ErrInvalidPassphrase
 	}
 
+	hash = strings.TrimSuffix(hash, "=")
 	var encoding *base64.Encoding
 	re := regexp.MustCompile(`[/+=]`)
 	if !re.MatchString(hash) {
 		encoding = base64.RawURLEncoding
 	} else {
-		encoding = base64.StdEncoding
+		encoding = base64.RawStdEncoding
 	}
 
 	dst := make([]byte, encoding.DecodedLen(len(hash)))

@@ -430,18 +430,7 @@ func TestDecodeBase64SHA256(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "decode base64 Raw URL encoding SHA-256",
-			input: struct {
-				sha256   []byte
-				encoding *base64.Encoding
-			}{
-				sha256:   toSHA256([]byte("key")),
-				encoding: base64.RawURLEncoding,
-			},
-			want: toSHA256([]byte("key")),
-		},
-		{
-			name: "decode base64 encoding SHA-256",
+			name: "decode base64 standard encoding SHA-256",
 			input: struct {
 				sha256   []byte
 				encoding *base64.Encoding
@@ -451,6 +440,40 @@ func TestDecodeBase64SHA256(t *testing.T) {
 			},
 			want: toSHA256([]byte("key")),
 		},
+		{
+			name: "decode base64 raw standard encoding SHA-256",
+			input: struct {
+				sha256   []byte
+				encoding *base64.Encoding
+			}{
+				sha256:   toSHA256([]byte("key")),
+				encoding: base64.RawStdEncoding,
+			},
+			want: toSHA256([]byte("key")),
+		},
+		{
+			name: "decode base64 URL encoding SHA-256",
+			input: struct {
+				sha256   []byte
+				encoding *base64.Encoding
+			}{
+				sha256:   toSHA256([]byte("key")),
+				encoding: base64.URLEncoding,
+			},
+			want: toSHA256([]byte("key")),
+		},
+		{
+			name: "decode base64 raw URL encoding SHA-256",
+			input: struct {
+				sha256   []byte
+				encoding *base64.Encoding
+			}{
+				sha256:   toSHA256([]byte("key")),
+				encoding: base64.RawURLEncoding,
+			},
+			want: toSHA256([]byte("key")),
+		},
+
 		{
 			name: "decode base64 - error",
 			input: struct {
