@@ -334,7 +334,7 @@ func decodeBase64SHA256(hash string) ([]byte, error) {
 		return nil, ErrInvalidPassphrase
 	}
 
-	hash = strings.TrimSuffix(hash, "=")
+	hash = strings.Replace(hash, "=", "", -1)
 	var encoding *base64.Encoding
 	re := regexp.MustCompile(`[/+=]`)
 	if !re.MatchString(hash) {
