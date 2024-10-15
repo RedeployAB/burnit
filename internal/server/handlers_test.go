@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/base64"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -194,7 +195,7 @@ func TestServer_getSecret(t *testing.T) {
 				},
 				req: func() *http.Request {
 					req := httptest.NewRequest("GET", "/secrets/1", nil)
-					req.Header.Set("Passphrase", "passphrase")
+					req.Header.Set("Passphrase", base64.StdEncoding.EncodeToString([]byte("passphrase")))
 					return req
 				}(),
 				path: "/secret/1",

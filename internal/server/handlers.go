@@ -1,7 +1,10 @@
 package server
 
 import (
+	"encoding/base64"
+	"errors"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -45,7 +48,12 @@ func (s server) getSecret() http.Handler {
 			return
 		}
 		if len(passphrase) == 0 {
-			passphrase = r.Header.Get("Passphrase")
+			p := r.Header.Get("Passphrase")
+			passphrase, err = decodeBase64(p)
+			if err != nil {
+				writeError(w, http.StatusBadRequest, errors.New("invalid passphrase: should be base64 encoded"))
+				return
+			}
 		}
 
 		secret, err := s.secrets.Get(id, passphrase, func(o *secret.GetOptions) {
@@ -176,4 +184,23 @@ func extractIDAndPassphrase(path string) (string, string, error) {
 		return parts[0], "", nil
 	}
 	return parts[0], parts[1], nil
+}
+
+// decodeBase64 decodes a base64 string.
+func decodeBase64(s string) (string, error) {
+	s = strings.Replace(s, "=", "", -1)
+
+	var encoding *base64.Encoding
+	re := regexp.MustCompile(`[/+]`)
+	if !re.MatchString(s) {
+		encoding = base64.RawURLEncoding
+	} else {
+		encoding = base64.RawStdEncoding
+	}
+
+	b, err := encoding.DecodeString(s)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
 }
