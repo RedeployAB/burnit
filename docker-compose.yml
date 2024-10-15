@@ -15,4 +15,3 @@ services:
     container_name: ${DB_IMAGE}
     ports:
     - "${DB_PORT}:${DB_PORT}"
-    
