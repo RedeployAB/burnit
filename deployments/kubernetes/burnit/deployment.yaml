@@ -1,31 +1,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: burnitdb
+  name: burnit
   labels:
     app: burnit
-    service: burnitdb
+    service: burnit
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: burnit
-      service: burnitdb
+      service: burnit
   template:
     metadata:
       labels:
         app: burnit
-        service: burnitdb
+        service: burnit
     spec:
       containers:
-      - name: burnitdb
-        image: burnitdb:0.1.0
+      - name: burnit
+        image: burnit:<VERSION>
         ports:
-        - containerPort: 3001
-        command: [ "/usr/bin/burnitdb", "-config", "/etc/burnitdb/config.yaml" ]
+        - containerPort: 3000
+        command: [ "/burnit", "-config", "/etc/burnit/config.yaml" ]
         volumeMounts:
-        - name: burnitdb-config
-          mountPath: /etc/burnitdb
+        - name: burnit-config
+          mountPath: /etc/burnit
           readOnly: true
         resources:
           requests:
@@ -48,6 +48,7 @@ spec:
             cpu: 200m
 
       volumes:
-      - name: burnitdb-config
+      - name: burnit-config
         secret:
-          secretName: burnitdb-config
+          secretName: burnit-config
+
