@@ -195,7 +195,7 @@ func decodeBase64(s string) (string, error) {
 	if !re.MatchString(s) {
 		encoding = base64.RawURLEncoding
 	} else {
-		encoding = base64.URLEncoding
+		encoding = base64.RawStdEncoding
 	}
 
 	b, err := encoding.DecodeString(s)

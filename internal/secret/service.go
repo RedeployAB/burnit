@@ -336,7 +336,7 @@ func decodeBase64SHA256(hash string) ([]byte, error) {
 
 	hash = strings.Replace(hash, "=", "", -1)
 	var encoding *base64.Encoding
-	re := regexp.MustCompile(`[/+=]`)
+	re := regexp.MustCompile(`[/+]`)
 	if !re.MatchString(hash) {
 		encoding = base64.RawURLEncoding
 	} else {
