@@ -1,7 +1,8 @@
 build/
-release/
+testcmd/
+/burnit
 *.exe
-*.out
+*.db
 
 .env
 *.env
@@ -19,3 +20,5 @@ run.sh
 *.tfvars
 *.plan
 *.backup
+
+TODO.md

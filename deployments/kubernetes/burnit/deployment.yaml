@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: burnit
+  labels:
+    app: burnit
+    service: burnit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: burnit
+      service: burnit
+  template:
+    metadata:
+      labels:
+        app: burnit
+        service: burnit
+    spec:
+      containers:
+      - name: burnit
+        image: burnit:<VERSION>
+        ports:
+        - containerPort: 3000
+        command: [ "/burnit", "-config", "/etc/burnit/config.yaml" ]
+        volumeMounts:
+        - name: burnit-config
+          mountPath: /etc/burnit
+          readOnly: true
+        resources:
+          requests:
+            memory: 64Mi
+            cpu: 100m
+          limits:
+            memory: 128Mi
+            cpu: 200m
+
+      - name: redis
+        image: redis
+        ports:
+        - containerPort: 6379
+        resources:
+          requests:
+            memory: 512Mi
+            cpu: 100m
+          limits:
+            memory: 1028Mi
+            cpu: 200m
+
+      volumes:
+      - name: burnit-config
+        secret:
+          secretName: burnit-config
+

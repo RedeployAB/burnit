@@ -1,0 +1,45 @@
+# golang:1.22.2-alpine3.19 SHA1 digest.
+FROM golang@sha256:cdc86d9f363e8786845bea2040312b4efa321b828acdeb26f393faa864d887b0 as builder
+
+ARG BIN=burnit
+ARG OS=linux
+ARG ARCH=amd64
+
+RUN apk update && apk add --no-cache ca-certificates && update-ca-certificates
+
+ENV USER=${BIN}
+ENV UID=10001
+
+RUN adduser \
+    --disabled-password \
+    --gecos "" \
+    --home "/nohome" \
+    --no-create-home \
+    --shell "/sbin/nologin" \
+    --uid "${UID}" \
+    "${USER}"
+
+WORKDIR /src/${BIN}
+COPY . .
+
+RUN CGO_ENABLED=0 GOOS=${OS} GOARCH=${ARCH} go build \
+    -o build/${BIN} \
+    -ldflags="-s -w" \
+    -trimpath .
+
+
+FROM scratch
+
+ARG BIN=burnit
+ARG PORT=3000
+
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /etc/passwd /etc/passwd
+COPY --from=builder /etc/group /etc/group
+COPY --from=builder /src/${BIN}/build/${BIN} /${BIN}
+
+EXPOSE ${PORT}
+
+USER ${BIN}:${BIN}
+
+ENTRYPOINT [ "/burnit" ]
