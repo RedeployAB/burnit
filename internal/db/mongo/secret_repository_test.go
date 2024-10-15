@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/RedeployAB/burnit/db"
-	dberrors "github.com/RedeployAB/burnit/db/errors"
+	"github.com/RedeployAB/burnit/internal/db"
+	dberrors "github.com/RedeployAB/burnit/internal/db/errors"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )

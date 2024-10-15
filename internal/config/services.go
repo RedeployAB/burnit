@@ -5,11 +5,11 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/RedeployAB/burnit/db"
-	"github.com/RedeployAB/burnit/db/mongo"
-	"github.com/RedeployAB/burnit/db/redis"
-	"github.com/RedeployAB/burnit/db/sql"
-	"github.com/RedeployAB/burnit/secret"
+	"github.com/RedeployAB/burnit/internal/db"
+	"github.com/RedeployAB/burnit/internal/db/mongo"
+	"github.com/RedeployAB/burnit/internal/db/redis"
+	"github.com/RedeployAB/burnit/internal/db/sql"
+	"github.com/RedeployAB/burnit/internal/secret"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "github.com/microsoft/go-mssqldb"

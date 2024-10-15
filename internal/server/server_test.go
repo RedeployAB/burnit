@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/RedeployAB/burnit/log"
-	"github.com/RedeployAB/burnit/secret"
+	"github.com/RedeployAB/burnit/internal/log"
+	"github.com/RedeployAB/burnit/internal/secret"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )

@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/RedeployAB/burnit/api"
-	"github.com/RedeployAB/burnit/secret"
+	"github.com/RedeployAB/burnit/internal/api"
+	"github.com/RedeployAB/burnit/internal/secret"
 )
 
 const (

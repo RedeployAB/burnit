@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/RedeployAB/burnit/api"
+	"github.com/RedeployAB/burnit/internal/api"
 )
 
 const (
