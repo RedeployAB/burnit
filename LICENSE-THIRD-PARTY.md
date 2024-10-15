@@ -3,6 +3,7 @@
 ## github.com/caarlos0/env/v11
 
 * Name: github.com/caarlos0/env/v11
+* Version: v11.2.2
 * License: [MIT](https://github.com/caarlos0/env/blob/v11.2.2/LICENSE.md)
 
 ```
@@ -33,6 +34,7 @@ SOFTWARE.
 ## github.com/cespare/xxhash/v2
 
 * Name: github.com/cespare/xxhash/v2
+* Version: v2.2.0
 * License: [MIT](https://github.com/cespare/xxhash/blob/v2.2.0/LICENSE.txt)
 
 ```
@@ -64,6 +66,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ## github.com/dgryski/go-rendezvous
 
 * Name: github.com/dgryski/go-rendezvous
+* Version: v0.0.0-20200823014737-9f7001d12a5f
 * License: [MIT](https://github.com/dgryski/go-rendezvous/blob/9f7001d12a5f/LICENSE)
 
 ```
@@ -94,6 +97,7 @@ THE SOFTWARE.
 ## github.com/dustin/go-humanize
 
 * Name: github.com/dustin/go-humanize
+* Version: v1.0.1
 * License: [MIT](https://github.com/dustin/go-humanize/blob/v1.0.1/LICENSE)
 
 ```
@@ -124,6 +128,7 @@ SOFTWARE.
 ## github.com/golang-sql/civil
 
 * Name: github.com/golang-sql/civil
+* Version: v0.0.0-20220223132316-b832511892a9
 * License: [Apache-2.0](https://github.com/golang-sql/civil/blob/b832511892a9/LICENSE)
 
 ```
@@ -334,6 +339,7 @@ SOFTWARE.
 ## github.com/golang-sql/sqlexp
 
 * Name: github.com/golang-sql/sqlexp
+* Version: v0.1.0
 * License: [BSD-3-Clause](https://github.com/golang-sql/sqlexp/blob/v0.1.0/LICENSE)
 
 ```
@@ -370,6 +376,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ## github.com/golang/snappy
 
 * Name: github.com/golang/snappy
+* Version: v0.0.4
 * License: [BSD-3-Clause](https://github.com/golang/snappy/blob/v0.0.4/LICENSE)
 
 ```
@@ -406,6 +413,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ## github.com/google/go-cmp/cmp
 
 * Name: github.com/google/go-cmp/cmp
+* Version: v0.6.0
 * License: [BSD-3-Clause](https://github.com/google/go-cmp/blob/v0.6.0/LICENSE)
 
 ```
@@ -442,6 +450,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ## github.com/google/uuid
 
 * Name: github.com/google/uuid
+* Version: v1.6.0
 * License: [BSD-3-Clause](https://github.com/google/uuid/blob/v1.6.0/LICENSE)
 
 ```
@@ -478,6 +487,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ## github.com/jackc/pgpassfile
 
 * Name: github.com/jackc/pgpassfile
+* Version: v1.0.0
 * License: [MIT](https://github.com/jackc/pgpassfile/blob/v1.0.0/LICENSE)
 
 ```
@@ -509,6 +519,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ## github.com/jackc/pgservicefile
 
 * Name: github.com/jackc/pgservicefile
+* Version: v0.0.0-20240606120523-5a60cdf6a761
 * License: [MIT](https://github.com/jackc/pgservicefile/blob/5a60cdf6a761/LICENSE)
 
 ```
@@ -540,6 +551,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ## github.com/jackc/pgx/v5
 
 * Name: github.com/jackc/pgx/v5
+* Version: v5.7.1
 * License: [MIT](https://github.com/jackc/pgx/blob/v5.7.1/LICENSE)
 
 ```
@@ -571,6 +583,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ## github.com/jackc/puddle/v2
 
 * Name: github.com/jackc/puddle/v2
+* Version: v2.2.2
 * License: [MIT](https://github.com/jackc/puddle/blob/v2.2.2/LICENSE)
 
 ```
@@ -602,6 +615,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ## github.com/klauspost/compress
 
 * Name: github.com/klauspost/compress
+* Version: v1.17.10
 * License: [Apache-2.0](https://github.com/klauspost/compress/blob/v1.17.10/LICENSE)
 
 ```
@@ -915,6 +929,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 ## github.com/klauspost/compress/internal/snapref
 
 * Name: github.com/klauspost/compress/internal/snapref
+* Version: v1.17.10
 * License: [BSD-3-Clause](https://github.com/klauspost/compress/blob/v1.17.10/internal/snapref/LICENSE)
 
 ```
@@ -951,6 +966,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ## github.com/klauspost/compress/zstd/internal/xxhash
 
 * Name: github.com/klauspost/compress/zstd/internal/xxhash
+* Version: v1.17.10
 * License: [MIT](https://github.com/klauspost/compress/blob/v1.17.10/zstd/internal/xxhash/LICENSE.txt)
 
 ```
@@ -982,6 +998,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ## github.com/mattn/go-isatty
 
 * Name: github.com/mattn/go-isatty
+* Version: v0.0.20
 * License: [MIT](https://github.com/mattn/go-isatty/blob/v0.0.20/LICENSE)
 
 ```
@@ -1000,6 +1017,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 ## github.com/microsoft/go-mssqldb
 
 * Name: github.com/microsoft/go-mssqldb
+* Version: v1.7.2
 * License: [BSD-3-Clause](https://github.com/microsoft/go-mssqldb/blob/v1.7.2/LICENSE.txt)
 
 ```
@@ -1037,6 +1055,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ## github.com/microsoft/go-mssqldb/internal/github.com/swisscom/mssql-always-encrypted/pkg
 
 * Name: github.com/microsoft/go-mssqldb/internal/github.com/swisscom/mssql-always-encrypted/pkg
+* Version: v1.7.2
 * License: [MIT](https://github.com/microsoft/go-mssqldb/blob/v1.7.2/internal/github.com/swisscom/mssql-always-encrypted/LICENSE.txt)
 
 ```
@@ -1066,6 +1085,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ## github.com/montanaflynn/stats
 
 * Name: github.com/montanaflynn/stats
+* Version: v0.7.1
 * License: [MIT](https://github.com/montanaflynn/stats/blob/v0.7.1/LICENSE)
 
 ```
@@ -1096,6 +1116,7 @@ SOFTWARE.
 ## github.com/ncruces/go-strftime
 
 * Name: github.com/ncruces/go-strftime
+* Version: v0.1.9
 * License: [MIT](https://github.com/ncruces/go-strftime/blob/v0.1.9/LICENSE)
 
 ```
@@ -1126,6 +1147,7 @@ SOFTWARE.
 ## github.com/redis/go-redis/v9
 
 * Name: github.com/redis/go-redis/v9
+* Version: v9.6.1
 * License: [BSD-2-Clause](https://github.com/redis/go-redis/blob/v9.6.1/LICENSE)
 
 ```
@@ -1160,6 +1182,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ## github.com/remyoudompheng/bigfft
 
 * Name: github.com/remyoudompheng/bigfft
+* Version: v0.0.0-20230129092748-24d4a6f8daec
 * License: [BSD-3-Clause](https://github.com/remyoudompheng/bigfft/blob/24d4a6f8daec/LICENSE)
 
 ```
@@ -1196,6 +1219,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ## github.com/xdg-go/pbkdf2
 
 * Name: github.com/xdg-go/pbkdf2
+* Version: v1.0.0
 * License: [Apache-2.0](https://github.com/xdg-go/pbkdf2/blob/v1.0.0/LICENSE)
 
 ```
@@ -1380,6 +1404,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ## github.com/xdg-go/scram
 
 * Name: github.com/xdg-go/scram
+* Version: v1.1.2
 * License: [Apache-2.0](https://github.com/xdg-go/scram/blob/v1.1.2/LICENSE)
 
 ```
@@ -1564,6 +1589,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ## github.com/xdg-go/stringprep
 
 * Name: github.com/xdg-go/stringprep
+* Version: v1.0.4
 * License: [Apache-2.0](https://github.com/xdg-go/stringprep/blob/v1.0.4/LICENSE)
 
 ```
@@ -1748,6 +1774,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ## github.com/youmark/pkcs8
 
 * Name: github.com/youmark/pkcs8
+* Version: v0.0.0-20240726163527-a2c0da244d78
 * License: [MIT](https://github.com/youmark/pkcs8/blob/a2c0da244d78/LICENSE)
 
 ```
@@ -1777,6 +1804,7 @@ SOFTWARE.
 ## go.mongodb.org/mongo-driver
 
 * Name: go.mongodb.org/mongo-driver
+* Version: v1.17.0
 * License: [Apache-2.0](https://github.com/mongodb/mongo-go-driver/blob/v1.17.0/LICENSE)
 
 ```
@@ -1987,6 +2015,7 @@ SOFTWARE.
 ## golang.org/x/crypto
 
 * Name: golang.org/x/crypto
+* Version: v0.27.0
 * License: [BSD-3-Clause](https://cs.opensource.google/go/x/crypto/+/v0.27.0:LICENSE)
 
 ```
@@ -2023,6 +2052,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ## golang.org/x/sync
 
 * Name: golang.org/x/sync
+* Version: v0.8.0
 * License: [BSD-3-Clause](https://cs.opensource.google/go/x/sync/+/v0.8.0:LICENSE)
 
 ```
@@ -2059,6 +2089,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ## golang.org/x/sys/unix
 
 * Name: golang.org/x/sys/unix
+* Version: v0.25.0
 * License: [BSD-3-Clause](https://cs.opensource.google/go/x/sys/+/v0.25.0:LICENSE)
 
 ```
@@ -2095,6 +2126,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ## golang.org/x/text
 
 * Name: golang.org/x/text
+* Version: v0.18.0
 * License: [BSD-3-Clause](https://cs.opensource.google/go/x/text/+/v0.18.0:LICENSE)
 
 ```
@@ -2131,6 +2163,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ## golang.org/x/time/rate
 
 * Name: golang.org/x/time/rate
+* Version: v0.7.0
 * License: [BSD-3-Clause](https://cs.opensource.google/go/x/time/+/v0.7.0:LICENSE)
 
 ```
@@ -2167,6 +2200,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ## gopkg.in/yaml.v3
 
 * Name: gopkg.in/yaml.v3
+* Version: v3.0.1
 * License: [MIT](https://github.com/go-yaml/yaml/blob/v3.0.1/LICENSE)
 
 ```
@@ -2226,6 +2260,7 @@ limitations under the License.
 ## modernc.org/libc
 
 * Name: modernc.org/libc
+* Version: v1.55.3
 * License: [BSD-3-Clause](https://gitlab.com/cznic/libc/blob/v1.55.3/LICENSE-GO)
 
 ```
@@ -2262,6 +2297,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ## modernc.org/libc/honnef.co/go/netdb
 
 * Name: modernc.org/libc/honnef.co/go/netdb
+* Version: v1.55.3
 * License: [MIT](https://gitlab.com/cznic/libc/blob/v1.55.3/honnef.co/go/netdb/LICENSE)
 
 ```
@@ -2291,6 +2327,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ## modernc.org/mathutil
 
 * Name: modernc.org/mathutil
+* Version: v1.6.0
 * License: [Unknown](Unknown)
 
 ```
@@ -2300,6 +2337,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ## modernc.org/memory
 
 * Name: modernc.org/memory
+* Version: v1.8.0
 * License: [BSD-3-Clause](https://gitlab.com/cznic/memory/blob/v1.8.0/LICENSE-GO)
 
 ```
@@ -2336,42 +2374,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ## modernc.org/sqlite
 
 * Name: modernc.org/sqlite
+* Version: v1.33.1
 * License: [BSD-3-Clause](https://gitlab.com/cznic/sqlite/blob/v1.33.1/LICENSE)
-
-```
-Copyright (c) 2017 The Sqlite Authors. All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-1. Redistributions of source code must retain the above copyright notice, this
-list of conditions and the following disclaimer.
-
-2. Redistributions in binary form must reproduce the above copyright notice,
-this list of conditions and the following disclaimer in the documentation
-and/or other materials provided with the distribution.
-
-3. Neither the name of the copyright holder nor the names of its contributors
-may be used to endorse or promote products derived from this software without
-specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-```
-
-## modernc.org/sqlite
-
-* Name: modernc.org/sqlite
-* License: [BSD-3-Clause](https://gitlab.com/cznic/sqlite/-/blob/master/LICENSE)
 
 ```
 Copyright (c) 2017 The Sqlite Authors. All rights reserved.
