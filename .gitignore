@@ -1,6 +1,6 @@
 build/
 testcmd/
-burnit
+/burnit
 *.exe
 *.db
 
