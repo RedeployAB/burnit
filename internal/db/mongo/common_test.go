@@ -6,7 +6,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/RedeployAB/burnit/db"
+	"github.com/RedeployAB/burnit/internal/db"
 	"go.mongodb.org/mongo-driver/bson"
 )
 

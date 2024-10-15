@@ -47,7 +47,7 @@ func TestNew(t *testing.T) {
 				envs map[string]string
 				args []string
 			}{
-				args: []string{"-config-path", "../testdata/config.yaml"},
+				args: []string{"-config-path", "../../testdata/config.yaml"},
 			},
 			want: &Configuration{
 				Server: Server{
@@ -89,7 +89,7 @@ func TestNew(t *testing.T) {
 				envs map[string]string
 				args []string
 			}{
-				args: []string{"-config-path", "../testdata/config.yaml"},
+				args: []string{"-config-path", "../../testdata/config.yaml"},
 				envs: map[string]string{
 					"BURNIT_LISTEN_HOST":                   "localhost2",
 					"BURNIT_LISTEN_PORT":                   "3002",
@@ -152,7 +152,7 @@ func TestNew(t *testing.T) {
 				args []string
 			}{
 				args: []string{
-					"-config-path", "../testdata/config.yaml",
+					"-config-path", "../../testdata/config.yaml",
 					"-host", "localhost3",
 					"-port", "3003",
 					"-tls-cert-file", "cert3.pem",

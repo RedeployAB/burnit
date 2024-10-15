@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/RedeployAB/burnit/db"
-	dberrors "github.com/RedeployAB/burnit/db/errors"
+	"github.com/RedeployAB/burnit/internal/db"
+	dberrors "github.com/RedeployAB/burnit/internal/db/errors"
 )
 
 const (
