@@ -1,5 +1,7 @@
 package server
 
+import "net/http"
+
 func (s *server) routes() {
 	handler := s.httpServer.Handler
 
@@ -24,4 +26,12 @@ func (s *server) routes() {
 	s.router.Handle("GET /secrets/", s.getSecret())
 	s.router.Handle("POST /secrets", s.createSecret())
 	s.router.Handle("DELETE /secrets/", s.deleteSecret())
+
+	// Frontend routes and handlers.
+	s.router.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	s.router.Handle("GET /", s.uiCreateSecret())
+	s.router.Handle("GET /ui/secrets/", s.uiGetSecret())
+
+	// HTMX routes and handlers.
+	s.router.Handle("POST /handlers/secret/create", s.handlerCreateSecret())
 }
