@@ -31,7 +31,6 @@ func (s *server) routes() {
 		return
 	}
 
-	// Frontend routes and handlers.
 	s.router.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	s.router.Handle("/", s.uiCreateSecret())
 	s.router.Handle("/ui/secrets/", s.uiGetSecret())
