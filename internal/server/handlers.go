@@ -1,11 +1,8 @@
 package server
 
 import (
-	"encoding/base64"
 	"errors"
 	"net/http"
-	"regexp"
-	"strings"
 	"time"
 
 	"github.com/RedeployAB/burnit/internal/api"
@@ -42,7 +39,7 @@ func (s server) generateSecret() http.Handler {
 // getSecret retrieves a secret.
 func (s server) getSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id, passphrase, err := extractIDAndPassphrase(r.URL.Path)
+		id, passphrase, err := extractIDAndPassphrase("/secrets/", r.URL.Path)
 		if err != nil {
 			writeError(w, http.StatusNotFound, err)
 			return
@@ -109,7 +106,7 @@ func (s server) createSecret() http.Handler {
 // deleteSecret deletes a secret.
 func (s server) deleteSecret() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id, passphrase, err := extractIDAndPassphrase(r.URL.Path)
+		id, passphrase, err := extractIDAndPassphrase("/secrets/", r.URL.Path)
 		if err != nil {
 			writeError(w, http.StatusNotFound, err)
 			return
@@ -172,35 +169,4 @@ func toAPISecret(s *secret.Secret) api.Secret {
 		TTL:        s.TTL.String(),
 		ExpiresAt:  expiresAt,
 	}
-}
-
-// extractIDAndPassphrase extracts the ID and passphrase from the path.
-func extractIDAndPassphrase(path string) (string, string, error) {
-	parts := strings.Split(path, "/")[2:]
-	if len(parts) > 2 {
-		return "", "", ErrInvalidPath
-	}
-	if len(parts) == 1 {
-		return parts[0], "", nil
-	}
-	return parts[0], parts[1], nil
-}
-
-// decodeBase64 decodes a base64 string.
-func decodeBase64(s string) (string, error) {
-	s = strings.Replace(s, "=", "", -1)
-
-	var encoding *base64.Encoding
-	re := regexp.MustCompile(`[/+]`)
-	if !re.MatchString(s) {
-		encoding = base64.RawURLEncoding
-	} else {
-		encoding = base64.RawStdEncoding
-	}
-
-	b, err := encoding.DecodeString(s)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
 }
