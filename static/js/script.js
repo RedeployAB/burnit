@@ -1,3 +1,5 @@
+// Create a variable to store the base URL. This will be set to:
+// - Secret create form.
 document.addEventListener('DOMContentLoaded', ()=>{
   const baseUrl = window.location.protocol + '//' + window.location.hostname;
   
@@ -7,6 +9,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   }
 });
 
+// copyToClipboard copies the contents of an element to the clipboard.
 function copyToClipboard(elementId, feedbackElementId) {
   const element = document.getElementById(elementId);
   if (!element) {
