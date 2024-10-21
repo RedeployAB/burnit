@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"strings"
 )
 
 // loggingResponseWriter is a wrapper around an http.ResponseWriter that keeps
@@ -35,6 +36,15 @@ func requestLogger(next http.Handler, log logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		lw := &loggingResponseWriter{ResponseWriter: w}
 		next.ServeHTTP(lw, r)
-		log.Info("Request received.", "status", lw.status, "path", r.URL.Path, "method", r.Method, "remoteIp", resolveIP(r))
+		log.Info("Request received.", "status", lw.status, "path", maskSecretHash(r.URL.Path), "method", r.Method, "remoteIp", resolveIP(r))
 	})
+}
+
+// maskSecretHash masks the hash in the path.
+func maskSecretHash(path string) string {
+	lastIndex := strings.LastIndex(path, "/")
+	if strings.HasPrefix(path, "/secrets/") && lastIndex == 45 || strings.HasPrefix(path, "/ui/secrets/") && lastIndex == 48 {
+		return path[:lastIndex] + "/***"
+	}
+	return path
 }

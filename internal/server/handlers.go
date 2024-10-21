@@ -53,9 +53,7 @@ func (s server) getSecret() http.Handler {
 			}
 		}
 
-		secret, err := s.secrets.Get(id, passphrase, func(o *secret.GetOptions) {
-			o.Delete = true
-		})
+		secret, err := s.secrets.Get(id, passphrase)
 		if err != nil {
 			if statusCode := errorCode(err); statusCode != 0 {
 				writeError(w, statusCode, err)

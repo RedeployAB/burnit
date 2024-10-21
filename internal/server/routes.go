@@ -1,6 +1,10 @@
 package server
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/RedeployAB/burnit/internal/server/ui"
+)
 
 func (s *server) routes() {
 	handler := s.httpServer.Handler
@@ -31,12 +35,13 @@ func (s *server) routes() {
 		return
 	}
 
-	s.router.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-	s.router.Handle("/", s.uiCreateSecret())
-	s.router.Handle("/ui/secrets/", s.uiGetSecret())
+	s.router.Handle("/static/", http.FileServer(http.FS(ui.StaticFS)))
+	s.router.Handle("/", ui.CreateSecret(s.secrets))
+	s.router.Handle("/ui/secrets/", ui.GetSecret(s.secrets))
 
-	// HTMX routes and handlers.
-	s.router.Handle("/handlers/secret/create", htmxHandler(s.handlerCreateSecret()))
+	// Handlers for htmx requests.
+	s.router.Handle("/ui/handlers/secret/get", htmxHandler(ui.HandlerGetSecret(s.secrets)))
+	s.router.Handle("/ui/handlers/secret/create", htmxHandler(ui.HandlerCreateSecret(s.secrets)))
 }
 
 // htmxHandler is a middleware that ensures the request is an htmx request.
