@@ -38,6 +38,7 @@ type server struct {
 	tls           TLSConfig
 	rateLimiter   RateLimiter
 	cors          CORS
+	backendOnly   bool
 	shutdownFuncs []func() error
 	stopCh        chan os.Signal
 	errCh         chan error
@@ -86,6 +87,7 @@ type Options struct {
 	TLS          TLSConfig
 	RateLimiter  RateLimiter
 	CORS         CORS
+	BackendOnly  bool
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
 	IdleTimeout  time.Duration

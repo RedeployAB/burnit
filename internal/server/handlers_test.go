@@ -12,7 +12,6 @@ import (
 
 	"github.com/RedeployAB/burnit/internal/secret"
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func TestServer_generateSecret(t *testing.T) {
@@ -270,8 +269,7 @@ func TestServer_getSecret(t *testing.T) {
 					secrets: []secret.Secret{},
 				},
 				req: func() *http.Request {
-					req := httptest.NewRequest("GET", "/secret/1", nil)
-					req.SetPathValue("id", "1")
+					req := httptest.NewRequest("GET", "/secrets/1", nil)
 					return req
 				}(),
 				path: "/secret/1",
@@ -295,8 +293,7 @@ func TestServer_getSecret(t *testing.T) {
 					err: errSecretService,
 				},
 				req: func() *http.Request {
-					req := httptest.NewRequest("GET", "/secret/1", nil)
-					req.SetPathValue("id", "1")
+					req := httptest.NewRequest("GET", "/secrets/1", nil)
 					return req
 				}(),
 			},
@@ -422,71 +419,6 @@ func TestServer_createSecret(t *testing.T) {
 
 			if diff := cmp.Diff(test.want.body, gotBody); diff != "" {
 				t.Errorf("createSecret() = unexpected body (-want +got)\n%s\n", diff)
-			}
-		})
-	}
-}
-
-func TestExtractIDAndPassphrase(t *testing.T) {
-	var tests = []struct {
-		name  string
-		input string
-		want  struct {
-			id         string
-			passphrase string
-		}
-		wantErr error
-	}{
-		{
-			name:  "extract id and passphrase - id only",
-			input: "/secrets/1",
-			want: struct {
-				id         string
-				passphrase string
-			}{
-				id:         "1",
-				passphrase: "",
-			},
-		},
-		{
-			name:  "extract id and passphrase - id and passphrase",
-			input: "/secrets/1/passphrase",
-			want: struct {
-				id         string
-				passphrase string
-			}{
-				id:         "1",
-				passphrase: "passphrase",
-			},
-		},
-		{
-			name:  "extract id and passphrase - invalid path",
-			input: "/secrets/1/passphrase/extra",
-			want: struct {
-				id         string
-				passphrase string
-			}{
-				id:         "",
-				passphrase: "",
-			},
-			wantErr: ErrInvalidPath,
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			gotID, gotPassphrase, gotErr := extractIDAndPassphrase(test.input)
-
-			if diff := cmp.Diff(test.want.id, gotID); diff != "" {
-				t.Errorf("extractIDAndPassphrase() = unexpected id (-want +got)\n%s\n", diff)
-			}
-
-			if diff := cmp.Diff(test.want.passphrase, gotPassphrase); diff != "" {
-				t.Errorf("extractIDAndPassphrase() = unexpected passphrase (-want +got)\n%s\n", diff)
-			}
-
-			if diff := cmp.Diff(test.wantErr, gotErr, cmpopts.EquateErrors()); diff != "" {
-				t.Errorf("extractIDAndPassphrase() = unexpected error (-want +got)\n%s\n", diff)
 			}
 		})
 	}

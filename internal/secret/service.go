@@ -118,7 +118,7 @@ func (s service) Generate(length int, specialCharacters bool) string {
 
 // GetOptions contains options for getting a secret.
 type GetOptions struct {
-	Delete bool
+	NoDelete bool
 }
 
 // GetOption is a function that sets options for getting a secret.
@@ -158,16 +158,20 @@ func (s service) Get(id, passphrase string, options ...GetOption) (Secret, error
 		return Secret{}, err
 	}
 
-	if opts.Delete {
-		if err := s.secrets.Delete(ctx, id); err != nil {
-			return Secret{}, err
-		}
-	}
-
-	return Secret{
+	secret := Secret{
 		ID:    dbSecret.ID,
 		Value: string(decrypted),
-	}, nil
+	}
+
+	if opts.NoDelete {
+		return secret, nil
+	}
+
+	if err := s.secrets.Delete(ctx, id); err != nil {
+		return secret, err
+	}
+
+	return secret, nil
 }
 
 // Create a secret.
@@ -228,9 +232,7 @@ func (s service) Delete(id string, options ...DeleteOption) error {
 	defer cancel()
 
 	if opts.VerifyPassphrase {
-		_, err := s.Get(id, opts.Passphrase, func(o *GetOptions) {
-			o.Delete = true
-		})
+		_, err := s.Get(id, opts.Passphrase)
 		if err != nil {
 			return err
 		}
