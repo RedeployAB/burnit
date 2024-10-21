@@ -40,18 +40,6 @@ func (s *server) routes() {
 	s.router.Handle("/ui/secrets/", ui.GetSecret(s.secrets))
 
 	// Handlers for htmx requests.
-	s.router.Handle("/ui/handlers/secret/get", htmxHandler(ui.HandlerGetSecret(s.secrets)))
-	s.router.Handle("/ui/handlers/secret/create", htmxHandler(ui.HandlerCreateSecret(s.secrets)))
-}
-
-// htmxHandler is a middleware that ensures the request is an htmx request.
-// If it is not, the request is redirected to the root.
-func htmxHandler(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("Hx-Request") != "true" {
-			http.Redirect(w, r, "/", http.StatusFound)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
+	s.router.Handle("/ui/handlers/secret/get", ui.HTMXHandler(ui.HandlerGetSecret(s.secrets)))
+	s.router.Handle("/ui/handlers/secret/create", ui.HTMXHandler(ui.HandlerCreateSecret(s.secrets)))
 }
