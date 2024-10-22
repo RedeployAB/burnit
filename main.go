@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/RedeployAB/burnit/internal/config"
+	"github.com/RedeployAB/burnit/internal/frontend"
 	"github.com/RedeployAB/burnit/internal/log"
 	"github.com/RedeployAB/burnit/internal/server"
 	"github.com/RedeployAB/burnit/internal/version"
@@ -33,6 +34,14 @@ func run(log *log.Logger) error {
 		return fmt.Errorf("could not setup services: %w", err)
 	}
 
+	var ui frontend.UI
+	if !cfg.Server.BackendOnly {
+		ui, err = config.SetupUI(cfg.Frontend)
+		if err != nil {
+			return fmt.Errorf("could not setup frontend: %w", err)
+		}
+	}
+
 	srv, err := server.New(
 		services.Secrets,
 		server.WithAddress(cfg.Server.Host+":"+strconv.Itoa(cfg.Server.Port)),
@@ -45,6 +54,7 @@ func run(log *log.Logger) error {
 			TTL:             cfg.Server.RateLimiter.TTL,
 			CleanupInterval: cfg.Server.RateLimiter.CleanupInterval,
 		}),
+		server.WithUI(ui),
 	)
 	if err != nil {
 		return fmt.Errorf("could setup server: %w", err)
