@@ -3,7 +3,7 @@ package server
 import (
 	"net/http"
 
-	"github.com/RedeployAB/burnit/internal/server/ui"
+	"github.com/RedeployAB/burnit/internal/frontend"
 )
 
 func (s *server) routes() {
@@ -31,15 +31,14 @@ func (s *server) routes() {
 	s.router.Handle("POST /secrets", s.createSecret())
 	s.router.Handle("DELETE /secrets/", s.deleteSecret())
 
-	if s.backendOnly {
+	if s.ui == nil {
 		return
 	}
 
-	s.router.Handle("/static/", http.FileServer(http.FS(ui.StaticFS)))
-	s.router.Handle("/", ui.CreateSecret(s.secrets))
-	s.router.Handle("/ui/secrets/", ui.GetSecret(s.secrets))
+	s.router.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(s.ui.Static()))))
+	s.router.Handle("/", frontend.CreateSecret(s.ui, s.secrets))
+	s.router.Handle("/ui/secrets/", frontend.GetSecret(s.ui, s.secrets))
 
-	// Handlers for htmx requests.
-	s.router.Handle("/ui/handlers/secret/get", ui.HTMXHandler(ui.HandlerGetSecret(s.secrets)))
-	s.router.Handle("/ui/handlers/secret/create", ui.HTMXHandler(ui.HandlerCreateSecret(s.secrets)))
+	s.router.Handle("/ui/handlers/secret/get", frontend.HTMXHandler(frontend.HandlerGetSecret(s.ui, s.secrets)))
+	s.router.Handle("/ui/handlers/secret/create", frontend.HTMXHandler(frontend.HandlerCreateSecret(s.ui, s.secrets)))
 }

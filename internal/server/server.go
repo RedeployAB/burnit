@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/RedeployAB/burnit/internal/frontend"
 	"github.com/RedeployAB/burnit/internal/log"
 	"github.com/RedeployAB/burnit/internal/secret"
 )
@@ -34,11 +35,11 @@ type server struct {
 	httpServer    *http.Server
 	router        *http.ServeMux
 	secrets       secret.Service
+	ui            frontend.UI
 	log           logger
 	tls           TLSConfig
 	rateLimiter   RateLimiter
 	cors          CORS
-	backendOnly   bool
 	shutdownFuncs []func() error
 	stopCh        chan os.Signal
 	errCh         chan error
