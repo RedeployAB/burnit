@@ -1,10 +1,8 @@
 # burnit
 
-> Application for secret generation and sharing.
+> Application for secret sharing.
 
-<p align="center">
-  <img src="assets/burnit.png" alt="icon" width="150" height="150">
-</p>
+<img src="assets/burnit-logo.png" alt="logo" width="300">
 
 `burnit` is a service for creating temporary secrets and sharing them. In addition to this
 it can be used to generate new secrets.

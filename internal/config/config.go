@@ -27,6 +27,11 @@ const (
 )
 
 const (
+	// defaultSecretServiceTimeout is the default timeout for the secret service.
+	defaultSecretServiceTimeout = 10 * time.Second
+)
+
+const (
 	// defaultDatabaseTimeout is the default timeout for the database.
 	defaultDatabaseTimeout = 10 * time.Second
 	// defaultDatabaseConnectTimeout is the default connect timeout for the database.
@@ -36,14 +41,17 @@ const (
 )
 
 const (
-	// defaultSecretServiceTimeout is the default timeout for the secret service.
-	defaultSecretServiceTimeout = 10 * time.Second
+	// defaultFrontendRuntimeRenderTemplateDir is the default directory for the runtime render templates.
+	defaultFrontendRuntimeRenderTemplateDir = "internal/frontend/templates"
+	// defaultFrontendRuntimeRenderStaticDir is the default directory for the runtime render static files.
+	defaultFrontendRuntimeRenderStaticDir = "internal/frontend/static"
 )
 
 // ConfigOruration contains the configuration for the application.
 type Configuration struct {
 	Server   Server   `yaml:"server"`
 	Services Services `yaml:"services"`
+	Frontend Frontend `yaml:"frontend"`
 }
 
 // Server contains the configuration for the server.
@@ -53,6 +61,7 @@ type Server struct {
 	TLS         TLS         `yaml:"tls"`
 	CORS        CORS        `yaml:"cors"`
 	RateLimiter RateLimiter `yaml:"rateLimiter"`
+	BackendOnly bool        `env:"BACKEND_ONLY" yaml:"backendOnly"`
 }
 
 // MarshalJSON returns the JSON encoding of Server. A custom marshalling method
@@ -226,6 +235,11 @@ type Redis struct {
 	MinRetryBackoff time.Duration `env:"DATABASE_REDIS_MIN_RETRY_BACKOFF" yaml:"minRetryBackoff"`
 	MaxRetryBackoff time.Duration `env:"DATABASE_REDIS_MAX_RETRY_BACKOFF" yaml:"maxRetryBackoff"`
 	EnableTLS       *bool         `env:"DATABASE_MONGO_ENABLE_TLS" yaml:"enableTLS"`
+}
+
+// Frontend contains the configuration for the frontend.
+type Frontend struct {
+	RuntimeRender *bool `env:"FRONTEND_RUNTIME_RENDER" yaml:"runtimeRender"`
 }
 
 // New creates a new Configuration.

@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/RedeployAB/burnit/internal/frontend"
 )
 
 // WithOptions configures the server with the given Options.
@@ -106,6 +108,15 @@ func WithRateLimiter(rateLimiter RateLimiter) Option {
 	return func(s *server) {
 		if !rateLimiter.isEmpty() {
 			s.rateLimiter = rateLimiter
+		}
+	}
+}
+
+// WithUI configures the server with the given UI.
+func WithUI(ui frontend.UI) Option {
+	return func(s *server) {
+		if ui != nil {
+			s.ui = ui
 		}
 	}
 }

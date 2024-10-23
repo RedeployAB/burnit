@@ -3,6 +3,7 @@ testcmd/
 /burnit
 *.exe
 *.db
+node_modules/
 
 .env
 *.env
