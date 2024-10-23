@@ -176,7 +176,7 @@ func (u *ui) addTemplates(fs fs.ReadDirFS, path string, embedded bool) error {
 			if !strings.HasPrefix(file.Name(), "partial-") {
 				templates = append([]string{prefix + "base.html"}, templates...)
 			}
-			tmpl, err := template.ParseFS(fs, prefix+"base.html", prefix+file.Name())
+			tmpl, err := template.ParseFS(fs, templates...)
 			if err != nil {
 				return err
 			}
