@@ -29,7 +29,7 @@ const (
 
 // UI is an interface for rendering templates.
 type UI interface {
-	Render(w http.ResponseWriter, statusCode int, tmpl string, data any)
+	Render(w http.ResponseWriter, statusCode int, tmpl string, data any, options ...RenderOption)
 	Static() fs.FS
 }
 
@@ -87,26 +87,58 @@ func NewUI(options ...UIOption) (*ui, error) {
 	return ui, nil
 }
 
+// RenderOptions is a configuration for rendering a template.
+type RenderOptions struct {
+	Partial bool
+}
+
+// RenderOption is a function that configures the rendering of a template.
+type RenderOption func(o *RenderOptions)
+
+// WithPartial returns a RenderOption that renders a partial template.
+func WithPartial() RenderOption {
+	return func(o *RenderOptions) {
+		o.Partial = true
+	}
+}
+
 // Render a template with the given data.
-func (u ui) Render(w http.ResponseWriter, statusCode int, tmpl string, data any) {
+func (u ui) Render(w http.ResponseWriter, statusCode int, tmpl string, data any, options ...RenderOption) {
+	opts := RenderOptions{}
+	for _, option := range options {
+		option(&opts)
+	}
+
+	execTemplate := "base.html"
+	if opts.Partial {
+		execTemplate = tmpl + ".html"
+	}
+
 	if u.runtimeRender {
 		dir := u.templateDir
 		if len(dir) == 0 {
 			dir = defaultInternalTemplateDir
 		}
-		t, err := template.ParseFiles(dir+"/base.html", dir+"/"+tmpl+".html")
+
+		templates := []string{dir + "/" + tmpl + ".html"}
+
+		if !opts.Partial {
+			templates = append([]string{dir + "/base.html"}, templates...)
+		}
+
+		t, err := template.ParseFiles(templates...)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		if err := t.ExecuteTemplate(w, "base.html", data); err != nil {
+		if err := t.ExecuteTemplate(w, execTemplate, data); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		return
 	}
 
-	if err := u.templates[tmpl].ExecuteTemplate(w, "base.html", data); err != nil {
+	if err := u.templates[tmpl].ExecuteTemplate(w, execTemplate, data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -138,7 +170,12 @@ func (u *ui) addTemplates(fs fs.ReadDirFS, path string, embedded bool) error {
 		if file.IsDir() {
 			continue
 		}
+
 		if strings.Contains(file.Name(), ".html") && file.Name() != "base.html" {
+			templates := []string{prefix + file.Name()}
+			if !strings.HasPrefix(file.Name(), "partial-") {
+				templates = append([]string{prefix + "base.html"}, templates...)
+			}
 			tmpl, err := template.ParseFS(fs, prefix+"base.html", prefix+file.Name())
 			if err != nil {
 				return err

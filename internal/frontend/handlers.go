@@ -94,7 +94,7 @@ func HandlerCreateSecret(ui UI, secrets secretService) http.Handler {
 			PassphraseHash: secret.PassphraseHash,
 		}
 
-		ui.Render(w, http.StatusCreated, "secret-created", response)
+		ui.Render(w, http.StatusCreated, "partial-secret-created", response, WithPartial())
 	})
 }
 
@@ -125,7 +125,7 @@ func HandlerGetSecret(ui UI, secrets secretService) http.Handler {
 				return
 			}
 			if errors.Is(err, secret.ErrInvalidPassphrase) {
-				ui.Render(w, http.StatusUnauthorized, "secret-get", secretGetResponse{ID: id})
+				ui.Render(w, http.StatusUnauthorized, "partial-secret-get", secretGetResponse{ID: id}, WithPartial())
 				return
 			}
 			http.Error(w, "could not get secret: error in service", http.StatusInternalServerError)
@@ -138,7 +138,7 @@ func HandlerGetSecret(ui UI, secrets secretService) http.Handler {
 			Value:          s.Value,
 		}
 
-		ui.Render(w, http.StatusOK, "secret-get", response)
+		ui.Render(w, http.StatusOK, "partial-secret-get", response, WithPartial())
 	})
 }
 
