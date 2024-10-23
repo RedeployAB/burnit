@@ -239,7 +239,7 @@ type Redis struct {
 
 // Frontend contains the configuration for the frontend.
 type Frontend struct {
-	RuntimeRender bool `env:"FRONTEND_RUNTIME_RENDER" yaml:"runtimeRender"`
+	RuntimeRender *bool `env:"FRONTEND_RUNTIME_RENDER" yaml:"runtimeRender"`
 }
 
 // New creates a new Configuration.
