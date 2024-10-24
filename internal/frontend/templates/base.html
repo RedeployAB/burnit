@@ -16,12 +16,16 @@
 <body class="bg-zinc-800">
   <header class="border-b border-zinc-500">
     <div class="container mx-auto max-w-2xl px-4 py-4">
-      <h1 class="text-gray-300 font-mono">burnit</h1>
+      <div class="max-w-lg mx-auto">
+        <img src="/static/images/burnit-logo.png" alt="burnit logo" class="h-16">
+      </div>
     </div>
   </header>
-  <main class="container mx-auto max-w-2xl px-4 py-4">
+  <main class="container mx-auto max-w-2xl px-4 py-4 flex-grow">
     {{ block "content" . }}{{ end }}
   </main>
-  <footer></footer>
+  <footer class="border-t border-zinc-500">
+    <div></div>
+  </footer>
 </body>
 </html>
