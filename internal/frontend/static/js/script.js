@@ -26,7 +26,20 @@ function copyToClipboard(elementId, feedbackElementId) {
   navigator.clipboard.writeText(text).then(() => {
     if (feedbackElementId) {
       const feedback = document.getElementById(feedbackElementId);
-      feedback.innerText = "Copied to clipboard!";
+      feedback.disabled = true;
+
+      feedback.classList.remove('hover:text-gray-200');
+      const innerHTML = feedback.innerHTML;
+
+      feedback.innerHTML = `
+        <span class="text-gray-200 text-xs">Copied!</span>
+      `;
+
+      setTimeout(() => {
+        feedback.innerHTML = innerHTML;
+        feedback.disabled = false;
+        feedback.classList.add('hover:text-gray-200');
+      }, 3000);
     }
   });
 }
