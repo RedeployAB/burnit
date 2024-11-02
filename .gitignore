@@ -5,6 +5,14 @@ testcmd/
 *.db
 node_modules/
 
+bundle.js
+htmx.min.js
+main.min.js
+
+main.css
+main.min.css
+style.css
+
 .env
 *.env
 env.sh
