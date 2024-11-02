@@ -1,6 +1,9 @@
-// Create a variable to store the base URL. This will be set to:
-// - Secret create form.
-document.addEventListener('DOMContentLoaded', ()=>{
+// Add event listener for setting base URL.
+document.addEventListener('DOMContentLoaded', setBaseUrl);
+document.addEventListener('htmx:load', setBaseUrl);
+
+// setBaseUrl sets the base URL for the secret form.
+function setBaseUrl() {
   const port = window.location.port;
   let baseUrl = window.location.protocol + '//' + window.location.hostname;
   if (port && port !== '80' && port !== '443') {
@@ -12,6 +15,19 @@ document.addEventListener('DOMContentLoaded', ()=>{
   if (secretFormBaseUrl) {
     secretFormBaseUrl.value = baseUrl;
   }
+}
+
+// Mask the secret passphrase on the secret result page.
+document.addEventListener('htmx:afterSwap', () => {
+  const maskedLength = 40;
+  const maskedValue = '\u2022'.repeat(maskedLength);
+
+  const element = document.getElementById('secret-passphrase');
+  if (!element) {
+    return;
+  }
+
+  element.value = maskedValue;
 });
 
 // copyToClipboard copies the contents of an element to the clipboard.
@@ -21,7 +37,12 @@ function copyToClipboard(elementId, feedbackElementId) {
     return;
   }
 
-  const text = element.innerText || element.textContent || element.value;
+  let text = element.innerText || element.textContent || element.value;
+  // To handle the masked passphrase we need to check if the custom attribute is set.
+  // This should override the text value.
+  if (element.getAttribute('data-value')) {
+    text = element.getAttribute('data-value');
+  }
 
   navigator.clipboard.writeText(text).then(() => {
     if (feedbackElementId) {
