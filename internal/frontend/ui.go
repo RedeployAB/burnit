@@ -14,7 +14,7 @@ var (
 	//go:embed templates/*
 	templateFS embed.FS
 
-	//go:embed static/*
+	//go:embed static/js/main.min.js static/css/main.min.css static/icons/* static/images/*
 	staticFS embed.FS
 )
 

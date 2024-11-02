@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/RedeployAB/burnit/internal/db"
 	dberrors "github.com/RedeployAB/burnit/internal/db/errors"
@@ -178,6 +179,10 @@ func (s service) Get(id, passphrase string, options ...GetOption) (Secret, error
 func (s service) Create(secret Secret) (Secret, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
 	defer cancel()
+
+	if utf8.RuneCountInString(secret.Value) > maxLength {
+		return Secret{}, ErrSecretValueTooLarge
+	}
 
 	expiresAt, err := expirationTime(secret.TTL, secret.ExpiresAt)
 	if err != nil {
