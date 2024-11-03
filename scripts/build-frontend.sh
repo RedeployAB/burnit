@@ -60,4 +60,5 @@ else
 fi
 
 sed "${sed_flags[@]}" 's/main\.css/main.min.css/g' internal/frontend/templates/base.html
-sed "${sed_flags[@]}" 's/main\.js/main.min.js/g' internal/frontend/templates/base.html
+sed "${sed_flags[@]}" '/unpkg.com/d' internal/frontend/templates/base.html
+sed "${sed_flags[@]}" 's/script\.js/main.min.js/g' internal/frontend/templates/base.html
