@@ -11,7 +11,9 @@ if [ -z "$(command -v esbuild)" ]; then
         echo "Failed to download esbuild"
         exit 1
     fi
-    if [ "$expected_esbuild_sha256" != "$(sha256sum esbuild)" ]; then
+
+    $actual_esbuild_sha256=$(sha256sum esbuild | awk '{print $1}')
+    if [ "$expected_esbuild_sha256" != "actual_esbuild_sha256" ]; then
         echo "SHA256 checksum mismatch for esbuild"
         exit 1
     fi
@@ -27,7 +29,8 @@ if [ -z "$(command -v tailwindcss)" ]; then
   chmod +x tailwindcss-linux-x64
   mv tailwindcss-linux-x64 tailwindcss
 
-  if [ "$expected_tailwindcss_sha256" != "$(sha256sum tailwindcss-linux-x64)" ]; then
+  $actual_tailwindcss_sha256=$(sha256sum tailwindcss | awk '{print $1}')
+  if [ "$expected_tailwindcss_sha256" != "$actual_tailwindcss_sha256" ]; then
     echo "SHA256 checksum mismatch for tailwindcss"
     exit 1
   fi
