@@ -2,6 +2,19 @@
 document.addEventListener('DOMContentLoaded', setBaseUrl);
 document.addEventListener('htmx:load', setBaseUrl);
 
+// Mask the secret passphrase on the secret result page.
+document.addEventListener('htmx:afterSwap', () => {
+  const maskedLength = 40;
+  const maskedValue = '\u2022'.repeat(maskedLength);
+
+  const element = document.getElementById('secret-passphrase');
+  if (!element) {
+    return;
+  }
+
+  element.value = maskedValue;
+});
+
 // setBaseUrl sets the base URL for the secret form.
 function setBaseUrl() {
   const port = window.location.port;
@@ -16,19 +29,6 @@ function setBaseUrl() {
     secretFormBaseUrl.value = baseUrl;
   }
 }
-
-// Mask the secret passphrase on the secret result page.
-document.addEventListener('htmx:afterSwap', () => {
-  const maskedLength = 40;
-  const maskedValue = '\u2022'.repeat(maskedLength);
-
-  const element = document.getElementById('secret-passphrase');
-  if (!element) {
-    return;
-  }
-
-  element.value = maskedValue;
-});
 
 // copyToClipboard copies the contents of an element to the clipboard.
 function copyToClipboard(elementId, feedbackElementId) {
@@ -62,7 +62,7 @@ function copyToClipboard(elementId, feedbackElementId) {
         feedback.innerHTML = innerHTML;
         feedback.disabled = false;
         feedback.classList.add('hover:text-gray-200');
-      }, 2000);
+      }, 1500);
     }
   });
 }
@@ -84,3 +84,8 @@ function enableElement(elementId) {
   }
   element.disabled = false;
 }
+
+window.setBaseUrl = setBaseUrl;
+window.copyToClipboard = copyToClipboard;
+window.disableElement = disableElement;
+window.enableElement = enableElement;
