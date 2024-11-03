@@ -79,7 +79,7 @@ func HandlerCreateSecret(ui UI, secrets secretService) http.Handler {
 
 		secret, err := secrets.Create(secret.Secret{
 			Value:      r.FormValue("value"),
-			Passphrase: r.FormValue("passphrase"),
+			Passphrase: r.FormValue("custom-value"),
 			TTL:        ttl,
 		})
 		if err != nil {
@@ -112,7 +112,7 @@ func HandlerGetSecret(ui UI, secrets secretService) http.Handler {
 			http.Error(w, "could not get secret: missing ID", http.StatusBadRequest)
 			return
 		}
-		passphrase := r.FormValue("passphrase")
+		passphrase := r.FormValue("custom-value")
 		if len(passphrase) == 0 {
 			http.Error(w, "could not get secret: missing passphrase", http.StatusBadRequest)
 			return
