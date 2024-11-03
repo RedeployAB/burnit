@@ -52,3 +52,12 @@ cd $curr_dir
 # Bundle JS and CSS.
 esbuild internal/frontend/static/js/main.js --bundle --minify --outfile=internal/frontend/static/js/main.min.js
 esbuild internal/frontend/static/css/main.css --bundle --minify --outfile=internal/frontend/static/css/main.min.css
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  sed_flags=(-i '')
+else
+  sed_flags=(-i)
+fi
+
+sed "${sed_flags[@]}" 's/main\.css/main.min.css/g' internal/frontend/templates/base.html
+sed "${sed_flags[@]}" 's/main\.js/main.min.js/g' internal/frontend/templates/base.html
