@@ -70,6 +70,7 @@ var errorCodeMaps = map[int][]error{
 		ErrInvalidRequest,
 		ErrMalformedRequest,
 		secret.ErrInvalidExpirationTime,
+		secret.ErrSecretValueTooLarge,
 	},
 	http.StatusUnauthorized: {
 		secret.ErrInvalidPassphrase,

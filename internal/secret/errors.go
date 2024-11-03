@@ -11,4 +11,6 @@ var (
 	ErrInvalidPassphrase = errors.New("invalid passphrase")
 	// ErrInvalidExpirationTime is returned when the expiration time is invalid.
 	ErrInvalidExpirationTime = errors.New("invalid expiration time")
+	// ErrSecretValueTooLarge is returned when the secret value is too large.
+	ErrSecretValueTooLarge = errors.New("secret value too large")
 )
