@@ -62,7 +62,7 @@ function copyToClipboard(elementId, feedbackElementId) {
         feedback.innerHTML = innerHTML;
         feedback.disabled = false;
         feedback.classList.add('hover:text-gray-200');
-      }, 3000);
+      }, 2000);
     }
   });
 }
