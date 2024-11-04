@@ -46,7 +46,7 @@ func (s *server) routes() {
 
 // setupMiddlewares sets up the middlewares for the server.
 func setupMiddlewares(log logger, rl RateLimiter, c CORS) ([]middleware.Middleware, []func() error) {
-	var middlewares []middleware.Middleware
+	middlewares := []middleware.Middleware{middleware.Logger(log)}
 	var shutdownFuncs []func() error
 	if !rl.isEmpty() {
 		mw, closeRateLimiter := middleware.RateLimiter(
@@ -61,6 +61,5 @@ func setupMiddlewares(log logger, rl RateLimiter, c CORS) ([]middleware.Middlewa
 	if !c.isEmpty() {
 		middlewares = append(middlewares, middleware.CORS(c.Origin))
 	}
-	middlewares = append(middlewares, middleware.Logger(log))
 	return middlewares, shutdownFuncs
 }
