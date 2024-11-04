@@ -1,4 +1,4 @@
-package server
+package middleware
 
 import (
 	"net/http"
@@ -11,8 +11,8 @@ var (
 	corsAllowHeaders = "Content-Type, Passphrase"
 )
 
-// corsHandler creates a new CORS handler.
-func corsHandler(origin string) func(next http.Handler) http.Handler {
+// CORS returns a CORS middleware http.Handler.
+func CORS(origin string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Access-Control-Allow-Origin", origin)

@@ -1,14 +1,15 @@
-package server
+package middleware
 
 import (
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestRequestLogger(t *testing.T) {
+func TestLogger(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input struct {
@@ -65,11 +66,53 @@ func TestRequestLogger(t *testing.T) {
 
 			rr := httptest.NewRecorder()
 			req := test.input.req()
-			requestLogger(log)(handler).ServeHTTP(rr, req)
+			Logger(log)(handler).ServeHTTP(rr, req)
 
 			if diff := cmp.Diff(test.want, logs); diff != "" {
 				t.Errorf("requestLogger() = unexpected result, (-want, +got):\n%s\n", diff)
 			}
 		})
 	}
+}
+
+type mockLogger struct {
+	logs *[]string
+}
+
+func (l *mockLogger) Info(msg string, args ...any) {
+	if l.logs == nil {
+		l.logs = &[]string{}
+	}
+
+	messages := []string{msg}
+	for _, v := range args {
+		var val string
+		switch v := v.(type) {
+		case string:
+			val = v
+		case int:
+			val = strconv.Itoa(v)
+		}
+		messages = append(messages, val)
+	}
+	*l.logs = append(*l.logs, messages...)
+}
+
+func (l *mockLogger) Error(msg string, args ...any) {
+	if l.logs == nil {
+		l.logs = &[]string{}
+	}
+
+	messages := []string{msg}
+	for _, v := range args {
+		var val string
+		switch v := v.(type) {
+		case string:
+			val = v
+		case int:
+			val = strconv.Itoa(v)
+		}
+		messages = append(messages, val)
+	}
+	*l.logs = append(*l.logs, messages...)
 }
