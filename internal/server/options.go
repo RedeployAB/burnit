@@ -1,7 +1,6 @@
 package server
 
 import (
-	"net/http"
 	"strconv"
 	"time"
 
@@ -52,7 +51,7 @@ func WithLogger(log logger) Option {
 }
 
 // WithRouter configures the server with the given router.
-func WithRouter(router *http.ServeMux) Option {
+func WithRouter(router router) Option {
 	return func(s *server) {
 		if router != nil {
 			s.router = router

@@ -98,7 +98,7 @@ type rateLimiterOption func(o *rateLimiterOptions)
 
 // rateLimitHandler is a middleware that limits the number of requests that can be made to the server
 // on a per-IP basis.
-func rateLimitHandler(options ...rateLimiterOption) func(next http.Handler) (http.Handler, func() error) {
+func rateLimitHandler(options ...rateLimiterOption) (func(http.Handler) http.Handler, func() error) {
 	opts := rateLimiterOptions{
 		rate:            defaultRateLimiterRate,
 		burst:           defaultRateLimiterBurst,
@@ -120,8 +120,7 @@ func rateLimitHandler(options ...rateLimiterOption) func(next http.Handler) (htt
 	}
 
 	go rateLimiters.cleanup()
-
-	return func(next http.Handler) (http.Handler, func() error) {
+	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			rl := rateLimiters.get(resolveIP(r))
 			if !rl.limiter.Allow() {
@@ -129,8 +128,8 @@ func rateLimitHandler(options ...rateLimiterOption) func(next http.Handler) (htt
 				return
 			}
 			next.ServeHTTP(w, r)
-		}), rateLimiters.close
-	}
+		})
+	}, rateLimiters.close
 }
 
 // withRateLimiterRate sets the rate limiter rate.

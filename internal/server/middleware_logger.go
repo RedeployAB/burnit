@@ -32,12 +32,14 @@ func (w *loggingResponseWriter) Write(b []byte) (int, error) {
 }
 
 // requestLogger is a middleware that logs the incoming request.
-func requestLogger(next http.Handler, log logger) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		lw := &loggingResponseWriter{ResponseWriter: w}
-		next.ServeHTTP(lw, r)
-		log.Info("Request received.", "status", lw.status, "path", maskSecretHash(r.URL.Path), "method", r.Method, "remoteIp", resolveIP(r))
-	})
+func requestLogger(log logger) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			lw := &loggingResponseWriter{ResponseWriter: w}
+			next.ServeHTTP(lw, r)
+			log.Info("Request received.", "status", lw.status, "path", maskSecretHash(r.URL.Path), "method", r.Method, "remoteIp", resolveIP(r))
+		})
+	}
 }
 
 // maskSecretHash masks the hash in the path.

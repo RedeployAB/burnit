@@ -4,41 +4,51 @@ import (
 	"net/http"
 
 	"github.com/RedeployAB/burnit/internal/frontend"
+	"github.com/RedeployAB/burnit/internal/middleware"
 )
 
+// routes sets up the routes for the server.
 func (s *server) routes() {
-	handler := s.httpServer.Handler
+	r := http.NewServeMux()
+	r.Handle("GET /secret", s.generateSecret())
+	r.Handle("GET /secrets/", s.getSecret())
+	r.Handle("POST /secrets", s.createSecret())
+	r.Handle("DELETE /secrets/", s.deleteSecret())
 
-	if !s.cors.isEmpty() {
-		handler = corsHandler(s.cors.Origin)(handler)
-	}
-
+	var middlewares []func(http.Handler) http.Handler
 	if !s.rateLimiter.isEmpty() {
-		var closeRateLimiter func() error
-		handler, closeRateLimiter = rateLimitHandler(
+		mw, closeRateLimiter := rateLimitHandler(
 			withRateLimiterRate(s.rateLimiter.Rate),
 			withRateLimiterBurst(s.rateLimiter.Burst),
 			withRateLimiterTTL(s.rateLimiter.TTL),
 			withRateLimiterCleanupInterval(s.rateLimiter.CleanupInterval),
-		)(handler)
+		)
+		middlewares = append(middlewares, mw)
 		s.shutdownFuncs = append(s.shutdownFuncs, closeRateLimiter)
 	}
+	if !s.cors.isEmpty() {
+		middlewares = append(middlewares, corsHandler(s.cors.Origin))
+	}
+	middlewares = append(middlewares, requestLogger(s.log))
 
-	s.httpServer.Handler = requestLogger(handler, s.log)
+	handler := middleware.Chain(r, middlewares...)
 
-	s.router.Handle("GET /secret", s.generateSecret())
-	s.router.Handle("GET /secrets/", s.getSecret())
-	s.router.Handle("POST /secrets", s.createSecret())
-	s.router.Handle("DELETE /secrets/", s.deleteSecret())
+	s.router.Handle("/secret", handler)
+	s.router.Handle("/secrets", handler)
+	s.router.Handle("/secrets/", handler)
 
 	if s.ui == nil {
 		return
 	}
 
 	s.router.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(s.ui.Static()))))
-	s.router.Handle("/", frontend.CreateSecret(s.ui, s.secrets))
-	s.router.Handle("/ui/secrets/", frontend.GetSecret(s.ui, s.secrets))
 
-	s.router.Handle("/ui/handlers/secret/get", frontend.HTMXHandler(frontend.HandlerGetSecret(s.ui, s.secrets)))
-	s.router.Handle("/ui/handlers/secret/create", frontend.HTMXHandler(frontend.HandlerCreateSecret(s.ui, s.secrets)))
+	fer := http.NewServeMux()
+	fer.Handle("/", frontend.CreateSecret(s.ui, s.secrets))
+	fer.Handle("/ui/secrets/", frontend.GetSecret(s.ui, s.secrets))
+	fer.Handle("/ui/handlers/secret/get", frontend.HTMXHandler(frontend.HandlerGetSecret(s.ui, s.secrets)))
+	fer.Handle("/ui/handlers/secret/create", frontend.HTMXHandler(frontend.HandlerCreateSecret(s.ui, s.secrets)))
+
+	s.router.Handle("/", fer)
+	s.router.Handle("/ui/", fer)
 }

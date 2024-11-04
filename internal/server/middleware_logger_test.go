@@ -65,7 +65,7 @@ func TestRequestLogger(t *testing.T) {
 
 			rr := httptest.NewRecorder()
 			req := test.input.req()
-			requestLogger(handler, log).ServeHTTP(rr, req)
+			requestLogger(log)(handler).ServeHTTP(rr, req)
 
 			if diff := cmp.Diff(test.want, logs); diff != "" {
 				t.Errorf("requestLogger() = unexpected result, (-want, +got):\n%s\n", diff)
