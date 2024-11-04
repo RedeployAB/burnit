@@ -1,8 +1,10 @@
-package server
+package middleware
 
 import (
 	"errors"
+	"math"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 
@@ -96,9 +98,9 @@ type rateLimiterOptions struct {
 // rateLimiterOption is a function that configures the rate limiter options.
 type rateLimiterOption func(o *rateLimiterOptions)
 
-// rateLimitHandler is a middleware that limits the number of requests that can be made to the server
+// RateLimiter is a middleware that limits the number of requests that can be made to the server
 // on a per-IP basis.
-func rateLimitHandler(options ...rateLimiterOption) (func(http.Handler) http.Handler, func() error) {
+func RateLimiter(options ...rateLimiterOption) (func(next http.Handler) http.Handler, func() error) {
 	opts := rateLimiterOptions{
 		rate:            defaultRateLimiterRate,
 		burst:           defaultRateLimiterBurst,
@@ -124,7 +126,10 @@ func rateLimitHandler(options ...rateLimiterOption) (func(http.Handler) http.Han
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			rl := rateLimiters.get(resolveIP(r))
 			if !rl.limiter.Allow() {
-				writeError(w, http.StatusTooManyRequests, ErrTooManyRequests)
+				seconds := int(math.Ceil(rl.limiter.Reserve().DelayFrom(time.Now()).Seconds()))
+				w.Header().Set("Retry-After", strconv.Itoa(seconds))
+				w.WriteHeader(http.StatusTooManyRequests)
+				w.Write(responseError{StatusCode: http.StatusTooManyRequests, Err: ErrTooManyRequests.Error()}.JSON())
 				return
 			}
 			next.ServeHTTP(w, r)
@@ -132,8 +137,8 @@ func rateLimitHandler(options ...rateLimiterOption) (func(http.Handler) http.Han
 	}, rateLimiters.close
 }
 
-// withRateLimiterRate sets the rate limiter rate.
-func withRateLimiterRate(r float64) rateLimiterOption {
+// WithRateLimiterRate sets the rate limiter rate.
+func WithRateLimiterRate(r float64) rateLimiterOption {
 	return func(o *rateLimiterOptions) {
 		if r != 0 {
 			o.rate = rate.Limit(r)
@@ -141,8 +146,8 @@ func withRateLimiterRate(r float64) rateLimiterOption {
 	}
 }
 
-// withRateLimiterBurst sets the rate limiter burst.
-func withRateLimiterBurst(burst int) rateLimiterOption {
+// WithRateLimiterBurst sets the rate limiter burst.
+func WithRateLimiterBurst(burst int) rateLimiterOption {
 	return func(o *rateLimiterOptions) {
 		if burst != 0 {
 			o.burst = burst
@@ -151,7 +156,7 @@ func withRateLimiterBurst(burst int) rateLimiterOption {
 }
 
 // withRateLimiterTTL sets the rate limiter time-to-live.
-func withRateLimiterTTL(ttl time.Duration) rateLimiterOption {
+func WithRateLimiterTTL(ttl time.Duration) rateLimiterOption {
 	return func(o *rateLimiterOptions) {
 		if ttl != 0 {
 			o.ttl = ttl
@@ -159,8 +164,8 @@ func withRateLimiterTTL(ttl time.Duration) rateLimiterOption {
 	}
 }
 
-// withRateLimiterCleanupInterval sets the rate limiter cleanup interval.
-func withRateLimiterCleanupInterval(interval time.Duration) rateLimiterOption {
+// WithRateLimiterCleanupInterval sets the rate limiter cleanup interval.
+func WithRateLimiterCleanupInterval(interval time.Duration) rateLimiterOption {
 	return func(o *rateLimiterOptions) {
 		if interval != 0 {
 			o.cleanupInterval = interval

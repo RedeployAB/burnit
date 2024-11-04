@@ -38,13 +38,13 @@ func TestNew(t *testing.T) {
 			want: &server{
 				httpServer: &http.Server{
 					Addr:         defaultHost + ":" + defaultPort,
-					Handler:      &http.ServeMux{},
+					Handler:      &router{ServeMux: http.NewServeMux()},
 					ReadTimeout:  defaultReadTimeout,
 					WriteTimeout: defaultWriteTimeout,
 					IdleTimeout:  defaultIdleTimeout,
 				},
 				secrets: &mockSecretService{},
-				router:  &http.ServeMux{},
+				router:  &router{ServeMux: http.NewServeMux()},
 				log:     log.New(),
 			},
 		},
@@ -57,7 +57,7 @@ func TestNew(t *testing.T) {
 				secrets: &mockSecretService{},
 				options: []Option{
 					WithOptions(Options{
-						Router:       http.NewServeMux(),
+						Router:       NewRouter(),
 						Logger:       log.New(),
 						Host:         "localhost",
 						Port:         8081,
@@ -70,13 +70,13 @@ func TestNew(t *testing.T) {
 			want: &server{
 				httpServer: &http.Server{
 					Addr:         "localhost:8081",
-					Handler:      &http.ServeMux{},
+					Handler:      NewRouter(),
 					ReadTimeout:  10 * time.Second,
 					WriteTimeout: 10 * time.Second,
 					IdleTimeout:  15 * time.Second,
 				},
 				secrets: &mockSecretService{},
-				router:  &http.ServeMux{},
+				router:  NewRouter(),
 				log:     log.New(),
 			},
 		},
@@ -103,7 +103,7 @@ func TestServer_Start(t *testing.T) {
 			httpServer: &http.Server{
 				Addr: "localhost:8080",
 			},
-			router:  &http.ServeMux{},
+			router:  &router{ServeMux: http.NewServeMux()},
 			secrets: &mockSecretService{},
 			log: &mockLogger{
 				logs: &logs,
@@ -139,7 +139,7 @@ func TestServer_Start_Error(t *testing.T) {
 			httpServer: &http.Server{
 				Addr: "localhost:8080",
 			},
-			router:  &http.ServeMux{},
+			router:  &router{ServeMux: http.NewServeMux()},
 			secrets: &mockSecretService{},
 			log: &mockLogger{
 				logs: &logs,

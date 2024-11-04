@@ -1,9 +1,15 @@
-package server
+package middleware
 
 import (
 	"net/http"
 	"strings"
 )
+
+// logger is an interface for logging.
+type logger interface {
+	Error(msg string, args ...any)
+	Info(msg string, args ...any)
+}
 
 // loggingResponseWriter is a wrapper around an http.ResponseWriter that keeps
 // track of the status code and length of the response.
@@ -31,8 +37,8 @@ func (w *loggingResponseWriter) Write(b []byte) (int, error) {
 	return n, err
 }
 
-// requestLogger is a middleware that logs the incoming request.
-func requestLogger(log logger) func(next http.Handler) http.Handler {
+// Logger is a middleware that logs the incoming request.
+func Logger(log logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			lw := &loggingResponseWriter{ResponseWriter: w}

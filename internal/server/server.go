@@ -30,16 +30,10 @@ type logger interface {
 	Info(msg string, args ...any)
 }
 
-// router is an interface for routing.
-type router interface {
-	Handle(pattern string, handler http.Handler)
-	ServeHTTP(w http.ResponseWriter, r *http.Request)
-}
-
 // server holds an http.Server, a router and it's configured options.
 type server struct {
 	httpServer    *http.Server
-	router        router
+	router        *router
 	secrets       secret.Service
 	ui            frontend.UI
 	log           logger
@@ -87,7 +81,7 @@ func (c CORS) isEmpty() bool {
 
 // Options holds the configuration for the server.
 type Options struct {
-	Router       *http.ServeMux
+	Router       *router
 	Logger       logger
 	Host         string
 	Port         int
@@ -124,7 +118,7 @@ func New(secrets secret.Service, options ...Option) (*server, error) {
 	}
 
 	if s.router == nil {
-		s.router = http.NewServeMux()
+		s.router = NewRouter()
 	}
 	if s.log == nil {
 		s.log = log.New()

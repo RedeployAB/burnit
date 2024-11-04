@@ -1,4 +1,4 @@
-package server
+package middleware
 
 import (
 	"net/http"
@@ -8,7 +8,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestCORSHandler(t *testing.T) {
+func TestCORS(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input struct {
@@ -73,7 +73,7 @@ func TestCORSHandler(t *testing.T) {
 			rr := httptest.NewRecorder()
 			req := test.input.req
 
-			corsHandler(test.input.origin)(handler).ServeHTTP(rr, req)
+			CORS(test.input.origin)(handler).ServeHTTP(rr, req)
 
 			gotCode := rr.Code
 			gotHeaders := rr.Header()
