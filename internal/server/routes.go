@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/RedeployAB/burnit/internal/frontend"
-	"github.com/RedeployAB/burnit/internal/server/middleware"
+	"github.com/RedeployAB/burnit/internal/middleware"
 )
 
 // routes sets up the routes for the server.
