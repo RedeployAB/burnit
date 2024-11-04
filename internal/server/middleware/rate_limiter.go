@@ -98,7 +98,7 @@ type rateLimiterOptions struct {
 // rateLimiterOption is a function that configures the rate limiter options.
 type rateLimiterOption func(o *rateLimiterOptions)
 
-// rateLimitHandler is a middleware that limits the number of requests that can be made to the server
+// RateLimiter is a middleware that limits the number of requests that can be made to the server
 // on a per-IP basis.
 func RateLimiter(options ...rateLimiterOption) (func(next http.Handler) http.Handler, func() error) {
 	opts := rateLimiterOptions{
