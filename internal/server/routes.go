@@ -18,7 +18,6 @@ func (s *server) routes() {
 
 	// Secrets router and handlers.
 	secretsRouter := http.NewServeMux()
-	secretsRouter.Handle("GET /secret", s.generateSecret())
 	secretsRouter.Handle("GET /secrets/", s.getSecret())
 	secretsRouter.Handle("POST /secrets", s.createSecret())
 	secretsRouter.Handle("DELETE /secrets/", s.deleteSecret())
