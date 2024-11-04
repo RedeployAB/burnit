@@ -9,7 +9,7 @@ import (
 
 // routes sets up the routes for the server.
 func (s *server) routes() {
-	middlewares, shutdownFuncs := setupMiddleware(s.log, s.rateLimiter, s.cors)
+	middlewares, shutdownFuncs := setupMiddlewares(s.log, s.rateLimiter, s.cors)
 	s.shutdownFuncs = append(s.shutdownFuncs, shutdownFuncs...)
 
 	// Secret router and handlers.
@@ -44,8 +44,8 @@ func (s *server) routes() {
 	s.router.Handle("/ui/", fer)
 }
 
-// setupMiddleware sets up the middlewares for the server.
-func setupMiddleware(log logger, rl RateLimiter, c CORS) ([]middleware.Middleware, []func() error) {
+// setupMiddlewares sets up the middlewares for the server.
+func setupMiddlewares(log logger, rl RateLimiter, c CORS) ([]middleware.Middleware, []func() error) {
 	var middlewares []middleware.Middleware
 	var shutdownFuncs []func() error
 	if !rl.isEmpty() {
