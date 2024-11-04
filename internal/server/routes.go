@@ -37,8 +37,8 @@ func (s *server) routes() {
 	fer := http.NewServeMux()
 	fer.Handle("/", frontend.CreateSecret(s.ui, s.secrets))
 	fer.Handle("/ui/secrets/", frontend.GetSecret(s.ui, s.secrets))
-	fer.Handle("/ui/handlers/secret/get", frontend.HTMXHandler(frontend.HandlerGetSecret(s.ui, s.secrets)))
-	fer.Handle("/ui/handlers/secret/create", frontend.HTMXHandler(frontend.HandlerCreateSecret(s.ui, s.secrets)))
+	fer.Handle("/ui/handlers/secret/get", middleware.HTMX(frontend.HandlerGetSecret(s.ui, s.secrets)))
+	fer.Handle("/ui/handlers/secret/create", middleware.HTMX(frontend.HandlerCreateSecret(s.ui, s.secrets)))
 
 	s.router.Handle("/", fer)
 	s.router.Handle("/ui/", fer)
