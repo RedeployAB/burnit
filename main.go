@@ -35,7 +35,7 @@ func run(log *log.Logger) error {
 	}
 
 	var ui frontend.UI
-	if !cfg.Server.BackendOnly {
+	if cfg.Server.BackendOnly == nil || !*cfg.Server.BackendOnly {
 		ui, err = config.SetupUI(cfg.Frontend)
 		if err != nil {
 			return fmt.Errorf("could not setup frontend: %w", err)

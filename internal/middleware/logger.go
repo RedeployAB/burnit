@@ -37,13 +37,28 @@ func (w *loggingResponseWriter) Write(b []byte) (int, error) {
 	return n, err
 }
 
+// LoggerOptions contains the options for the Logger middleware.
+type LoggerOptions struct {
+	Type string
+}
+
+// LoggerOption is a function that sets an option on the Logger middleware.
+type LoggerOption func(o *LoggerOptions)
+
 // Logger is a middleware that logs the incoming request.
-func Logger(log logger) func(next http.Handler) http.Handler {
+func Logger(log logger, options ...LoggerOption) func(next http.Handler) http.Handler {
+	opts := LoggerOptions{
+		Type: "backend",
+	}
+	for _, option := range options {
+		option(&opts)
+	}
+
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			lw := &loggingResponseWriter{ResponseWriter: w}
 			next.ServeHTTP(lw, r)
-			log.Info("Request received.", "status", lw.status, "path", maskSecretHash(r.URL.Path), "method", r.Method, "remoteIp", resolveIP(r))
+			log.Info("Request received.", "type", "request", "component", opts.Type, "status", lw.status, "path", maskSecretHash(r.URL.Path), "method", r.Method, "remoteIp", resolveIP(r))
 		})
 	}
 }

@@ -18,6 +18,7 @@ func (s *server) routes() {
 
 	// Secrets router and handlers.
 	secretsRouter := http.NewServeMux()
+	secretsRouter.Handle("GET /secrets", s.badRequestSecrets())
 	secretsRouter.Handle("GET /secrets/", s.getSecret())
 	secretsRouter.Handle("POST /secrets", s.createSecret())
 	secretsRouter.Handle("DELETE /secrets/", s.deleteSecret())
@@ -29,19 +30,27 @@ func (s *server) routes() {
 	s.router.Handle("/secrets", secretsHandler)
 
 	if s.ui == nil {
+		s.router.Handle("/{$}", s.index())
+		s.router.Handle("/", s.notFound())
 		return
 	}
 
-	s.router.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(s.ui.Static()))))
+	frontendMiddlewares := setupFrontendMiddlewares(s.log)
 
 	fer := http.NewServeMux()
-	fer.Handle("/", frontend.CreateSecret(s.ui, s.secrets))
+	fer.Handle("/ui/secrets", frontend.CreateSecret(s.ui, s.secrets))
 	fer.Handle("/ui/secrets/", frontend.GetSecret(s.ui, s.secrets))
 	fer.Handle("/ui/handlers/secret/get", middleware.HTMX(frontend.HandlerGetSecret(s.ui, s.secrets)))
 	fer.Handle("/ui/handlers/secret/create", middleware.HTMX(frontend.HandlerCreateSecret(s.ui, s.secrets)))
+	fer.Handle("/ui/", frontend.NotFound(s.ui))
 
-	s.router.Handle("/", fer)
-	s.router.Handle("/ui/", fer)
+	frontendHandler := middleware.Chain(fer, frontendMiddlewares...)
+
+	s.router.Handle("/ui/", frontendHandler)
+
+	s.router.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(s.ui.Static()))))
+	s.router.Handle("/{$}", s.index())
+	s.router.Handle("/", s.notFound())
 }
 
 // setupMiddlewares sets up the middlewares for the server.
@@ -62,4 +71,11 @@ func setupMiddlewares(log logger, rl RateLimiter, c CORS) ([]middleware.Middlewa
 		middlewares = append(middlewares, middleware.CORS(c.Origin))
 	}
 	return middlewares, shutdownFuncs
+}
+
+// setupFrontendMiddlewares sets up the middlewares for the frontend.
+func setupFrontendMiddlewares(log logger) []middleware.Middleware {
+	return []middleware.Middleware{middleware.Logger(log, func(o *middleware.LoggerOptions) {
+		o.Type = "frontend"
+	})}
 }

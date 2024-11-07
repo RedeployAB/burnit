@@ -61,7 +61,7 @@ type Server struct {
 	TLS         TLS         `yaml:"tls"`
 	CORS        CORS        `yaml:"cors"`
 	RateLimiter RateLimiter `yaml:"rateLimiter"`
-	BackendOnly bool        `env:"BACKEND_ONLY" yaml:"backendOnly"`
+	BackendOnly *bool       `env:"BACKEND_ONLY" yaml:"backendOnly"`
 }
 
 // MarshalJSON returns the JSON encoding of Server. A custom marshalling method
@@ -80,12 +80,14 @@ func (s Server) MarshalJSON() ([]byte, error) {
 		TLS         *TLS         `json:",omitempty"`
 		CORS        *CORS        `json:",omitempty"`
 		RateLimiter *RateLimiter `json:",omitempty"`
+		BackendOnly *bool        `json:",omitempty"`
 	}{
 		Host:        s.Host,
 		Port:        s.Port,
 		TLS:         &s.TLS,
 		CORS:        &s.CORS,
 		RateLimiter: rateLimiter,
+		BackendOnly: s.BackendOnly,
 	})
 }
 

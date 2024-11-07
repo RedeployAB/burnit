@@ -3,10 +3,12 @@ package server
 import (
 	"errors"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/RedeployAB/burnit/internal/api"
 	"github.com/RedeployAB/burnit/internal/secret"
+	"github.com/RedeployAB/burnit/internal/version"
 )
 
 const (
@@ -14,9 +16,52 @@ const (
 	contentType = "Content-Type"
 	// contentTypeJSON is the content type for JSON.
 	contentTypeJSON = "application/json; charset=UTF-8"
+	// contentTypeHTML is the content type for HTML.
+	contentTypeHTML = "text/html"
 	// contentTypeText is the content type for text.
 	contentTypeText = "text/plain"
 )
+
+// index returns a handler for handling the index route.
+func (s server) index() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.Header.Get("Accept"), contentTypeHTML) && s.ui != nil {
+			http.Redirect(w, r, "/ui/secrets", http.StatusMovedPermanently)
+			return
+		}
+
+		if err := encode(w, http.StatusOK, api.Index{
+			Name:    "burnit",
+			Version: version.Version(),
+			Endpoints: []string{
+				"/secret",
+				"/secrets",
+			},
+		}); err != nil {
+			s.log.Error("Failed to encode response.", "error", err)
+			writeServerError(w)
+			return
+		}
+	})
+}
+
+// notFound returns a handler for handling not found routes.
+func (s server) notFound() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.Header.Get("Accept"), contentTypeHTML) && s.ui != nil {
+			s.ui.Render(w, http.StatusNotFound, "not-found", nil)
+			return
+		}
+		writeError(w, http.StatusNotFound, errors.New("not found"))
+	})
+}
+
+// badRequestSecrets returns a handler for handling bad requests for secrets.
+func (s server) badRequestSecrets() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		writeError(w, http.StatusBadRequest, errors.New("secret ID is required"))
+	})
+}
 
 // generateSecret generates a new secret.
 func (s server) generateSecret() http.Handler {

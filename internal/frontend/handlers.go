@@ -17,6 +17,20 @@ type secretService interface {
 	Delete(id string, options ...secret.DeleteOption) error
 }
 
+// Index handles requests to the index route.
+func Index() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/ui/secrets", http.StatusMovedPermanently)
+	})
+}
+
+// NotFound handles requests to not found routes.
+func NotFound(ui UI) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ui.Render(w, http.StatusNotFound, "not-found", nil)
+	})
+}
+
 // CreateSecret handles requests to create a secret.
 func CreateSecret(ui UI, secrets secretService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

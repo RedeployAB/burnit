@@ -131,6 +131,8 @@ func (u ui) Render(w http.ResponseWriter, statusCode int, tmpl string, data any,
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		w.WriteHeader(statusCode)
 		if err := t.ExecuteTemplate(w, execTemplate, data); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -138,6 +140,7 @@ func (u ui) Render(w http.ResponseWriter, statusCode int, tmpl string, data any,
 		return
 	}
 
+	w.WriteHeader(statusCode)
 	if err := u.templates[tmpl].ExecuteTemplate(w, execTemplate, data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
