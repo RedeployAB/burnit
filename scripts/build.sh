@@ -1,5 +1,6 @@
 #!/bin/bash
-bin="burnit"
+bin=burnit
+module_path=github.com/RedeployAB/$bin
 os=linux
 arch=amd64
 build_root=build/
@@ -48,7 +49,7 @@ fi
 
 CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build \
   -o $bin_path \
-  -ldflags="-s -w" \
+  -ldflags="-s -w -X '$module_path/internal/version.version=$version'" \
   -trimpath main.go
 
 if [ $container -eq 1 ] && [ "$os" == "linux" ]; then
