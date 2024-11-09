@@ -3,13 +3,9 @@ package middleware
 import (
 	"net/http"
 	"strings"
-)
 
-// logger is an interface for logging.
-type logger interface {
-	Error(msg string, args ...any)
-	Info(msg string, args ...any)
-}
+	"github.com/RedeployAB/burnit/internal/log"
+)
 
 // loggingResponseWriter is a wrapper around an http.ResponseWriter that keeps
 // track of the status code and length of the response.
@@ -46,7 +42,7 @@ type LoggerOptions struct {
 type LoggerOption func(o *LoggerOptions)
 
 // Logger is a middleware that logs the incoming request.
-func Logger(log logger, options ...LoggerOption) func(next http.Handler) http.Handler {
+func Logger(log log.Logger, options ...LoggerOption) func(next http.Handler) http.Handler {
 	opts := LoggerOptions{
 		Type: "backend",
 	}

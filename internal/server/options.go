@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/RedeployAB/burnit/internal/frontend"
+	"github.com/RedeployAB/burnit/internal/log"
 )
 
 // WithOptions configures the server with the given Options.
@@ -42,7 +43,7 @@ func WithOptions(options Options) Option {
 }
 
 // WithLogger configures the server with the given logger.
-func WithLogger(log logger) Option {
+func WithLogger(log log.Logger) Option {
 	return func(s *server) {
 		if log != nil {
 			s.log = log

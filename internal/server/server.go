@@ -24,19 +24,13 @@ const (
 	defaultIdleTimeout  = 30 * time.Second
 )
 
-// logger is an interface for logging.
-type logger interface {
-	Error(msg string, args ...any)
-	Info(msg string, args ...any)
-}
-
 // server holds an http.Server, a router and it's configured options.
 type server struct {
 	httpServer    *http.Server
 	router        *router
 	secrets       secret.Service
 	ui            frontend.UI
-	log           logger
+	log           log.Logger
 	tls           TLSConfig
 	rateLimiter   RateLimiter
 	cors          CORS
@@ -82,7 +76,7 @@ func (c CORS) isEmpty() bool {
 // Options holds the configuration for the server.
 type Options struct {
 	Router       *router
-	Logger       logger
+	Logger       log.Logger
 	Host         string
 	Port         int
 	TLS          TLSConfig
