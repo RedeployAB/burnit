@@ -9,7 +9,7 @@ import (
 
 // routes sets up the routes for the server.
 func (s *server) routes() {
-	middlewares, shutdownFuncs := setupMiddlewares(s.log, s.rateLimiter, s.cors)
+	middlewares, shutdownFuncs := setupMiddlewares(s.log, s.rateLimiter, s.cors, !s.tls.isEmpty())
 	s.shutdownFuncs = append(s.shutdownFuncs, shutdownFuncs...)
 
 	// Secret router and handlers.
@@ -35,7 +35,7 @@ func (s *server) routes() {
 		return
 	}
 
-	frontendMiddlewares := setupFrontendMiddlewares(s.log)
+	frontendMiddlewares := setupFrontendMiddlewares(s.log, s.ui.ContentSecurityPolicy(), !s.tls.isEmpty())
 
 	fer := http.NewServeMux()
 	fer.Handle("/ui/secrets", frontend.CreateSecret(s.ui, s.secrets))
@@ -48,13 +48,21 @@ func (s *server) routes() {
 
 	s.router.Handle("/ui/", frontendHandler)
 
-	s.router.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(s.ui.Static()))))
-	s.router.Handle("/{$}", s.index())
-	s.router.Handle("/", s.notFound())
+	s.router.Handle("/static/", middleware.Logger(s.log, func(o *middleware.LoggerOptions) {
+		o.Type = "static"
+	})(http.StripPrefix("/static/", http.FileServer(http.FS(s.ui.Static())))))
+
+	s.router.Handle("/{$}", middleware.Logger(s.log, func(o *middleware.LoggerOptions) {
+		o.Type = "index"
+	})(s.index()))
+
+	s.router.Handle("/", middleware.Logger(s.log, func(o *middleware.LoggerOptions) {
+		o.Type = "not-found"
+	})(s.notFound()))
 }
 
 // setupMiddlewares sets up the middlewares for the server.
-func setupMiddlewares(log logger, rl RateLimiter, c CORS) ([]middleware.Middleware, []func() error) {
+func setupMiddlewares(log logger, rl RateLimiter, c CORS, tls bool) ([]middleware.Middleware, []func() error) {
 	middlewares := []middleware.Middleware{middleware.Logger(log)}
 	var shutdownFuncs []func() error
 	if !rl.isEmpty() {
@@ -70,12 +78,22 @@ func setupMiddlewares(log logger, rl RateLimiter, c CORS) ([]middleware.Middlewa
 	if !c.isEmpty() {
 		middlewares = append(middlewares, middleware.CORS(c.Origin))
 	}
+	middlewares = append(middlewares, middleware.Headers(func(o *middleware.HeadersOptions) {
+		o.CacheControl = "no-store"
+		o.TLS = tls
+	}))
 	return middlewares, shutdownFuncs
 }
 
 // setupFrontendMiddlewares sets up the middlewares for the frontend.
-func setupFrontendMiddlewares(log logger) []middleware.Middleware {
-	return []middleware.Middleware{middleware.Logger(log, func(o *middleware.LoggerOptions) {
+func setupFrontendMiddlewares(log logger, contentSecurityPolicy string, tls bool) []middleware.Middleware {
+	middlewares := []middleware.Middleware{middleware.Logger(log, func(o *middleware.LoggerOptions) {
 		o.Type = "frontend"
 	})}
+	middlewares = append(middlewares, middleware.Headers(func(o *middleware.HeadersOptions) {
+		o.CacheControl = "no-store"
+		o.ContentSecurityPolicy = contentSecurityPolicy
+		o.TLS = tls
+	}))
+	return middlewares
 }

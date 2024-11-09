@@ -8,6 +8,7 @@ import (
 func SetupUI(config Frontend) (frontend.UI, error) {
 	var templatesDir, staticDir string
 	var runtimeRender bool
+
 	if config.RuntimeRender != nil && *config.RuntimeRender {
 		templatesDir = defaultFrontendRuntimeRenderTemplateDir
 		staticDir = defaultFrontendRuntimeRenderStaticDir
