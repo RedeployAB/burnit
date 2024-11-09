@@ -40,8 +40,8 @@ func TestHeaders(t *testing.T) {
 				req: httptest.NewRequest("GET", "/", nil),
 				options: []HeadersOption{
 					func(o *HeadersOptions) {
-						o.CacheControl = true
-						o.ContentSecurityPolicy = true
+						o.CacheControl = "no-store"
+						o.ContentSecurityPolicy = "default-src 'self';"
 						o.TLS = true
 					},
 				},
@@ -50,8 +50,8 @@ func TestHeaders(t *testing.T) {
 				"X-Content-Type-Options":    []string{"nosniff"},
 				"X-Frame-Options":           []string{"DENY"},
 				"Cache-Control":             []string{"no-store"},
-				"Content-Security-Policy":   []string{"default-src 'self'; script-src 'self'; style-src 'self';"},
-				"Strict-Transport-Security": []string{"max-age=31536000; includeSubDomains"},
+				"Content-Security-Policy":   []string{"default-src 'self';"},
+				"Strict-Transport-Security": []string{"max-age=31536000"},
 			},
 		},
 	}

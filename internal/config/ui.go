@@ -4,19 +4,27 @@ import (
 	"github.com/RedeployAB/burnit/internal/frontend"
 )
 
+const (
+	// defaultContentSecurityPolicy is the default content security policy for the frontend UI.
+	defaultContentSecurityPolicy = "default-src 'self;"
+)
+
 // SetupUI sets up the frontend UI.
 func SetupUI(config Frontend) (frontend.UI, error) {
-	var templatesDir, staticDir string
+	var templatesDir, staticDir, contentSecurityPolicy string
 	var runtimeRender bool
+	contentSecurityPolicy = defaultContentSecurityPolicy
 	if config.RuntimeRender != nil && *config.RuntimeRender {
 		templatesDir = defaultFrontendRuntimeRenderTemplateDir
 		staticDir = defaultFrontendRuntimeRenderStaticDir
 		runtimeRender = true
+		contentSecurityPolicy = ""
 	}
 
 	return frontend.NewUI(func(o *frontend.UIOptions) {
 		o.RuntimeRender = runtimeRender
 		o.TemplateDir = templatesDir
 		o.StaticDir = staticDir
+		o.ContentSecurityPolicy = contentSecurityPolicy
 	})
 }

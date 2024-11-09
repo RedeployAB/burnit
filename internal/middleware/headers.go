@@ -4,8 +4,8 @@ import "net/http"
 
 // HeadersOptions represents the options for the Headers middleware.
 type HeadersOptions struct {
-	CacheControl          bool
-	ContentSecurityPolicy bool
+	ContentSecurityPolicy string
+	CacheControl          string
 	TLS                   bool
 }
 
@@ -24,15 +24,16 @@ func Headers(options ...HeadersOption) func(next http.Handler) http.Handler {
 			w.Header().Set("X-Content-Type-Options", "nosniff")
 			w.Header().Set("X-Frame-Options", "DENY")
 
-			if opts.CacheControl {
-				w.Header().Set("Cache-Control", "no-store")
+			if len(opts.CacheControl) > 0 {
+				w.Header().Set("Cache-Control", opts.CacheControl)
 			}
-			if opts.ContentSecurityPolicy {
-				w.Header().Set("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self';")
+			if len(opts.ContentSecurityPolicy) > 0 {
+				w.Header().Set("Content-Security-Policy", opts.ContentSecurityPolicy)
 			}
 			if opts.TLS {
-				w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+				w.Header().Set("Strict-Transport-Security", "max-age=31536000")
 			}
+			next.ServeHTTP(w, r)
 		})
 	}
 }

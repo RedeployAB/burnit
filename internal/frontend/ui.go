@@ -31,21 +31,24 @@ const (
 type UI interface {
 	Render(w http.ResponseWriter, statusCode int, tmpl string, data any, options ...RenderOption)
 	Static() fs.FS
+	ContentSecurityPolicy() string
 }
 
 // ui is a user interface handler.
 type ui struct {
-	templates     map[string]*template.Template
-	templateDir   string
-	staticFS      fs.FS
-	runtimeRender bool
+	templates             map[string]*template.Template
+	templateDir           string
+	contentSecurityPolicy string
+	staticFS              fs.FS
+	runtimeRender         bool
 }
 
 // UIOptions is a configuration for the UI.
 type UIOptions struct {
-	TemplateDir   string
-	StaticDir     string
-	RuntimeRender bool
+	TemplateDir           string
+	StaticDir             string
+	ContentSecurityPolicy string
+	RuntimeRender         bool
 }
 
 // UIOption is a function that configures the UI.
@@ -53,15 +56,18 @@ type UIOption func(o *UIOptions)
 
 // New returns a new UI.
 func NewUI(options ...UIOption) (*ui, error) {
-	opts := UIOptions{}
+	opts := UIOptions{
+		ContentSecurityPolicy: "default-src 'self';",
+	}
 	for _, option := range options {
 		option(&opts)
 	}
 
 	ui := &ui{
-		templates:     make(map[string]*template.Template),
-		templateDir:   opts.TemplateDir,
-		runtimeRender: opts.RuntimeRender,
+		templates:             make(map[string]*template.Template),
+		templateDir:           opts.TemplateDir,
+		runtimeRender:         opts.RuntimeRender,
+		contentSecurityPolicy: opts.ContentSecurityPolicy,
 	}
 
 	if err := ui.addTemplates(templateFS, defaultTemplateDir, true); err != nil {
@@ -150,6 +156,11 @@ func (u ui) Render(w http.ResponseWriter, statusCode int, tmpl string, data any,
 // Static returns the static file system.
 func (u ui) Static() fs.FS {
 	return u.staticFS
+}
+
+// ContentSecurityPolicy returns the content security policy.
+func (u ui) ContentSecurityPolicy() string {
+	return u.contentSecurityPolicy
 }
 
 // trimExtension trims the extension from a file name.
