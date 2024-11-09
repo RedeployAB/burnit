@@ -27,6 +27,11 @@ const (
 	defaultStaticDir = "static"
 )
 
+const (
+	// defaultContentSecurityPolicy is the default content security policy for the frontend UI.
+	defaultContentSecurityPolicy = "default-src 'self;"
+)
+
 // UI is an interface for rendering templates.
 type UI interface {
 	Render(w http.ResponseWriter, statusCode int, tmpl string, data any, options ...RenderOption)
@@ -45,10 +50,9 @@ type ui struct {
 
 // UIOptions is a configuration for the UI.
 type UIOptions struct {
-	TemplateDir           string
-	StaticDir             string
-	ContentSecurityPolicy string
-	RuntimeRender         bool
+	TemplateDir   string
+	StaticDir     string
+	RuntimeRender bool
 }
 
 // UIOption is a function that configures the UI.
@@ -56,9 +60,7 @@ type UIOption func(o *UIOptions)
 
 // New returns a new UI.
 func NewUI(options ...UIOption) (*ui, error) {
-	opts := UIOptions{
-		ContentSecurityPolicy: "default-src 'self';",
-	}
+	opts := UIOptions{}
 	for _, option := range options {
 		option(&opts)
 	}
@@ -67,7 +69,7 @@ func NewUI(options ...UIOption) (*ui, error) {
 		templates:             make(map[string]*template.Template),
 		templateDir:           opts.TemplateDir,
 		runtimeRender:         opts.RuntimeRender,
-		contentSecurityPolicy: opts.ContentSecurityPolicy,
+		contentSecurityPolicy: defaultContentSecurityPolicy,
 	}
 
 	if err := ui.addTemplates(templateFS, defaultTemplateDir, true); err != nil {
@@ -160,6 +162,9 @@ func (u ui) Static() fs.FS {
 
 // ContentSecurityPolicy returns the content security policy.
 func (u ui) ContentSecurityPolicy() string {
+	if u.runtimeRender {
+		return ""
+	}
 	return u.contentSecurityPolicy
 }
 

@@ -11,20 +11,18 @@ const (
 
 // SetupUI sets up the frontend UI.
 func SetupUI(config Frontend) (frontend.UI, error) {
-	var templatesDir, staticDir, contentSecurityPolicy string
+	var templatesDir, staticDir string
 	var runtimeRender bool
-	contentSecurityPolicy = defaultContentSecurityPolicy
+
 	if config.RuntimeRender != nil && *config.RuntimeRender {
 		templatesDir = defaultFrontendRuntimeRenderTemplateDir
 		staticDir = defaultFrontendRuntimeRenderStaticDir
 		runtimeRender = true
-		contentSecurityPolicy = ""
 	}
 
 	return frontend.NewUI(func(o *frontend.UIOptions) {
 		o.RuntimeRender = runtimeRender
 		o.TemplateDir = templatesDir
 		o.StaticDir = staticDir
-		o.ContentSecurityPolicy = contentSecurityPolicy
 	})
 }
