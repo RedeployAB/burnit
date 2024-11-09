@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"errors"
-	"log/slog"
 	"net/http"
 	"os"
 	"strconv"
@@ -89,7 +88,7 @@ func TestNew(t *testing.T) {
 				t.Errorf("New(%v) = nil; want %v", test.input, test.want)
 			}
 
-			if diff := cmp.Diff(test.want, got, cmp.AllowUnexported(server{}, mockSecretService{}), cmpopts.IgnoreUnexported(http.Server{}, http.ServeMux{}, slog.Logger{}, log.Logger{}), cmpopts.IgnoreFields(server{}, "stopCh", "errCh")); diff != "" {
+			if diff := cmp.Diff(test.want, got, cmp.AllowUnexported(server{}, mockSecretService{}), cmpopts.IgnoreUnexported(http.Server{}, http.ServeMux{}), cmpopts.IgnoreFields(server{}, "stopCh", "errCh", "log")); diff != "" {
 				t.Errorf("New(%v) = unexpected result (-want +got):\n%s\n", test.input, diff)
 			}
 		})
@@ -214,3 +213,7 @@ func (l *mockLogger) Error(msg string, args ...any) {
 	}
 	*l.logs = append(*l.logs, messages...)
 }
+
+func (l *mockLogger) Debug(msg string, args ...any) {}
+
+func (l *mockLogger) Warn(msg string, args ...any) {}

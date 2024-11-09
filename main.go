@@ -21,7 +21,7 @@ func main() {
 }
 
 // run the application.
-func run(log *log.Logger) error {
+func run(log log.Logger) error {
 	log.Info("Starting service.", "version", version.Version())
 	cfg, err := config.New()
 	if err != nil {

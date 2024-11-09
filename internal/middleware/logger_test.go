@@ -116,3 +116,7 @@ func (l *mockLogger) Error(msg string, args ...any) {
 	}
 	*l.logs = append(*l.logs, messages...)
 }
+
+func (l *mockLogger) Debug(msg string, args ...any) {}
+
+func (l *mockLogger) Warn(msg string, args ...any) {}
