@@ -2,7 +2,6 @@ package secret
 
 import (
 	"context"
-	"encoding/base64"
 	"errors"
 	"testing"
 	"time"
@@ -107,7 +106,7 @@ func TestService_Get(t *testing.T) {
 						{
 							ID: "1",
 							Value: func() string {
-								v, _, _ := encrypt("secret", "key")
+								v, _ := encrypt("secret", "key")
 								return v
 							}(),
 							ExpiresAt: now().Add(1 * time.Hour),
@@ -146,7 +145,7 @@ func TestService_Get(t *testing.T) {
 						{
 							ID: "1",
 							Value: func() string {
-								v, _, _ := encrypt("secret", "key")
+								v, _ := encrypt("secret", "key")
 								return v
 							}(),
 							ExpiresAt: now().Add(-1 * time.Hour),
@@ -226,11 +225,10 @@ func TestService_Create(t *testing.T) {
 				id: "2",
 			},
 			want: Secret{
-				ID:             "2",
-				Passphrase:     "key",
-				PassphraseHash: base64.RawURLEncoding.EncodeToString(toSHA256([]byte("key"))),
-				TTL:            time.Until(n.Add(defaultTTL)).Round(time.Minute),
-				ExpiresAt:      n.Add(defaultTTL),
+				ID:         "2",
+				Passphrase: "key",
+				TTL:        time.Until(n.Add(defaultTTL)).Round(time.Minute),
+				ExpiresAt:  n.Add(defaultTTL),
 			},
 		},
 		{
@@ -414,91 +412,6 @@ func TestService_DeleteExpired(t *testing.T) {
 
 			if diff := cmp.Diff(test.wantErr, gotErr, cmpopts.EquateErrors()); diff != "" {
 				t.Errorf("DeleteExpired() = unexpected error (-want +got)\n%s\n", diff)
-			}
-		})
-	}
-}
-
-func TestDecodeBase64SHA256(t *testing.T) {
-	var tests = []struct {
-		name  string
-		input struct {
-			sha256   []byte
-			encoding *base64.Encoding
-		}
-		want    []byte
-		wantErr error
-	}{
-		{
-			name: "decode base64 standard encoding SHA-256",
-			input: struct {
-				sha256   []byte
-				encoding *base64.Encoding
-			}{
-				sha256:   toSHA256([]byte("key")),
-				encoding: base64.StdEncoding,
-			},
-			want: toSHA256([]byte("key")),
-		},
-		{
-			name: "decode base64 raw standard encoding SHA-256",
-			input: struct {
-				sha256   []byte
-				encoding *base64.Encoding
-			}{
-				sha256:   toSHA256([]byte("key")),
-				encoding: base64.RawStdEncoding,
-			},
-			want: toSHA256([]byte("key")),
-		},
-		{
-			name: "decode base64 URL encoding SHA-256",
-			input: struct {
-				sha256   []byte
-				encoding *base64.Encoding
-			}{
-				sha256:   toSHA256([]byte("key")),
-				encoding: base64.URLEncoding,
-			},
-			want: toSHA256([]byte("key")),
-		},
-		{
-			name: "decode base64 raw URL encoding SHA-256",
-			input: struct {
-				sha256   []byte
-				encoding *base64.Encoding
-			}{
-				sha256:   toSHA256([]byte("key")),
-				encoding: base64.RawURLEncoding,
-			},
-			want: toSHA256([]byte("key")),
-		},
-
-		{
-			name: "decode base64 - error",
-			input: struct {
-				sha256   []byte
-				encoding *base64.Encoding
-			}{
-				sha256:   []byte("key"),
-				encoding: base64.RawURLEncoding,
-			},
-			wantErr: ErrInvalidPassphrase,
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			hash := test.input.encoding.EncodeToString(test.input.sha256)
-
-			got, gotErr := decodeBase64SHA256(hash)
-
-			if diff := cmp.Diff(test.want, got); diff != "" {
-				t.Errorf("decodeBase64SHA256() = unexpected result (-want +got)\n%s\n", diff)
-			}
-
-			if diff := cmp.Diff(test.wantErr, gotErr, cmpopts.EquateErrors()); diff != "" {
-				t.Errorf("decodeBase64SHA256() = unexpected error (-want +got)\n%s\n", diff)
 			}
 		})
 	}

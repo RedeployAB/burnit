@@ -89,6 +89,12 @@ func (s server) getSecret() http.Handler {
 			writeError(w, http.StatusNotFound, err)
 			return
 		}
+
+		if len(id) == 0 {
+			writeError(w, http.StatusBadRequest, errors.New("secret ID is required"))
+			return
+		}
+
 		if len(passphrase) == 0 {
 			p := r.Header.Get("Passphrase")
 			passphrase, err = decodeBase64(p)
@@ -208,7 +214,6 @@ func toAPISecret(s *secret.Secret) api.Secret {
 	return api.Secret{
 		ID:         s.ID,
 		Passphrase: s.Passphrase,
-		Path:       "/secrets/" + s.ID + "/" + s.PassphraseHash,
 		TTL:        s.TTL.String(),
 		ExpiresAt:  expiresAt,
 	}

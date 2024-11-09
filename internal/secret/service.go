@@ -2,12 +2,9 @@ package secret
 
 import (
 	"context"
-	"crypto/sha256"
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"regexp"
-	"strings"
 	"time"
 	"unicode/utf8"
 
@@ -194,7 +191,7 @@ func (s service) Create(secret Secret) (Secret, error) {
 		passphrase = generate(defaultPassphraseLength, true)
 	}
 
-	encrypted, hash, err := encrypt(secret.Value, passphrase)
+	encrypted, err := encrypt(secret.Value, passphrase)
 	if err != nil {
 		return Secret{}, err
 	}
@@ -209,11 +206,10 @@ func (s service) Create(secret Secret) (Secret, error) {
 	}
 
 	return Secret{
-		ID:             dbSecret.ID,
-		Passphrase:     passphrase,
-		PassphraseHash: hash,
-		TTL:            time.Until(dbSecret.ExpiresAt).Round(time.Minute),
-		ExpiresAt:      dbSecret.ExpiresAt,
+		ID:         dbSecret.ID,
+		Passphrase: passphrase,
+		TTL:        time.Until(dbSecret.ExpiresAt).Round(time.Minute),
+		ExpiresAt:  dbSecret.ExpiresAt,
 	}, nil
 }
 
@@ -297,13 +293,12 @@ func expirationTime(ttl time.Duration, expiresAt time.Time) (time.Time, error) {
 
 // encrypt a value using a key and returns the encrypted value
 // as a base64 encoded string and the hash as a base64 raw url encoded string.
-func encrypt(value string, key string) (string, string, error) {
-	hash := toSHA256([]byte(key))
-	encrypted, err := security.Encrypt([]byte(value), hash)
+func encrypt(value, key string) (string, error) {
+	encrypted, err := security.Encrypt([]byte(value), security.SHA256([]byte(key)))
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
-	return base64.StdEncoding.EncodeToString(encrypted), base64.RawURLEncoding.EncodeToString(hash), nil
+	return base64.StdEncoding.EncodeToString(encrypted), nil
 }
 
 // decrypt a value using a key and returns the decrypted value
@@ -314,9 +309,9 @@ func decrypt(value, key string) (string, error) {
 		return "", err
 	}
 
-	hash, err := decodeBase64SHA256(key)
+	hash, err := security.DecodeBase64SHA256(key)
 	if err != nil {
-		hash = toSHA256([]byte(key))
+		hash = security.SHA256([]byte(key))
 	}
 
 	decrypted, err := security.Decrypt(decoded, hash)
@@ -324,42 +319,6 @@ func decrypt(value, key string) (string, error) {
 		return "", err
 	}
 	return string(decrypted), nil
-}
-
-// toSHA256 hashes the given data using SHA-256.
-func toSHA256(data []byte) []byte {
-	hasher := sha256.New()
-	hasher.Write(data)
-	return hasher.Sum(nil)
-}
-
-// decodeBase64SHA256 decodes a base64 SHA-256 hash and returns the decoded
-// value as a byte slice. Supports both standard and URL (safe) encoding, both
-// with and without padding.
-func decodeBase64SHA256(hash string) ([]byte, error) {
-	if len(hash) < 43 || len(hash) > 44 {
-		return nil, ErrInvalidPassphrase
-	}
-
-	hash = strings.Replace(hash, "=", "", -1)
-	var encoding *base64.Encoding
-	re := regexp.MustCompile(`[/+]`)
-	if !re.MatchString(hash) {
-		encoding = base64.RawURLEncoding
-	} else {
-		encoding = base64.RawStdEncoding
-	}
-
-	dst := make([]byte, encoding.DecodedLen(len(hash)))
-	n, err := encoding.Decode(dst, []byte(hash))
-	if err != nil {
-		switch err.(type) {
-		case base64.CorruptInputError:
-			return nil, ErrInvalidPassphrase
-		}
-		return nil, err
-	}
-	return dst[:n], nil
 }
 
 // now returns the current time.

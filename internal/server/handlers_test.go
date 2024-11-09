@@ -358,7 +358,7 @@ func TestServer_createSecret(t *testing.T) {
 				body   []byte
 			}{
 				status: http.StatusCreated,
-				body:   []byte(`{"id":"1","passphrase":"passphrase","path":"/secrets/1/hash","ttl":"1h0m0s"}` + "\n"),
+				body:   []byte(`{"id":"1","passphrase":"passphrase","ttl":"1h0m0s"}` + "\n"),
 			},
 		},
 		{
@@ -500,7 +500,7 @@ func (s *mockSecretService) Create(se secret.Secret) (secret.Secret, error) {
 		id = strconv.Itoa(lastNum)
 	}
 
-	secret := secret.Secret{ID: id, Value: se.Value, Passphrase: "passphrase", PassphraseHash: "hash", TTL: se.TTL}
+	secret := secret.Secret{ID: id, Value: se.Value, Passphrase: "passphrase", TTL: se.TTL}
 	s.secrets = append(s.secrets, secret)
 	return secret, nil
 }

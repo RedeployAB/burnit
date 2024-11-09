@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/RedeployAB/burnit/internal/secret"
+	"github.com/RedeployAB/burnit/internal/security"
 )
 
 var (
@@ -71,6 +72,8 @@ var errorCodeMaps = map[int][]error{
 		ErrMalformedRequest,
 		secret.ErrInvalidExpirationTime,
 		secret.ErrSecretValueTooLarge,
+		security.ErrInvalidHashLength,
+		security.ErrInvalidBase64,
 	},
 	http.StatusUnauthorized: {
 		secret.ErrInvalidPassphrase,
