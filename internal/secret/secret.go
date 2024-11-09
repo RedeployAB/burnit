@@ -17,12 +17,11 @@ const (
 
 // Secret contains the secret data.
 type Secret struct {
-	ID             string
-	Value          string
-	Passphrase     string
-	PassphraseHash string
-	TTL            time.Duration
-	ExpiresAt      time.Time
+	ID         string
+	Value      string
+	Passphrase string
+	TTL        time.Duration
+	ExpiresAt  time.Time
 }
 
 // Generate new secret. The length of the secret is set by the provided

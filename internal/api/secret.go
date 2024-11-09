@@ -10,7 +10,6 @@ type Secret struct {
 	ID         string `json:"id,omitempty"`
 	Value      string `json:"value,omitempty"`
 	Passphrase string `json:"passphrase,omitempty"`
-	Path       string `json:"path,omitempty"`
 	TTL        string `json:"ttl,omitempty"`
 	ExpiresAt  *Time  `json:"expiresAt,omitempty"`
 }

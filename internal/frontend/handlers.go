@@ -1,6 +1,7 @@
 package frontend
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 	"time"
 
 	"github.com/RedeployAB/burnit/internal/secret"
+	"github.com/RedeployAB/burnit/internal/security"
 )
 
 // secretService is an interface for the secret service.
@@ -105,7 +107,7 @@ func HandlerCreateSecret(ui UI, secrets secretService) http.Handler {
 			BaseURL:        baseURL,
 			ID:             secret.ID,
 			Passphrase:     secret.Passphrase,
-			PassphraseHash: secret.PassphraseHash,
+			PassphraseHash: base64.RawURLEncoding.EncodeToString(security.SHA256([]byte(secret.Passphrase))),
 		}
 
 		ui.Render(w, http.StatusCreated, "partial-secret-created", response, WithPartial())
