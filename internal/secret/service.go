@@ -149,7 +149,7 @@ func (s service) Get(id, passphrase string, options ...GetOption) (Secret, error
 		return Secret{}, ErrSecretNotFound
 	}
 
-	decrypted, err := decrypt(dbSecret.Value, passphrase, opts.PassphrasHashed)
+	decrypted, err := decrypt(dbSecret.Value, passphrase, opts.PassphraseHashed)
 	if err != nil {
 		if errors.Is(err, security.ErrInvalidKey) {
 			return Secret{}, ErrInvalidPassphrase
