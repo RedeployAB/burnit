@@ -52,7 +52,7 @@ func TestDecodeBase64(t *testing.T) {
 			want: "key",
 		},
 		{
-			name: "decode base64 raw URL encoding SHA-256",
+			name: "decode base64 raw URL encoding",
 			input: struct {
 				s        []byte
 				encoding *base64.Encoding
