@@ -50,8 +50,6 @@ func GetSecret(ui UI, secrets secretService, log log.Logger) http.Handler {
 			return
 		}
 
-		// Handle empty id.
-
 		if len(passphrase) == 0 {
 			ui.Render(w, http.StatusUnauthorized, "secret-get", secretGetResponse{ID: id})
 			return
