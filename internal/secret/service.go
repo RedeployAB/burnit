@@ -218,6 +218,7 @@ func (s service) Create(secret Secret) (Secret, error) {
 type DeleteOptions struct {
 	Passphrase       string
 	VerifyPassphrase bool
+	PassphraseHashed bool
 }
 
 // DeleteOption is a function that sets options for deleting a secret.
@@ -234,7 +235,9 @@ func (s service) Delete(id string, options ...DeleteOption) error {
 	defer cancel()
 
 	if opts.VerifyPassphrase {
-		_, err := s.Get(id, opts.Passphrase)
+		_, err := s.Get(id, opts.Passphrase, func(o *GetOptions) {
+			o.PassphrasHashed = opts.PassphraseHashed
+		})
 		if err != nil {
 			return err
 		}
