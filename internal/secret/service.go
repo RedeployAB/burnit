@@ -116,7 +116,8 @@ func (s service) Generate(length int, specialCharacters bool) string {
 
 // GetOptions contains options for getting a secret.
 type GetOptions struct {
-	NoDelete bool
+	NoDelete        bool
+	PassphrasHashed bool
 }
 
 // GetOption is a function that sets options for getting a secret.
@@ -148,7 +149,7 @@ func (s service) Get(id, passphrase string, options ...GetOption) (Secret, error
 		return Secret{}, ErrSecretNotFound
 	}
 
-	decrypted, err := decrypt(dbSecret.Value, passphrase)
+	decrypted, err := decrypt(dbSecret.Value, passphrase, opts.PassphrasHashed)
 	if err != nil {
 		if errors.Is(err, security.ErrInvalidKey) {
 			return Secret{}, ErrInvalidPassphrase
@@ -303,15 +304,17 @@ func encrypt(value, key string) (string, error) {
 
 // decrypt a value using a key and returns the decrypted value
 // as a string.
-func decrypt(value, key string) (string, error) {
+func decrypt(value, key string, hashed bool) (string, error) {
 	decoded, err := base64.StdEncoding.DecodeString(value)
 	if err != nil {
 		return "", err
 	}
 
-	hash, err := security.DecodeBase64SHA256(key)
-	if err != nil {
+	var hash []byte
+	if !hashed {
 		hash = security.SHA256([]byte(key))
+	} else {
+		hash = []byte(key)
 	}
 
 	decrypted, err := security.Decrypt(decoded, hash)
