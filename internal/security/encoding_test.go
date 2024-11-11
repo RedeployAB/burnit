@@ -8,79 +8,67 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
-func TestDecodeBase64SHA256(t *testing.T) {
+func TestDecodeBase64(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input struct {
-			sha256   []byte
+			s        []byte
 			encoding *base64.Encoding
 		}
-		want    []byte
+		want    string
 		wantErr error
 	}{
 		{
-			name: "decode base64 standard encoding SHA-256",
+			name: "decode base64 standard encoding",
 			input: struct {
-				sha256   []byte
+				s        []byte
 				encoding *base64.Encoding
 			}{
-				sha256:   SHA256([]byte("key")),
+				s:        []byte("key"),
 				encoding: base64.StdEncoding,
 			},
-			want: SHA256([]byte("key")),
+			want: "key",
 		},
 		{
-			name: "decode base64 raw standard encoding SHA-256",
+			name: "decode base64 raw standard encoding",
 			input: struct {
-				sha256   []byte
+				s        []byte
 				encoding *base64.Encoding
 			}{
-				sha256:   SHA256([]byte("key")),
+				s:        []byte("key"),
 				encoding: base64.RawStdEncoding,
 			},
-			want: SHA256([]byte("key")),
+			want: "key",
 		},
 		{
-			name: "decode base64 URL encoding SHA-256",
+			name: "decode base64 URL encoding",
 			input: struct {
-				sha256   []byte
+				s        []byte
 				encoding *base64.Encoding
 			}{
-				sha256:   SHA256([]byte("key")),
+				s:        []byte("key"),
 				encoding: base64.URLEncoding,
 			},
-			want: SHA256([]byte("key")),
+			want: "key",
 		},
 		{
-			name: "decode base64 raw URL encoding SHA-256",
+			name: "decode base64 raw URL encoding",
 			input: struct {
-				sha256   []byte
+				s        []byte
 				encoding *base64.Encoding
 			}{
-				sha256:   SHA256([]byte("key")),
+				s:        []byte("key"),
 				encoding: base64.RawURLEncoding,
 			},
-			want: SHA256([]byte("key")),
-		},
-
-		{
-			name: "decode base64 - error",
-			input: struct {
-				sha256   []byte
-				encoding *base64.Encoding
-			}{
-				sha256:   []byte("key"),
-				encoding: base64.RawURLEncoding,
-			},
-			wantErr: ErrInvalidHashLength,
+			want: "key",
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			hash := test.input.encoding.EncodeToString(test.input.sha256)
+			hash := test.input.encoding.EncodeToString(test.input.s)
 
-			got, gotErr := DecodeBase64SHA256(hash)
+			got, gotErr := DecodeBase64(hash)
 
 			if diff := cmp.Diff(test.want, got); diff != "" {
 				t.Errorf("decodeBase64SHA256() = unexpected result (-want +got)\n%s\n", diff)

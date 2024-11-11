@@ -15,14 +15,13 @@ func (s *server) routes() {
 
 	// Secret router and handlers.
 	secretRouter := http.NewServeMux()
-	secretRouter.Handle("GET /secret", s.generateSecret())
+	secretRouter.Handle("GET /secret", generateSecret(s.secrets, s.log))
 
 	// Secrets router and handlers.
 	secretsRouter := http.NewServeMux()
-	secretsRouter.Handle("GET /secrets", s.badRequestSecrets())
-	secretsRouter.Handle("GET /secrets/", s.getSecret())
-	secretsRouter.Handle("POST /secrets", s.createSecret())
-	secretsRouter.Handle("DELETE /secrets/", s.deleteSecret())
+	secretsRouter.Handle("GET /secrets/{id}", getSecret(s.secrets, s.log))
+	secretsRouter.Handle("POST /secrets", createSecret(s.secrets, s.log))
+	secretsRouter.Handle("DELETE /secrets/{id}", deleteSecret(s.secrets, s.log))
 
 	secretHandler := middleware.Chain(secretRouter, middlewares...)
 	secretsHandler := middleware.Chain(secretsRouter, middlewares...)
@@ -31,8 +30,8 @@ func (s *server) routes() {
 	s.router.Handle("/secrets", secretsHandler)
 
 	if s.ui == nil {
-		s.router.Handle("/{$}", s.index())
-		s.router.Handle("/", s.notFound())
+		s.router.Handle("/{$}", index(nil, s.log))
+		s.router.Handle("/", notFound(nil))
 		return
 	}
 
@@ -40,9 +39,9 @@ func (s *server) routes() {
 
 	fer := http.NewServeMux()
 	fer.Handle("/ui/secrets", frontend.CreateSecret(s.ui, s.secrets))
-	fer.Handle("/ui/secrets/", frontend.GetSecret(s.ui, s.secrets))
-	fer.Handle("/ui/handlers/secret/get", middleware.HTMX(frontend.HandlerGetSecret(s.ui, s.secrets)))
-	fer.Handle("/ui/handlers/secret/create", middleware.HTMX(frontend.HandlerCreateSecret(s.ui, s.secrets)))
+	fer.Handle("/ui/secrets/", frontend.GetSecret(s.ui, s.secrets, s.log))
+	fer.Handle("/ui/handlers/secret/get", middleware.HTMX(frontend.HandlerGetSecret(s.ui, s.secrets, s.log)))
+	fer.Handle("/ui/handlers/secret/create", middleware.HTMX(frontend.HandlerCreateSecret(s.ui, s.secrets, s.log)))
 	fer.Handle("/ui/", frontend.NotFound(s.ui))
 
 	frontendHandler := middleware.Chain(fer, frontendMiddlewares...)
@@ -55,11 +54,11 @@ func (s *server) routes() {
 
 	s.router.Handle("/{$}", middleware.Logger(s.log, func(o *middleware.LoggerOptions) {
 		o.Type = "index"
-	})(s.index()))
+	})(index(s.ui, s.log)))
 
 	s.router.Handle("/", middleware.Logger(s.log, func(o *middleware.LoggerOptions) {
 		o.Type = "not-found"
-	})(s.notFound()))
+	})(notFound(s.ui)))
 }
 
 // setupMiddlewares sets up the middlewares for the server.

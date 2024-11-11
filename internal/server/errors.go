@@ -19,6 +19,13 @@ var (
 	ErrInvalidPath = errors.New("invalid path")
 )
 
+var (
+	// ErrPassphraseRequired is returned when the passphrase is required.
+	ErrPassphraseRequired = errors.New("passphrase required")
+	// ErrPassphraseNotBase64 is returned when the passphrase is not base64 encoded.
+	ErrPassphraseNotBase64 = errors.New("passphrase should be base64 encoded")
+)
+
 // responseError represents an error response.
 type responseError struct {
 	StatusCode int    `json:"statusCode"`
@@ -72,7 +79,6 @@ var errorCodeMaps = map[int][]error{
 		ErrMalformedRequest,
 		secret.ErrInvalidExpirationTime,
 		secret.ErrSecretValueTooLarge,
-		security.ErrInvalidHashLength,
 		security.ErrInvalidBase64,
 	},
 	http.StatusUnauthorized: {
