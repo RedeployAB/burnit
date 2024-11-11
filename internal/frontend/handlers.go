@@ -62,7 +62,7 @@ func GetSecret(ui UI, secrets secretService, log log.Logger) http.Handler {
 		}
 
 		s, err := secrets.Get(id, passphrase, func(o *secret.GetOptions) {
-			o.PassphrasHashed = true
+			o.PassphraseHashed = true
 		})
 		if err != nil {
 			if errors.Is(err, secret.ErrSecretNotFound) {

@@ -116,8 +116,8 @@ func (s service) Generate(length int, specialCharacters bool) string {
 
 // GetOptions contains options for getting a secret.
 type GetOptions struct {
-	NoDelete        bool
-	PassphrasHashed bool
+	NoDelete         bool
+	PassphraseHashed bool
 }
 
 // GetOption is a function that sets options for getting a secret.
@@ -236,7 +236,7 @@ func (s service) Delete(id string, options ...DeleteOption) error {
 
 	if opts.VerifyPassphrase {
 		_, err := s.Get(id, opts.Passphrase, func(o *GetOptions) {
-			o.PassphrasHashed = opts.PassphraseHashed
+			o.PassphraseHashed = opts.PassphraseHashed
 		})
 		if err != nil {
 			return err
