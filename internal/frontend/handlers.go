@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/RedeployAB/burnit/internal/log"
 	"github.com/RedeployAB/burnit/internal/secret"
 	"github.com/RedeployAB/burnit/internal/security"
 )
@@ -41,7 +42,7 @@ func CreateSecret(ui UI, secrets secretService) http.Handler {
 }
 
 // GetSecret handles requests to get a secret.
-func GetSecret(ui UI, secrets secretService) http.Handler {
+func GetSecret(ui UI, secrets secretService, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id, passphrase, err := extractIDAndPassphrase("/ui/secrets/", r.URL.Path)
 		if err != nil {
@@ -49,7 +50,22 @@ func GetSecret(ui UI, secrets secretService) http.Handler {
 			return
 		}
 
-		s, err := secrets.Get(id, passphrase)
+		// Handle empty id.
+
+		if len(passphrase) == 0 {
+			ui.Render(w, http.StatusUnauthorized, "secret-get", secretGetResponse{ID: id})
+			return
+		}
+
+		passphrase, err = security.DecodeBase64(passphrase)
+		if err != nil {
+			http.Error(w, "could not get secret: invalid passphrase", http.StatusBadRequest)
+			return
+		}
+
+		s, err := secrets.Get(id, passphrase, func(o *secret.GetOptions) {
+			o.PassphrasHashed = true
+		})
 		if err != nil {
 			if errors.Is(err, secret.ErrSecretNotFound) {
 				ui.Render(w, http.StatusNotFound, "secret-not-found", nil)
@@ -59,6 +75,8 @@ func GetSecret(ui UI, secrets secretService) http.Handler {
 				ui.Render(w, http.StatusUnauthorized, "secret-get", secretGetResponse{ID: id})
 				return
 			}
+
+			log.Error("Failed to get secret.", "error", err)
 			http.Error(w, "could not get secret: error in service", http.StatusInternalServerError)
 			return
 		}
@@ -74,7 +92,7 @@ func GetSecret(ui UI, secrets secretService) http.Handler {
 }
 
 // HandlerCreateSecret handles requests containing a form to create a secret.
-func HandlerCreateSecret(ui UI, secrets secretService) http.Handler {
+func HandlerCreateSecret(ui UI, secrets secretService, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -99,6 +117,7 @@ func HandlerCreateSecret(ui UI, secrets secretService) http.Handler {
 			TTL:        ttl,
 		})
 		if err != nil {
+			log.Error("Failed to create secret.", "error", err)
 			http.Error(w, "could not create secret error in service", http.StatusInternalServerError)
 			return
 		}
@@ -116,7 +135,7 @@ func HandlerCreateSecret(ui UI, secrets secretService) http.Handler {
 
 // HandlerGetSecret handles requests containing a form to get a secret.
 // This form will be used when a passphrase is not provided in the URL.
-func HandlerGetSecret(ui UI, secrets secretService) http.Handler {
+func HandlerGetSecret(ui UI, secrets secretService, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -144,6 +163,8 @@ func HandlerGetSecret(ui UI, secrets secretService) http.Handler {
 				ui.Render(w, http.StatusUnauthorized, "partial-secret-get", secretGetResponse{ID: id}, WithPartial())
 				return
 			}
+
+			log.Error("Failed to get secret.", "error", err)
 			http.Error(w, "could not get secret: error in service", http.StatusInternalServerError)
 			return
 		}
