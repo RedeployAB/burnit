@@ -2,14 +2,12 @@ package server
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -100,36 +98,4 @@ func parseGenerateSecretQuery(v url.Values) (int, bool) {
 	}
 
 	return l, sc
-}
-
-// extractIDAndPassphrase extracts the ID and passphrase from the path.
-func extractIDAndPassphrase(route, path string) (string, string, error) {
-	path = strings.TrimPrefix(path, route)
-	parts := strings.Split(path, "/")
-	if len(parts) > 2 {
-		return "", "", ErrInvalidPath
-	}
-	if len(parts) == 1 {
-		return parts[0], "", nil
-	}
-	return parts[0], parts[1], nil
-}
-
-// decodeBase64 decodes a base64 string.
-func decodeBase64(s string) (string, error) {
-	s = strings.Replace(s, "=", "", -1)
-
-	var encoding *base64.Encoding
-	re := regexp.MustCompile(`[/+]`)
-	if !re.MatchString(s) {
-		encoding = base64.RawURLEncoding
-	} else {
-		encoding = base64.RawStdEncoding
-	}
-
-	b, err := encoding.DecodeString(s)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
 }

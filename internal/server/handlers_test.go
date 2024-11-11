@@ -119,13 +119,10 @@ func TestServer_generateSecret(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			server := &server{
-				secrets: test.input.secrets,
-			}
-
 			rr := httptest.NewRecorder()
 			req := test.input.req
-			server.generateSecret().ServeHTTP(rr, req)
+
+			generateSecret(test.input.secrets, &mockLogger{}).ServeHTTP(rr, req)
 
 			gotCode := rr.Code
 			gotBody := rr.Body.Bytes()
@@ -168,32 +165,7 @@ func TestServer_getSecret(t *testing.T) {
 				},
 				req: func() *http.Request {
 					req := httptest.NewRequest("GET", "/secrets/1", nil)
-					return req
-				}(),
-				path: "/secret/1",
-			},
-			want: struct {
-				status int
-				body   []byte
-			}{
-				status: http.StatusOK,
-				body:   []byte(`{"value":"secret"}` + "\n"),
-			},
-		},
-		{
-			name: "get secret - passphrase in header",
-			input: struct {
-				secrets secret.Service
-				req     *http.Request
-				path    string
-			}{
-				secrets: &mockSecretService{
-					secrets: []secret.Secret{
-						{ID: "1", Value: "secret", Passphrase: "passphrase"},
-					},
-				},
-				req: func() *http.Request {
-					req := httptest.NewRequest("GET", "/secrets/1", nil)
+					req.SetPathValue("id", "1")
 					req.Header.Set("Passphrase", base64.StdEncoding.EncodeToString([]byte("passphrase")))
 					return req
 				}(),
@@ -208,7 +180,7 @@ func TestServer_getSecret(t *testing.T) {
 			},
 		},
 		{
-			name: "get secret - passphrase in path",
+			name: "get secret - passphrase required",
 			input: struct {
 				secrets secret.Service
 				req     *http.Request
@@ -218,19 +190,20 @@ func TestServer_getSecret(t *testing.T) {
 					secrets: []secret.Secret{
 						{ID: "1", Value: "secret", Passphrase: "passphrase"},
 					},
+					err: secret.ErrInvalidPassphrase,
 				},
 				req: func() *http.Request {
-					req := httptest.NewRequest("GET", "/secrets/1/passphrase", nil)
+					req := httptest.NewRequest("GET", "/secrets/1", nil)
+					req.SetPathValue("id", "1")
 					return req
 				}(),
-				path: "/secret/1/passphrase",
 			},
 			want: struct {
 				status int
 				body   []byte
 			}{
-				status: http.StatusOK,
-				body:   []byte(`{"value":"secret"}` + "\n"),
+				status: http.StatusUnauthorized,
+				body:   []byte(`{"statusCode":401,"error":"passphrase required"}` + "\n"),
 			},
 		},
 		{
@@ -244,9 +217,12 @@ func TestServer_getSecret(t *testing.T) {
 					secrets: []secret.Secret{
 						{ID: "1", Value: "secret", Passphrase: "passphrase"},
 					},
+					err: secret.ErrInvalidPassphrase,
 				},
 				req: func() *http.Request {
 					req := httptest.NewRequest("GET", "/secrets/1", nil)
+					req.SetPathValue("id", "1")
+					req.Header.Set("Passphrase", base64.StdEncoding.EncodeToString([]byte("invalid")))
 					return req
 				}(),
 			},
@@ -270,6 +246,8 @@ func TestServer_getSecret(t *testing.T) {
 				},
 				req: func() *http.Request {
 					req := httptest.NewRequest("GET", "/secrets/1", nil)
+					req.SetPathValue("id", "1")
+					req.Header.Set("Passphrase", base64.StdEncoding.EncodeToString([]byte("invalid")))
 					return req
 				}(),
 				path: "/secret/1",
@@ -294,6 +272,8 @@ func TestServer_getSecret(t *testing.T) {
 				},
 				req: func() *http.Request {
 					req := httptest.NewRequest("GET", "/secrets/1", nil)
+					req.SetPathValue("id", "1")
+					req.Header.Set("Passphrase", base64.StdEncoding.EncodeToString([]byte("passphrase")))
 					return req
 				}(),
 			},
@@ -309,14 +289,10 @@ func TestServer_getSecret(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			server := &server{
-				secrets: test.input.secrets,
-				log:     &mockLogger{},
-			}
-
 			rr := httptest.NewRecorder()
 			req := test.input.req
-			server.getSecret().ServeHTTP(rr, req)
+
+			getSecret(test.input.secrets, &mockLogger{}).ServeHTTP(rr, req)
 
 			gotCode := rr.Code
 			gotBody := rr.Body.Bytes()
@@ -401,14 +377,10 @@ func TestServer_createSecret(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			server := &server{
-				secrets: test.input.secrets,
-				log:     &mockLogger{},
-			}
-
 			rr := httptest.NewRecorder()
 			req := test.input.req
-			server.createSecret().ServeHTTP(rr, req)
+
+			createSecret(test.input.secrets, &mockLogger{}).ServeHTTP(rr, req)
 
 			gotCode := rr.Code
 			gotBody := rr.Body.Bytes()

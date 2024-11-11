@@ -7,7 +7,10 @@ import (
 	"time"
 
 	"github.com/RedeployAB/burnit/internal/api"
+	"github.com/RedeployAB/burnit/internal/frontend"
+	"github.com/RedeployAB/burnit/internal/log"
 	"github.com/RedeployAB/burnit/internal/secret"
+	"github.com/RedeployAB/burnit/internal/security"
 	"github.com/RedeployAB/burnit/internal/version"
 )
 
@@ -23,9 +26,9 @@ const (
 )
 
 // index returns a handler for handling the index route.
-func (s server) index() http.Handler {
+func index(ui frontend.UI, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if strings.Contains(r.Header.Get("Accept"), contentTypeHTML) && s.ui != nil {
+		if ui != nil && strings.Contains(r.Header.Get("Accept"), contentTypeHTML) {
 			http.Redirect(w, r, "/ui/secrets", http.StatusMovedPermanently)
 			return
 		}
@@ -38,7 +41,7 @@ func (s server) index() http.Handler {
 				"/secrets",
 			},
 		}); err != nil {
-			s.log.Error("Failed to encode response.", "error", err)
+			log.Error("Failed to encode response.", "error", err)
 			writeServerError(w)
 			return
 		}
@@ -46,27 +49,20 @@ func (s server) index() http.Handler {
 }
 
 // notFound returns a handler for handling not found routes.
-func (s server) notFound() http.Handler {
+func notFound(ui frontend.UI) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if strings.Contains(r.Header.Get("Accept"), contentTypeHTML) && s.ui != nil {
-			s.ui.Render(w, http.StatusNotFound, "not-found", nil)
+		if ui != nil && strings.Contains(r.Header.Get("Accept"), contentTypeHTML) {
+			ui.Render(w, http.StatusNotFound, "not-found", nil)
 			return
 		}
 		writeError(w, http.StatusNotFound, errors.New("not found"))
 	})
 }
 
-// badRequestSecrets returns a handler for handling bad requests for secrets.
-func (s server) badRequestSecrets() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		writeError(w, http.StatusBadRequest, errors.New("secret ID is required"))
-	})
-}
-
 // generateSecret generates a new secret.
-func (s server) generateSecret() http.Handler {
+func generateSecret(secrets secret.Service, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		secret := s.secrets.Generate(parseGenerateSecretQuery(r.URL.Query()))
+		secret := secrets.Generate(parseGenerateSecretQuery(r.URL.Query()))
 
 		if header := r.Header.Get("Accept"); header == contentTypeText {
 			writeValue(w, secret)
@@ -74,7 +70,7 @@ func (s server) generateSecret() http.Handler {
 		}
 
 		if err := encode(w, http.StatusOK, api.Secret{Value: secret}); err != nil {
-			s.log.Error("Failed to encode response.", "error", err)
+			log.Error("Failed to encode response.", "error", err)
 			writeServerError(w)
 			return
 		}
@@ -82,41 +78,33 @@ func (s server) generateSecret() http.Handler {
 }
 
 // getSecret retrieves a secret.
-func (s server) getSecret() http.Handler {
+func getSecret(secrets secret.Service, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id, passphrase, err := extractIDAndPassphrase("/secrets/", r.URL.Path)
-		if err != nil {
-			writeError(w, http.StatusNotFound, err)
-			return
-		}
-
+		id := r.PathValue("id")
 		if len(id) == 0 {
 			writeError(w, http.StatusBadRequest, errors.New("secret ID is required"))
 			return
 		}
 
-		if len(passphrase) == 0 {
-			p := r.Header.Get("Passphrase")
-			passphrase, err = decodeBase64(p)
-			if err != nil {
-				writeError(w, http.StatusBadRequest, errors.New("invalid passphrase: should be base64 encoded"))
-				return
-			}
+		passphrase, err := getPassphrase(r.Header)
+		if err != nil {
+			writeError(w, http.StatusUnauthorized, err)
+			return
 		}
 
-		secret, err := s.secrets.Get(id, passphrase)
+		secret, err := secrets.Get(id, passphrase)
 		if err != nil {
 			if statusCode := errorCode(err); statusCode != 0 {
 				writeError(w, statusCode, err)
 				return
 			}
-			s.log.Error("Failed to get secret.", "error", err)
+			log.Error("Failed to get secret.", "error", err)
 			writeServerError(w)
 			return
 		}
 
 		if err := encode(w, http.StatusOK, api.Secret{Value: secret.Value}); err != nil {
-			s.log.Error("Failed to encode response.", "error", err)
+			log.Error("Failed to encode response.", "error", err)
 			writeServerError(w)
 			return
 		}
@@ -124,7 +112,7 @@ func (s server) getSecret() http.Handler {
 }
 
 // createSecret creates a new secret.
-func (s server) createSecret() http.Handler {
+func createSecret(secrets secret.Service, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		secretRequest, err := decode[api.CreateSecretRequest](r)
 		if err != nil {
@@ -132,20 +120,20 @@ func (s server) createSecret() http.Handler {
 			return
 		}
 
-		secret, err := s.secrets.Create(toCreateSecret(&secretRequest))
+		secret, err := secrets.Create(toCreateSecret(&secretRequest))
 		if err != nil {
 			if statusCode := errorCode(err); statusCode != 0 {
 				writeError(w, statusCode, err)
 				return
 			}
-			s.log.Error("Failed to create secret.", "error", err)
+			log.Error("Failed to create secret.", "error", err)
 			writeServerError(w)
 			return
 		}
 
 		w.Header().Set("Location", "/secrets/"+secret.ID)
 		if err := encode(w, http.StatusCreated, toAPISecret(&secret)); err != nil {
-			s.log.Error("Failed to encode response.", "error", err)
+			log.Error("Failed to encode response.", "error", err)
 			writeServerError(w)
 			return
 		}
@@ -153,18 +141,21 @@ func (s server) createSecret() http.Handler {
 }
 
 // deleteSecret deletes a secret.
-func (s server) deleteSecret() http.Handler {
+func deleteSecret(secrets secret.Service, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id, passphrase, err := extractIDAndPassphrase("/secrets/", r.URL.Path)
-		if err != nil {
-			writeError(w, http.StatusNotFound, err)
+		id := r.PathValue("id")
+		if len(id) == 0 {
+			writeError(w, http.StatusBadRequest, errors.New("secret ID is required"))
 			return
 		}
-		if len(passphrase) == 0 {
-			passphrase = r.Header.Get("Passphrase")
+
+		passphrase, err := getPassphrase(r.Header)
+		if err != nil {
+			writeError(w, http.StatusUnauthorized, err)
+			return
 		}
 
-		if err := s.secrets.Delete(id, func(o *secret.DeleteOptions) {
+		if err := secrets.Delete(id, func(o *secret.DeleteOptions) {
 			o.VerifyPassphrase = true
 			o.Passphrase = passphrase
 		}); err != nil {
@@ -172,7 +163,7 @@ func (s server) deleteSecret() http.Handler {
 				writeError(w, statusCode, err)
 				return
 			}
-			s.log.Error("Failed to delete secret.", "error", err)
+			log.Error("Failed to delete secret.", "error", err)
 			writeServerError(w)
 			return
 		}
@@ -202,6 +193,22 @@ func toCreateSecret(s *api.CreateSecretRequest) secret.Secret {
 		TTL:        ttl,
 		ExpiresAt:  expiresAt,
 	}
+}
+
+// getPassphrase retrieves the passphrase from the headers and
+// decodes it.
+func getPassphrase(header http.Header) (string, error) {
+	passphrase := header.Get("Passphrase")
+	if len(passphrase) == 0 {
+		return "", ErrPassphraseRequired
+	}
+
+	passphrase, err := security.DecodeBase64(passphrase)
+	if err != nil {
+		return "", ErrPassphraseNotBase64
+	}
+
+	return passphrase, nil
 }
 
 // toAPISecret converts a secret to an API secret.
