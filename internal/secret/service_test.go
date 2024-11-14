@@ -281,7 +281,7 @@ func TestService_Create(t *testing.T) {
 				},
 				id: "2",
 			},
-			wantErr: ErrSecretValueTooManyBytes,
+			wantErr: ErrSecretTooManyBytes,
 		},
 		{
 			name: "create secret - error",

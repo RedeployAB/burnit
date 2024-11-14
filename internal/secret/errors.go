@@ -13,10 +13,10 @@ var (
 	ErrInvalidPassphrase = errors.New("invalid passphrase")
 	// ErrInvalidExpirationTime is returned when the expiration time is invalid.
 	ErrInvalidExpirationTime = errors.New("invalid expiration time")
-	// ErrSecretValueTooManyBytes is returned when the secret value has too many bytes.
-	ErrSecretValueTooManyBytes = errors.New("secret value has too many bytes")
-	// ErrSecretValueTooManyCharacters is returned when the secret value has too many characters.
-	ErrSecretValueTooManyCharacters = errors.New("secret value has too many characters")
+	// ErrSecretTooManyBytes is returned when the secret has too many bytes.
+	ErrSecretTooManyBytes = errors.New("secret has too many bytes")
+	// ErrSecretTooManyCharacters is returned when the secret has too many characters.
+	ErrSecretTooManyCharacters = errors.New("secret has too many characters")
 	// ErrPassphraseNotBase64 is returned when the passphrase is not base64 encoded.
 	ErrPassphraseNotBase64 = errors.New("passphrase not base64 encoded")
 )

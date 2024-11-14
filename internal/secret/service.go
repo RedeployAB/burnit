@@ -361,11 +361,11 @@ func validValue(value string) error {
 	}
 
 	if len(value) > maxSecretBytes {
-		return ErrSecretValueTooManyBytes
+		return ErrSecretTooManyBytes
 	}
 
 	if utf8.RuneCountInString(value) > maxSecretCharacters {
-		return ErrSecretValueTooManyCharacters
+		return ErrSecretTooManyCharacters
 	}
 
 	v := []byte(value)
