@@ -21,6 +21,8 @@ func DecodeBase64(s string) ([]byte, error) {
 		encoding = base64.StdEncoding
 	} else if reURL.MatchString(s) {
 		encoding = base64.URLEncoding
+	} else {
+		return nil, ErrInvalidBase64
 	}
 
 	b, err := encoding.DecodeString(s)
