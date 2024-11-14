@@ -543,9 +543,9 @@ func TestValidValue(t *testing.T) {
 		{
 			name: "invalid length",
 			input: func() string {
-				return base64.StdEncoding.EncodeToString([]byte(strings.Repeat("value", 100)))
+				return base64.StdEncoding.EncodeToString([]byte(strings.Repeat("value", 3000)))
 			}(),
-			wantErr: nil,
+			wantErr: ErrSecretTooManyBytes,
 		},
 	}
 
