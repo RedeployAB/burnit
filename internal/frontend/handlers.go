@@ -55,13 +55,13 @@ func GetSecret(ui UI, secrets secretService, log log.Logger) http.Handler {
 			return
 		}
 
-		passphrase, err = security.DecodeBase64(passphrase)
+		decodedPassphrase, err := security.DecodeBase64(passphrase)
 		if err != nil {
 			http.Error(w, "could not get secret: invalid passphrase", http.StatusBadRequest)
 			return
 		}
 
-		s, err := secrets.Get(id, passphrase, func(o *secret.GetOptions) {
+		s, err := secrets.Get(id, string(decodedPassphrase), func(o *secret.GetOptions) {
 			o.PassphraseHashed = true
 		})
 		if err != nil {

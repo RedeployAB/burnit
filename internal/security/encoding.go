@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"regexp"
-	"strings"
 )
 
 var (
@@ -13,20 +12,21 @@ var (
 )
 
 // DecodeBase64 decodes a base64 string.
-func DecodeBase64(s string) (string, error) {
-	s = strings.Replace(s, "=", "", -1)
+func DecodeBase64(s string) ([]byte, error) {
+	reStd := regexp.MustCompile(`^[a-zA-Z0-9+/]*={0,2}$`)
+	reURL := regexp.MustCompile(`^[a-zA-Z0-9-_]*={0,2}$`)
 
 	var encoding *base64.Encoding
-	re := regexp.MustCompile(`[/+]`)
-	if !re.MatchString(s) {
-		encoding = base64.RawURLEncoding
-	} else {
-		encoding = base64.RawStdEncoding
+	if reStd.MatchString(s) {
+		encoding = base64.StdEncoding
+	} else if reURL.MatchString(s) {
+		encoding = base64.URLEncoding
 	}
 
 	b, err := encoding.DecodeString(s)
 	if err != nil {
-		return "", ErrInvalidBase64
+		return nil, ErrInvalidBase64
 	}
-	return string(b), nil
+
+	return b, nil
 }
