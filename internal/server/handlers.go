@@ -203,12 +203,12 @@ func getPassphrase(header http.Header) (string, error) {
 		return "", ErrPassphraseRequired
 	}
 
-	passphrase, err := security.DecodeBase64(passphrase)
+	decodedPassphrase, err := security.DecodeBase64(passphrase)
 	if err != nil {
 		return "", ErrPassphraseNotBase64
 	}
 
-	return passphrase, nil
+	return string(decodedPassphrase), nil
 }
 
 // toAPISecret converts a secret to an API secret.

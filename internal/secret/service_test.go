@@ -2,7 +2,13 @@ package secret
 
 import (
 	"context"
+	"encoding/base32"
+	"encoding/base64"
+	"encoding/hex"
 	"errors"
+	"io"
+	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -232,6 +238,52 @@ func TestService_Create(t *testing.T) {
 			},
 		},
 		{
+			name: "create secret - base64 encoded value",
+			input: struct {
+				secrets db.SecretRepository
+				secret  Secret
+				id      string
+			}{
+				secrets: &mockSecretRepository{},
+				secret: Secret{
+					Value: func() string {
+						return base64.StdEncoding.EncodeToString([]byte("secret"))
+					}(),
+					Passphrase: "key",
+				},
+				id: "2",
+			},
+			want: Secret{
+				ID:         "2",
+				Passphrase: "key",
+				TTL:        time.Until(n.Add(defaultTTL)).Round(time.Minute),
+				ExpiresAt:  n.Add(defaultTTL),
+			},
+		},
+		{
+			name: "create secret - base64 encoded value with invalid data",
+			input: struct {
+				secrets db.SecretRepository
+				secret  Secret
+				id      string
+			}{
+				secrets: &mockSecretRepository{},
+				secret: Secret{
+					Value: func() string {
+						f, err := os.OpenFile("../../assets/burnit.png", os.O_RDONLY, 0644)
+						if err != nil {
+							panic(err)
+						}
+						b, _ := io.ReadAll(f)
+						return base64.StdEncoding.EncodeToString(b)
+					}(),
+					Passphrase: "key",
+				},
+				id: "2",
+			},
+			wantErr: ErrSecretTooManyBytes,
+		},
+		{
 			name: "create secret - error",
 			input: struct {
 				secrets db.SecretRepository
@@ -240,6 +292,10 @@ func TestService_Create(t *testing.T) {
 			}{
 				secrets: &mockSecretRepository{
 					err: errCreateSecret,
+				},
+				secret: Secret{
+					Value:      "secret",
+					Passphrase: "key",
 				},
 			},
 			wantErr: errCreateSecret,
@@ -412,6 +468,93 @@ func TestService_DeleteExpired(t *testing.T) {
 
 			if diff := cmp.Diff(test.wantErr, gotErr, cmpopts.EquateErrors()); diff != "" {
 				t.Errorf("DeleteExpired() = unexpected error (-want +got)\n%s\n", diff)
+			}
+		})
+	}
+}
+
+func TestValidValue(t *testing.T) {
+	var tests = []struct {
+		name    string
+		input   string
+		wantErr error
+	}{
+		{
+			name:    "valid value",
+			input:   "value",
+			wantErr: nil,
+		},
+		{
+			name: "valid value - base64 encoded",
+			input: func() string {
+				return base64.StdEncoding.EncodeToString([]byte("value"))
+			}(),
+			wantErr: nil,
+		},
+		{
+			name: "invalid value - base64 encoded",
+			input: func() string {
+				return base64.StdEncoding.EncodeToString([]byte{0})
+			}(),
+			wantErr: ErrSecretInvalid,
+		},
+		{
+			name: "valid value - base32 encoded",
+			input: func() string {
+				return base32.StdEncoding.EncodeToString([]byte("value"))
+			}(),
+			wantErr: nil,
+		},
+		{
+			name: "invalid value - base32 encoded",
+			input: func() string {
+				return base32.StdEncoding.EncodeToString([]byte{0, 1, 2, 3})
+			}(),
+			wantErr: ErrSecretInvalid,
+		},
+		{
+			name: "valid value - base32 encoded (hex)",
+			input: func() string {
+				return base32.HexEncoding.EncodeToString([]byte("value"))
+			}(),
+			wantErr: nil,
+		},
+		{
+			name: "invalid value - base32 encoded (hex)",
+			input: func() string {
+				return base32.HexEncoding.EncodeToString([]byte{0, 1, 2, 3})
+			}(),
+			wantErr: ErrSecretInvalid,
+		},
+		{
+			name: "valid value - hex encoded",
+			input: func() string {
+				return hex.EncodeToString([]byte("value"))
+			}(),
+			wantErr: nil,
+		},
+		{
+			name: "invalid value - hex encoded",
+			input: func() string {
+				return hex.EncodeToString([]byte{0, 1, 2, 3})
+			}(),
+			wantErr: ErrSecretInvalid,
+		},
+		{
+			name: "invalid length",
+			input: func() string {
+				return base64.StdEncoding.EncodeToString([]byte(strings.Repeat("value", 3000)))
+			}(),
+			wantErr: ErrSecretTooManyBytes,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			gotErr := validValue(test.input)
+
+			if diff := cmp.Diff(test.wantErr, gotErr, cmpopts.EquateErrors()); diff != "" {
+				t.Errorf("validValue() = unexpected error (-want +got)\n%s\n", diff)
 			}
 		})
 	}

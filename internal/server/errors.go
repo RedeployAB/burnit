@@ -78,7 +78,9 @@ var errorCodeMaps = map[int][]error{
 		ErrInvalidRequest,
 		ErrMalformedRequest,
 		secret.ErrInvalidExpirationTime,
-		secret.ErrSecretValueTooLarge,
+		secret.ErrSecretInvalid,
+		secret.ErrSecretTooManyBytes,
+		secret.ErrSecretTooManyCharacters,
 		security.ErrInvalidBase64,
 	},
 	http.StatusUnauthorized: {

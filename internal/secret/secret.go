@@ -11,8 +11,8 @@ const (
 	charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUWXYZ"
 	// specialCharset is the special characters used for generating a secret.
 	specialCharset = "_-!?=()&%"
-	// maxLength is the maximum length of a secret.
-	maxLength = 512
+	// maxGeneratedSecretLength is the maximum length of a generated secret.
+	maxGeneratedSecretLength = 512
 )
 
 // Secret contains the secret data.
@@ -28,8 +28,8 @@ type Secret struct {
 // length argument (with a max of 512 characters, a longer length will be trimmed to this value).
 // If specialCharacters is set to true, the secret will contain special characters.
 func Generate(length int, specialCharacters bool) string {
-	if length > maxLength {
-		length = maxLength
+	if length > maxGeneratedSecretLength {
+		length = maxGeneratedSecretLength
 	}
 
 	chars := charset

@@ -2,9 +2,12 @@ package secret
 
 import (
 	"context"
+	"encoding/base32"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"net/http"
 	"time"
 	"unicode/utf8"
 
@@ -30,6 +33,13 @@ const (
 const (
 	// defaultPassphraseLength is the default length of a passphrase.
 	defaultPassphraseLength = 32
+)
+
+const (
+	// maxSecretBytes is the maximum number of bytes in a secret.
+	maxSecretBytes = 4096
+	// maxSecretCharacters is the maximum number of characters (runes) in a secret.
+	maxSecretCharacters = 3500
 )
 
 // newUUID generates a new UUID.
@@ -118,6 +128,7 @@ func (s service) Generate(length int, specialCharacters bool) string {
 type GetOptions struct {
 	NoDelete         bool
 	PassphraseHashed bool
+	context          context.Context
 }
 
 // GetOption is a function that sets options for getting a secret.
@@ -131,8 +142,14 @@ func (s service) Get(id, passphrase string, options ...GetOption) (Secret, error
 		option(&opts)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
-	defer cancel()
+	var ctx context.Context
+	if opts.context != nil {
+		ctx = opts.context
+	} else {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(context.Background(), s.timeout)
+		defer cancel()
+	}
 
 	dbSecret, err := s.secrets.Get(ctx, id)
 	if err != nil {
@@ -175,11 +192,8 @@ func (s service) Get(id, passphrase string, options ...GetOption) (Secret, error
 
 // Create a secret.
 func (s service) Create(secret Secret) (Secret, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
-	defer cancel()
-
-	if utf8.RuneCountInString(secret.Value) > maxLength {
-		return Secret{}, ErrSecretValueTooLarge
+	if err := validValue(secret.Value); err != nil {
+		return Secret{}, err
 	}
 
 	expiresAt, err := expirationTime(secret.TTL, secret.ExpiresAt)
@@ -196,6 +210,9 @@ func (s service) Create(secret Secret) (Secret, error) {
 	if err != nil {
 		return Secret{}, err
 	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
+	defer cancel()
 
 	dbSecret, err := s.secrets.Create(ctx, db.Secret{
 		ID:        newUUID(),
@@ -237,6 +254,7 @@ func (s service) Delete(id string, options ...DeleteOption) error {
 	if opts.VerifyPassphrase {
 		_, err := s.Get(id, opts.Passphrase, func(o *GetOptions) {
 			o.PassphraseHashed = opts.PassphraseHashed
+			o.context = ctx
 		})
 		if err != nil {
 			return err
@@ -330,4 +348,58 @@ func decrypt(value, key string, hashed bool) (string, error) {
 // now returns the current time.
 var now = func() time.Time {
 	return time.Now().UTC()
+}
+
+// decoderFunc is a function that decodes a string and
+// returns a byte slice and an error.
+type decoderFunc func(string) ([]byte, error)
+
+// validValue validates a secret value and returns an error if the value is invalid.
+func validValue(value string) error {
+	if len(value) == 0 {
+		return ErrSecretInvalid
+	}
+
+	if len(value) > maxSecretBytes {
+		return ErrSecretTooManyBytes
+	}
+
+	if utf8.RuneCountInString(value) > maxSecretCharacters {
+		return ErrSecretTooManyCharacters
+	}
+
+	v := []byte(value)
+
+	decoderFuncs := []decoderFunc{
+		base32.StdEncoding.DecodeString,
+		base32.HexEncoding.DecodeString,
+		hex.DecodeString,
+		security.DecodeBase64,
+	}
+
+	for _, decode := range decoderFuncs {
+		if decoded, err := decode(value); err == nil {
+			v = decoded
+			break
+		}
+	}
+
+	if !validString(v) {
+		return ErrSecretInvalid
+	}
+
+	return nil
+}
+
+// validString returns true if the byte slice is a string.
+func validString(b []byte) bool {
+	if nullByte(b) {
+		return false
+	}
+	return http.DetectContentType(b) == "text/plain; charset=utf-8" && string(b) != "\x00"
+}
+
+// nullByte returns true if the byte slice is a null byte.
+func nullByte(b []byte) bool {
+	return len(b) == 1 && b[0] == 0
 }
