@@ -37,9 +37,9 @@ const (
 
 const (
 	// maxSecretBytes is the maximum number of bytes in a secret.
-	maxSecretBytes = 3500
+	maxSecretBytes = 4096
 	// maxSecretCharacters is the maximum number of characters (runes) in a secret.
-	maxSecretCharacters = 4096
+	maxSecretCharacters = 3500
 )
 
 // newUUID generates a new UUID.
