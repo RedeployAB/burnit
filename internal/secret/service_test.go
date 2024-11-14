@@ -496,7 +496,7 @@ func TestValidValue(t *testing.T) {
 			input: func() string {
 				return base64.StdEncoding.EncodeToString([]byte{0})
 			}(),
-			wantErr: ErrInvalidSecret,
+			wantErr: ErrSecretInvalid,
 		},
 		{
 			name: "valid value - base32 encoded",
@@ -510,7 +510,7 @@ func TestValidValue(t *testing.T) {
 			input: func() string {
 				return base32.StdEncoding.EncodeToString([]byte{0, 1, 2, 3})
 			}(),
-			wantErr: ErrInvalidSecret,
+			wantErr: ErrSecretInvalid,
 		},
 		{
 			name: "valid value - base32 encoded (hex)",
@@ -524,7 +524,7 @@ func TestValidValue(t *testing.T) {
 			input: func() string {
 				return base32.HexEncoding.EncodeToString([]byte{0, 1, 2, 3})
 			}(),
-			wantErr: ErrInvalidSecret,
+			wantErr: ErrSecretInvalid,
 		},
 		{
 			name: "valid value - hex encoded",
@@ -538,7 +538,7 @@ func TestValidValue(t *testing.T) {
 			input: func() string {
 				return hex.EncodeToString([]byte{0, 1, 2, 3})
 			}(),
-			wantErr: ErrInvalidSecret,
+			wantErr: ErrSecretInvalid,
 		},
 		{
 			name: "invalid length",
