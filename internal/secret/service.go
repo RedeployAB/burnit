@@ -354,7 +354,7 @@ var now = func() time.Time {
 // returns a byte slice and an error.
 type decoderFunc func(string) ([]byte, error)
 
-// validValue returns true if the value is valid.
+// validValue validates a secret value and returns an error if the value is invalid.
 func validValue(value string) error {
 	if len(value) == 0 {
 		return ErrSecretInvalid
