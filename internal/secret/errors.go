@@ -7,8 +7,8 @@ var (
 	ErrNilRepository = errors.New("nil repository")
 	// ErrSecretNotFound is returned when a secret is not found.
 	ErrSecretNotFound = errors.New("secret not found")
-	// ErrInvalidSecretValue is returned when the secret value is invalid.
-	ErrInvalidSecretValue = errors.New("invalid secret value")
+	// ErrInvalidSecret is returned when the secret is invalid.
+	ErrInvalidSecret = errors.New("invalid secret")
 	// ErrInvalidPassphrase is returned when the passphrase is invalid.
 	ErrInvalidPassphrase = errors.New("invalid passphrase")
 	// ErrInvalidExpirationTime is returned when the expiration time is invalid.

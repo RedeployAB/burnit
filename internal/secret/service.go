@@ -357,7 +357,7 @@ type decoderFunc func(string) ([]byte, error)
 // validValue returns true if the value is valid.
 func validValue(value string) error {
 	if len(value) == 0 {
-		return ErrInvalidSecretValue
+		return ErrInvalidSecret
 	}
 
 	if len(value) > maxSecretBytes {
@@ -385,7 +385,7 @@ func validValue(value string) error {
 	}
 
 	if !validString(v) {
-		return ErrInvalidSecretValue
+		return ErrInvalidSecret
 	}
 
 	return nil
