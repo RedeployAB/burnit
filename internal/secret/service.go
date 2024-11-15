@@ -36,10 +36,8 @@ const (
 )
 
 const (
-	// maxSecretBytes is the maximum number of bytes in a secret.
-	maxSecretBytes = 4096
-	// maxSecretCharacters is the maximum number of characters (runes) in a secret.
-	maxSecretCharacters = 3500
+	// defaultMaxValueCharacters is the maximum number of characters (runes) in a secret.
+	defaultMaxValueCharacters = 3500
 )
 
 // newUUID generates a new UUID.
@@ -67,10 +65,11 @@ type Service interface {
 
 // service provides handling operations for secrets and satisfies Service.
 type service struct {
-	secrets         db.SecretRepository
-	timeout         time.Duration
-	cleanupInterval time.Duration
-	stopCh          chan struct{}
+	secrets            db.SecretRepository
+	timeout            time.Duration
+	cleanupInterval    time.Duration
+	maxValueCharacters int
+	stopCh             chan struct{}
 }
 
 // ServiceOption is a function that sets options for the service.
@@ -83,10 +82,11 @@ func NewService(secrets db.SecretRepository, options ...ServiceOption) (*service
 	}
 
 	svc := &service{
-		secrets:         secrets,
-		timeout:         defaultTimeout,
-		cleanupInterval: defaultCleanupInterval,
-		stopCh:          make(chan struct{}),
+		secrets:            secrets,
+		timeout:            defaultTimeout,
+		cleanupInterval:    defaultCleanupInterval,
+		maxValueCharacters: defaultMaxValueCharacters,
+		stopCh:             make(chan struct{}),
 	}
 
 	for _, option := range options {
@@ -192,7 +192,7 @@ func (s service) Get(id, passphrase string, options ...GetOption) (Secret, error
 
 // Create a secret.
 func (s service) Create(secret Secret) (Secret, error) {
-	if err := validValue(secret.Value); err != nil {
+	if err := validValue(secret.Value, s.maxValueCharacters); err != nil {
 		return Secret{}, err
 	}
 
@@ -355,17 +355,13 @@ var now = func() time.Time {
 type decoderFunc func(string) ([]byte, error)
 
 // validValue validates a secret value and returns an error if the value is invalid.
-func validValue(value string) error {
+func validValue(value string, maxValueCharacters int) error {
 	if len(value) == 0 {
-		return ErrSecretInvalid
+		return fmt.Errorf("%w: must not be empty", ErrValueInvalid)
 	}
 
-	if len(value) > maxSecretBytes {
-		return ErrSecretTooManyBytes
-	}
-
-	if utf8.RuneCountInString(value) > maxSecretCharacters {
-		return ErrSecretTooManyCharacters
+	if utf8.RuneCountInString(value) > maxValueCharacters {
+		return fmt.Errorf("%w: max characters are %d", ErrValueTooManyCharacters, maxValueCharacters)
 	}
 
 	v := []byte(value)
@@ -385,7 +381,7 @@ func validValue(value string) error {
 	}
 
 	if !validString(v) {
-		return ErrSecretInvalid
+		return fmt.Errorf("%w: must be a valid non-empty UTF-8 encoded string", ErrValueInvalid)
 	}
 
 	return nil
