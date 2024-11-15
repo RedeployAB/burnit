@@ -47,8 +47,7 @@ Order of precedence:
 
 ## TODO
 
-- [ ] Review/Add CSRF, XSS and XSSI protection
-- [ ] Add security and utility headers for frontend
+- [ ] Add CSRF protection
 - [ ] Add UI error message for invalid input (secret creation and passphrase)
 - [ ] Improve responsive design (mobile)
 - [ ] Update documentation
