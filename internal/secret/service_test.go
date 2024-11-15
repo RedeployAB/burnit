@@ -37,9 +37,10 @@ func TestNewService(t *testing.T) {
 				secrets: &mockSecretRepository{},
 			},
 			want: &service{
-				secrets:         &mockSecretRepository{},
-				timeout:         defaultTimeout,
-				cleanupInterval: defaultCleanupInterval,
+				secrets:            &mockSecretRepository{},
+				timeout:            defaultTimeout,
+				cleanupInterval:    defaultCleanupInterval,
+				valueMaxCharacters: defaultValueMaxCharacters,
 			},
 		},
 		{
@@ -53,13 +54,15 @@ func TestNewService(t *testing.T) {
 					func(s *service) {
 						s.timeout = 30 * time.Second
 						s.cleanupInterval = 30 * time.Second
+						s.valueMaxCharacters = 4000
 					},
 				},
 			},
 			want: &service{
-				secrets:         &mockSecretRepository{},
-				timeout:         30 * time.Second,
-				cleanupInterval: 30 * time.Second,
+				secrets:            &mockSecretRepository{},
+				timeout:            30 * time.Second,
+				cleanupInterval:    30 * time.Second,
+				valueMaxCharacters: 4000,
 			},
 		},
 		{
@@ -281,7 +284,7 @@ func TestService_Create(t *testing.T) {
 				},
 				id: "2",
 			},
-			wantErr: ErrSecretTooManyBytes,
+			wantErr: ErrValueInvalid,
 		},
 		{
 			name: "create secret - error",
@@ -309,8 +312,9 @@ func TestService_Create(t *testing.T) {
 			}
 
 			svc := &service{
-				secrets: test.input.secrets,
-				timeout: defaultTimeout,
+				secrets:            test.input.secrets,
+				valueMaxCharacters: 35000,
+				timeout:            defaultTimeout,
 			}
 
 			got, gotErr := svc.Create(test.input.secret)
@@ -496,7 +500,7 @@ func TestValidValue(t *testing.T) {
 			input: func() string {
 				return base64.StdEncoding.EncodeToString([]byte{0})
 			}(),
-			wantErr: ErrSecretInvalid,
+			wantErr: ErrValueInvalid,
 		},
 		{
 			name: "valid value - base32 encoded",
@@ -510,7 +514,7 @@ func TestValidValue(t *testing.T) {
 			input: func() string {
 				return base32.StdEncoding.EncodeToString([]byte{0, 1, 2, 3})
 			}(),
-			wantErr: ErrSecretInvalid,
+			wantErr: ErrValueInvalid,
 		},
 		{
 			name: "valid value - base32 encoded (hex)",
@@ -524,7 +528,7 @@ func TestValidValue(t *testing.T) {
 			input: func() string {
 				return base32.HexEncoding.EncodeToString([]byte{0, 1, 2, 3})
 			}(),
-			wantErr: ErrSecretInvalid,
+			wantErr: ErrValueInvalid,
 		},
 		{
 			name: "valid value - hex encoded",
@@ -538,20 +542,20 @@ func TestValidValue(t *testing.T) {
 			input: func() string {
 				return hex.EncodeToString([]byte{0, 1, 2, 3})
 			}(),
-			wantErr: ErrSecretInvalid,
+			wantErr: ErrValueInvalid,
 		},
 		{
-			name: "invalid length",
+			name: "invalid amount of characters",
 			input: func() string {
-				return base64.StdEncoding.EncodeToString([]byte(strings.Repeat("value", 3000)))
+				return base64.StdEncoding.EncodeToString([]byte(strings.Repeat("value", defaultValueMaxCharacters+1)))
 			}(),
-			wantErr: ErrSecretTooManyBytes,
+			wantErr: ErrValueTooManyCharacters,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			gotErr := validValue(test.input)
+			gotErr := validValue(test.input, defaultValueMaxCharacters)
 
 			if diff := cmp.Diff(test.wantErr, gotErr, cmpopts.EquateErrors()); diff != "" {
 				t.Errorf("validValue() = unexpected error (-want +got)\n%s\n", diff)

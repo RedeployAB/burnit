@@ -30,6 +30,7 @@ func SetupServices(config Services) (*services, error) {
 
 	secrets, err := secret.NewService(
 		repo,
+		secret.WithValueMaxCharacters(config.Secret.ValueMaxCharacters),
 		secret.WithTimeout(config.Secret.Timeout),
 	)
 	if err != nil {
