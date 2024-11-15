@@ -40,7 +40,7 @@ func TestNewService(t *testing.T) {
 				secrets:            &mockSecretRepository{},
 				timeout:            defaultTimeout,
 				cleanupInterval:    defaultCleanupInterval,
-				maxValueCharacters: defaultMaxValueCharacters,
+				valueMaxCharacters: defaultValueMaxCharacters,
 			},
 		},
 		{
@@ -54,7 +54,7 @@ func TestNewService(t *testing.T) {
 					func(s *service) {
 						s.timeout = 30 * time.Second
 						s.cleanupInterval = 30 * time.Second
-						s.maxValueCharacters = 4000
+						s.valueMaxCharacters = 4000
 					},
 				},
 			},
@@ -62,7 +62,7 @@ func TestNewService(t *testing.T) {
 				secrets:            &mockSecretRepository{},
 				timeout:            30 * time.Second,
 				cleanupInterval:    30 * time.Second,
-				maxValueCharacters: 4000,
+				valueMaxCharacters: 4000,
 			},
 		},
 		{
@@ -313,7 +313,7 @@ func TestService_Create(t *testing.T) {
 
 			svc := &service{
 				secrets:            test.input.secrets,
-				maxValueCharacters: 35000,
+				valueMaxCharacters: 35000,
 				timeout:            defaultTimeout,
 			}
 
@@ -547,7 +547,7 @@ func TestValidValue(t *testing.T) {
 		{
 			name: "invalid amount of characters",
 			input: func() string {
-				return base64.StdEncoding.EncodeToString([]byte(strings.Repeat("value", defaultMaxValueCharacters+1)))
+				return base64.StdEncoding.EncodeToString([]byte(strings.Repeat("value", defaultValueMaxCharacters+1)))
 			}(),
 			wantErr: ErrValueTooManyCharacters,
 		},
@@ -555,7 +555,7 @@ func TestValidValue(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			gotErr := validValue(test.input, defaultMaxValueCharacters)
+			gotErr := validValue(test.input, defaultValueMaxCharacters)
 
 			if diff := cmp.Diff(test.wantErr, gotErr, cmpopts.EquateErrors()); diff != "" {
 				t.Errorf("validValue() = unexpected error (-want +got)\n%s\n", diff)

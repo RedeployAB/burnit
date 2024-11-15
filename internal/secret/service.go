@@ -31,13 +31,13 @@ const (
 )
 
 const (
-	// defaultPassphraseLength is the default length of a passphrase.
-	defaultPassphraseLength = 32
+	// defaultValueMaxCharacters is the maximum number of characters (runes) in a secret.
+	defaultValueMaxCharacters = 512
 )
 
 const (
-	// defaultMaxValueCharacters is the maximum number of characters (runes) in a secret.
-	defaultMaxValueCharacters = 3500
+	// defaultPassphraseCharacters is the default length of a passphrase.
+	defaultPassphraseCharacters = 32
 )
 
 // newUUID generates a new UUID.
@@ -68,7 +68,7 @@ type service struct {
 	secrets            db.SecretRepository
 	timeout            time.Duration
 	cleanupInterval    time.Duration
-	maxValueCharacters int
+	valueMaxCharacters int
 	stopCh             chan struct{}
 }
 
@@ -85,7 +85,7 @@ func NewService(secrets db.SecretRepository, options ...ServiceOption) (*service
 		secrets:            secrets,
 		timeout:            defaultTimeout,
 		cleanupInterval:    defaultCleanupInterval,
-		maxValueCharacters: defaultMaxValueCharacters,
+		valueMaxCharacters: defaultValueMaxCharacters,
 		stopCh:             make(chan struct{}),
 	}
 
@@ -192,7 +192,7 @@ func (s service) Get(id, passphrase string, options ...GetOption) (Secret, error
 
 // Create a secret.
 func (s service) Create(secret Secret) (Secret, error) {
-	if err := validValue(secret.Value, s.maxValueCharacters); err != nil {
+	if err := validValue(secret.Value, s.valueMaxCharacters); err != nil {
 		return Secret{}, err
 	}
 
@@ -203,7 +203,7 @@ func (s service) Create(secret Secret) (Secret, error) {
 
 	passphrase := secret.Passphrase
 	if len(passphrase) == 0 {
-		passphrase = generate(defaultPassphraseLength, true)
+		passphrase = generate(defaultPassphraseCharacters, true)
 	}
 
 	encrypted, err := encrypt(secret.Value, passphrase)

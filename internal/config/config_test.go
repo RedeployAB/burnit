@@ -31,7 +31,8 @@ func TestNew(t *testing.T) {
 				},
 				Services: Services{
 					Secret: Secret{
-						Timeout: defaultSecretServiceTimeout,
+						ValueMaxCharacters: defaultSecretServiceValueMaxCharacters,
+						Timeout:            defaultSecretServiceTimeout,
 					},
 					Database: Database{
 						Database:       defaultDatabaseName,
@@ -69,7 +70,8 @@ func TestNew(t *testing.T) {
 				},
 				Services: Services{
 					Secret: Secret{
-						Timeout: 15 * time.Second,
+						ValueMaxCharacters: defaultSecretServiceValueMaxCharacters,
+						Timeout:            15 * time.Second,
 					},
 					Database: Database{
 						URI:            "mongodb://localhost:27017",
@@ -131,7 +133,8 @@ func TestNew(t *testing.T) {
 				},
 				Services: Services{
 					Secret: Secret{
-						Timeout: 20 * time.Second,
+						ValueMaxCharacters: defaultSecretServiceValueMaxCharacters,
+						Timeout:            20 * time.Second,
 					},
 					Database: Database{
 						URI:            "mongodb://localhost2:27018",
@@ -212,7 +215,8 @@ func TestNew(t *testing.T) {
 				},
 				Services: Services{
 					Secret: Secret{
-						Timeout: 25 * time.Second,
+						ValueMaxCharacters: defaultSecretServiceValueMaxCharacters,
+						Timeout:            25 * time.Second,
 					},
 					Database: Database{
 						URI:            "mongodb://localhost3:27019",

@@ -29,6 +29,8 @@ const (
 const (
 	// defaultSecretServiceTimeout is the default timeout for the secret service.
 	defaultSecretServiceTimeout = 10 * time.Second
+	// defaultSecretServiceValueMaxCharacters is the default maximum number of characters a secret value can have.
+	defaultSecretServiceValueMaxCharacters = 512
 )
 
 const (
@@ -118,7 +120,8 @@ type Services struct {
 
 // Secret contains the configuration for the secret service.
 type Secret struct {
-	Timeout time.Duration `env:"SECRETS_TIMEOUT" yaml:"timeout"`
+	ValueMaxCharacters int           `env:"SECRETS_VALUE_MAX_CHARACTERS" yaml:"valueMaxCharacters"`
+	Timeout            time.Duration `env:"SECRETS_TIMEOUT" yaml:"timeout"`
 }
 
 // MarshalJSON returns the JSON encoding of Secret. A custom marshalling method
@@ -258,7 +261,8 @@ func New() (*Configuration, error) {
 		},
 		Services: Services{
 			Secret: Secret{
-				Timeout: defaultSecretServiceTimeout,
+				ValueMaxCharacters: defaultSecretServiceValueMaxCharacters,
+				Timeout:            defaultSecretServiceTimeout,
 			},
 			Database: Database{
 				Database:       defaultDatabaseName,

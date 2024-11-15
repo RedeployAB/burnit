@@ -8,3 +8,11 @@ func WithTimeout(d time.Duration) ServiceOption {
 		s.timeout = d
 	}
 }
+
+// WithValueMaxCharacters sets the maximum number of characters
+// a secret value can have.
+func WithValueMaxCharacters(max int) ServiceOption {
+	return func(s *service) {
+		s.valueMaxCharacters = max
+	}
+}

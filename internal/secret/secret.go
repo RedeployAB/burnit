@@ -38,7 +38,7 @@ func Generate(length int, specialCharacters bool) string {
 	}
 
 	var builder strings.Builder
-	builder.Grow(length)
+	builder.Grow(length * 3)
 	len := len(chars)
 
 	for i := 0; i < length; i++ {
