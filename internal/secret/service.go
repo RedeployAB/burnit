@@ -355,13 +355,13 @@ var now = func() time.Time {
 type decoderFunc func(string) ([]byte, error)
 
 // validValue validates a secret value and returns an error if the value is invalid.
-func validValue(value string, maxValueCharacters int) error {
+func validValue(value string, valueMaxCharacters int) error {
 	if len(value) == 0 {
 		return fmt.Errorf("%w: must not be empty", ErrValueInvalid)
 	}
 
-	if utf8.RuneCountInString(value) > maxValueCharacters {
-		return fmt.Errorf("%w: max characters are %d", ErrValueTooManyCharacters, maxValueCharacters)
+	if utf8.RuneCountInString(value) > valueMaxCharacters {
+		return fmt.Errorf("%w: max characters are %d", ErrValueTooManyCharacters, valueMaxCharacters)
 	}
 
 	v := []byte(value)
