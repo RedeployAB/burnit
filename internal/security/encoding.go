@@ -25,6 +25,15 @@ func DecodeBase64(s string) ([]byte, error) {
 		return nil, ErrInvalidBase64
 	}
 
+	switch len(s) % 4 {
+	case 1:
+		return nil, ErrInvalidBase64
+	case 2:
+		s += "=="
+	case 3:
+		s += "="
+	}
+
 	b, err := encoding.DecodeString(s)
 	if err != nil {
 		return nil, ErrInvalidBase64
