@@ -27,8 +27,10 @@ func TestHeaders(t *testing.T) {
 				options: nil,
 			},
 			want: http.Header{
-				"X-Content-Type-Options": []string{"nosniff"},
-				"X-Frame-Options":        []string{"DENY"},
+				"Cache-Control":             []string{"no-store"},
+				"Strict-Transport-Security": []string{"max-age=31536000"},
+				"X-Content-Type-Options":    []string{"nosniff"},
+				"X-Frame-Options":           []string{"DENY"},
 			},
 		},
 		{
@@ -42,7 +44,6 @@ func TestHeaders(t *testing.T) {
 					func(o *HeadersOptions) {
 						o.CacheControl = "no-store"
 						o.ContentSecurityPolicy = "default-src 'self';"
-						o.TLS = true
 					},
 				},
 			},

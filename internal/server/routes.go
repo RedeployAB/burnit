@@ -10,7 +10,7 @@ import (
 
 // routes sets up the routes for the server.
 func (s *server) routes() {
-	middlewares, shutdownFuncs := setupMiddlewares(s.log, s.rateLimiter, s.cors, !s.tls.isEmpty())
+	middlewares, shutdownFuncs := setupMiddlewares(s.log, s.rateLimiter, s.cors)
 	s.shutdownFuncs = append(s.shutdownFuncs, shutdownFuncs...)
 
 	// Secret router and handlers.
@@ -35,7 +35,7 @@ func (s *server) routes() {
 		return
 	}
 
-	frontendMiddlewares := setupFrontendMiddlewares(s.log, s.ui.ContentSecurityPolicy(), !s.tls.isEmpty())
+	frontendMiddlewares := setupFrontendMiddlewares(s.log, s.ui.ContentSecurityPolicy())
 
 	fer := http.NewServeMux()
 	fer.Handle("/ui/secrets", frontend.CreateSecret(s.ui, s.secrets))
@@ -62,7 +62,7 @@ func (s *server) routes() {
 }
 
 // setupMiddlewares sets up the middlewares for the server.
-func setupMiddlewares(log log.Logger, rl RateLimiter, c CORS, tls bool) ([]middleware.Middleware, []func() error) {
+func setupMiddlewares(log log.Logger, rl RateLimiter, c CORS) ([]middleware.Middleware, []func() error) {
 	middlewares := []middleware.Middleware{middleware.Logger(log)}
 	var shutdownFuncs []func() error
 	if !rl.isEmpty() {
@@ -78,22 +78,17 @@ func setupMiddlewares(log log.Logger, rl RateLimiter, c CORS, tls bool) ([]middl
 	if !c.isEmpty() {
 		middlewares = append(middlewares, middleware.CORS(c.Origin))
 	}
-	middlewares = append(middlewares, middleware.Headers(func(o *middleware.HeadersOptions) {
-		o.CacheControl = "no-store"
-		o.TLS = tls
-	}))
+	middlewares = append(middlewares, middleware.Headers())
 	return middlewares, shutdownFuncs
 }
 
 // setupFrontendMiddlewares sets up the middlewares for the frontend.
-func setupFrontendMiddlewares(log log.Logger, contentSecurityPolicy string, tls bool) []middleware.Middleware {
+func setupFrontendMiddlewares(log log.Logger, contentSecurityPolicy string) []middleware.Middleware {
 	middlewares := []middleware.Middleware{middleware.Logger(log, func(o *middleware.LoggerOptions) {
 		o.Type = "frontend"
 	})}
 	middlewares = append(middlewares, middleware.Headers(func(o *middleware.HeadersOptions) {
-		o.CacheControl = "no-store"
 		o.ContentSecurityPolicy = contentSecurityPolicy
-		o.TLS = tls
 	}))
 	return middlewares
 }
