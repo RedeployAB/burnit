@@ -37,7 +37,7 @@ func TestDecodeBase64(t *testing.T) {
 		},
 		{
 			name:    "invalid input",
-			input:   "invalid",
+			input:   "$invalid",
 			wantErr: ErrInvalidBase64,
 		},
 	}
