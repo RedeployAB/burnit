@@ -4,6 +4,7 @@ testcmd/
 *.exe
 *.db
 node_modules/
+*.gz
 
 bundle.js
 htmx.min.js
