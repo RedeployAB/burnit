@@ -41,7 +41,7 @@ func index(ui frontend.UI, log log.Logger) http.Handler {
 				"/secrets",
 			},
 		}); err != nil {
-			log.Error("Failed to encode response.", "error", err)
+			log.Error("Failed to encode response.", "handler", "index", "error", err)
 			writeServerError(w)
 			return
 		}
@@ -70,7 +70,7 @@ func generateSecret(secrets secret.Service, log log.Logger) http.Handler {
 		}
 
 		if err := encode(w, http.StatusOK, api.Secret{Value: secret}); err != nil {
-			log.Error("Failed to encode response.", "error", err)
+			log.Error("Failed to encode response.", "handler", "generateSecret", "error", err)
 			writeServerError(w)
 			return
 		}
@@ -98,13 +98,13 @@ func getSecret(secrets secret.Service, log log.Logger) http.Handler {
 				writeError(w, statusCode, err)
 				return
 			}
-			log.Error("Failed to get secret.", "error", err)
+			log.Error("Failed to get secret.", "handler", "getSecret", "error", err)
 			writeServerError(w)
 			return
 		}
 
 		if err := encode(w, http.StatusOK, api.Secret{Value: secret.Value}); err != nil {
-			log.Error("Failed to encode response.", "error", err)
+			log.Error("Failed to encode response.", "handler", "getSecret", "error", err)
 			writeServerError(w)
 			return
 		}
@@ -126,14 +126,14 @@ func createSecret(secrets secret.Service, log log.Logger) http.Handler {
 				writeError(w, statusCode, err)
 				return
 			}
-			log.Error("Failed to create secret.", "error", err)
+			log.Error("Failed to create secret.", "handler", "createSecret", "error", err)
 			writeServerError(w)
 			return
 		}
 
 		w.Header().Set("Location", "/secrets/"+secret.ID)
 		if err := encode(w, http.StatusCreated, toAPISecret(&secret)); err != nil {
-			log.Error("Failed to encode response.", "error", err)
+			log.Error("Failed to encode response.", "handler", "createSecret", "error", err)
 			writeServerError(w)
 			return
 		}
@@ -163,7 +163,7 @@ func deleteSecret(secrets secret.Service, log log.Logger) http.Handler {
 				writeError(w, statusCode, err)
 				return
 			}
-			log.Error("Failed to delete secret.", "error", err)
+			log.Error("Failed to delete secret.", "handler", "deleteSecret", "error", err)
 			writeServerError(w)
 			return
 		}
