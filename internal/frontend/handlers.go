@@ -74,7 +74,7 @@ func GetSecret(ui UI, secrets secretService, log log.Logger) http.Handler {
 				return
 			}
 
-			log.Error("Failed to get secret.", "error", err)
+			log.Error("Failed to get secret.", "handler", "GetSecret", "error", err)
 			http.Error(w, "could not get secret: error in service", http.StatusInternalServerError)
 			return
 		}
@@ -115,7 +115,7 @@ func HandlerCreateSecret(ui UI, secrets secretService, log log.Logger) http.Hand
 			TTL:        ttl,
 		})
 		if err != nil {
-			log.Error("Failed to create secret.", "error", err)
+			log.Error("Failed to create secret.", "handler", "HandlerCreateSecret", "error", err)
 			http.Error(w, "could not create secret error in service", http.StatusInternalServerError)
 			return
 		}
@@ -162,7 +162,7 @@ func HandlerGetSecret(ui UI, secrets secretService, log log.Logger) http.Handler
 				return
 			}
 
-			log.Error("Failed to get secret.", "error", err)
+			log.Error("Failed to get secret.", "handler", "HandlerGetSecret", "error", err)
 			http.Error(w, "could not get secret: error in service", http.StatusInternalServerError)
 			return
 		}
