@@ -30,8 +30,8 @@ func (s *server) routes() {
 	s.router.Handle("/secrets", secretsHandler)
 
 	if s.ui == nil {
-		s.router.Handle("/{$}", index(nil, s.log))
-		s.router.Handle("/", notFound(nil))
+		s.router.Handle("/{$}", middleware.Logger(s.log, middleware.WithLoggerType("backend"))(index(nil, s.log)))
+		s.router.Handle("/", middleware.Logger(s.log, middleware.WithLoggerType("backend"))(notFound(nil)))
 		return
 	}
 
@@ -45,20 +45,11 @@ func (s *server) routes() {
 	fer.Handle("/ui/", frontend.NotFound(s.ui))
 
 	frontendHandler := middleware.Chain(fer, frontendMiddlewares...)
-
 	s.router.Handle("/ui/", frontendHandler)
 
-	s.router.Handle("/static/", middleware.Logger(s.log, func(o *middleware.LoggerOptions) {
-		o.Type = "static"
-	})(http.StripPrefix("/static/", http.FileServer(http.FS(s.ui.Static())))))
-
-	s.router.Handle("/{$}", middleware.Logger(s.log, func(o *middleware.LoggerOptions) {
-		o.Type = "index"
-	})(index(s.ui, s.log)))
-
-	s.router.Handle("/", middleware.Logger(s.log, func(o *middleware.LoggerOptions) {
-		o.Type = "not-found"
-	})(notFound(s.ui)))
+	s.router.Handle("/static/", middleware.Logger(s.log, middleware.WithLoggerType("frontend"))(frontend.FileServer(s.ui.Static(), frontend.WithFileServerStripPrefix("/static/"))))
+	s.router.Handle("/{$}", middleware.Logger(s.log, middleware.WithLoggerType("backend/frontend"))(index(s.ui, s.log)))
+	s.router.Handle("/", middleware.Logger(s.log, middleware.WithLoggerType("backend/frontend"))(notFound(s.ui)))
 }
 
 // setupMiddlewares sets up the middlewares for the server.

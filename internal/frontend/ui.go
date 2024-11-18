@@ -29,7 +29,7 @@ const (
 
 const (
 	// defaultContentSecurityPolicy is the default content security policy for the frontend UI.
-	defaultContentSecurityPolicy = "default-src 'self;"
+	defaultContentSecurityPolicy = "default-src 'self';"
 )
 
 // UI is an interface for rendering templates.
@@ -120,6 +120,10 @@ func (u ui) Render(w http.ResponseWriter, statusCode int, tmpl string, data any,
 	execTemplate := "base.html"
 	if opts.Partial {
 		execTemplate = tmpl + ".html"
+	}
+
+	if len(w.Header().Get("Content-Type")) == 0 {
+		w.Header().Set("Content-Type", "text/html")
 	}
 
 	if u.runtimeRender {

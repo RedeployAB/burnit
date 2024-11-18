@@ -59,6 +59,13 @@ func Logger(log log.Logger, options ...LoggerOption) func(next http.Handler) htt
 	}
 }
 
+// WithLoggerType sets the type of component for the logger.
+func WithLoggerType(t string) LoggerOption {
+	return func(o *LoggerOptions) {
+		o.Type = t
+	}
+}
+
 // maskSecretHash masks the hash in the path.
 func maskSecretHash(path string) string {
 	lastIndex := strings.LastIndex(path, "/")
