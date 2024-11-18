@@ -47,7 +47,7 @@ func (s *server) routes() {
 	frontendHandler := middleware.Chain(fer, frontendMiddlewares...)
 	s.router.Handle("/ui/", frontendHandler)
 
-	s.router.Handle("/static/", middleware.Logger(s.log, middleware.WithLoggerType("frontend"))(frontend.FileServer(s.ui.Static(), frontend.WithFileServerStripPrefix("/static/"))))
+	s.router.Handle("/static/", middleware.Logger(s.log, middleware.WithLoggerType("frontend"))(http.StripPrefix("/static/", frontend.FileServer(s.ui.Static()))))
 	s.router.Handle("/{$}", middleware.Logger(s.log, middleware.WithLoggerType("backend/frontend"))(index(s.ui, s.log)))
 	s.router.Handle("/", middleware.Logger(s.log, middleware.WithLoggerType("backend/frontend"))(notFound(s.ui)))
 }

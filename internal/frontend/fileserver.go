@@ -3,34 +3,59 @@ package frontend
 import (
 	"io/fs"
 	"net/http"
+	_path "path"
+	"strings"
 )
 
-// FileServerOptions are the options for the file server handler.
-type FileServerOptions struct {
-	StripPrefix string
+// gzipFile is a file that has been compressed using gzip.
+type gzipFile struct {
+	path        string
+	contentType string
 }
-
-// FileServerOption is a function that sets a file server option.
-type FileServerOption func(o *FileServerOptions)
 
 // FileServer creates a file server handler.
-func FileServer(fsys fs.FS, options ...FileServerOption) http.Handler {
-	opts := FileServerOptions{}
-	for _, option := range options {
-		option(&opts)
-	}
+func FileServer(fsys fs.FS) http.Handler {
+	gzipped := map[string]gzipFile{}
+	fs.WalkDir(fsys, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			return nil
+		}
 
-	fserver := http.FileServer(http.FS(fsys))
-	if len(opts.StripPrefix) > 0 {
-		fserver = http.StripPrefix(opts.StripPrefix, fserver)
-	}
+		if strings.HasSuffix(path, ".gz") {
+			p := strings.TrimSuffix(path, ".gz")
+			gzipped[p] = gzipFile{
+				path:        path,
+				contentType: getContentType(p),
+			}
+		}
+		return nil
+	})
 
-	return fserver
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+			if file, ok := gzipped[r.URL.Path]; ok {
+				w.Header().Set("Content-Type", file.contentType)
+				w.Header().Set("Content-Encoding", "gzip")
+				r.URL.Path = file.path
+			}
+		}
+
+		http.FileServer(http.FS(fsys)).ServeHTTP(w, r)
+	})
 }
 
-// WithFileServerStripPrefix returns a FileServerOption that sets the strip prefix for the file server.
-func WithFileServerStripPrefix(prefix string) FileServerOption {
-	return func(o *FileServerOptions) {
-		o.StripPrefix = prefix
+// getContentType returns the content type for a given path to a file.
+func getContentType(path string) string {
+	switch _path.Ext(path) {
+	case ".css":
+		return "text/css"
+	case ".js":
+		return "application/javascript"
+	case ".png":
+		return "image/png"
 	}
+	return ""
 }

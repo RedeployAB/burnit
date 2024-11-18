@@ -56,6 +56,10 @@ cd $curr_dir
 esbuild internal/frontend/static/js/main.js --bundle --minify --outfile=internal/frontend/static/js/main.min.js
 esbuild internal/frontend/static/css/main.css --bundle --minify --outfile=internal/frontend/static/css/main.min.css
 
+gzip -k -f internal/frontend/static/js/main.min.js
+gzip -k -f internal/frontend/static/css/main.min.css
+gzip -k -f internal/frontend/static/icons/*.png
+
 if [[ "$OSTYPE" == "darwin"* ]]; then
   sed_flags=(-i '')
 else

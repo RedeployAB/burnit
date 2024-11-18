@@ -14,7 +14,7 @@ var (
 	//go:embed templates/*
 	templateFS embed.FS
 
-	//go:embed static/js/main.min.js static/css/main.min.css static/icons/* static/images/*
+	//go:embed static/js/main.min.js* static/css/main.min.css* static/icons/* static/images/*
 	staticFS embed.FS
 )
 
@@ -77,17 +77,17 @@ func NewUI(options ...UIOption) (*ui, error) {
 	}
 
 	if len(ui.templateDir) > 0 {
-		if err := ui.addTemplates(dirFS{os.DirFS(ui.templateDir)}, ui.templateDir, false); err != nil {
+		if err := ui.addTemplates(os.DirFS(ui.templateDir), ui.templateDir, false); err != nil {
 			return nil, err
 		}
 	}
 
 	if len(opts.StaticDir) == 0 {
-		fs, err := fs.Sub(staticFS, defaultStaticDir)
+		fsys, err := fs.Sub(staticFS, defaultStaticDir)
 		if err != nil {
 			return nil, err
 		}
-		ui.staticFS = fs
+		ui.staticFS = fsys
 	} else {
 		ui.staticFS = os.DirFS(opts.StaticDir)
 	}
@@ -178,15 +178,17 @@ func trimExtension(name string) string {
 }
 
 // addTemplates adds a template to the UI.
-func (u *ui) addTemplates(fs fs.ReadDirFS, path string, embedded bool) error {
-	files, err := fs.ReadDir(path)
-	if err != nil {
-		return err
-	}
-
+func (u *ui) addTemplates(fsys fs.FS, path string, embedded bool) error {
 	var prefix string
 	if embedded {
 		prefix = path + "/"
+	} else {
+		path = "."
+	}
+
+	files, err := fs.ReadDir(fsys, path)
+	if err != nil {
+		return err
 	}
 
 	for _, file := range files {
@@ -199,7 +201,7 @@ func (u *ui) addTemplates(fs fs.ReadDirFS, path string, embedded bool) error {
 			if !strings.HasPrefix(file.Name(), "partial-") {
 				templates = append([]string{prefix + "base.html"}, templates...)
 			}
-			tmpl, err := template.ParseFS(fs, templates...)
+			tmpl, err := template.ParseFS(fsys, templates...)
 			if err != nil {
 				return err
 			}
@@ -207,14 +209,4 @@ func (u *ui) addTemplates(fs fs.ReadDirFS, path string, embedded bool) error {
 		}
 	}
 	return nil
-}
-
-// dirFS is a wraper for fitting os.DirFS into fs.ReadDirFS.
-type dirFS struct {
-	fs.FS
-}
-
-// ReadDir reads a directory.
-func (d dirFS) ReadDir(name string) ([]fs.DirEntry, error) {
-	return os.ReadDir(name)
 }
