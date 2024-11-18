@@ -16,6 +16,16 @@ do
       version=$1
       shift
       ;;
+    --os)
+      shift
+      os=$1
+      shift
+      ;;
+    --arch)
+      shift
+      arch=$1
+      shift
+      ;;
     --image)
       container=1
       shift
