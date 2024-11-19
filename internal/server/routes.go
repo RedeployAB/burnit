@@ -81,5 +81,6 @@ func setupFrontendMiddlewares(log log.Logger, contentSecurityPolicy string) []mi
 	middlewares = append(middlewares, middleware.Headers(func(o *middleware.HeadersOptions) {
 		o.ContentSecurityPolicy = contentSecurityPolicy
 	}))
+	middlewares = append(middlewares, middleware.Compress())
 	return middlewares
 }
