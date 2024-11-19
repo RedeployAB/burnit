@@ -67,7 +67,7 @@ document.addEventListener('htmx:afterSwap', (event) => {
       });
     }
   }
-})
+});
 
 // setBaseUrl sets the base URL for the secret form.
 function setBaseUrl() {
