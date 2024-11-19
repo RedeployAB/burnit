@@ -4,6 +4,12 @@ expected_htmx_sha256=$HTMX_SHA256
 expected_tailwindcss_sha256=$TAILWINDCSS_SHA256
 curr_dir=$(pwd)
 
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  sed_flags=(-i '')
+else
+  sed_flags=(-i)
+fi
+
 # Download esbuild if it doesn't exist and verify the SHA256 checksum.
 if [ -z "$(command -v esbuild)" ]; then
     curl -fsSL https://esbuild.github.io/dl/v0.24.0 | sh
@@ -37,13 +43,14 @@ if [ -z "$(command -v tailwindcss)" ]; then
 fi
 
 
-# Download htmx.min.js.
-curl -so internal/frontend/static/js/htmx.min.js https://unpkg.com/htmx.org@2.0.3/dist/htmx.min.js
+# Download htmx.esm.js.
+curl -sLo internal/frontend/static/js/htmx.esm.js https://github.com/bigskysoftware/htmx/releases/download/v2.0.3/htmx.esm.js
+sed "${sed_flags[@]}" 's/return eval(str)/return (0, eval)(str)/g' internal/frontend/static/js/htmx.esm.js
 
 # Verify the SHA256 checksum.
-actual_htmx_sha256=$(sha256sum internal/frontend/static/js/htmx.min.js | awk '{print $1}')
+actual_htmx_sha256=$(sha256sum internal/frontend/static/js/htmx.esm.js | awk '{print $1}')
 if [ "$expected_htmx_sha256" != "$actual_htmx_sha256" ]; then
-  echo "SHA256 checksum mismatch for htmx.min.js"
+  echo "SHA256 checksum mismatch for htmx.esm.js"
   exit 1
 fi
 
@@ -59,12 +66,6 @@ esbuild internal/frontend/static/css/main.css --bundle --minify --outfile=intern
 gzip -k -f internal/frontend/static/js/main.min.js
 gzip -k -f internal/frontend/static/css/main.min.css
 gzip -k -f internal/frontend/static/icons/*.png
-
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  sed_flags=(-i '')
-else
-  sed_flags=(-i)
-fi
 
 sed "${sed_flags[@]}" 's/main\.css/main.min.css/g' internal/frontend/templates/base.html
 sed "${sed_flags[@]}" '/unpkg.com/d' internal/frontend/templates/base.html
