@@ -2,17 +2,71 @@
 document.addEventListener('DOMContentLoaded', setBaseUrl);
 document.addEventListener('htmx:load', setBaseUrl);
 
-// Mask the secret passphrase on the secret result page.
-document.addEventListener('htmx:afterSwap', () => {
+// Handle events after htmx swap for secret form.
+document.addEventListener('htmx:afterSwap', (event) => {
   const maskedLength = 40;
   const maskedValue = '\u2022'.repeat(maskedLength);
 
-  const element = document.getElementById('secret-passphrase');
-  if (!element) {
-    return;
-  }
+  const target = event.target;
+  if (target.id == 'secret-form-container') {
+    const passphraseField = document.getElementById('secret-passphrase');
+    if (passphraseField) {
+      passphraseField.value = maskedValue;
+    }
 
-  element.value = maskedValue;
+    const overlayCloseButton = document.getElementById('secret-links-overlay-close-button')
+    if (overlayCloseButton) {
+      overlayCloseButton.addEventListener('click', () => {
+        const overlay = document.getElementById('secret-links-overlay');
+        overlay.remove();
+        enableElement('secret-form-fields');
+      });
+    }
+
+    const copySecretFullLink = document.getElementById('copy-secret-full-link');
+    if (copySecretFullLink) {
+      copySecretFullLink.addEventListener('click', () => {
+        copyToClipboard('secret-full-link', 'copy-secret-full-link');
+      });
+    }
+
+    const copySecretPartialLink = document.getElementById('copy-secret-partial-link');
+    if (copySecretPartialLink) {
+      copySecretPartialLink.addEventListener('click', () => {
+        copyToClipboard('secret-partial-link', 'copy-secret-partial-link');
+      });
+    }
+
+    const copySecretPassphrase = document.getElementById('copy-secret-passphrase');
+    if (copySecretPassphrase) {
+      copySecretPassphrase.addEventListener('click', () => {
+        copyToClipboard('secret-passphrase', 'copy-secret-passphrase');
+      });
+    }
+  }
+});
+
+// Handle events for secret result.
+document.addEventListener('DOMContentLoaded', () => {
+  const copySecretResultValue = document.getElementById('copy-secret-result-value');
+  if (copySecretResultValue) {
+    copySecretResultValue.addEventListener('click', () => {
+      copyToClipboard('secret-result-value', 'copy-secret-result-value');
+    });
+  }
+});
+
+// Handle events after htmx swap for secret result.
+document.addEventListener('htmx:afterSwap', (event) => {
+  const target = event.target;
+  if (target.id == 'secret-result-container') {
+    const copySecretResultValue = document.getElementById('copy-secret-result-value');
+    if (copySecretResultValue) {
+      copySecretResultValue.addEventListener('click', () => {
+        copyToClipboard('secret-result-value', 'copy-secret-result-value');
+      });
+    }
+  }
 });
 
 // setBaseUrl sets the base URL for the secret form.
