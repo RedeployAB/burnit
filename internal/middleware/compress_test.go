@@ -73,11 +73,6 @@ func TestCompress(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			/* req := test.input.req
-			req.URL, _ = url.Parse(ts.URL + req.URL.Path)
-			req.Host = req.URL.Host
-			req.RequestURI = ""
-			resp, b := testCompressRequest(t, test.input.req) */
 			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Content-Type", "text/html")
 				w.Write([]byte("test"))
