@@ -4,8 +4,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/RedeployAB/burnit/internal/frontend"
 	"github.com/RedeployAB/burnit/internal/log"
+	"github.com/RedeployAB/burnit/internal/ui"
 )
 
 // WithOptions configures the server with the given Options.
@@ -113,7 +113,7 @@ func WithRateLimiter(rateLimiter RateLimiter) Option {
 }
 
 // WithUI configures the server with the given UI.
-func WithUI(ui frontend.UI) Option {
+func WithUI(ui ui.UI) Option {
 	return func(s *server) {
 		if ui != nil {
 			s.ui = ui

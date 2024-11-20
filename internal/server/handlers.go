@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/RedeployAB/burnit/internal/api"
-	"github.com/RedeployAB/burnit/internal/frontend"
 	"github.com/RedeployAB/burnit/internal/log"
 	"github.com/RedeployAB/burnit/internal/secret"
 	"github.com/RedeployAB/burnit/internal/security"
+	"github.com/RedeployAB/burnit/internal/ui"
 	"github.com/RedeployAB/burnit/internal/version"
 )
 
@@ -26,7 +26,7 @@ const (
 )
 
 // index returns a handler for handling the index route.
-func index(ui frontend.UI, log log.Logger) http.Handler {
+func index(ui ui.UI, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if ui != nil && strings.Contains(r.Header.Get("Accept"), contentTypeHTML) {
 			http.Redirect(w, r, "/ui/secrets", http.StatusMovedPermanently)
@@ -41,7 +41,7 @@ func index(ui frontend.UI, log log.Logger) http.Handler {
 				"/secrets",
 			},
 		}); err != nil {
-			log.Error("Failed to encode response.", "handler", "index", "error", err)
+			log.Error("Failed to encode response.", serviceLog("handler", "index", "error", err)...)
 			writeServerError(w)
 			return
 		}
@@ -49,7 +49,7 @@ func index(ui frontend.UI, log log.Logger) http.Handler {
 }
 
 // notFound returns a handler for handling not found routes.
-func notFound(ui frontend.UI) http.Handler {
+func notFound(ui ui.UI) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if ui != nil && strings.Contains(r.Header.Get("Accept"), contentTypeHTML) {
 			ui.Render(w, http.StatusNotFound, "not-found", nil)
@@ -70,7 +70,7 @@ func generateSecret(secrets secret.Service, log log.Logger) http.Handler {
 		}
 
 		if err := encode(w, http.StatusOK, api.Secret{Value: secret}); err != nil {
-			log.Error("Failed to encode response.", "handler", "generateSecret", "error", err)
+			log.Error("Failed to encode response.", serviceLog("handler", "generateSecret", "error", err)...)
 			writeServerError(w)
 			return
 		}
@@ -98,13 +98,13 @@ func getSecret(secrets secret.Service, log log.Logger) http.Handler {
 				writeError(w, statusCode, err)
 				return
 			}
-			log.Error("Failed to get secret.", "handler", "getSecret", "error", err)
+			log.Error("Failed to get secret.", serviceLog("handler", "getSecret", "error", err)...)
 			writeServerError(w)
 			return
 		}
 
 		if err := encode(w, http.StatusOK, api.Secret{Value: secret.Value}); err != nil {
-			log.Error("Failed to encode response.", "handler", "getSecret", "error", err)
+			log.Error("Failed to encode response.", serviceLog("handler", "getSecret", "error", err)...)
 			writeServerError(w)
 			return
 		}
@@ -126,14 +126,14 @@ func createSecret(secrets secret.Service, log log.Logger) http.Handler {
 				writeError(w, statusCode, err)
 				return
 			}
-			log.Error("Failed to create secret.", "handler", "createSecret", "error", err)
+			log.Error("Failed to create secret.", serviceLog("handler", "createSecret", "error", err)...)
 			writeServerError(w)
 			return
 		}
 
 		w.Header().Set("Location", "/secrets/"+secret.ID)
 		if err := encode(w, http.StatusCreated, toAPISecret(&secret)); err != nil {
-			log.Error("Failed to encode response.", "handler", "createSecret", "error", err)
+			log.Error("Failed to encode response.", serviceLog("handler", "createSecret", "error", err)...)
 			writeServerError(w)
 			return
 		}
@@ -163,7 +163,7 @@ func deleteSecret(secrets secret.Service, log log.Logger) http.Handler {
 				writeError(w, statusCode, err)
 				return
 			}
-			log.Error("Failed to delete secret.", "handler", "deleteSecret", "error", err)
+			log.Error("Failed to delete secret.", serviceLog("handler", "deleteSecret", "error", err)...)
 			writeServerError(w)
 			return
 		}
@@ -224,4 +224,9 @@ func toAPISecret(s *secret.Secret) api.Secret {
 		TTL:        s.TTL.String(),
 		ExpiresAt:  expiresAt,
 	}
+}
+
+// serviceLog prepends the log message with type service.
+func serviceLog(args ...any) []any {
+	return append([]any{"type", "service"}, args...)
 }

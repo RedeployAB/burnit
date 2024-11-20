@@ -43,17 +43,17 @@ const (
 )
 
 const (
-	// defaultFrontendRuntimeRenderTemplateDir is the default directory for the runtime render templates.
-	defaultFrontendRuntimeRenderTemplateDir = "internal/frontend/templates"
-	// defaultFrontendRuntimeRenderStaticDir is the default directory for the runtime render static files.
-	defaultFrontendRuntimeRenderStaticDir = "internal/frontend/static"
+	// defaultUIRuntimeRenderTemplateDir is the default directory for the runtime render templates.
+	defaultUIRuntimeRenderTemplateDir = "internal/ui/templates"
+	// defaultUIRuntimeRenderStaticDir is the default directory for the runtime render static files.
+	defaultUIRuntimeRenderStaticDir = "internal/ui/static"
 )
 
 // ConfigOruration contains the configuration for the application.
 type Configuration struct {
 	Server   Server   `yaml:"server"`
 	Services Services `yaml:"services"`
-	Frontend Frontend `yaml:"frontend"`
+	UI       UI       `yaml:"ui"`
 }
 
 // Server contains the configuration for the server.
@@ -242,9 +242,9 @@ type Redis struct {
 	EnableTLS       *bool         `env:"DATABASE_MONGO_ENABLE_TLS" yaml:"enableTLS"`
 }
 
-// Frontend contains the configuration for the frontend.
-type Frontend struct {
-	RuntimeRender *bool `env:"FRONTEND_RUNTIME_RENDER" yaml:"runtimeRender"`
+// UI contains the configuration for the UI.
+type UI struct {
+	RuntimeRender *bool `env:"UI_RUNTIME_RENDER" yaml:"runtimeRender"`
 }
 
 // New creates a new Configuration.

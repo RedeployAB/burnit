@@ -6,9 +6,9 @@ import (
 	"strconv"
 
 	"github.com/RedeployAB/burnit/internal/config"
-	"github.com/RedeployAB/burnit/internal/frontend"
 	"github.com/RedeployAB/burnit/internal/log"
 	"github.com/RedeployAB/burnit/internal/server"
+	"github.com/RedeployAB/burnit/internal/ui"
 	"github.com/RedeployAB/burnit/internal/version"
 )
 
@@ -34,11 +34,11 @@ func run(log log.Logger) error {
 		return fmt.Errorf("could not setup services: %w", err)
 	}
 
-	var ui frontend.UI
+	var ui ui.UI
 	if cfg.Server.BackendOnly == nil || !*cfg.Server.BackendOnly {
-		ui, err = config.SetupUI(cfg.Frontend)
+		ui, err = config.SetupUI(cfg.UI)
 		if err != nil {
-			return fmt.Errorf("could not setup frontend: %w", err)
+			return fmt.Errorf("could not setup ui: %w", err)
 		}
 	}
 
