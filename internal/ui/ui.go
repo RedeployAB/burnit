@@ -1,4 +1,4 @@
-package frontend
+package ui
 
 import (
 	"embed"
@@ -22,54 +22,47 @@ const (
 	// defaultTemplateDir is the default directory for templates.
 	defaultTemplateDir = "templates"
 	// defaultInternalTemplateDir is the default directory for internal templates.
-	defaultInternalTemplateDir = "internal/frontend/templates"
+	defaultInternalTemplateDir = "internal/ui/templates"
 	// defaultStaticDir is the default directory for static files.
 	defaultStaticDir = "static"
-)
-
-const (
-	// defaultContentSecurityPolicy is the default content security policy for the frontend UI.
-	defaultContentSecurityPolicy = "default-src 'self';"
 )
 
 // UI is an interface for rendering templates.
 type UI interface {
 	Render(w http.ResponseWriter, statusCode int, tmpl string, data any, options ...RenderOption)
 	Static() fs.FS
-	ContentSecurityPolicy() string
+	RuntimeRender() bool
 }
 
 // ui is a user interface handler.
 type ui struct {
-	templates             map[string]*template.Template
-	templateDir           string
-	contentSecurityPolicy string
-	staticFS              fs.FS
-	runtimeRender         bool
+	templates     map[string]*template.Template
+	templateDir   string
+	staticFS      fs.FS
+	runtimeRender bool
 }
 
 // UIOptions is a configuration for the UI.
-type UIOptions struct {
+type Options struct {
 	TemplateDir   string
 	StaticDir     string
 	RuntimeRender bool
 }
 
 // UIOption is a function that configures the UI.
-type UIOption func(o *UIOptions)
+type UIOption func(o *Options)
 
 // New returns a new UI.
-func NewUI(options ...UIOption) (*ui, error) {
-	opts := UIOptions{}
+func New(options ...UIOption) (*ui, error) {
+	opts := Options{}
 	for _, option := range options {
 		option(&opts)
 	}
 
 	ui := &ui{
-		templates:             make(map[string]*template.Template),
-		templateDir:           opts.TemplateDir,
-		runtimeRender:         opts.RuntimeRender,
-		contentSecurityPolicy: defaultContentSecurityPolicy,
+		templates:     make(map[string]*template.Template),
+		templateDir:   opts.TemplateDir,
+		runtimeRender: opts.RuntimeRender,
 	}
 
 	if err := ui.addTemplates(templateFS, defaultTemplateDir, true); err != nil {
@@ -164,12 +157,9 @@ func (u ui) Static() fs.FS {
 	return u.staticFS
 }
 
-// ContentSecurityPolicy returns the content security policy.
-func (u ui) ContentSecurityPolicy() string {
-	if u.runtimeRender {
-		return ""
-	}
-	return u.contentSecurityPolicy
+// RuntimeRender returns true if the UI should render templates at runtime.
+func (u ui) RuntimeRender() bool {
+	return u.runtimeRender
 }
 
 // trimExtension trims the extension from a file name.

@@ -3,9 +3,14 @@ package server
 import (
 	"net/http"
 
-	"github.com/RedeployAB/burnit/internal/frontend"
 	"github.com/RedeployAB/burnit/internal/log"
 	"github.com/RedeployAB/burnit/internal/middleware"
+	"github.com/RedeployAB/burnit/internal/ui"
+)
+
+const (
+	// defaultContentSecurityPolicy is the default content security policy.
+	defaultContentSecurityPolicy = "default-src 'self';"
 )
 
 // routes sets up the routes for the server.
@@ -30,26 +35,26 @@ func (s *server) routes() {
 	s.router.Handle("/secrets", secretsHandler)
 
 	if s.ui == nil {
-		s.router.Handle("/{$}", middleware.Logger(s.log, middleware.WithLoggerType("backend"))(index(nil, s.log)))
-		s.router.Handle("/", middleware.Logger(s.log, middleware.WithLoggerType("backend"))(notFound(nil)))
+		s.router.Handle("/{$}", middleware.Logger(s.log)(index(nil, s.log)))
+		s.router.Handle("/", middleware.Logger(s.log)(notFound(nil)))
 		return
 	}
 
-	frontendMiddlewares := setupFrontendMiddlewares(s.log, s.ui.ContentSecurityPolicy())
+	uiMiddlewares := setupUIMiddlewares(s.log, s.ui.RuntimeRender())
 
 	fer := http.NewServeMux()
-	fer.Handle("/ui/secrets", frontend.CreateSecret(s.ui, s.secrets))
-	fer.Handle("/ui/secrets/", frontend.GetSecret(s.ui, s.secrets, s.log))
-	fer.Handle("/ui/handlers/secret/get", middleware.HTMX(frontend.HandlerGetSecret(s.ui, s.secrets, s.log)))
-	fer.Handle("/ui/handlers/secret/create", middleware.HTMX(frontend.HandlerCreateSecret(s.ui, s.secrets, s.log)))
-	fer.Handle("/ui/", frontend.NotFound(s.ui))
+	fer.Handle("/ui/secrets", ui.CreateSecret(s.ui, s.secrets))
+	fer.Handle("/ui/secrets/", ui.GetSecret(s.ui, s.secrets, s.log))
+	fer.Handle("/ui/handlers/secret/get", middleware.HTMX(ui.HandlerGetSecret(s.ui, s.secrets, s.log)))
+	fer.Handle("/ui/handlers/secret/create", middleware.HTMX(ui.HandlerCreateSecret(s.ui, s.secrets, s.log)))
+	fer.Handle("/ui/", ui.NotFound(s.ui))
 
-	frontendHandler := middleware.Chain(fer, frontendMiddlewares...)
-	s.router.Handle("/ui/", frontendHandler)
+	uiHandler := middleware.Chain(fer, uiMiddlewares...)
+	s.router.Handle("/ui/", uiHandler)
 
-	s.router.Handle("/static/", middleware.Logger(s.log, middleware.WithLoggerType("frontend"))(http.StripPrefix("/static/", frontend.FileServer(s.ui.Static()))))
-	s.router.Handle("/{$}", middleware.Logger(s.log, middleware.WithLoggerType("backend/frontend"))(index(s.ui, s.log)))
-	s.router.Handle("/", middleware.Logger(s.log, middleware.WithLoggerType("backend/frontend"))(notFound(s.ui)))
+	s.router.Handle("/static/", middleware.Logger(s.log)(http.StripPrefix("/static/", ui.FileServer(s.ui.Static()))))
+	s.router.Handle("/{$}", middleware.Logger(s.log)(index(s.ui, s.log)))
+	s.router.Handle("/", middleware.Logger(s.log)(notFound(s.ui)))
 }
 
 // setupMiddlewares sets up the middlewares for the server.
@@ -73,11 +78,14 @@ func setupMiddlewares(log log.Logger, rl RateLimiter, c CORS) ([]middleware.Midd
 	return middlewares, shutdownFuncs
 }
 
-// setupFrontendMiddlewares sets up the middlewares for the frontend.
-func setupFrontendMiddlewares(log log.Logger, contentSecurityPolicy string) []middleware.Middleware {
-	middlewares := []middleware.Middleware{middleware.Logger(log, func(o *middleware.LoggerOptions) {
-		o.Type = "frontend"
-	})}
+// setupUIMiddlewares sets up the middlewares for the UI.
+func setupUIMiddlewares(log log.Logger, runtimeRender bool) []middleware.Middleware {
+	middlewares := []middleware.Middleware{middleware.Logger(log)}
+
+	var contentSecurityPolicy string
+	if !runtimeRender {
+		contentSecurityPolicy = defaultContentSecurityPolicy
+	}
 	middlewares = append(middlewares, middleware.Headers(func(o *middleware.HeadersOptions) {
 		o.ContentSecurityPolicy = contentSecurityPolicy
 	}))

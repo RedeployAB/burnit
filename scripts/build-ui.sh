@@ -44,29 +44,29 @@ fi
 
 
 # Download htmx.esm.js.
-curl -sLo internal/frontend/static/js/htmx.esm.js https://github.com/bigskysoftware/htmx/releases/download/v2.0.3/htmx.esm.js
-sed "${sed_flags[@]}" 's/return eval(str)/return (0, eval)(str)/g' internal/frontend/static/js/htmx.esm.js
+curl -sLo internal/ui/static/js/htmx.esm.js https://github.com/bigskysoftware/htmx/releases/download/v2.0.3/htmx.esm.js
+sed "${sed_flags[@]}" 's/return eval(str)/return (0, eval)(str)/g' internal/ui/static/js/htmx.esm.js
 
 # Verify the SHA256 checksum.
-actual_htmx_sha256=$(sha256sum internal/frontend/static/js/htmx.esm.js | awk '{print $1}')
+actual_htmx_sha256=$(sha256sum internal/ui/static/js/htmx.esm.js | awk '{print $1}')
 if [ "$expected_htmx_sha256" != "$actual_htmx_sha256" ]; then
   echo "SHA256 checksum mismatch for htmx.esm.js"
   exit 1
 fi
 
 # Build CSS with tailwindcss.
-cd internal/frontend
+cd internal/ui
 tailwindcss -i ./static/css/tailwind.css -o ./static/css/main.css
 cd $curr_dir
 
 # Bundle JS and CSS.
-esbuild internal/frontend/static/js/main.js --bundle --minify --outfile=internal/frontend/static/js/main.min.js
-esbuild internal/frontend/static/css/main.css --bundle --minify --outfile=internal/frontend/static/css/main.min.css
+esbuild internal/ui/static/js/main.js --bundle --minify --outfile=internal/ui/static/js/main.min.js
+esbuild internal/ui/static/css/main.css --bundle --minify --outfile=internal/ui/static/css/main.min.css
 
-gzip -k -f internal/frontend/static/js/main.min.js
-gzip -k -f internal/frontend/static/css/main.min.css
-gzip -k -f internal/frontend/static/icons/*.png
+gzip -k -f internal/ui/static/js/main.min.js
+gzip -k -f internal/ui/static/css/main.min.css
+gzip -k -f internal/ui/static/icons/*.png
 
-sed "${sed_flags[@]}" 's/main\.css/main.min.css/g' internal/frontend/templates/base.html
-sed "${sed_flags[@]}" '/unpkg.com/d' internal/frontend/templates/base.html
-sed "${sed_flags[@]}" 's/script\.js/main.min.js/g' internal/frontend/templates/base.html
+sed "${sed_flags[@]}" 's/main\.css/main.min.css/g' internal/ui/templates/base.html
+sed "${sed_flags[@]}" '/unpkg.com/d' internal/ui/templates/base.html
+sed "${sed_flags[@]}" 's/script\.js/main.min.js/g' internal/ui/templates/base.html

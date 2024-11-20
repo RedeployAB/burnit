@@ -10,9 +10,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/RedeployAB/burnit/internal/frontend"
 	"github.com/RedeployAB/burnit/internal/log"
 	"github.com/RedeployAB/burnit/internal/secret"
+	"github.com/RedeployAB/burnit/internal/ui"
 )
 
 // Defaults for server configuration.
@@ -29,7 +29,7 @@ type server struct {
 	httpServer    *http.Server
 	router        *router
 	secrets       secret.Service
-	ui            frontend.UI
+	ui            ui.UI
 	log           log.Logger
 	tls           TLSConfig
 	rateLimiter   RateLimiter
