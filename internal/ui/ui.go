@@ -42,18 +42,18 @@ type ui struct {
 	runtimeRender bool
 }
 
-// UIOptions is a configuration for the UI.
+// Options for the UI.
 type Options struct {
 	TemplateDir   string
 	StaticDir     string
 	RuntimeRender bool
 }
 
-// UIOption is a function that configures the UI.
-type UIOption func(o *Options)
+// Option is a function that configures the UI.
+type Option func(o *Options)
 
 // New returns a new UI.
-func New(options ...UIOption) (*ui, error) {
+func New(options ...Option) (*ui, error) {
 	opts := Options{}
 	for _, option := range options {
 		option(&opts)
