@@ -35,7 +35,7 @@ func (w *loggingResponseWriter) Write(b []byte) (int, error) {
 
 // LoggerOptions contains the options for the Logger middleware.
 type LoggerOptions struct {
-	Type string
+	Component string
 }
 
 // LoggerOption is a function that sets an option on the Logger middleware.
@@ -44,7 +44,7 @@ type LoggerOption func(o *LoggerOptions)
 // Logger is a middleware that logs the incoming request.
 func Logger(log log.Logger, options ...LoggerOption) func(next http.Handler) http.Handler {
 	opts := LoggerOptions{
-		Type: "backend",
+		Component: "backend",
 	}
 	for _, option := range options {
 		option(&opts)
@@ -54,15 +54,15 @@ func Logger(log log.Logger, options ...LoggerOption) func(next http.Handler) htt
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			lw := &loggingResponseWriter{ResponseWriter: w}
 			next.ServeHTTP(lw, r)
-			log.Info("Request received.", "type", "request", "component", opts.Type, "status", lw.status, "path", maskSecretHash(r.URL.Path), "method", r.Method, "remoteIp", resolveIP(r))
+			log.Info("Request received.", "type", "request", "component", opts.Component, "status", lw.status, "path", maskSecretHash(r.URL.Path), "method", r.Method, "remoteIp", resolveIP(r))
 		})
 	}
 }
 
 // WithLoggerComponent sets the component for the logger.
-func WithLoggerComponent(t string) LoggerOption {
+func WithLoggerComponent(component string) LoggerOption {
 	return func(o *LoggerOptions) {
-		o.Type = t
+		o.Component = component
 	}
 }
 
