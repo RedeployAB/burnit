@@ -3,6 +3,11 @@ package errors
 import "errors"
 
 var (
+	// ErrSecretRepository is errors related to the secret repository.
+	ErrSecretRepository = errors.New("secret repository")
+)
+
+var (
 	// ErrSecretNotFound is returned when the secret is not found.
 	ErrSecretNotFound = errors.New("secret not found")
 	// ErrSecretNotDeleted is returned when the secret is not deleted.
