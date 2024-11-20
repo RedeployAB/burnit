@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/RedeployAB/burnit/internal/db"
@@ -39,7 +40,7 @@ type SecretRepositoryOption func(o *SecretRepositoryOptions)
 // NewSecretRepository creates and configures a new SecretRepository.
 func NewSecretRepository(client Client, options ...SecretRepositoryOption) (*SecretRepository, error) {
 	if client == nil {
-		return nil, ErrNilClient
+		return nil, fmt.Errorf("%w: %w", dberrors.ErrSecretRepository, ErrNilClient)
 	}
 
 	opts := SecretRepositoryOptions{
@@ -69,12 +70,12 @@ func (r SecretRepository) Get(ctx context.Context, id string) (db.Secret, error)
 		if errors.Is(err, ErrNoDocuments) {
 			return db.Secret{}, dberrors.ErrSecretNotFound
 		}
-		return db.Secret{}, err
+		return db.Secret{}, fmt.Errorf("%w: %w", dberrors.ErrSecretRepository, err)
 	}
 
 	var secret db.Secret
 	if err := res.Decode(&secret); err != nil {
-		return db.Secret{}, err
+		return db.Secret{}, fmt.Errorf("%w: %w", dberrors.ErrSecretRepository, err)
 	}
 	return secret, nil
 }
@@ -83,7 +84,7 @@ func (r SecretRepository) Get(ctx context.Context, id string) (db.Secret, error)
 func (r SecretRepository) Create(ctx context.Context, secret db.Secret) (db.Secret, error) {
 	id, err := r.client.Collection(r.collection).InsertOne(ctx, secret)
 	if err != nil {
-		return db.Secret{}, err
+		return db.Secret{}, fmt.Errorf("%w: %w", dberrors.ErrSecretRepository, err)
 	}
 	return r.Get(ctx, id)
 }
@@ -94,7 +95,7 @@ func (r SecretRepository) Delete(ctx context.Context, id string) error {
 		if errors.Is(err, ErrDocumentNotDeleted) {
 			return dberrors.ErrSecretNotFound
 		}
-		return err
+		return fmt.Errorf("%w: %w", dberrors.ErrSecretRepository, err)
 	}
 	return nil
 }
@@ -107,7 +108,7 @@ func (r SecretRepository) DeleteExpired(ctx context.Context) error {
 		if errors.Is(err, ErrDocumentsNotDeleted) {
 			return dberrors.ErrSecretsNotDeleted
 		}
-		return err
+		return fmt.Errorf("%w: %w", dberrors.ErrSecretRepository, err)
 	}
 	return nil
 }
