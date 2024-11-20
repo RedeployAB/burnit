@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/RedeployAB/burnit/internal/db"
@@ -25,7 +24,7 @@ type SecretRepositoryOption func(o *SecretRepositoryOptions)
 // NewSecretRepository creates and configures a new SecretRepository.
 func NewSecretRepository(client Client, options ...SecretRepositoryOption) (*SecretRepository, error) {
 	if client == nil {
-		return nil, fmt.Errorf("%w: %w", dberrors.ErrSecretRepository, ErrNilClient)
+		return nil, ErrNilClient
 	}
 
 	opts := SecretRepositoryOptions{}
@@ -45,11 +44,11 @@ func (r SecretRepository) Get(ctx context.Context, id string) (db.Secret, error)
 		if errors.Is(err, ErrKeyNotFound) {
 			return db.Secret{}, dberrors.ErrSecretNotFound
 		}
-		return db.Secret{}, fmt.Errorf("%w: %w", dberrors.ErrSecretRepository, err)
+		return db.Secret{}, err
 	}
 	secret, err := secretFromJSON(data)
 	if err != nil {
-		return db.Secret{}, fmt.Errorf("%w: %w", dberrors.ErrSecretRepository, err)
+		return db.Secret{}, err
 	}
 	return secret, nil
 }
@@ -57,7 +56,7 @@ func (r SecretRepository) Get(ctx context.Context, id string) (db.Secret, error)
 // Create a new secret.
 func (r SecretRepository) Create(ctx context.Context, secret db.Secret) (db.Secret, error) {
 	if err := r.client.Set(ctx, secret.ID, secretToJSON(secret), time.Until(secret.ExpiresAt)); err != nil {
-		return db.Secret{}, fmt.Errorf("%w: %w", dberrors.ErrSecretRepository, err)
+		return db.Secret{}, err
 	}
 	return r.Get(ctx, secret.ID)
 }
@@ -68,7 +67,7 @@ func (r SecretRepository) Delete(ctx context.Context, id string) error {
 		if errors.Is(err, ErrKeyNotFound) {
 			return dberrors.ErrSecretNotFound
 		}
-		return fmt.Errorf("%w: %w", dberrors.ErrSecretRepository, err)
+		return err
 	}
 	return nil
 }
