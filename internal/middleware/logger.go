@@ -59,8 +59,8 @@ func Logger(log log.Logger, options ...LoggerOption) func(next http.Handler) htt
 	}
 }
 
-// WithLoggerType sets the type of component for the logger.
-func WithLoggerType(t string) LoggerOption {
+// WithLoggerComponent sets the component for the logger.
+func WithLoggerComponent(t string) LoggerOption {
 	return func(o *LoggerOptions) {
 		o.Type = t
 	}

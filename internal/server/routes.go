@@ -52,9 +52,9 @@ func (s *server) routes() {
 	uiHandler := middleware.Chain(fer, uiMiddlewares...)
 	s.router.Handle("/ui/", uiHandler)
 
-	s.router.Handle("/static/", middleware.Logger(s.log)(http.StripPrefix("/static/", ui.FileServer(s.ui.Static()))))
-	s.router.Handle("/{$}", middleware.Logger(s.log)(index(s.ui, s.log)))
-	s.router.Handle("/", middleware.Logger(s.log)(notFound(s.ui)))
+	s.router.Handle("/static/", middleware.Logger(s.log, middleware.WithLoggerComponent("ui"))(http.StripPrefix("/static/", ui.FileServer(s.ui.Static()))))
+	s.router.Handle("/{$}", middleware.Logger(s.log, middleware.WithLoggerComponent("backend/ui"))(index(s.ui, s.log)))
+	s.router.Handle("/", middleware.Logger(s.log, middleware.WithLoggerComponent("backend/ui"))(notFound(s.ui)))
 }
 
 // setupMiddlewares sets up the middlewares for the server.
@@ -80,7 +80,7 @@ func setupMiddlewares(log log.Logger, rl RateLimiter, c CORS) ([]middleware.Midd
 
 // setupUIMiddlewares sets up the middlewares for the UI.
 func setupUIMiddlewares(log log.Logger, runtimeRender bool) []middleware.Middleware {
-	middlewares := []middleware.Middleware{middleware.Logger(log)}
+	middlewares := []middleware.Middleware{middleware.Logger(log, middleware.WithLoggerComponent("ui"))}
 
 	var contentSecurityPolicy string
 	if !runtimeRender {
