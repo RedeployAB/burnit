@@ -9,6 +9,10 @@ document.addEventListener('htmx:afterSwap', (event) => {
 
   const target = event.target;
   if (target.id == 'secret-form-container') {
+    const secretForm = document.getElementById('secret-form');
+    secretForm.reset();
+    disableElement('secret-form-fields');
+
     const passphraseField = document.getElementById('secret-passphrase');
     if (passphraseField) {
       passphraseField.value = maskedValue;
@@ -43,6 +47,12 @@ document.addEventListener('htmx:afterSwap', (event) => {
         copyToClipboard('secret-passphrase', 'copy-secret-passphrase');
       });
     }
+
+    const secretFormTextareaCounter = document.getElementById('secret-form-textarea-counter');
+    if (secretFormTextareaCounter) {
+      const maxLength = 3500;
+      secretFormTextareaCounter.textContent = '0/' + maxLength;
+    }
   }
 });
 
@@ -66,6 +76,26 @@ document.addEventListener('htmx:afterSwap', (event) => {
         copyToClipboard('secret-result-value', 'copy-secret-result-value');
       });
     }
+  }
+});
+
+// Event listener for secret form textarea to update the counter for the number of characters.
+document.addEventListener('input', () => {
+  const secretFormTextarea = document.getElementById('secret-form-textarea')
+  const secretFormTextareaCounter = document.getElementById('secret-form-textarea-counter')
+
+  const maxLength = 3500;
+  if (secretFormTextarea && secretFormTextareaCounter) {
+    const length = secretFormTextarea.value.length;
+    secretFormTextareaCounter.textContent = length + '/' + maxLength;
+  }
+});
+
+// Event listener for secret result form (passphrase) to reset the form after submission.
+document.addEventListener('submit', () => {
+  const secretResultForm = document.getElementById('secret-result-form');
+  if (secretResultForm) {
+    secretResultForm.reset();
   }
 });
 
