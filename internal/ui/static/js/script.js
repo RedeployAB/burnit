@@ -48,10 +48,10 @@ document.addEventListener('htmx:afterSwap', (event) => {
       });
     }
 
-    const secretFormTextareaCounter = document.getElementById('secret-form-textarea-counter');
-    if (secretFormTextareaCounter) {
+    const secretFormTextAreaCounter = document.getElementById('secret-form-textarea-counter');
+    if (secretFormTextAreaCounter) {
       const maxLength = 3500;
-      secretFormTextareaCounter.textContent = '0/' + maxLength;
+      secretFormTextAreaCounter.textContent = '0/' + maxLength;
     }
   }
 });
@@ -81,13 +81,13 @@ document.addEventListener('htmx:afterSwap', (event) => {
 
 // Event listener for secret form textarea to update the counter for the number of characters.
 document.addEventListener('input', () => {
-  const secretFormTextarea = document.getElementById('secret-form-textarea')
-  const secretFormTextareaCounter = document.getElementById('secret-form-textarea-counter')
+  const secretFormTextArea = document.getElementById('secret-form-textarea')
+  const secretFormTextAreaCounter = document.getElementById('secret-form-textarea-counter')
 
-  const maxLength = 3500;
-  if (secretFormTextarea && secretFormTextareaCounter) {
-    const length = secretFormTextarea.value.length;
-    secretFormTextareaCounter.textContent = length + '/' + maxLength;
+  if (secretFormTextArea && secretFormTextAreaCounter) {
+    const maxLength = 3500;
+    const length = secretFormTextArea.value.length;
+    secretFormTextAreaCounter.textContent = length + '/' + maxLength;
   }
 });
 
