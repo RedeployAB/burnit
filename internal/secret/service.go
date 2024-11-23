@@ -127,6 +127,7 @@ func (s service) Generate(length int, specialCharacters bool) string {
 // GetOptions contains options for getting a secret.
 type GetOptions struct {
 	NoDelete         bool
+	NoDecrypt        bool
 	PassphraseHashed bool
 	context          context.Context
 }
@@ -164,6 +165,12 @@ func (s service) Get(id, passphrase string, options ...GetOption) (Secret, error
 			return Secret{}, fmt.Errorf("secret repository: %w", err)
 		}
 		return Secret{}, ErrSecretNotFound
+	}
+
+	if opts.NoDecrypt {
+		return Secret{
+			ID: dbSecret.ID,
+		}, nil
 	}
 
 	decrypted, err := decrypt(dbSecret.Value, passphrase, opts.PassphraseHashed)

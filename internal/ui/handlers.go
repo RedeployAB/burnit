@@ -50,6 +50,18 @@ func GetSecret(ui UI, secrets secretService, log log.Logger) http.Handler {
 			return
 		}
 
+		if _, err = secrets.Get(id, passphrase, func(o *secret.GetOptions) {
+			o.NoDecrypt = true
+		}); err != nil {
+			if errors.Is(err, secret.ErrSecretNotFound) {
+				ui.Render(w, http.StatusNotFound, "secret-not-found", nil)
+				return
+			}
+			log.Error("Failed to get secret.", "handler", "GetSecret", "error", err)
+			http.Error(w, "could not get secret: error in service", http.StatusInternalServerError)
+			return
+		}
+
 		if len(passphrase) == 0 {
 			ui.Render(w, http.StatusUnauthorized, "secret-get", secretGetResponse{ID: id})
 			return
