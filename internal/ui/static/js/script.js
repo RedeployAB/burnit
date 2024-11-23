@@ -1,3 +1,5 @@
+const maxSecretValueLength = 3500;
+
 // Add event listener for setting base URL.
 document.addEventListener('DOMContentLoaded', setBaseUrl);
 document.addEventListener('htmx:load', setBaseUrl);
@@ -50,8 +52,7 @@ document.addEventListener('htmx:afterSwap', (event) => {
 
     const secretFormTextAreaCounter = document.getElementById('secret-form-textarea-counter');
     if (secretFormTextAreaCounter) {
-      const maxLength = 3500;
-      secretFormTextAreaCounter.textContent = '0/' + maxLength;
+      secretFormTextAreaCounter.textContent = '0/' + maxSecretValueLength;
     }
   }
 });
@@ -79,15 +80,32 @@ document.addEventListener('htmx:afterSwap', (event) => {
   }
 });
 
-// Event listener for secret form textarea to update the counter for the number of characters.
+// Event listener for secret form. Validate fields and handle character counter.
 document.addEventListener('input', () => {
-  const secretFormTextArea = document.getElementById('secret-form-textarea')
-  const secretFormTextAreaCounter = document.getElementById('secret-form-textarea-counter')
+  const secretForm = document.getElementById('secret-form');
+  if (!secretForm) {
+    return;
+  }
 
+  const secretFormTextArea = document.getElementById('secret-form-textarea')
+  if (secretFormTextArea) {
+    const validate = validateSecretValue(secretFormTextArea.value);
+    if (validate && !validate.valid) {
+      secretFormTextArea.value = '';
+      secretFormTextArea.setAttribute('placeholder', validate.message );
+      secretFormTextArea.classList.add('placeholder-red-600');
+      disableElement('secret-form-submit');
+    } else {
+      secretFormTextArea.setAttribute('placeholder', 'Secret value...');
+      secretFormTextArea.classList.remove('placeholder-red-600');
+      enableElement('secret-form-submit');
+    }
+  }
+
+  const secretFormTextAreaCounter = document.getElementById('secret-form-textarea-counter')
   if (secretFormTextArea && secretFormTextAreaCounter) {
-    const maxLength = 3500;
     const length = secretFormTextArea.value.length;
-    secretFormTextAreaCounter.textContent = length + '/' + maxLength;
+    secretFormTextAreaCounter.textContent = length + '/' + maxSecretValueLength;
   }
 });
 
@@ -167,6 +185,22 @@ function enableElement(elementId) {
     return;
   }
   element.disabled = false;
+}
+
+// isEmpty checks if a value is empty including null, undefined, empty string, and null byte.
+function isEmpty(v) {
+  return v == null || v === undefined || v.trim() === '' || v === '\\x00';
+}
+
+// validateSecretValue validates the secret value.
+function validateSecretValue(v) {
+  if (isEmpty(v)) {
+    return { valid: false, message: 'Secret value cannot be empty.' };
+  }
+  if (v.length > maxSecretValueLength) {
+    return { valid: false, message: 'Secret value exceeds the maximum length of '+ maxSecretValueLength + ' characters.' };
+  }
+  return { valid: true };
 }
 
 window.setBaseUrl = setBaseUrl;
