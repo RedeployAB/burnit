@@ -45,8 +45,8 @@ func CreateSecret(ui UI, secrets secretService) http.Handler {
 func GetSecret(ui UI, secrets secretService, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id, passphrase, err := extractIDAndPassphrase("/ui/secrets/", r.URL.Path)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusNotFound)
+		if err != nil || len(id) == 0 {
+			http.Redirect(w, r, "/ui/secrets", http.StatusFound)
 			return
 		}
 
