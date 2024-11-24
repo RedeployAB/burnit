@@ -484,21 +484,36 @@ func TestValidValue(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name:    "valid value",
+			name:    "valid value - input 'value'",
 			input:   "value",
+			wantErr: nil,
+		},
+		{
+			name:    "valid value - input 'secret'",
+			input:   "secret",
+			wantErr: nil,
+		},
+		{
+			name:    "valid value - input base64 like",
+			input:   "testinglocalstringtestinglocalstringtestinglocalstringtestinglocalstringtestinglocalstringtestinglocalstringtestinglocalstring",
 			wantErr: nil,
 		},
 		{
 			name: "valid value - base64 encoded",
 			input: func() string {
-				return base64.StdEncoding.EncodeToString([]byte("value"))
+				return base64.StdEncoding.EncodeToString([]byte("secret"))
 			}(),
 			wantErr: nil,
 		},
 		{
 			name: "invalid value - base64 encoded",
 			input: func() string {
-				return base64.StdEncoding.EncodeToString([]byte{0})
+				f, err := os.OpenFile("../../assets/burnit.png", os.O_RDONLY, 0644)
+				if err != nil {
+					panic(err)
+				}
+				b, _ := io.ReadAll(f)
+				return base64.StdEncoding.EncodeToString(b)
 			}(),
 			wantErr: ErrValueInvalid,
 		},
@@ -512,7 +527,12 @@ func TestValidValue(t *testing.T) {
 		{
 			name: "invalid value - base32 encoded",
 			input: func() string {
-				return base32.StdEncoding.EncodeToString([]byte{0, 1, 2, 3})
+				f, err := os.OpenFile("../../assets/burnit.png", os.O_RDONLY, 0644)
+				if err != nil {
+					panic(err)
+				}
+				b, _ := io.ReadAll(f)
+				return base32.StdEncoding.EncodeToString(b)
 			}(),
 			wantErr: ErrValueInvalid,
 		},
@@ -526,7 +546,12 @@ func TestValidValue(t *testing.T) {
 		{
 			name: "invalid value - base32 encoded (hex)",
 			input: func() string {
-				return base32.HexEncoding.EncodeToString([]byte{0, 1, 2, 3})
+				f, err := os.OpenFile("../../assets/burnit.png", os.O_RDONLY, 0644)
+				if err != nil {
+					panic(err)
+				}
+				b, _ := io.ReadAll(f)
+				return base32.HexEncoding.EncodeToString(b)
 			}(),
 			wantErr: ErrValueInvalid,
 		},
@@ -540,14 +565,19 @@ func TestValidValue(t *testing.T) {
 		{
 			name: "invalid value - hex encoded",
 			input: func() string {
-				return hex.EncodeToString([]byte{0, 1, 2, 3})
+				f, err := os.OpenFile("../../assets/burnit.png", os.O_RDONLY, 0644)
+				if err != nil {
+					panic(err)
+				}
+				b, _ := io.ReadAll(f)
+				return hex.EncodeToString(b)
 			}(),
 			wantErr: ErrValueInvalid,
 		},
 		{
 			name: "invalid amount of characters",
 			input: func() string {
-				return base64.StdEncoding.EncodeToString([]byte(strings.Repeat("value", defaultValueMaxCharacters+1)))
+				return base64.StdEncoding.EncodeToString([]byte(strings.Repeat("value", 35000+1)))
 			}(),
 			wantErr: ErrValueTooManyCharacters,
 		},
@@ -555,7 +585,7 @@ func TestValidValue(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			gotErr := validValue(test.input, defaultValueMaxCharacters)
+			gotErr := validValue(test.input, 35000)
 
 			if diff := cmp.Diff(test.wantErr, gotErr, cmpopts.EquateErrors()); diff != "" {
 				t.Errorf("validValue() = unexpected error (-want +got)\n%s\n", diff)

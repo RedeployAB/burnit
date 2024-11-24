@@ -366,28 +366,30 @@ func validValue(value string, valueMaxCharacters int) error {
 	if len(value) == 0 {
 		return fmt.Errorf("%w: must not be empty", ErrValueInvalid)
 	}
-
 	if utf8.RuneCountInString(value) > valueMaxCharacters {
 		return fmt.Errorf("%w: max characters are %d", ErrValueTooManyCharacters, valueMaxCharacters)
 	}
 
-	v := []byte(value)
-
-	decoderFuncs := []decoderFunc{
+	decoders := []decoderFunc{
 		base32.StdEncoding.DecodeString,
 		base32.HexEncoding.DecodeString,
 		hex.DecodeString,
 		security.DecodeBase64,
 	}
 
-	for _, decode := range decoderFuncs {
-		if decoded, err := decode(value); err == nil {
-			v = decoded
-			break
+	for _, decode := range decoders {
+		if val, err := decode(value); err == nil {
+			if validString(val) {
+				return nil
+			}
+			if !validContentType(val) {
+				return fmt.Errorf("%w: must be a valid non-empty UTF-8 encoded string", ErrValueInvalid)
+			}
+			return nil
 		}
 	}
 
-	if !validString(v) {
+	if !validString([]byte(value)) {
 		return fmt.Errorf("%w: must be a valid non-empty UTF-8 encoded string", ErrValueInvalid)
 	}
 
@@ -396,13 +398,16 @@ func validValue(value string, valueMaxCharacters int) error {
 
 // validString returns true if the byte slice is a string.
 func validString(b []byte) bool {
-	if nullByte(b) {
-		return false
-	}
-	return http.DetectContentType(b) == "text/plain; charset=utf-8" && string(b) != "\x00"
+	return !nullByte(b) && utf8.Valid(b) && string(b) != "\x00"
 }
 
 // nullByte returns true if the byte slice is a null byte.
 func nullByte(b []byte) bool {
 	return len(b) == 1 && b[0] == 0
+}
+
+// validContentType returns true if the byte slice is a valid content type.
+func validContentType(b []byte) bool {
+	contentType := http.DetectContentType(b)
+	return contentType == "text/plain; charset=utf-8" || contentType == "application/octet-stream"
 }
