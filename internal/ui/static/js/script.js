@@ -64,6 +64,17 @@ document.addEventListener('htmx:afterSwap', (event) => {
       });
     }
   }
+
+  if (target.id == 'secret-result-container') {
+    const errorOverlayCloseButton = document.getElementById('error-overlay-close-button');
+    if (errorOverlayCloseButton) {
+      errorOverlayCloseButton.addEventListener('click', () => {
+        const overlay = document.getElementById('error-overlay');
+        overlay.remove();
+        window.location.reload();
+      });
+    }
+  }
 });
 
 // Handle events for secret result.
@@ -85,6 +96,25 @@ document.addEventListener('htmx:afterSwap', (event) => {
       copySecretResultValue.addEventListener('click', () => {
         copyToClipboard('secret-result-value', 'copy-secret-result-value');
       });
+    }
+  }
+});
+
+// Event listener for htmx response error.
+document.addEventListener('htmx:responseError', (event) => {
+  const detail = event.detail;
+  if (detail.target.id == 'secret-result-container') {
+    const status = detail.xhr.status;
+    const secretResultFormPassphrase = document.getElementById('secret-result-form-passphrase');
+
+    if (status == 401) {
+      secretResultFormPassphrase.addEventListener('click', () => {
+        secretResultFormPassphrase.setAttribute('placeholder', 'Passphrase');
+        secretResultFormPassphrase.classList.remove('placeholder-red-600');
+      });
+
+      secretResultFormPassphrase.setAttribute('placeholder', 'Invalid passphrase');
+      secretResultFormPassphrase.classList.add('placeholder-red-600');
     }
   }
 });
