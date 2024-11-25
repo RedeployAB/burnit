@@ -54,6 +54,15 @@ document.addEventListener('htmx:afterSwap', (event) => {
     if (secretFormTextAreaCounter) {
       secretFormTextAreaCounter.textContent = '0/' + maxSecretValueLength;
     }
+
+    const errorOverlayCloseButton = document.getElementById('error-overlay-close-button');
+    if (errorOverlayCloseButton) {
+      errorOverlayCloseButton.addEventListener('click', () => {
+        const overlay = document.getElementById('error-overlay');
+        overlay.remove();
+        enableElement('secret-form-fields');
+      });
+    }
   }
 });
 
