@@ -121,14 +121,17 @@ func HandlerCreateSecret(ui UI, secrets secret.Service, log log.Logger) http.Han
 		})
 		if err != nil {
 			var response errorResponse
+			var statusCode int
 			if !isSecretBadRequestError(err) {
 				response = errorResponse{Title: "An error occured", Message: "Internal server error."}
+				statusCode = http.StatusInternalServerError
 				log.Error("Failed to create secret.", "handler", "HandlerCreateSecret", "error", err)
 			} else {
 				response = errorResponse{Title: "Error creating secret", Message: formatErrorMessage(err)}
+				statusCode = http.StatusBadRequest
 			}
 
-			ui.Render(w, http.StatusOK, "partial-error", response, WithPartial())
+			ui.Render(w, statusCode, "partial-error", response, WithPartial())
 			return
 		}
 
@@ -155,7 +158,7 @@ func HandlerGetSecret(ui UI, secrets secret.Service, log log.Logger) http.Handle
 		id := r.FormValue("id")
 		if len(id) == 0 {
 			log.Error("Missing ID in request.", "handler", "HandlerGetSecret")
-			ui.Render(w, http.StatusOK, "partial-error", errorResponse{Title: "An error occured", Message: "Missing ID."}, WithPartial())
+			ui.Render(w, http.StatusInternalServerError, "partial-error", errorResponse{Title: "An error occured", Message: "Missing ID."}, WithPartial())
 			return
 		}
 		passphrase := r.FormValue("custom-value")

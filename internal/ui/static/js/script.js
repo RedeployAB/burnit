@@ -71,7 +71,6 @@ document.addEventListener('htmx:afterSwap', (event) => {
       errorOverlayCloseButton.addEventListener('click', () => {
         const overlay = document.getElementById('error-overlay');
         overlay.remove();
-        window.location.reload();
       });
     }
   }
@@ -84,6 +83,18 @@ document.addEventListener('DOMContentLoaded', () => {
     copySecretResultValue.addEventListener('click', () => {
       copyToClipboard('secret-result-value', 'copy-secret-result-value');
     });
+  }
+});
+
+// Handle events before htmx swap for secret result. This to be able to update the swap
+// type to beforeend in case of an error for the overlay.
+document.addEventListener('htmx:beforeSwap', (event) => {
+  const detail = event.detail;
+  if (detail.xhr.status == 500) {
+    const secretResultForm = document.getElementById('secret-result-form')
+    if (secretResultForm) {
+      secretResultForm.setAttribute('hx-swap', 'beforeend');
+    }
   }
 });
 
@@ -126,7 +137,7 @@ document.addEventListener('input', () => {
     return;
   }
 
-  const secretFormTextArea = document.getElementById('secret-form-textarea')
+  const secretFormTextArea = document.getElementById('secret-form-textarea');
   if (secretFormTextArea) {
     const validate = validateSecretValue(secretFormTextArea.value);
     if (validate && !validate.valid) {
