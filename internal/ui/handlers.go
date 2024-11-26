@@ -123,12 +123,12 @@ func HandlerCreateSecret(ui UI, secrets secret.Service, log log.Logger) http.Han
 			var response errorResponse
 			var statusCode int
 			if !isSecretBadRequestError(err) {
-				response = errorResponse{Title: "An error occured", Message: "Internal server error."}
 				statusCode = http.StatusInternalServerError
+				response = errorResponse{Title: "An error occured", Message: "Internal server error."}
 				log.Error("Failed to create secret.", "handler", "HandlerCreateSecret", "error", err)
 			} else {
-				response = errorResponse{Title: "Error creating secret", Message: formatErrorMessage(err)}
 				statusCode = http.StatusBadRequest
+				response = errorResponse{Title: "Error creating secret", Message: formatErrorMessage(err)}
 			}
 
 			ui.Render(w, statusCode, "partial-error", response, WithPartial())

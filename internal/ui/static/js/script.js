@@ -90,9 +90,15 @@ document.addEventListener('DOMContentLoaded', () => {
 // type to beforeend in case of an error for the overlay.
 document.addEventListener('htmx:beforeSwap', (event) => {
   const detail = event.detail;
+
+  if (detail.xhr.status == 400) {
+    detail.shouldSwap = true;
+  }
+
   if (detail.xhr.status == 500) {
     const secretResultForm = document.getElementById('secret-result-form')
     if (secretResultForm) {
+      detail.shouldSwap = true;
       secretResultForm.setAttribute('hx-swap', 'beforeend');
     }
   }
