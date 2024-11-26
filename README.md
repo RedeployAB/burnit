@@ -48,8 +48,5 @@ Order of precedence:
 ## TODO
 
 - [ ] Add CSRF protection
-- [ ] Add UI error message for invalid input (secret creation and passphrase)
-- [ ] Improve responsive design (mobile)
 - [ ] Update documentation
-- [ ] Add IP address and block allow/deny functionality
 - [ ] Add deployment examples, templates and scripts
