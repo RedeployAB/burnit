@@ -96,9 +96,9 @@ document.addEventListener('htmx:beforeSwap', (event) => {
   }
 
   if (detail.xhr.status == 500) {
-    const secretResultForm = document.getElementById('secret-result-form')
+    detail.shouldSwap = true;
+    const secretResultForm = document.getElementById('secret-result-form');
     if (secretResultForm) {
-      detail.shouldSwap = true;
       secretResultForm.setAttribute('hx-swap', 'beforeend');
     }
   }
