@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -12,13 +13,6 @@ import (
 	"github.com/RedeployAB/burnit/internal/secret"
 	"github.com/RedeployAB/burnit/internal/security"
 )
-
-// secretService is an interface for the secret service.
-type secretService interface {
-	Get(id, passphrase string, options ...secret.GetOption) (secret.Secret, error)
-	Create(secret secret.Secret) (secret.Secret, error)
-	Delete(id string, options ...secret.DeleteOption) error
-}
 
 // Index handles requests to the index route.
 func Index() http.Handler {
@@ -35,14 +29,14 @@ func NotFound(ui UI) http.Handler {
 }
 
 // CreateSecret handles requests to create a secret.
-func CreateSecret(ui UI, secrets secretService) http.Handler {
+func CreateSecret(ui UI, secrets secret.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ui.Render(w, http.StatusOK, "secret-create", nil)
 	})
 }
 
 // GetSecret handles requests to get a secret.
-func GetSecret(ui UI, secrets secretService, log log.Logger) http.Handler {
+func GetSecret(ui UI, secrets secret.Service, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id, passphrase, err := extractIDAndPassphrase("/ui/secrets/", r.URL.Path)
 		if err != nil || len(id) == 0 {
@@ -58,7 +52,7 @@ func GetSecret(ui UI, secrets secretService, log log.Logger) http.Handler {
 				return
 			}
 			log.Error("Failed to get secret.", "handler", "GetSecret", "error", err)
-			http.Error(w, "could not get secret: error in service", http.StatusInternalServerError)
+			ui.Render(w, http.StatusInternalServerError, "partial-error", errorResponse{Title: "An error occured", Message: "Could not retrieve secret."}, WithPartial())
 			return
 		}
 
@@ -69,7 +63,7 @@ func GetSecret(ui UI, secrets secretService, log log.Logger) http.Handler {
 
 		decodedPassphrase, err := security.DecodeBase64(passphrase)
 		if err != nil {
-			http.Error(w, "could not get secret: invalid passphrase", http.StatusBadRequest)
+			ui.Render(w, http.StatusBadRequest, "partial-error", errorResponse{Title: "Could not retrieve secret", Message: "Invalid passphrase."}, WithPartial())
 			return
 		}
 
@@ -87,7 +81,7 @@ func GetSecret(ui UI, secrets secretService, log log.Logger) http.Handler {
 			}
 
 			log.Error("Failed to get secret.", "handler", "GetSecret", "error", err)
-			http.Error(w, "could not get secret: error in service", http.StatusInternalServerError)
+			ui.Render(w, http.StatusInternalServerError, "partial-error", errorResponse{Title: "An error occured", Message: "Could not retrieve secret."}, WithPartial())
 			return
 		}
 
@@ -102,7 +96,7 @@ func GetSecret(ui UI, secrets secretService, log log.Logger) http.Handler {
 }
 
 // HandlerCreateSecret handles requests containing a form to create a secret.
-func HandlerCreateSecret(ui UI, secrets secretService, log log.Logger) http.Handler {
+func HandlerCreateSecret(ui UI, secrets secret.Service, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -111,32 +105,42 @@ func HandlerCreateSecret(ui UI, secrets secretService, log log.Logger) http.Hand
 
 		baseURL := r.FormValue("base-url")
 		if len(baseURL) == 0 {
-			http.Error(w, "could not create secret: missing base URL", http.StatusBadRequest)
+			ui.Render(w, http.StatusBadRequest, "partial-error", errorResponse{Title: "An error occured", Message: "Missing base URL."}, WithPartial())
 			return
 		}
 
 		ttl, err := time.ParseDuration(r.FormValue("ttl"))
 		if err != nil {
-			http.Error(w, "could not create secret: invalid expiration time", http.StatusBadRequest)
+			ui.Render(w, http.StatusBadRequest, "partial-error", errorResponse{Title: "Could not create secret", Message: "Invalid expiration time."}, WithPartial())
 			return
 		}
 
-		secret, err := secrets.Create(secret.Secret{
+		s, err := secrets.Create(secret.Secret{
 			Value:      r.FormValue("value"),
 			Passphrase: r.FormValue("custom-value"),
 			TTL:        ttl,
 		})
 		if err != nil {
-			log.Error("Failed to create secret.", "handler", "HandlerCreateSecret", "error", err)
-			http.Error(w, "could not create secret error in service", http.StatusInternalServerError)
+			var response errorResponse
+			var statusCode int
+			if !isSecretBadRequestError(err) {
+				statusCode = http.StatusInternalServerError
+				response = errorResponse{Title: "An error occured", Message: "Internal server error."}
+				log.Error("Failed to create secret.", "handler", "HandlerCreateSecret", "error", err)
+			} else {
+				statusCode = http.StatusBadRequest
+				response = errorResponse{Title: "Could not create secret", Message: formatErrorMessage(err)}
+			}
+
+			ui.Render(w, statusCode, "partial-error", response, WithPartial())
 			return
 		}
 
 		response := secretCreateResponse{
 			BaseURL:        baseURL,
-			ID:             secret.ID,
-			Passphrase:     secret.Passphrase,
-			PassphraseHash: base64.RawURLEncoding.EncodeToString(security.SHA256([]byte(secret.Passphrase))),
+			ID:             s.ID,
+			Passphrase:     s.Passphrase,
+			PassphraseHash: base64.RawURLEncoding.EncodeToString(security.SHA256([]byte(s.Passphrase))),
 		}
 
 		ui.Render(w, http.StatusCreated, "partial-secret-created", response, WithPartial())
@@ -145,21 +149,23 @@ func HandlerCreateSecret(ui UI, secrets secretService, log log.Logger) http.Hand
 
 // HandlerGetSecret handles requests containing a form to get a secret.
 // This form will be used when a passphrase is not provided in the URL.
-func HandlerGetSecret(ui UI, secrets secretService, log log.Logger) http.Handler {
+func HandlerGetSecret(ui UI, secrets secret.Service, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			log.Error("Failed to parse form.", "handler", "HandlerGetSecret", "error", err)
+			ui.Render(w, http.StatusInternalServerError, "partial-error", errorResponse{Title: "An error occured", Message: "Could not parse form."}, WithPartial())
 			return
 		}
 
 		id := r.FormValue("id")
 		if len(id) == 0 {
-			http.Error(w, "could not get secret: missing ID", http.StatusBadRequest)
+			log.Error("Missing ID in request.", "handler", "HandlerGetSecret")
+			ui.Render(w, http.StatusInternalServerError, "partial-error", errorResponse{Title: "An error occured", Message: "Missing ID."}, WithPartial())
 			return
 		}
 		passphrase := r.FormValue("custom-value")
 		if len(passphrase) == 0 {
-			http.Error(w, "could not get secret: missing passphrase", http.StatusBadRequest)
+			ui.Render(w, http.StatusOK, "partial-secret-get", secretGetResponse{ID: id}, WithPartial())
 			return
 		}
 
@@ -175,7 +181,7 @@ func HandlerGetSecret(ui UI, secrets secretService, log log.Logger) http.Handler
 			}
 
 			log.Error("Failed to get secret.", "handler", "HandlerGetSecret", "error", err)
-			http.Error(w, "could not get secret: error in service", http.StatusInternalServerError)
+			ui.Render(w, http.StatusInternalServerError, "partial-error", errorResponse{Title: "An error occured", Message: "Could not retrieve secret."}, WithPartial())
 			return
 		}
 
@@ -216,4 +222,41 @@ type secretGetResponse struct {
 	ID             string
 	PassphraseHash string
 	Value          string
+}
+
+// errorResponse is the response data for an error.
+type errorResponse struct {
+	Title   string
+	Message string
+}
+
+// formatErrorMessage formats an error message.
+func formatErrorMessage(err error) string {
+	if err == nil {
+		return ""
+	}
+	msg := err.Error()
+	re := regexp.MustCompile(`^.*:\s+`)
+	msg = re.ReplaceAllString(msg, "")
+	if !strings.HasSuffix(msg, ".") {
+		msg += "."
+	}
+	return strings.ToUpper(msg[:1]) + msg[1:]
+}
+
+// isSecretBadRequestError returns true if the error is a bad request error.
+func isSecretBadRequestError(err error) bool {
+	errs := []error{
+		secret.ErrValueInvalid,
+		secret.ErrInvalidPassphrase,
+		secret.ErrValueTooManyCharacters,
+		secret.ErrInvalidExpirationTime,
+	}
+
+	for _, e := range errs {
+		if errors.Is(err, e) {
+			return true
+		}
+	}
+	return false
 }

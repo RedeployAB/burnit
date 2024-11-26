@@ -25,6 +25,7 @@ if [ -z "$(command -v esbuild)" ]; then
     fi
 fi
 
+# Download tailwindcss if it doesn't exist and verify the SHA256 checksum.
 if [ -z "$(command -v tailwindcss)" ]; then
   curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.14/tailwindcss-linux-x64
   if [ $? -ne 0 ]; then

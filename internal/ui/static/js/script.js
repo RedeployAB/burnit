@@ -54,6 +54,25 @@ document.addEventListener('htmx:afterSwap', (event) => {
     if (secretFormTextAreaCounter) {
       secretFormTextAreaCounter.textContent = '0/' + maxSecretValueLength;
     }
+
+    const errorOverlayCloseButton = document.getElementById('error-overlay-close-button');
+    if (errorOverlayCloseButton) {
+      errorOverlayCloseButton.addEventListener('click', () => {
+        const overlay = document.getElementById('error-overlay');
+        overlay.remove();
+        enableElement('secret-form-fields');
+      });
+    }
+  }
+
+  if (target.id == 'secret-result-container') {
+    const errorOverlayCloseButton = document.getElementById('error-overlay-close-button');
+    if (errorOverlayCloseButton) {
+      errorOverlayCloseButton.addEventListener('click', () => {
+        const overlay = document.getElementById('error-overlay');
+        overlay.remove();
+      });
+    }
   }
 });
 
@@ -64,6 +83,24 @@ document.addEventListener('DOMContentLoaded', () => {
     copySecretResultValue.addEventListener('click', () => {
       copyToClipboard('secret-result-value', 'copy-secret-result-value');
     });
+  }
+});
+
+// Handle events before htmx swap for secret result. This to be able to update the swap
+// type to beforeend in case of an error for the overlay.
+document.addEventListener('htmx:beforeSwap', (event) => {
+  const detail = event.detail;
+
+  if (detail.xhr.status == 400) {
+    detail.shouldSwap = true;
+  }
+
+  if (detail.xhr.status == 500) {
+    detail.shouldSwap = true;
+    const secretResultForm = document.getElementById('secret-result-form');
+    if (secretResultForm) {
+      secretResultForm.setAttribute('hx-swap', 'beforeend');
+    }
   }
 });
 
@@ -80,6 +117,25 @@ document.addEventListener('htmx:afterSwap', (event) => {
   }
 });
 
+// Event listener for htmx response error.
+document.addEventListener('htmx:responseError', (event) => {
+  const detail = event.detail;
+  if (detail.target.id == 'secret-result-container') {
+    const status = detail.xhr.status;
+    const secretResultFormPassphrase = document.getElementById('secret-result-form-passphrase');
+
+    if (status == 401) {
+      secretResultFormPassphrase.addEventListener('click', () => {
+        secretResultFormPassphrase.setAttribute('placeholder', 'Passphrase');
+        secretResultFormPassphrase.classList.remove('placeholder-red-600');
+      });
+
+      secretResultFormPassphrase.setAttribute('placeholder', 'Invalid passphrase');
+      secretResultFormPassphrase.classList.add('placeholder-red-600');
+    }
+  }
+});
+
 // Event listener for secret form. Validate fields and handle character counter.
 document.addEventListener('input', () => {
   const secretForm = document.getElementById('secret-form');
@@ -87,7 +143,7 @@ document.addEventListener('input', () => {
     return;
   }
 
-  const secretFormTextArea = document.getElementById('secret-form-textarea')
+  const secretFormTextArea = document.getElementById('secret-form-textarea');
   if (secretFormTextArea) {
     const validate = validateSecretValue(secretFormTextArea.value);
     if (validate && !validate.valid) {
