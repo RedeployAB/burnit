@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -62,7 +63,7 @@ func GetSecret(ui UI, secrets secret.Service, log log.Logger) http.Handler {
 
 		decodedPassphrase, err := security.DecodeBase64(passphrase)
 		if err != nil {
-			ui.Render(w, http.StatusBadRequest, "partial-error", errorResponse{Title: "Could not get secret", Message: "Invalid passphrase."}, WithPartial())
+			ui.Render(w, http.StatusBadRequest, "partial-error", errorResponse{Title: "Could not retrieve secret", Message: "Invalid passphrase."}, WithPartial())
 			return
 		}
 
@@ -110,7 +111,7 @@ func HandlerCreateSecret(ui UI, secrets secret.Service, log log.Logger) http.Han
 
 		ttl, err := time.ParseDuration(r.FormValue("ttl"))
 		if err != nil {
-			ui.Render(w, http.StatusBadRequest, "partial-error", errorResponse{Title: "Error creating secret", Message: "Invalid expiration time."}, WithPartial())
+			ui.Render(w, http.StatusBadRequest, "partial-error", errorResponse{Title: "Could not create secret", Message: "Invalid expiration time."}, WithPartial())
 			return
 		}
 
@@ -128,7 +129,7 @@ func HandlerCreateSecret(ui UI, secrets secret.Service, log log.Logger) http.Han
 				log.Error("Failed to create secret.", "handler", "HandlerCreateSecret", "error", err)
 			} else {
 				statusCode = http.StatusBadRequest
-				response = errorResponse{Title: "Error creating secret", Message: formatErrorMessage(err)}
+				response = errorResponse{Title: "Could not create secret", Message: formatErrorMessage(err)}
 			}
 
 			ui.Render(w, statusCode, "partial-error", response, WithPartial())
@@ -231,8 +232,16 @@ type errorResponse struct {
 
 // formatErrorMessage formats an error message.
 func formatErrorMessage(err error) string {
+	if err == nil {
+		return ""
+	}
 	msg := err.Error()
-	return strings.ToUpper(msg[:1]) + msg[1:] + "."
+	re := regexp.MustCompile(`^.*:\s+`)
+	msg = re.ReplaceAllString(msg, "")
+	if !strings.HasSuffix(msg, ".") {
+		msg += "."
+	}
+	return strings.ToUpper(msg[:1]) + msg[1:]
 }
 
 // isSecretBadRequestError returns true if the error is a bad request error.
