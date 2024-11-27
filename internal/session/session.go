@@ -11,22 +11,20 @@ import (
 const (
 	// defaultSessionDuration is the default duration for a session.
 	defaultSessionDuration = 24 * time.Hour
-	// defaultCSFRDuration is the default duration for a CSFR token.
-	defaultCSFRDuration = 15 * time.Minute
 )
 
 // Session is a struct that holds the session data.
 type Session struct {
 	id        string
-	csfr      CSFR
+	csrf      CSRF
 	expiresAt time.Time
 }
 
 // SessionOptions is a struct that holds the session options.
 type SessionOptions struct {
 	ExpiresAt   time.Time
-	CSFR        CSFR
-	CSFROptions []CSFROption
+	CSRF        CSRF
+	CSRFOptions []CSRFOption
 }
 
 // SessionOption is a function that sets a session option.
@@ -41,25 +39,28 @@ func NewSession(options ...SessionOption) Session {
 		option(&opts)
 	}
 
-	var csfr CSFR
-	if opts.CSFROptions != nil {
-		csfr = NewCSFR(opts.CSFROptions...)
+	var csrf CSRF
+	if opts.CSRFOptions != nil {
+		csrf = NewCSRF(opts.CSRFOptions...)
 	} else {
-		csfr = opts.CSFR
+		csrf = opts.CSRF
 	}
 
 	return Session{
 		id:        newUUID(),
 		expiresAt: opts.ExpiresAt,
-		csfr:      csfr,
+		csrf:      csrf,
 	}
 }
 
-// SetCSFR sets the CSFR token.
-func (s *Session) SetCSFR(csfr CSFR) Session {
-	if csfr != (CSFR{}) {
-		s.csfr = csfr
-	}
+// IsEmpty returns true if the session is empty.
+func (s *Session) IsEmpty() bool {
+	return s.id == "" && s.expiresAt.IsZero()
+}
+
+// SetCSRF sets the CSRF token.
+func (s *Session) SetCSRF(csrf CSRF) Session {
+	s.csrf = csrf
 	return *s
 }
 
@@ -69,50 +70,24 @@ func (s *Session) ID() string {
 }
 
 // ExpiresAt returns the expiration time of the session.
-func (s *Session) ExpiresAt() time.Time {
+func (s Session) ExpiresAt() time.Time {
 	return s.expiresAt
 }
 
-// CSFR returns the CSFR token.
-func (s *Session) CSFR() CSFR {
-	return s.csfr
+// Expired returns true if the session has expired.
+func (s Session) Expired() bool {
+	return s.expiresAt.Before(now())
 }
 
-// DeleteCSFR deletes the CSFR token.
-func (s *Session) DeleteCSFR() Session {
-	s.csfr = CSFR{}
+// CSRF returns the CSRF token.
+func (s Session) CSRF() CSRF {
+	return s.csrf
+}
+
+// DeleteCSRF deletes the CSRF token.
+func (s *Session) DeleteCSRF() Session {
+	s.csrf = CSRF{}
 	return *s
-}
-
-// CSFR is a struct that holds the CSFR token and its expiration time.
-type CSFR struct {
-	token     string
-	expiresAt time.Time
-}
-
-// CSFROption is a function that sets a CSFR option.
-type CSFROption func(c *CSFR)
-
-// NewCSFR creates a new CSFR.
-func NewCSFR(options ...CSFROption) CSFR {
-	c := CSFR{
-		token:     randomString(),
-		expiresAt: now().Add(defaultCSFRDuration),
-	}
-	for _, option := range options {
-		option(&c)
-	}
-	return c
-}
-
-// Token returns the CSFR token.
-func (c CSFR) Token() string {
-	return c.token
-}
-
-// ExpiresAt returns the expiration time of the CSFR token.
-func (c CSFR) ExpiresAt() time.Time {
-	return c.expiresAt
 }
 
 // newUUID is a function that returns a new UUID.

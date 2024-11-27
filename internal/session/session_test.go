@@ -34,10 +34,10 @@ func TestNewSession(t *testing.T) {
 			},
 		},
 		{
-			name: "with options - provided CSFR",
+			name: "with options - provided CSRF",
 			options: []SessionOption{
 				WithExpiresAt(time.Date(2024, 1, 3, 0, 0, 0, 0, time.UTC)),
-				WithCSFR(CSFR{
+				WithCSRF(CSRF{
 					token:     "test-random",
 					expiresAt: time.Date(2024, 1, 1, 0, 15, 0, 0, time.UTC),
 				}),
@@ -45,22 +45,22 @@ func TestNewSession(t *testing.T) {
 			want: Session{
 				id:        "test-uuid",
 				expiresAt: time.Date(2024, 1, 3, 0, 0, 0, 0, time.UTC),
-				csfr: CSFR{
+				csrf: CSRF{
 					token:     "test-random",
 					expiresAt: time.Date(2024, 1, 1, 0, 15, 0, 0, time.UTC),
 				},
 			},
 		},
 		{
-			name: "with options - provided CSFR options",
+			name: "with options - provided CSRF options",
 			options: []SessionOption{
 				WithExpiresAt(time.Date(2024, 1, 3, 0, 0, 0, 0, time.UTC)),
-				WithCSFROptions(WithCSFRExpiresAt(time.Date(2024, 1, 1, 0, 20, 0, 0, time.UTC))),
+				WithCSRFOptions(WithCSRFExpiresAt(time.Date(2024, 1, 1, 0, 20, 0, 0, time.UTC))),
 			},
 			want: Session{
 				id:        "test-uuid",
 				expiresAt: time.Date(2024, 1, 3, 0, 0, 0, 0, time.UTC),
-				csfr: CSFR{
+				csrf: CSRF{
 					token:     "test-random",
 					expiresAt: time.Date(2024, 1, 1, 0, 20, 0, 0, time.UTC),
 				},
@@ -72,27 +72,27 @@ func TestNewSession(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			got := NewSession(test.options...)
 
-			if diff := cmp.Diff(test.want, got, cmp.AllowUnexported(Session{}, CSFR{})); diff != "" {
+			if diff := cmp.Diff(test.want, got, cmp.AllowUnexported(Session{}, CSRF{})); diff != "" {
 				t.Errorf("NewSession(%v) = unexpected result (-want +got)\n%s\n", test.options, diff)
 			}
 		})
 	}
 }
 
-func TestSession_SetCSFR(t *testing.T) {
+func TestSession_SetCSRF(t *testing.T) {
 	var tests = []struct {
 		name string
-		csfr CSFR
+		csrf CSRF
 		want Session
 	}{
 		{
 			name: "default",
-			csfr: CSFR{
+			csrf: CSRF{
 				token:     "test-random",
 				expiresAt: time.Date(2024, 1, 1, 0, 15, 0, 0, time.UTC),
 			},
 			want: Session{
-				csfr: CSFR{
+				csrf: CSRF{
 					token:     "test-random",
 					expiresAt: time.Date(2024, 1, 1, 0, 15, 0, 0, time.UTC),
 				},
@@ -103,16 +103,16 @@ func TestSession_SetCSFR(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			s := Session{}
-			got := s.SetCSFR(test.csfr)
+			got := s.SetCSRF(test.csrf)
 
-			if diff := cmp.Diff(test.want, got, cmp.AllowUnexported(Session{}, CSFR{})); diff != "" {
-				t.Errorf("SetCSFR(%v) = unexpected result (-want +got)\n%s\n", test.csfr, diff)
+			if diff := cmp.Diff(test.want, got, cmp.AllowUnexported(Session{}, CSRF{})); diff != "" {
+				t.Errorf("SetCSRF(%v) = unexpected result (-want +got)\n%s\n", test.csrf, diff)
 			}
 		})
 	}
 }
 
-func TestSession_DeleteCSFR(t *testing.T) {
+func TestSession_DeleteCSRF(t *testing.T) {
 	var tests = []struct {
 		name string
 		want Session
@@ -126,15 +126,15 @@ func TestSession_DeleteCSFR(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			s := Session{
-				csfr: CSFR{
+				csrf: CSRF{
 					token:     "test-random",
 					expiresAt: time.Date(2024, 1, 1, 0, 15, 0, 0, time.UTC),
 				},
 			}
-			got := s.DeleteCSFR()
+			got := s.DeleteCSRF()
 
-			if diff := cmp.Diff(test.want, got, cmp.AllowUnexported(Session{}, CSFR{})); diff != "" {
-				t.Errorf("DeleteCSFR() = unexpected result (-want +got)\n%s\n", diff)
+			if diff := cmp.Diff(test.want, got, cmp.AllowUnexported(Session{}, CSRF{})); diff != "" {
+				t.Errorf("DeleteCSRF() = unexpected result (-want +got)\n%s\n", diff)
 			}
 		})
 	}
