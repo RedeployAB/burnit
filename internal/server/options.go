@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/RedeployAB/burnit/internal/log"
+	"github.com/RedeployAB/burnit/internal/session"
 	"github.com/RedeployAB/burnit/internal/ui"
 )
 
@@ -117,6 +118,15 @@ func WithUI(ui ui.UI) Option {
 	return func(s *server) {
 		if ui != nil {
 			s.ui = ui
+		}
+	}
+}
+
+// WithSessionStore configures the server with the given session store.
+func WithSessionStore(sessions session.Store) Option {
+	return func(s *server) {
+		if sessions != nil {
+			s.sessions = sessions
 		}
 	}
 }

@@ -12,6 +12,7 @@ import (
 
 	"github.com/RedeployAB/burnit/internal/log"
 	"github.com/RedeployAB/burnit/internal/secret"
+	"github.com/RedeployAB/burnit/internal/session"
 	"github.com/RedeployAB/burnit/internal/ui"
 )
 
@@ -30,6 +31,7 @@ type server struct {
 	router        *router
 	secrets       secret.Service
 	ui            ui.UI
+	sessions      session.Store
 	log           log.Logger
 	tls           TLSConfig
 	rateLimiter   RateLimiter
@@ -120,9 +122,11 @@ func New(secrets secret.Service, options ...Option) (*server, error) {
 	if len(s.httpServer.Addr) == 0 {
 		s.httpServer.Addr = defaultHost + ":" + defaultPort
 	}
-
 	if s.httpServer.Handler == nil {
 		s.httpServer.Handler = s.router
+	}
+	if s.sessions != nil {
+		s.shutdownFuncs = append(s.shutdownFuncs, s.sessions.Close)
 	}
 
 	return s, nil
