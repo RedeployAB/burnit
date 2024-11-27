@@ -8,6 +8,7 @@ import (
 	"github.com/RedeployAB/burnit/internal/config"
 	"github.com/RedeployAB/burnit/internal/log"
 	"github.com/RedeployAB/burnit/internal/server"
+	"github.com/RedeployAB/burnit/internal/session"
 	"github.com/RedeployAB/burnit/internal/ui"
 	"github.com/RedeployAB/burnit/internal/version"
 )
@@ -35,8 +36,9 @@ func run(log log.Logger) error {
 	}
 
 	var ui ui.UI
+	var sessions session.Store
 	if cfg.Server.BackendOnly == nil || !*cfg.Server.BackendOnly {
-		ui, err = config.SetupUI(cfg.UI)
+		ui, sessions, err = config.SetupUI(cfg.UI)
 		if err != nil {
 			return fmt.Errorf("could not setup ui: %w", err)
 		}
@@ -55,6 +57,7 @@ func run(log log.Logger) error {
 			CleanupInterval: cfg.Server.RateLimiter.CleanupInterval,
 		}),
 		server.WithUI(ui),
+		server.WithSessionStore(sessions),
 	)
 	if err != nil {
 		return fmt.Errorf("could setup server: %w", err)
