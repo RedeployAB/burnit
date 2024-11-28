@@ -151,6 +151,10 @@ func HandlerCreateSecret(ui UI, secrets secret.Service, sessions session.Store, 
 			return
 		}
 
+		if err := sessions.Delete(r.FormValue("csrf-token")); err != nil {
+			log.Error("Failed to delete session.", "handler", "HandlerCreateSecret", "error", err)
+		}
+
 		response := secretCreateResponse{
 			BaseURL:        baseURL,
 			ID:             s.ID,
@@ -209,6 +213,10 @@ func HandlerGetSecret(ui UI, secrets secret.Service, sessions session.Store, log
 			log.Error("Failed to get secret.", "handler", "HandlerGetSecret", "error", err)
 			ui.Render(w, http.StatusInternalServerError, "partial-error", errorResponse{Title: "An error occured", Message: "Could not retrieve secret."}, WithPartial())
 			return
+		}
+
+		if err := sessions.Delete(r.FormValue("csrf-token")); err != nil {
+			log.Error("Failed to delete session.", "handler", "HandlerGetSecret", "error", err)
 		}
 
 		response := secretGetResponse{
