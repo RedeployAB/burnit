@@ -2,7 +2,7 @@ package session
 
 import "time"
 
-// WithExpiresIn sets the expiration time of the session.
+// WithExpiresAt sets the expiration time of the session.
 func WithExpiresAt(exp time.Time) SessionOption {
 	return func(o *SessionOptions) {
 		o.ExpiresAt = exp
