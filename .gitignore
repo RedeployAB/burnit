@@ -6,15 +6,11 @@ testcmd/
 node_modules/
 *.gz
 
-bundle.js
-htmx.min.js
 htmx.esm.js
 main.min.js
-response-targets.js
 
 main.css
 main.min.css
-style.css
 
 .env
 *.env

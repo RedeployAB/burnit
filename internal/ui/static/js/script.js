@@ -127,11 +127,13 @@ document.addEventListener('htmx:responseError', (event) => {
     if (status == 401) {
       secretResultFormPassphrase.addEventListener('click', () => {
         secretResultFormPassphrase.setAttribute('placeholder', 'Passphrase');
-        secretResultFormPassphrase.classList.remove('placeholder-red-600');
+        secretResultFormPassphrase.classList.remove('placeholder-red-500');
+        secretResultFormPassphrase.classList.add('placeholder-gray-400');
       });
 
       secretResultFormPassphrase.setAttribute('placeholder', 'Invalid passphrase');
-      secretResultFormPassphrase.classList.add('placeholder-red-600');
+      secretResultFormPassphrase.classList.remove('placeholder-gray-400');
+      secretResultFormPassphrase.classList.add('placeholder-red-500');
     }
   }
 });
@@ -149,11 +151,13 @@ document.addEventListener('input', () => {
     if (validate && !validate.valid) {
       secretFormTextArea.value = '';
       secretFormTextArea.setAttribute('placeholder', validate.message );
-      secretFormTextArea.classList.add('placeholder-red-600');
+      secretFormTextArea.classList.remove('placeholder-gray-400');
+      secretFormTextArea.classList.add('placeholder-red-500');
       disableElement('secret-form-submit');
     } else {
       secretFormTextArea.setAttribute('placeholder', 'Secret value...');
-      secretFormTextArea.classList.remove('placeholder-red-600');
+      secretFormTextArea.classList.remove('placeholder-red-500');
+      secretFormTextArea.classList.add('placeholder-gray-400');
       enableElement('secret-form-submit');
     }
   }

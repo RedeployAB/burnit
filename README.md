@@ -47,6 +47,5 @@ Order of precedence:
 
 ## TODO
 
-- [ ] Add CSRF protection
 - [ ] Update documentation
 - [ ] Add deployment examples, templates and scripts

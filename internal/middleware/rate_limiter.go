@@ -65,7 +65,6 @@ func (c *rateLimiters) get(ip string) *rateLimiter {
 // close the rate limiters and stop the cleanup goroutine.
 func (c *rateLimiters) close() error {
 	c.stop <- struct{}{}
-	close(c.stop)
 	return nil
 }
 
@@ -82,6 +81,7 @@ func (c *rateLimiters) cleanup() {
 			}
 			c.mu.Unlock()
 		case <-c.stop:
+			close(c.stop)
 			return
 		}
 	}

@@ -13,15 +13,15 @@
   <script src="/static/js/script.js"></script>
   <title>burnit</title>
 </head>
-<body class="bg-zinc-800">
-  <header class="border-b border-zinc-500">
+<body class="bg-zinc-900">
+  <header class="border-b bg-zinc-950 border-zinc-700">
     <div class="container mx-auto max-w-2xl px-4 py-4">
       <div class="max-w-lg mx-auto">
         <h1 class="font-mono font-bold text-gray-200 cursor-pointer" hx-get="/ui/secrets" hx-trigger="click" hx-target="body" hx-push-url="/ui/secrets">burnit</h1>
       </div>
     </div>
   </header>
-  <main class="container mx-auto max-w-2xl px-4 py-4 flex-grow">
+  <main class="container mx-auto max-w-2xl px-4 py-4 flex-grow bg-zinc-900">
     {{ block "content" . }}{{ end }}
   </main>
   <footer>

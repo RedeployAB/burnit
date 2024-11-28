@@ -12,6 +12,7 @@ import (
 	"github.com/RedeployAB/burnit/internal/log"
 	"github.com/RedeployAB/burnit/internal/secret"
 	"github.com/RedeployAB/burnit/internal/security"
+	"github.com/RedeployAB/burnit/internal/session"
 )
 
 // Index handles requests to the index route.
@@ -29,14 +30,18 @@ func NotFound(ui UI) http.Handler {
 }
 
 // CreateSecret handles requests to create a secret.
-func CreateSecret(ui UI, secrets secret.Service) http.Handler {
+func CreateSecret(ui UI, secrets secret.Service, sessions session.Store) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ui.Render(w, http.StatusOK, "secret-create", nil)
+		// Sessions are only implemented for CSRF tokens at the moment.
+		// Use the CSRF token as the session ID when setting the session.
+		sess := session.NewSession(session.WithCSRF(session.NewCSRF()))
+		sessions.Set(sess.CSRF().Token(), sess)
+		ui.Render(w, http.StatusOK, "secret-create", secretCreateResponse{CSRFToken: sess.CSRF().Token()})
 	})
 }
 
 // GetSecret handles requests to get a secret.
-func GetSecret(ui UI, secrets secret.Service, log log.Logger) http.Handler {
+func GetSecret(ui UI, secrets secret.Service, sessions session.Store, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id, passphrase, err := extractIDAndPassphrase("/ui/secrets/", r.URL.Path)
 		if err != nil || len(id) == 0 {
@@ -57,7 +62,11 @@ func GetSecret(ui UI, secrets secret.Service, log log.Logger) http.Handler {
 		}
 
 		if len(passphrase) == 0 {
-			ui.Render(w, http.StatusUnauthorized, "secret-get", secretGetResponse{ID: id})
+			// Sessions are only implemented for CSRF tokens at the moment.
+			// Use the CSRF token as the session ID when setting the session.
+			sess := session.NewSession(session.WithCSRF(session.NewCSRF()))
+			sessions.Set(sess.CSRF().Token(), sess)
+			ui.Render(w, http.StatusUnauthorized, "secret-get", secretGetResponse{ID: id, CSRFToken: sess.CSRF().Token()})
 			return
 		}
 
@@ -75,11 +84,6 @@ func GetSecret(ui UI, secrets secret.Service, log log.Logger) http.Handler {
 				ui.Render(w, http.StatusNotFound, "secret-not-found", nil)
 				return
 			}
-			if errors.Is(err, secret.ErrInvalidPassphrase) {
-				ui.Render(w, http.StatusUnauthorized, "secret-get", secretGetResponse{ID: id})
-				return
-			}
-
 			log.Error("Failed to get secret.", "handler", "GetSecret", "error", err)
 			ui.Render(w, http.StatusInternalServerError, "partial-error", errorResponse{Title: "An error occured", Message: "Could not retrieve secret."}, WithPartial())
 			return
@@ -96,10 +100,21 @@ func GetSecret(ui UI, secrets secret.Service, log log.Logger) http.Handler {
 }
 
 // HandlerCreateSecret handles requests containing a form to create a secret.
-func HandlerCreateSecret(ui UI, secrets secret.Service, log log.Logger) http.Handler {
+func HandlerCreateSecret(ui UI, secrets secret.Service, sessions session.Store, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		ok, statusCode, errResp, err := validateCSRFTToken(sessions, r.FormValue("csrf-token"))
+		if err != nil {
+			log.Error("Failed to validate CSRF token.", "handler", "HandlerCreateSecret", "error", err)
+			ui.Render(w, statusCode, "partial-error", errResp, WithPartial())
+			return
+		}
+		if !ok {
+			ui.Render(w, statusCode, "partial-error", errResp, WithPartial())
 			return
 		}
 
@@ -136,6 +151,10 @@ func HandlerCreateSecret(ui UI, secrets secret.Service, log log.Logger) http.Han
 			return
 		}
 
+		if err := sessions.Delete(r.FormValue("csrf-token")); err != nil {
+			log.Error("Failed to delete session.", "handler", "HandlerCreateSecret", "error", err)
+		}
+
 		response := secretCreateResponse{
 			BaseURL:        baseURL,
 			ID:             s.ID,
@@ -149,11 +168,22 @@ func HandlerCreateSecret(ui UI, secrets secret.Service, log log.Logger) http.Han
 
 // HandlerGetSecret handles requests containing a form to get a secret.
 // This form will be used when a passphrase is not provided in the URL.
-func HandlerGetSecret(ui UI, secrets secret.Service, log log.Logger) http.Handler {
+func HandlerGetSecret(ui UI, secrets secret.Service, sessions session.Store, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			log.Error("Failed to parse form.", "handler", "HandlerGetSecret", "error", err)
 			ui.Render(w, http.StatusInternalServerError, "partial-error", errorResponse{Title: "An error occured", Message: "Could not parse form."}, WithPartial())
+			return
+		}
+
+		ok, statusCode, errResp, err := validateCSRFTToken(sessions, r.FormValue("csrf-token"))
+		if err != nil {
+			log.Error("Failed to validate CSRF token.", "handler", "HandlerGetSecret", "error", err)
+			ui.Render(w, statusCode, "partial-error", errResp, WithPartial())
+			return
+		}
+		if !ok {
+			ui.Render(w, statusCode, "partial-error", errResp, WithPartial())
 			return
 		}
 
@@ -176,13 +206,17 @@ func HandlerGetSecret(ui UI, secrets secret.Service, log log.Logger) http.Handle
 				return
 			}
 			if errors.Is(err, secret.ErrInvalidPassphrase) {
-				ui.Render(w, http.StatusUnauthorized, "partial-secret-get", secretGetResponse{ID: id}, WithPartial())
+				ui.Render(w, http.StatusUnauthorized, "partial-secret-get", secretGetResponse{ID: id, CSRFToken: r.FormValue("csrf-token")}, WithPartial())
 				return
 			}
 
 			log.Error("Failed to get secret.", "handler", "HandlerGetSecret", "error", err)
 			ui.Render(w, http.StatusInternalServerError, "partial-error", errorResponse{Title: "An error occured", Message: "Could not retrieve secret."}, WithPartial())
 			return
+		}
+
+		if err := sessions.Delete(r.FormValue("csrf-token")); err != nil {
+			log.Error("Failed to delete session.", "handler", "HandlerGetSecret", "error", err)
 		}
 
 		response := secretGetResponse{
@@ -215,6 +249,7 @@ type secretCreateResponse struct {
 	ID             string
 	Passphrase     string
 	PassphraseHash string
+	CSRFToken      string
 }
 
 // secretGetResponse is the response data for a get secret request.
@@ -222,6 +257,7 @@ type secretGetResponse struct {
 	ID             string
 	PassphraseHash string
 	Value          string
+	CSRFToken      string
 }
 
 // errorResponse is the response data for an error.
@@ -259,4 +295,38 @@ func isSecretBadRequestError(err error) bool {
 		}
 	}
 	return false
+}
+
+// validateCSRFTToken validates the CSRF token in the session.
+// When the token has been validated, and the session is no longer needed,
+// and the session is deleted. For future implementations, the session
+// should be deleted when the session is no longer needed.
+//
+// In this implementation the CSRF token is the session ID, since
+// sessions have only been implemented for CSRF tokens.
+func validateCSRFTToken(sessions session.Store, id string) (bool, int, errorResponse, error) {
+	sess, err := sessions.Get(id)
+	if err != nil {
+		title := "Could not retrieve session"
+		if errors.Is(err, session.ErrSessionNotFound) {
+			return false, http.StatusBadRequest, errorResponse{Title: title, Message: "Session not found."}, errors.New("session not found")
+		}
+		if errors.Is(err, session.ErrSessionExpired) {
+			return false, http.StatusBadRequest, errorResponse{Title: title, Message: "Session expired. Please refresh the page."}, nil
+		}
+		return false, http.StatusInternalServerError, errorResponse{Title: "An error occured", Message: "Could not validate CSRF token."}, err
+	}
+	title := "Invalid CSRF token"
+	csrf := sess.CSRF()
+	t := csrf.Token()
+	if len(t) == 0 {
+		return false, http.StatusBadRequest, errorResponse{Title: title, Message: "CSRF token not found."}, errors.New("CSRF token not found")
+	}
+	if t != id {
+		return false, http.StatusBadRequest, errorResponse{Title: title, Message: "CSRF token does not match with session."}, errors.New("CSRF token does not match with session")
+	}
+	if csrf.Expired() {
+		return false, http.StatusBadRequest, errorResponse{Title: title, Message: "CSRF token expired. Please refresh the page."}, nil
+	}
+	return true, 0, errorResponse{}, nil
 }
