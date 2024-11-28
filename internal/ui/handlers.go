@@ -297,15 +297,6 @@ func isSecretBadRequestError(err error) bool {
 	return false
 }
 
-var (
-	// ErrCSRFTokenNotFound is returned when the CSRF token is not found.
-	ErrCSRFTokenNotFound = errors.New("CSRF token not found")
-	// ErrCSRFTokenExpired is returned when the CSRF token has expired.
-	ErrCSRFTokenExpired = errors.New("CSRF token expired")
-	// ErrCSRFTokenInvalid is returned when the CSRF token is invalid.
-	ErrCSRFTokenInvalid = errors.New("CSRF token invalid")
-)
-
 // validateCSRFTToken validates the CSRF token in the session.
 // When the token has been validated, and the session is no longer needed,
 // and the session is deleted. For future implementations, the session
