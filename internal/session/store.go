@@ -5,6 +5,12 @@ import (
 	"time"
 )
 
+const (
+	// defaultInMemoryStoreCleanupInterval is the default interval for cleaning up expired sessions
+	// and CSRF tokens in the in-memory store.
+	defaultInMemoryStoreCleanupInterval = time.Minute
+)
+
 // Store is an interface for storing sessions.
 type Store interface {
 	Get(id string) (Session, error)
@@ -79,7 +85,7 @@ func (s *inMemoryStore) Close() error {
 func (s *inMemoryStore) cleanup() {
 	for {
 		select {
-		case <-time.After(time.Second * 5):
+		case <-time.After(defaultInMemoryStoreCleanupInterval):
 			s.mu.Lock()
 			for id := range s.sessions {
 				if s.sessions[id].Expired() {
