@@ -102,6 +102,12 @@ func GetSecret(ui UI, secrets secret.Service, sessions session.Store, log log.Lo
 // HandlerCreateSecret handles requests containing a form to create a secret.
 func HandlerCreateSecret(ui UI, secrets secret.Service, sessions session.Store, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			sess := session.NewSession(session.WithCSRF(session.NewCSRF()))
+			sessions.Set(sess.CSRF().Token(), sess)
+			ui.Render(w, http.StatusOK, "partial-secret-create", secretCreateResponse{CSRFToken: sess.CSRF().Token()}, WithPartial())
+			return
+		}
 		if err := r.ParseForm(); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return

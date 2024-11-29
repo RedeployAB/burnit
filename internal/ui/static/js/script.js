@@ -20,15 +20,6 @@ document.addEventListener('htmx:afterSwap', (event) => {
       passphraseField.value = maskedValue;
     }
 
-    const overlayCloseButton = document.getElementById('secret-links-overlay-close-button')
-    if (overlayCloseButton) {
-      overlayCloseButton.addEventListener('click', () => {
-        const overlay = document.getElementById('secret-links-overlay');
-        overlay.remove();
-        enableElement('secret-form-fields');
-      });
-    }
-
     const copySecretFullLink = document.getElementById('copy-secret-full-link');
     if (copySecretFullLink) {
       copySecretFullLink.addEventListener('click', () => {
@@ -62,6 +53,10 @@ document.addEventListener('htmx:afterSwap', (event) => {
         overlay.remove();
         enableElement('secret-form-fields');
       });
+    }
+
+    if (event.detail.requestConfig.verb == 'get') {
+      enableElement('secret-form-fields');
     }
   }
 
