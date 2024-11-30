@@ -145,7 +145,7 @@ func (u ui) Render(w http.ResponseWriter, statusCode int, tmpl string, data any,
 	}
 	templates := []string{}
 
-	content := dir + "/" + tmpl + ".html"
+	content := dir + "/views/" + tmpl + ".html"
 	if _, err := os.Stat(content); err == nil {
 		templates = append(templates, content)
 	}
@@ -216,8 +216,8 @@ func (u *ui) parseTemplates(fsys fs.FS, path string, embedded bool) error {
 		return err
 	}
 
-	for tmpl, files := range templates {
-		t, err := template.ParseFS(fsys, files...)
+	for tmpl, tmpls := range templates {
+		t, err := template.ParseFS(fsys, tmpls...)
 		if err != nil {
 			return err
 		}
