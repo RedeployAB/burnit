@@ -145,7 +145,7 @@ func (u ui) Render(w http.ResponseWriter, statusCode int, tmpl string, data any,
 	}
 	templates := []string{}
 
-	content := dir + "/" + tmpl + ".html"
+	content := dir + "/views/" + tmpl + ".html"
 	if _, err := os.Stat(content); err == nil {
 		templates = append(templates, content)
 	}
