@@ -216,8 +216,8 @@ func (u *ui) parseTemplates(fsys fs.FS, path string, embedded bool) error {
 		return err
 	}
 
-	for tmpl, files := range templates {
-		t, err := template.ParseFS(fsys, files...)
+	for tmpl, tmpls := range templates {
+		t, err := template.ParseFS(fsys, tmpls...)
 		if err != nil {
 			return err
 		}
