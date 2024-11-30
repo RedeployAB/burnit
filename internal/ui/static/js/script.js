@@ -12,8 +12,10 @@ document.addEventListener('htmx:afterSwap', (event) => {
   const target = event.target;
   if (target.id == 'secret-form-container') {
     const secretForm = document.getElementById('secret-form');
-    secretForm.reset();
-    disableElement('secret-form-fields');
+    if (secretForm) {
+      secretForm.reset();
+      disableElement('secret-form-fields');
+    }
 
     const passphraseField = document.getElementById('secret-passphrase');
     if (passphraseField) {

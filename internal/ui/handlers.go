@@ -57,7 +57,7 @@ func GetSecret(ui UI, secrets secret.Service, sessions session.Store, log log.Lo
 				return
 			}
 			log.Error("Failed to get secret.", "handler", "GetSecret", "error", err)
-			ui.Render(w, http.StatusInternalServerError, "partial-error", errorResponse{Title: "An error occured", Message: "Could not retrieve secret."}, WithPartial())
+			ui.Render(w, http.StatusInternalServerError, "error", errorResponse{Title: "An error occured", Message: "Could not retrieve secret."}, WithPartial())
 			return
 		}
 
@@ -72,7 +72,7 @@ func GetSecret(ui UI, secrets secret.Service, sessions session.Store, log log.Lo
 
 		decodedPassphrase, err := security.DecodeBase64(passphrase)
 		if err != nil {
-			ui.Render(w, http.StatusBadRequest, "partial-error", errorResponse{Title: "Could not retrieve secret", Message: "Invalid passphrase."}, WithPartial())
+			ui.Render(w, http.StatusBadRequest, "error", errorResponse{Title: "Could not retrieve secret", Message: "Invalid passphrase."}, WithPartial())
 			return
 		}
 
@@ -85,7 +85,7 @@ func GetSecret(ui UI, secrets secret.Service, sessions session.Store, log log.Lo
 				return
 			}
 			log.Error("Failed to get secret.", "handler", "GetSecret", "error", err)
-			ui.Render(w, http.StatusInternalServerError, "partial-error", errorResponse{Title: "An error occured", Message: "Could not retrieve secret."}, WithPartial())
+			ui.Render(w, http.StatusInternalServerError, "error", errorResponse{Title: "An error occured", Message: "Could not retrieve secret."}, WithPartial())
 			return
 		}
 
@@ -105,7 +105,7 @@ func HandlerCreateSecret(ui UI, secrets secret.Service, sessions session.Store, 
 		if r.Method == http.MethodGet {
 			sess := session.NewSession(session.WithCSRF(session.NewCSRF()))
 			sessions.Set(sess.CSRF().Token(), sess)
-			ui.Render(w, http.StatusOK, "partial-secret-create", secretCreateResponse{CSRFToken: sess.CSRF().Token()}, WithPartial())
+			ui.Render(w, http.StatusOK, "secret-create", secretCreateResponse{CSRFToken: sess.CSRF().Token()}, WithPartial())
 			return
 		}
 		if err := r.ParseForm(); err != nil {
@@ -116,23 +116,23 @@ func HandlerCreateSecret(ui UI, secrets secret.Service, sessions session.Store, 
 		ok, statusCode, errResp, err := validateCSRFTToken(sessions, r.FormValue("csrf-token"))
 		if err != nil {
 			log.Error("Failed to validate CSRF token.", "handler", "HandlerCreateSecret", "error", err)
-			ui.Render(w, statusCode, "partial-error", errResp, WithPartial())
+			ui.Render(w, statusCode, "error", errResp, WithPartial())
 			return
 		}
 		if !ok {
-			ui.Render(w, statusCode, "partial-error", errResp, WithPartial())
+			ui.Render(w, statusCode, "error", errResp, WithPartial())
 			return
 		}
 
 		baseURL := r.FormValue("base-url")
 		if len(baseURL) == 0 {
-			ui.Render(w, http.StatusBadRequest, "partial-error", errorResponse{Title: "An error occured", Message: "Missing base URL."}, WithPartial())
+			ui.Render(w, http.StatusBadRequest, "error", errorResponse{Title: "An error occured", Message: "Missing base URL."}, WithPartial())
 			return
 		}
 
 		ttl, err := time.ParseDuration(r.FormValue("ttl"))
 		if err != nil {
-			ui.Render(w, http.StatusBadRequest, "partial-error", errorResponse{Title: "Could not create secret", Message: "Invalid expiration time."}, WithPartial())
+			ui.Render(w, http.StatusBadRequest, "error", errorResponse{Title: "Could not create secret", Message: "Invalid expiration time."}, WithPartial())
 			return
 		}
 
@@ -153,7 +153,7 @@ func HandlerCreateSecret(ui UI, secrets secret.Service, sessions session.Store, 
 				response = errorResponse{Title: "Could not create secret", Message: formatErrorMessage(err)}
 			}
 
-			ui.Render(w, statusCode, "partial-error", response, WithPartial())
+			ui.Render(w, statusCode, "error", response, WithPartial())
 			return
 		}
 
@@ -168,7 +168,7 @@ func HandlerCreateSecret(ui UI, secrets secret.Service, sessions session.Store, 
 			PassphraseHash: base64.RawURLEncoding.EncodeToString(security.SHA256([]byte(s.Passphrase))),
 		}
 
-		ui.Render(w, http.StatusCreated, "partial-secret-created", response, WithPartial())
+		ui.Render(w, http.StatusCreated, "secret-created", response, WithPartial())
 	})
 }
 
@@ -178,30 +178,30 @@ func HandlerGetSecret(ui UI, secrets secret.Service, sessions session.Store, log
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			log.Error("Failed to parse form.", "handler", "HandlerGetSecret", "error", err)
-			ui.Render(w, http.StatusInternalServerError, "partial-error", errorResponse{Title: "An error occured", Message: "Could not parse form."}, WithPartial())
+			ui.Render(w, http.StatusInternalServerError, "error", errorResponse{Title: "An error occured", Message: "Could not parse form."}, WithPartial())
 			return
 		}
 
 		ok, statusCode, errResp, err := validateCSRFTToken(sessions, r.FormValue("csrf-token"))
 		if err != nil {
 			log.Error("Failed to validate CSRF token.", "handler", "HandlerGetSecret", "error", err)
-			ui.Render(w, statusCode, "partial-error", errResp, WithPartial())
+			ui.Render(w, statusCode, "error", errResp, WithPartial())
 			return
 		}
 		if !ok {
-			ui.Render(w, statusCode, "partial-error", errResp, WithPartial())
+			ui.Render(w, statusCode, "error", errResp, WithPartial())
 			return
 		}
 
 		id := r.FormValue("id")
 		if len(id) == 0 {
 			log.Error("Missing ID in request.", "handler", "HandlerGetSecret")
-			ui.Render(w, http.StatusInternalServerError, "partial-error", errorResponse{Title: "An error occured", Message: "Missing ID."}, WithPartial())
+			ui.Render(w, http.StatusInternalServerError, "error", errorResponse{Title: "An error occured", Message: "Missing ID."}, WithPartial())
 			return
 		}
 		passphrase := r.FormValue("custom-value")
 		if len(passphrase) == 0 {
-			ui.Render(w, http.StatusOK, "partial-secret-get", secretGetResponse{ID: id}, WithPartial())
+			ui.Render(w, http.StatusOK, "secret-get", secretGetResponse{ID: id}, WithPartial())
 			return
 		}
 
@@ -212,12 +212,12 @@ func HandlerGetSecret(ui UI, secrets secret.Service, sessions session.Store, log
 				return
 			}
 			if errors.Is(err, secret.ErrInvalidPassphrase) {
-				ui.Render(w, http.StatusUnauthorized, "partial-secret-get", secretGetResponse{ID: id, CSRFToken: r.FormValue("csrf-token")}, WithPartial())
+				ui.Render(w, http.StatusUnauthorized, "secret-get", secretGetResponse{ID: id, CSRFToken: r.FormValue("csrf-token")}, WithPartial())
 				return
 			}
 
 			log.Error("Failed to get secret.", "handler", "HandlerGetSecret", "error", err)
-			ui.Render(w, http.StatusInternalServerError, "partial-error", errorResponse{Title: "An error occured", Message: "Could not retrieve secret."}, WithPartial())
+			ui.Render(w, http.StatusInternalServerError, "error", errorResponse{Title: "An error occured", Message: "Could not retrieve secret."}, WithPartial())
 			return
 		}
 
@@ -231,7 +231,7 @@ func HandlerGetSecret(ui UI, secrets secret.Service, sessions session.Store, log
 			Value:          s.Value,
 		}
 
-		ui.Render(w, http.StatusOK, "partial-secret-get", response, WithPartial())
+		ui.Render(w, http.StatusOK, "secret-get", response, WithPartial())
 	})
 }
 

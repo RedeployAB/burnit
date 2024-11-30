@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
+	_path "path"
 	"path/filepath"
 	"strings"
 )
@@ -37,6 +38,7 @@ type UI interface {
 // ui is a user interface handler.
 type ui struct {
 	templates     map[string]*template.Template
+	head          []template.HTML
 	templateDir   string
 	staticFS      fs.FS
 	runtimeRender bool
@@ -63,14 +65,15 @@ func New(options ...Option) (*ui, error) {
 		templates:     make(map[string]*template.Template),
 		templateDir:   opts.TemplateDir,
 		runtimeRender: opts.RuntimeRender,
+		head:          newStylesAndScripts(opts.RuntimeRender),
 	}
 
-	if err := ui.addTemplates(templateFS, defaultTemplateDir, true); err != nil {
+	if err := ui.parseTemplates(templateFS, defaultTemplateDir, true); err != nil {
 		return nil, err
 	}
 
 	if len(ui.templateDir) > 0 {
-		if err := ui.addTemplates(os.DirFS(ui.templateDir), ui.templateDir, false); err != nil {
+		if err := ui.parseTemplates(os.DirFS(ui.templateDir), ui.templateDir, false); err != nil {
 			return nil, err
 		}
 	}
@@ -112,41 +115,58 @@ func (u ui) Render(w http.ResponseWriter, statusCode int, tmpl string, data any,
 
 	execTemplate := "base.html"
 	if opts.Partial {
-		execTemplate = tmpl + ".html"
+		execTemplate = tmpl
+	}
+
+	d := struct {
+		Head []template.HTML
+		Data any
+	}{
+		Head: u.head,
+		Data: data,
 	}
 
 	if len(w.Header().Get("Content-Type")) == 0 {
 		w.Header().Set("Content-Type", "text/html")
 	}
 
-	if u.runtimeRender {
-		dir := u.templateDir
-		if len(dir) == 0 {
-			dir = defaultInternalTemplateDir
-		}
-
-		templates := []string{dir + "/" + tmpl + ".html"}
-
-		if !opts.Partial {
-			templates = append([]string{dir + "/base.html"}, templates...)
-		}
-
-		t, err := template.ParseFiles(templates...)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
+	if !u.runtimeRender {
 		w.WriteHeader(statusCode)
-		if err := t.ExecuteTemplate(w, execTemplate, data); err != nil {
+		if err := u.templates[tmpl].ExecuteTemplate(w, execTemplate, d); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		return
 	}
 
+	dir := u.templateDir
+	if len(dir) == 0 {
+		dir = defaultInternalTemplateDir
+	}
+	templates := []string{}
+
+	content := dir + "/" + tmpl + ".html"
+	if _, err := os.Stat(content); err == nil {
+		templates = append(templates, content)
+	}
+
+	partial := dir + "/partials/" + tmpl + ".html"
+	if _, err := os.Stat(partial); err == nil {
+		templates = append(templates, partial)
+	}
+
+	if !opts.Partial {
+		templates = append([]string{dir + "/base.html"}, templates...)
+	}
+
+	t, err := template.ParseFiles(templates...)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(statusCode)
-	if err := u.templates[tmpl].ExecuteTemplate(w, execTemplate, data); err != nil {
+	if err := t.ExecuteTemplate(w, execTemplate, d); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -167,8 +187,8 @@ func trimExtension(name string) string {
 	return strings.TrimSuffix(name, filepath.Ext(name))
 }
 
-// addTemplates adds a template to the UI.
-func (u *ui) addTemplates(fsys fs.FS, path string, embedded bool) error {
+// parseTemplates parses and adds templates to the UI.
+func (u *ui) parseTemplates(fsys fs.FS, path string, embedded bool) error {
 	var prefix string
 	if embedded {
 		prefix = path + "/"
@@ -176,27 +196,47 @@ func (u *ui) addTemplates(fsys fs.FS, path string, embedded bool) error {
 		path = "."
 	}
 
-	files, err := fs.ReadDir(fsys, path)
+	templates := map[string][]string{}
+	err := fs.WalkDir(fsys, path, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() || !strings.Contains(d.Name(), ".html") || d.Name() == "base.html" {
+			return nil
+		}
+
+		tmplName := _path.Base(trimExtension(d.Name()))
+		if _, ok := templates[tmplName]; !ok {
+			templates[tmplName] = []string{prefix + "base.html"}
+		}
+		templates[tmplName] = append(templates[tmplName], path)
+		return nil
+	})
 	if err != nil {
 		return err
 	}
 
-	for _, file := range files {
-		if file.IsDir() {
-			continue
+	for tmpl, files := range templates {
+		t, err := template.ParseFS(fsys, files...)
+		if err != nil {
+			return err
 		}
-
-		if strings.Contains(file.Name(), ".html") && file.Name() != "base.html" {
-			templates := []string{prefix + file.Name()}
-			if !strings.HasPrefix(file.Name(), "partial-") {
-				templates = append([]string{prefix + "base.html"}, templates...)
-			}
-			tmpl, err := template.ParseFS(fsys, templates...)
-			if err != nil {
-				return err
-			}
-			u.templates[trimExtension(file.Name())] = tmpl
-		}
+		u.templates[tmpl] = t
 	}
 	return nil
+}
+
+// newStylesAndScripts returns the styles and scripts for the UI.
+func newStylesAndScripts(runtimeRender bool) []template.HTML {
+	if !runtimeRender {
+		return []template.HTML{
+			`<link rel="stylesheet" href="/static/css/main.min.css">` + "\n",
+			`  <script src="/static/js/main.min.js"></script>`,
+		}
+	}
+	return []template.HTML{
+		`<link rel="stylesheet" href="/static/css/main.css">` + "\n",
+		`  <script src="/static/js/htmx.js"></script>` + "\n",
+		`  <script src="/static/js/script.js"></script>`,
+	}
 }

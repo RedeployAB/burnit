@@ -38,6 +38,7 @@ type flags struct {
 	databaseRedisMinRetryBackoff time.Duration
 	databaseRedisMaxRetryBackoff time.Duration
 	databaseRedisEnableTLS       *bool
+	localDevelopment             *bool
 }
 
 // parseFlags parses the flags.
@@ -47,7 +48,7 @@ func parseFlags(args []string) (flags, string, error) {
 	fs.SetOutput(&buf)
 
 	var f flags
-	var databaseMongoEnableTLS, databaseSQLiteInMemory, databaseRedisEnableTLS boolFlag
+	var databaseMongoEnableTLS, databaseSQLiteInMemory, databaseRedisEnableTLS, localDevelopment boolFlag
 
 	fs.StringVar(&f.configPath, "config-path", "", "Optional. Path to a configuration file. Defaults to: "+defaultConfigPath+".")
 	fs.StringVar(&f.host, "host", "", "Optional. Host to listen on. Defaults to: "+defaultListenHost+".")
@@ -78,6 +79,7 @@ func parseFlags(args []string) (flags, string, error) {
 	fs.DurationVar(&f.databaseRedisMinRetryBackoff, "database-redis-min-retry-backoff", 0, "Optional. Minimum retry backoff for the Redis client.")
 	fs.DurationVar(&f.databaseRedisMaxRetryBackoff, "database-redis-max-retry-backoff", 0, "Optional. Maximum retry backoff for the Redis client.")
 	fs.Var(&databaseRedisEnableTLS, "database-redis-enable-tls", "Optional. Enable TLS for the Redis client. Defaults to: true.")
+	fs.Var(&localDevelopment, "local-development", "Optional. Enable local development mode.")
 
 	if err := fs.Parse(args); err != nil {
 		return f, buf.String(), err
@@ -91,6 +93,9 @@ func parseFlags(args []string) (flags, string, error) {
 	}
 	if databaseRedisEnableTLS.isSet {
 		f.databaseRedisEnableTLS = &databaseRedisEnableTLS.value
+	}
+	if localDevelopment.isSet {
+		f.localDevelopment = &localDevelopment.value
 	}
 
 	return f, buf.String(), nil

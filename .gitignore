@@ -6,6 +6,7 @@ testcmd/
 node_modules/
 *.gz
 
+htmx.js
 htmx.esm.js
 main.min.js
 
