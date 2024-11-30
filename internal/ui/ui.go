@@ -112,7 +112,7 @@ func (u ui) Render(w http.ResponseWriter, statusCode int, tmpl string, data any,
 
 	execTemplate := "base.html"
 	if opts.Partial {
-		execTemplate = tmpl + ".html"
+		execTemplate = tmpl
 	}
 
 	if len(w.Header().Get("Content-Type")) == 0 {
@@ -126,6 +126,9 @@ func (u ui) Render(w http.ResponseWriter, statusCode int, tmpl string, data any,
 		}
 
 		templates := []string{dir + "/" + tmpl + ".html"}
+		if partial, err := os.Stat(dir + "/" + "partial-" + tmpl + ".html"); err == nil {
+			templates = append(templates, dir+"/"+partial.Name())
+		}
 
 		if !opts.Partial {
 			templates = append([]string{dir + "/base.html"}, templates...)
@@ -181,6 +184,16 @@ func (u *ui) addTemplates(fsys fs.FS, path string, embedded bool) error {
 		return err
 	}
 
+	partials := map[string]string{}
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+		if strings.HasPrefix(file.Name(), "partial-") && strings.HasSuffix(file.Name(), ".html") {
+			partials[trimExtension(strings.TrimPrefix(file.Name(), "partial-"))] = file.Name()
+		}
+	}
+
 	for _, file := range files {
 		if file.IsDir() {
 			continue
@@ -190,7 +203,11 @@ func (u *ui) addTemplates(fsys fs.FS, path string, embedded bool) error {
 			templates := []string{prefix + file.Name()}
 			if !strings.HasPrefix(file.Name(), "partial-") {
 				templates = append([]string{prefix + "base.html"}, templates...)
+				if partial, ok := partials[trimExtension(file.Name())]; ok {
+					templates = append(templates, prefix+partial)
+				}
 			}
+
 			tmpl, err := template.ParseFS(fsys, templates...)
 			if err != nil {
 				return err
