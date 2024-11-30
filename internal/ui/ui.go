@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
+	_path "path"
 	"path/filepath"
 	"strings"
 )
@@ -65,12 +66,12 @@ func New(options ...Option) (*ui, error) {
 		runtimeRender: opts.RuntimeRender,
 	}
 
-	if err := ui.addTemplates(templateFS, defaultTemplateDir, true); err != nil {
+	if err := ui.parseTemplates(templateFS, defaultTemplateDir, true); err != nil {
 		return nil, err
 	}
 
 	if len(ui.templateDir) > 0 {
-		if err := ui.addTemplates(os.DirFS(ui.templateDir), ui.templateDir, false); err != nil {
+		if err := ui.parseTemplates(os.DirFS(ui.templateDir), ui.templateDir, false); err != nil {
 			return nil, err
 		}
 	}
@@ -170,8 +171,8 @@ func trimExtension(name string) string {
 	return strings.TrimSuffix(name, filepath.Ext(name))
 }
 
-// addTemplates adds a template to the UI.
-func (u *ui) addTemplates(fsys fs.FS, path string, embedded bool) error {
+// parseTemplates parses and adds templates to the UI.
+func (u *ui) parseTemplates(fsys fs.FS, path string, embedded bool) error {
 	var prefix string
 	if embedded {
 		prefix = path + "/"
@@ -179,41 +180,32 @@ func (u *ui) addTemplates(fsys fs.FS, path string, embedded bool) error {
 		path = "."
 	}
 
-	files, err := fs.ReadDir(fsys, path)
+	templates := map[string][]string{}
+	err := fs.WalkDir(fsys, path, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() || !strings.Contains(d.Name(), ".html") || d.Name() == "base.html" {
+			return nil
+		}
+
+		tmplName := _path.Base(trimExtension(d.Name()))
+		if _, ok := templates[tmplName]; !ok {
+			templates[tmplName] = []string{prefix + "base.html"}
+		}
+		templates[tmplName] = append(templates[tmplName], path)
+		return nil
+	})
 	if err != nil {
 		return err
 	}
 
-	partials := map[string]string{}
-	for _, file := range files {
-		if file.IsDir() {
-			continue
+	for tmpl, files := range templates {
+		t, err := template.ParseFS(fsys, files...)
+		if err != nil {
+			return err
 		}
-		if strings.HasPrefix(file.Name(), "partial-") && strings.HasSuffix(file.Name(), ".html") {
-			partials[trimExtension(strings.TrimPrefix(file.Name(), "partial-"))] = file.Name()
-		}
-	}
-
-	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
-
-		if strings.Contains(file.Name(), ".html") && file.Name() != "base.html" {
-			templates := []string{prefix + file.Name()}
-			if !strings.HasPrefix(file.Name(), "partial-") {
-				templates = append([]string{prefix + "base.html"}, templates...)
-				if partial, ok := partials[trimExtension(file.Name())]; ok {
-					templates = append(templates, prefix+partial)
-				}
-			}
-
-			tmpl, err := template.ParseFS(fsys, templates...)
-			if err != nil {
-				return err
-			}
-			u.templates[trimExtension(file.Name())] = tmpl
-		}
+		u.templates[tmpl] = t
 	}
 	return nil
 }
