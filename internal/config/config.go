@@ -8,6 +8,7 @@ import (
 	"os"
 	"reflect"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/caarlos0/env/v11"
@@ -291,6 +292,12 @@ func New() (*Configuration, error) {
 		return nil, err
 	}
 
+	localDev, ok := os.LookupEnv("BURNIT_LOCAL_DEVELOPMENT")
+	if ok && strings.ToLower(localDev) == "true" || localDev == "1" || flags.localDevelopment != nil && *flags.localDevelopment {
+		cfg.UI.RuntimeRender = toPtr(true)
+		cfg.Services.Database.Driver = "sqlite"
+	}
+
 	return cfg, nil
 }
 
@@ -434,4 +441,9 @@ func configurationFromFlags(flags *flags) (Configuration, error) {
 			},
 		},
 	}, nil
+}
+
+// toPtr returns a pointer to the given value.
+func toPtr[T any](v T) *T {
+	return &v
 }
