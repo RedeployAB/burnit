@@ -67,7 +67,3 @@ esbuild internal/ui/static/css/main.css --bundle --minify --outfile=internal/ui/
 gzip -k -f internal/ui/static/js/main.min.js
 gzip -k -f internal/ui/static/css/main.min.css
 gzip -k -f internal/ui/static/icons/*.png
-
-sed "${sed_flags[@]}" 's/main\.css/main.min.css/g' internal/ui/templates/base.html
-sed "${sed_flags[@]}" '/unpkg.com/d' internal/ui/templates/base.html
-sed "${sed_flags[@]}" 's/script\.js/main.min.js/g' internal/ui/templates/base.html
