@@ -33,36 +33,26 @@ func (w *loggingResponseWriter) Write(b []byte) (int, error) {
 	return n, err
 }
 
-// LoggerOptions contains the options for the Logger middleware.
-type LoggerOptions struct {
-	Component string
-}
-
-// LoggerOption is a function that sets an option on the Logger middleware.
-type LoggerOption func(o *LoggerOptions)
-
 // Logger is a middleware that logs the incoming request.
-func Logger(log log.Logger, options ...LoggerOption) func(next http.Handler) http.Handler {
-	opts := LoggerOptions{
-		Component: "backend",
-	}
-	for _, option := range options {
-		option(&opts)
-	}
+func Logger(log log.Logger) func(next http.Handler) http.Handler {
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			lw := &loggingResponseWriter{ResponseWriter: w}
 			next.ServeHTTP(lw, r)
-			log.Info("Request received.", "type", "request", "component", opts.Component, "status", lw.status, "path", maskSecretHash(r.URL.Path), "method", r.Method, "remoteIp", resolveIP(r))
-		})
-	}
-}
 
-// WithLoggerComponent sets the component for the logger.
-func WithLoggerComponent(component string) LoggerOption {
-	return func(o *LoggerOptions) {
-		o.Component = component
+			requestID := getRequestID(r.Context())
+			if len(requestID) == 0 {
+				requestID = newUUID()
+			}
+
+			sourceIP := getSourceIP(r.Context())
+			if sourceIP == SourceIPNotAvailable {
+				sourceIP = resolveIP(r)
+			}
+
+			log.Info("Request received.", "type", "request", "status", lw.status, "path", maskSecretHash(r.URL.Path), "method", r.Method, "requestId", requestID, "sourceIp", sourceIP)
+		})
 	}
 }
 
