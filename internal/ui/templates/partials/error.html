@@ -12,6 +12,11 @@
         <div class="flex flex-col space-y-4 pb-5 px-5 text-sm">
           <p class="font-sans text-gray-200 text-center">{{.Data.Message}}</p>
         </div>
+        {{if gt (len .Data.RequestID) 0}}
+        <div>
+          <p class="font-sans text-gray-200 pb-5 text-xs text-center">Request ID: {{.Data.RequestID}}</p>
+        </div>
+        {{end}}
       </div>
     </div>
 {{end}}
