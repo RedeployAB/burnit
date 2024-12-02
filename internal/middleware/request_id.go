@@ -33,3 +33,8 @@ func getRequestID(ctx context.Context) string {
 	}
 	return id
 }
+
+// RequestIDFromContext returns the request ID from the context.
+func RequestIDFromContext(ctx context.Context) string {
+	return getRequestID(ctx)
+}
