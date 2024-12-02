@@ -10,6 +10,10 @@ import (
 )
 
 func TestLogger(t *testing.T) {
+	newUUID = func() string {
+		return "test"
+	}
+
 	var tests = []struct {
 		name  string
 		input struct {
@@ -31,7 +35,7 @@ func TestLogger(t *testing.T) {
 					return req
 				},
 			},
-			want: []string{"Request received.", "type", "request", "component", "backend", "status", "200", "path", "/", "method", "GET", "remoteIp", "192.168.1.1"},
+			want: []string{"Request received.", "type", "request", "status", "200", "path", "/", "method", "GET", "requestId", "test", "sourceIp", "192.168.1.1"},
 		},
 		{
 			name: "log requests with status OK (no status)",
@@ -46,7 +50,7 @@ func TestLogger(t *testing.T) {
 					return req
 				},
 			},
-			want: []string{"Request received.", "type", "request", "component", "backend", "status", "200", "path", "/", "method", "GET", "remoteIp", "192.168.1.1"},
+			want: []string{"Request received.", "type", "request", "status", "200", "path", "/", "method", "GET", "requestId", "test", "sourceIp", "192.168.1.1"},
 		},
 	}
 
