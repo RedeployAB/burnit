@@ -3,7 +3,6 @@ package server
 import (
 	"net/http"
 
-	"github.com/RedeployAB/burnit/internal/log"
 	"github.com/RedeployAB/burnit/internal/middleware"
 	"github.com/RedeployAB/burnit/internal/ui"
 )
@@ -15,7 +14,14 @@ const (
 
 // routes sets up the routes for the server.
 func (s *server) routes() {
-	middlewares, shutdownFuncs := setupMiddlewares(s.log, s.rateLimiter, s.cors)
+	s.httpServer.Handler = middleware.Chain(
+		s.httpServer.Handler,
+		middleware.RequestID(),
+		middleware.SourceIP(),
+		middleware.Logger(s.log),
+	)
+
+	middlewares, shutdownFuncs := setupMiddlewares(s.rateLimiter, s.cors)
 	s.shutdownFuncs = append(s.shutdownFuncs, shutdownFuncs...)
 
 	// Secret router and handlers.
@@ -35,12 +41,12 @@ func (s *server) routes() {
 	s.router.Handle("/secrets", secretsHandler)
 
 	if s.ui == nil {
-		s.router.Handle("/{$}", middleware.Logger(s.log)(index(nil, s.log)))
-		s.router.Handle("/", middleware.Logger(s.log)(notFound(nil)))
+		s.router.Handle("/{$}", index(nil, s.log))
+		s.router.Handle("/", notFound(nil))
 		return
 	}
 
-	uiMiddlewares := setupUIMiddlewares(s.log, s.ui.RuntimeRender())
+	uiMiddlewares := setupUIMiddlewares(s.ui.RuntimeRender())
 
 	fer := http.NewServeMux()
 	fer.Handle("/ui/secrets", ui.CreateSecret(s.ui, s.secrets, s.sessions))
@@ -52,14 +58,14 @@ func (s *server) routes() {
 	uiHandler := middleware.Chain(fer, uiMiddlewares...)
 	s.router.Handle("/ui/", uiHandler)
 
-	s.router.Handle("/static/", middleware.Logger(s.log, middleware.WithLoggerComponent("ui"))(http.StripPrefix("/static/", ui.FileServer(s.ui.Static()))))
-	s.router.Handle("/{$}", middleware.Logger(s.log, middleware.WithLoggerComponent("backend/ui"))(index(s.ui, s.log)))
-	s.router.Handle("/", middleware.Logger(s.log, middleware.WithLoggerComponent("backend/ui"))(notFound(s.ui)))
+	s.router.Handle("/static/", http.StripPrefix("/static/", ui.FileServer(s.ui.Static())))
+	s.router.Handle("/{$}", index(s.ui, s.log))
+	s.router.Handle("/", notFound(s.ui))
 }
 
 // setupMiddlewares sets up the middlewares for the server.
-func setupMiddlewares(log log.Logger, rl RateLimiter, c CORS) ([]middleware.Middleware, []func() error) {
-	middlewares := []middleware.Middleware{middleware.Logger(log)}
+func setupMiddlewares(rl RateLimiter, c CORS) ([]middleware.Middleware, []func() error) {
+	middlewares := []middleware.Middleware{}
 	var shutdownFuncs []func() error
 	if !rl.isEmpty() {
 		mw, closeRateLimiter := middleware.RateLimiter(
@@ -79,9 +85,8 @@ func setupMiddlewares(log log.Logger, rl RateLimiter, c CORS) ([]middleware.Midd
 }
 
 // setupUIMiddlewares sets up the middlewares for the UI.
-func setupUIMiddlewares(log log.Logger, runtimeRender bool) []middleware.Middleware {
-	middlewares := []middleware.Middleware{middleware.Logger(log, middleware.WithLoggerComponent("ui"))}
-
+func setupUIMiddlewares(runtimeRender bool) []middleware.Middleware {
+	middlewares := []middleware.Middleware{}
 	var contentSecurityPolicy string
 	if !runtimeRender {
 		contentSecurityPolicy = defaultContentSecurityPolicy

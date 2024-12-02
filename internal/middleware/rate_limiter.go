@@ -124,7 +124,12 @@ func RateLimiter(options ...rateLimiterOption) (func(next http.Handler) http.Han
 	go rateLimiters.cleanup()
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			rl := rateLimiters.get(resolveIP(r))
+			sourceIP := getSourceIP(r.Context())
+			if sourceIP == SourceIPNotAvailable {
+				sourceIP = resolveIP(r)
+			}
+
+			rl := rateLimiters.get(sourceIP)
 			if !rl.limiter.Allow() {
 				seconds := int(math.Ceil(rl.limiter.Reserve().DelayFrom(time.Now()).Seconds()))
 				w.Header().Set("Retry-After", strconv.Itoa(seconds))
