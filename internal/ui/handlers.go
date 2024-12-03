@@ -305,6 +305,8 @@ func isSecretBadRequestError(err error) bool {
 		secret.ErrInvalidPassphrase,
 		secret.ErrValueTooManyCharacters,
 		secret.ErrInvalidExpirationTime,
+		secret.ErrPassphraseTooFewCharacters,
+		secret.ErrPassphraseTooManyCharacters,
 	}
 
 	for _, e := range errs {
