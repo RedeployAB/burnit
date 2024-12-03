@@ -28,7 +28,7 @@ var (
 )
 
 // writeError writes an error response to the caller.
-func writeError(w http.ResponseWriter, statusCode int, code string, err error) {
+func writeError(w http.ResponseWriter, err error, statusCode int, code string) {
 	if err == nil {
 		err = errors.New("internal server error")
 	}

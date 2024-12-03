@@ -60,7 +60,7 @@ func GetSecret(ui UI, secrets secret.Service, sessions session.Store, log log.Lo
 			}
 
 			requestID := requestIDFromContext(r.Context())
-			log.Error("Failed to get secret.", "handler", "GetSecret", "error", err, "requestId", requestID)
+			log.Error("Failed to get secret.", uiLog(err, "GetSecret", requestID)...)
 			ui.Render(w, http.StatusInternalServerError, "error", errorResponse{Title: "An error occured", Message: "Could not retrieve secret.", RequestID: requestID}, WithPartial())
 			return
 		}
@@ -90,7 +90,7 @@ func GetSecret(ui UI, secrets secret.Service, sessions session.Store, log log.Lo
 			}
 
 			requestID := requestIDFromContext(r.Context())
-			log.Error("Failed to get secret.", "handler", "GetSecret", "error", err, "requestId", requestID)
+			log.Error("Failed to get secret.", uiLog(err, "GetSecret", requestID)...)
 			ui.Render(w, http.StatusInternalServerError, "error", errorResponse{Title: "An error occured", Message: "Could not retrieve secret.", RequestID: requestID}, WithPartial())
 			return
 		}
@@ -115,14 +115,16 @@ func HandlerCreateSecret(ui UI, secrets secret.Service, sessions session.Store, 
 			return
 		}
 		if err := r.ParseForm(); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			requestID := requestIDFromContext(r.Context())
+			log.Error("Failed to parse form.", uiLog(err, "HandlerCreateSecret", requestID)...)
+			ui.Render(w, http.StatusBadRequest, "error", errorResponse{Title: "An error occured", Message: "Could not parse form.", RequestID: requestID}, WithPartial())
 			return
 		}
 
 		ok, statusCode, errResp, err := validateCSRFTToken(r.Context(), sessions, r.FormValue("csrf-token"))
 		if err != nil {
 			requestID := requestIDFromContext(r.Context())
-			log.Error("Failed to validate CSRF token.", "handler", "HandlerCreateSecret", "error", err, "requestId", requestID)
+			log.Error("Failed to validate CSRF token.", uiLog(err, "HandlerCreateSecret", requestID)...)
 			ui.Render(w, statusCode, "error", errResp, WithPartial())
 			return
 		}
@@ -155,7 +157,7 @@ func HandlerCreateSecret(ui UI, secrets secret.Service, sessions session.Store, 
 				statusCode = http.StatusInternalServerError
 				requestID := requestIDFromContext(r.Context())
 				response = errorResponse{Title: "An error occured", Message: "Internal server error.", RequestID: requestID}
-				log.Error("Failed to create secret.", "handler", "HandlerCreateSecret", "error", err)
+				log.Error("Failed to create secret.", uiLog(err, "HandlerCreateSecret", requestID)...)
 			} else {
 				statusCode = http.StatusBadRequest
 				response = errorResponse{Title: "Could not create secret", Message: formatErrorMessage(err)}
@@ -166,7 +168,7 @@ func HandlerCreateSecret(ui UI, secrets secret.Service, sessions session.Store, 
 		}
 
 		if err := sessions.Delete(r.FormValue("csrf-token")); err != nil {
-			log.Error("Failed to delete session.", "handler", "HandlerCreateSecret", "error", err, "requestId", requestIDFromContext(r.Context()))
+			log.Error("Failed to delete session.", uiLog(err, "HandlerCreateSecret", requestIDFromContext(r.Context()))...)
 		}
 
 		response := secretCreateResponse{
@@ -186,14 +188,14 @@ func HandlerGetSecret(ui UI, secrets secret.Service, sessions session.Store, log
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			requestID := middleware.RequestIDFromContext(r.Context())
-			log.Error("Failed to parse form.", "handler", "HandlerGetSecret", "error", err, "requestId", requestID)
+			log.Error("Failed to parse form.", uiLog(err, "HandlerGetSecret", requestID)...)
 			ui.Render(w, http.StatusInternalServerError, "error", errorResponse{Title: "An error occured", Message: "Could not parse form.", RequestID: requestID}, WithPartial())
 			return
 		}
 
 		ok, statusCode, errResp, err := validateCSRFTToken(r.Context(), sessions, r.FormValue("csrf-token"))
 		if err != nil {
-			log.Error("Failed to validate CSRF token.", "handler", "HandlerGetSecret", "error", err, "requestId", requestIDFromContext(r.Context()))
+			log.Error("Failed to validate CSRF token.", uiLog(err, "HandlerGetSecret", requestIDFromContext(r.Context()))...)
 			ui.Render(w, statusCode, "error", errResp, WithPartial())
 			return
 		}
@@ -205,7 +207,7 @@ func HandlerGetSecret(ui UI, secrets secret.Service, sessions session.Store, log
 		id := r.FormValue("id")
 		if len(id) == 0 {
 			requestID := middleware.RequestIDFromContext(r.Context())
-			log.Error("Missing ID in request.", "handler", "HandlerGetSecret", "requestId", requestID)
+			log.Error("Missing ID in request.", uiLog(err, "HandlerGetSecret", requestID)...)
 			ui.Render(w, http.StatusInternalServerError, "error", errorResponse{Title: "An error occured", Message: "Missing ID.", RequestID: requestID}, WithPartial())
 			return
 		}
@@ -227,7 +229,7 @@ func HandlerGetSecret(ui UI, secrets secret.Service, sessions session.Store, log
 			}
 
 			requestID := middleware.RequestIDFromContext(r.Context())
-			log.Error("Failed to get secret.", "handler", "HandlerGetSecret", "error", err, "requestId", requestID)
+			log.Error("Failed to get secret.", uiLog(err, "HandlerGetSecret", requestID)...)
 			ui.Render(w, http.StatusInternalServerError, "error", errorResponse{Title: "An error occured", Message: "Could not retrieve secret.", RequestID: requestID}, WithPartial())
 			return
 		}
@@ -350,6 +352,11 @@ func validateCSRFTToken(ctx context.Context, sessions session.Store, id string) 
 		return false, http.StatusBadRequest, errorResponse{Title: title, Message: "CSRF token expired. Please refresh the page."}, nil
 	}
 	return true, 0, errorResponse{}, nil
+}
+
+// uiLog formats the log message for the UI.
+func uiLog(err error, handler, requestID string) []any {
+	return []any{"type", "ui", "handler", handler, "error", err, "requestId", requestID}
 }
 
 // requestIDFromContext returns the request ID from the context.
