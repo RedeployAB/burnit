@@ -1,4 +1,4 @@
-const maxSecretValueLength = 3500;
+const maxSecretValueLength = 4000;
 
 // Add event listener for setting base URL.
 document.addEventListener('DOMContentLoaded', setBaseUrl);
@@ -147,7 +147,7 @@ document.addEventListener('input', () => {
     const validate = validateSecretValue(secretFormTextArea.value);
     if (validate && !validate.valid) {
       secretFormTextArea.value = '';
-      secretFormTextArea.setAttribute('placeholder', validate.message );
+      secretFormTextArea.setAttribute('placeholder', validate.message);
       secretFormTextArea.classList.remove('placeholder-gray-400');
       secretFormTextArea.classList.add('placeholder-red-500');
       disableElement('secret-form-submit');
@@ -259,8 +259,3 @@ function validateSecretValue(v) {
   }
   return { valid: true };
 }
-
-window.setBaseUrl = setBaseUrl;
-window.copyToClipboard = copyToClipboard;
-window.disableElement = disableElement;
-window.enableElement = enableElement;
