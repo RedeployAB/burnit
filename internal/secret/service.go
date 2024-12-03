@@ -38,6 +38,10 @@ const (
 const (
 	// defaultPassphraseCharacters is the default length of a passphrase.
 	defaultPassphraseCharacters = 32
+	// defaultPassphraseMinCharacters is the default minimum length of a passphrase.
+	defaultPassphraseMinCharacters = 1
+	// defaultPassphraseMaxCharacters is the default maximum length of a passphrase.
+	defaultPassphraseMaxCharacters = 64
 )
 
 // newUUID generates a new UUID.
@@ -65,11 +69,13 @@ type Service interface {
 
 // service provides handling operations for secrets and satisfies Service.
 type service struct {
-	secrets            db.SecretRepository
-	timeout            time.Duration
-	cleanupInterval    time.Duration
-	valueMaxCharacters int
-	stopCh             chan struct{}
+	secrets                 db.SecretRepository
+	timeout                 time.Duration
+	cleanupInterval         time.Duration
+	valueMaxCharacters      int
+	passphraseMinCharacters int
+	passphraseMaxCharacters int
+	stopCh                  chan struct{}
 }
 
 // ServiceOption is a function that sets options for the service.
@@ -82,11 +88,13 @@ func NewService(secrets db.SecretRepository, options ...ServiceOption) (*service
 	}
 
 	svc := &service{
-		secrets:            secrets,
-		timeout:            defaultTimeout,
-		cleanupInterval:    defaultCleanupInterval,
-		valueMaxCharacters: defaultValueMaxCharacters,
-		stopCh:             make(chan struct{}),
+		secrets:                 secrets,
+		timeout:                 defaultTimeout,
+		cleanupInterval:         defaultCleanupInterval,
+		valueMaxCharacters:      defaultValueMaxCharacters,
+		passphraseMinCharacters: defaultPassphraseMinCharacters,
+		passphraseMaxCharacters: defaultPassphraseMaxCharacters,
+		stopCh:                  make(chan struct{}),
 	}
 
 	for _, option := range options {
@@ -211,6 +219,10 @@ func (s service) Create(secret Secret) (Secret, error) {
 	passphrase := secret.Passphrase
 	if len(passphrase) == 0 {
 		passphrase = generate(defaultPassphraseCharacters, true)
+	} else {
+		if err := validPassphrase(passphrase, s.passphraseMinCharacters, s.passphraseMaxCharacters); err != nil {
+			return Secret{}, err
+		}
 	}
 
 	encrypted, err := encrypt(secret.Value, passphrase)
@@ -362,12 +374,12 @@ var now = func() time.Time {
 type decoderFunc func(string) ([]byte, error)
 
 // validValue validates a secret value and returns an error if the value is invalid.
-func validValue(value string, valueMaxCharacters int) error {
+func validValue(value string, maxCharacters int) error {
 	if len(value) == 0 {
-		return fmt.Errorf("%w: must not be empty", ErrValueInvalid)
+		return fmt.Errorf("%w: secret value must not be empty", ErrValueInvalid)
 	}
-	if utf8.RuneCountInString(value) > valueMaxCharacters {
-		return fmt.Errorf("%w: max characters are %d", ErrValueTooManyCharacters, valueMaxCharacters)
+	if utf8.RuneCountInString(value) > maxCharacters {
+		return fmt.Errorf("%w: secret value max characters are %d", ErrValueTooManyCharacters, maxCharacters)
 	}
 
 	decoders := []decoderFunc{
@@ -383,14 +395,14 @@ func validValue(value string, valueMaxCharacters int) error {
 				return nil
 			}
 			if !validContentType(val) {
-				return fmt.Errorf("%w: must be a valid non-empty UTF-8 encoded string", ErrValueInvalid)
+				return fmt.Errorf("%w: secret value must be a valid non-empty UTF-8 encoded string", ErrValueInvalid)
 			}
 			return nil
 		}
 	}
 
 	if !validString([]byte(value)) {
-		return fmt.Errorf("%w: must be a valid non-empty UTF-8 encoded string", ErrValueInvalid)
+		return fmt.Errorf("%w: secret value must be a valid non-empty UTF-8 encoded string", ErrValueInvalid)
 	}
 
 	return nil
@@ -410,4 +422,18 @@ func nullByte(b []byte) bool {
 func validContentType(b []byte) bool {
 	contentType := http.DetectContentType(b)
 	return contentType == "text/plain; charset=utf-8" || contentType == "application/octet-stream"
+}
+
+// validPassphrase validates a passphrase and returns an error if the passphrase is invalid.
+func validPassphrase(passphrase string, minCharacters, maxCharacters int) error {
+	if utf8.RuneCountInString(passphrase) < minCharacters {
+		return fmt.Errorf("%w: secret passphrase min characters are %d", ErrPassphraseTooFewCharacters, minCharacters)
+	}
+	if utf8.RuneCountInString(passphrase) > maxCharacters {
+		return fmt.Errorf("%w: secret passphrase max characters are %d", ErrPassphraseTooManyCharacters, maxCharacters)
+	}
+	if !validString([]byte(passphrase)) {
+		return fmt.Errorf("%w: secret passphrase must be a valid non-empty UTF-8 encoded string", ErrPassphraseInvalid)
+	}
+	return nil
 }
