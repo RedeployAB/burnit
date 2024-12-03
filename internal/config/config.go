@@ -31,7 +31,7 @@ const (
 	// defaultSecretServiceTimeout is the default timeout for the secret service.
 	defaultSecretServiceTimeout = 10 * time.Second
 	// defaultSecretServiceValueMaxCharacters is the default maximum number of characters a secret value can have.
-	defaultSecretServiceValueMaxCharacters = 3500
+	defaultSecretServiceValueMaxCharacters = 4000
 )
 
 const (
