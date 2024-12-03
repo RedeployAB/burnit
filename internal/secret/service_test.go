@@ -37,10 +37,12 @@ func TestNewService(t *testing.T) {
 				secrets: &mockSecretRepository{},
 			},
 			want: &service{
-				secrets:            &mockSecretRepository{},
-				timeout:            defaultTimeout,
-				cleanupInterval:    defaultCleanupInterval,
-				valueMaxCharacters: defaultValueMaxCharacters,
+				secrets:                 &mockSecretRepository{},
+				timeout:                 defaultTimeout,
+				cleanupInterval:         defaultCleanupInterval,
+				valueMaxCharacters:      defaultValueMaxCharacters,
+				passphraseMinCharacters: defaultPassphraseMinCharacters,
+				passphraseMaxCharacters: defaultPassphraseMaxCharacters,
 			},
 		},
 		{
@@ -55,14 +57,18 @@ func TestNewService(t *testing.T) {
 						s.timeout = 30 * time.Second
 						s.cleanupInterval = 30 * time.Second
 						s.valueMaxCharacters = 4000
+						s.passphraseMinCharacters = 3
+						s.passphraseMaxCharacters = 8
 					},
 				},
 			},
 			want: &service{
-				secrets:            &mockSecretRepository{},
-				timeout:            30 * time.Second,
-				cleanupInterval:    30 * time.Second,
-				valueMaxCharacters: 4000,
+				secrets:                 &mockSecretRepository{},
+				timeout:                 30 * time.Second,
+				cleanupInterval:         30 * time.Second,
+				valueMaxCharacters:      4000,
+				passphraseMinCharacters: 3,
+				passphraseMaxCharacters: 8,
 			},
 		},
 		{
@@ -312,9 +318,11 @@ func TestService_Create(t *testing.T) {
 			}
 
 			svc := &service{
-				secrets:            test.input.secrets,
-				valueMaxCharacters: 35000,
-				timeout:            defaultTimeout,
+				secrets:                 test.input.secrets,
+				valueMaxCharacters:      40000,
+				passphraseMinCharacters: 3,
+				passphraseMaxCharacters: 8,
+				timeout:                 defaultTimeout,
 			}
 
 			got, gotErr := svc.Create(test.input.secret)
@@ -577,7 +585,7 @@ func TestValidValue(t *testing.T) {
 		{
 			name: "invalid amount of characters",
 			input: func() string {
-				return base64.StdEncoding.EncodeToString([]byte(strings.Repeat("value", 35000+1)))
+				return base64.StdEncoding.EncodeToString([]byte(strings.Repeat("value", 40000+1)))
 			}(),
 			wantErr: ErrValueTooManyCharacters,
 		},
@@ -585,10 +593,44 @@ func TestValidValue(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			gotErr := validValue(test.input, 35000)
+			gotErr := validValue(test.input, 40000)
 
 			if diff := cmp.Diff(test.wantErr, gotErr, cmpopts.EquateErrors()); diff != "" {
 				t.Errorf("validValue() = unexpected error (-want +got)\n%s\n", diff)
+			}
+		})
+	}
+}
+
+func TestValidPassphrase(t *testing.T) {
+	var tests = []struct {
+		name    string
+		input   string
+		wantErr error
+	}{
+		{
+			name:    "valid passphrase",
+			input:   "test",
+			wantErr: nil,
+		},
+		{
+			name:    "invalid passphrase - too few characters",
+			input:   "te",
+			wantErr: ErrPassphraseTooFewCharacters,
+		},
+		{
+			name:    "invalid passphrase - too many characters",
+			input:   "testtesttest",
+			wantErr: ErrPassphraseTooManyCharacters,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			gotErr := validPassphrase(test.input, 4, 8)
+
+			if diff := cmp.Diff(test.wantErr, gotErr, cmpopts.EquateErrors()); diff != "" {
+				t.Errorf("validPassphrase() = unexpected error (-want +got)\n%s\n", diff)
 			}
 		})
 	}
