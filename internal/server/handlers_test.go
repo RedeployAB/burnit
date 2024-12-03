@@ -203,7 +203,7 @@ func TestServer_getSecret(t *testing.T) {
 				body   []byte
 			}{
 				status: http.StatusUnauthorized,
-				body:   []byte(`{"statusCode":401,"error":"passphrase required"}` + "\n"),
+				body:   []byte(`{"statusCode":401,"code":"PassphraseRequired","error":"passphrase required"}` + "\n"),
 			},
 		},
 		{
@@ -231,7 +231,7 @@ func TestServer_getSecret(t *testing.T) {
 				body   []byte
 			}{
 				status: http.StatusUnauthorized,
-				body:   []byte(`{"statusCode":401,"error":"invalid passphrase"}` + "\n"),
+				body:   []byte(`{"statusCode":401,"code":"InvalidPassphrase","error":"invalid passphrase"}` + "\n"),
 			},
 		},
 		{
@@ -257,7 +257,7 @@ func TestServer_getSecret(t *testing.T) {
 				body   []byte
 			}{
 				status: http.StatusNotFound,
-				body:   []byte(`{"statusCode":404,"error":"secret not found"}` + "\n"),
+				body:   []byte(`{"statusCode":404,"code":"SecretNotFound","error":"secret not found"}` + "\n"),
 			},
 		},
 		{
@@ -282,7 +282,7 @@ func TestServer_getSecret(t *testing.T) {
 				body   []byte
 			}{
 				status: http.StatusInternalServerError,
-				body:   []byte(`{"statusCode":500,"error":"internal server error"}` + "\n"),
+				body:   []byte(`{"statusCode":500,"code":"ServerError","error":"internal server error"}` + "\n"),
 			},
 		},
 	}
@@ -351,7 +351,7 @@ func TestServer_createSecret(t *testing.T) {
 				body   []byte
 			}{
 				status: http.StatusBadRequest,
-				body:   []byte(`{"statusCode":400,"error":"invalid request: value is required"}` + "\n"),
+				body:   []byte(`{"statusCode":400,"code":"InvalidRequest","error":"invalid request: value is required"}` + "\n"),
 			},
 		},
 		{
@@ -370,7 +370,7 @@ func TestServer_createSecret(t *testing.T) {
 				body   []byte
 			}{
 				status: http.StatusInternalServerError,
-				body:   []byte(`{"statusCode":500,"error":"internal server error"}` + "\n"),
+				body:   []byte(`{"statusCode":500,"code":"ServerError","error":"internal server error"}` + "\n"),
 			},
 		},
 	}

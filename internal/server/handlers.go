@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"strings"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/RedeployAB/burnit/internal/api"
 	"github.com/RedeployAB/burnit/internal/log"
+	"github.com/RedeployAB/burnit/internal/middleware"
 	"github.com/RedeployAB/burnit/internal/secret"
 	"github.com/RedeployAB/burnit/internal/security"
 	"github.com/RedeployAB/burnit/internal/ui"
@@ -41,8 +43,9 @@ func index(ui ui.UI, log log.Logger) http.Handler {
 				"/secrets",
 			},
 		}); err != nil {
-			log.Error("Failed to encode response.", serviceLog("handler", "index", "error", err)...)
-			writeServerError(w)
+			requestID := requestIDFromContext(r.Context())
+			log.Error("Failed to encode response.", serviceLog("handler", "index", "error", err, "requestId", requestID)...)
+			writeServerError(w, requestID)
 			return
 		}
 	})
@@ -55,7 +58,7 @@ func notFound(ui ui.UI) http.Handler {
 			ui.Render(w, http.StatusNotFound, "not-found", nil)
 			return
 		}
-		writeError(w, http.StatusNotFound, errors.New("not found"))
+		writeError(w, http.StatusNotFound, "NotFound", errors.New("not found"))
 	})
 }
 
@@ -70,8 +73,9 @@ func generateSecret(secrets secret.Service, log log.Logger) http.Handler {
 		}
 
 		if err := encode(w, http.StatusOK, api.Secret{Value: secret}); err != nil {
-			log.Error("Failed to encode response.", serviceLog("handler", "generateSecret", "error", err)...)
-			writeServerError(w)
+			requestID := requestIDFromContext(r.Context())
+			log.Error("Failed to encode response.", serviceLog("handler", "generateSecret", "error", err, "requestId", requestID)...)
+			writeServerError(w, requestID)
 			return
 		}
 	})
@@ -82,30 +86,33 @@ func getSecret(secrets secret.Service, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("id")
 		if len(id) == 0 {
-			writeError(w, http.StatusBadRequest, errors.New("secret ID is required"))
+			writeError(w, http.StatusBadRequest, "SecretIDRequired", errors.New("secret ID is required"))
 			return
 		}
 
 		passphrase, err := getPassphrase(r.Header)
 		if err != nil {
-			writeError(w, http.StatusUnauthorized, err)
+			statusCode, code := errorCode(err)
+			writeError(w, statusCode, code, err)
 			return
 		}
 
 		secret, err := secrets.Get(id, passphrase)
 		if err != nil {
-			if statusCode := errorCode(err); statusCode != 0 {
-				writeError(w, statusCode, err)
+			if statusCode, code := errorCode(err); statusCode != 0 {
+				writeError(w, statusCode, code, err)
 				return
 			}
-			log.Error("Failed to get secret.", serviceLog("handler", "getSecret", "error", err)...)
-			writeServerError(w)
+			requestID := requestIDFromContext(r.Context())
+			log.Error("Failed to get secret.", serviceLog("handler", "getSecret", "error", err, "requestId", requestID)...)
+			writeServerError(w, requestID)
 			return
 		}
 
 		if err := encode(w, http.StatusOK, api.Secret{Value: secret.Value}); err != nil {
-			log.Error("Failed to encode response.", serviceLog("handler", "getSecret", "error", err)...)
-			writeServerError(w)
+			requestID := requestIDFromContext(r.Context())
+			log.Error("Failed to encode response.", serviceLog("handler", "getSecret", "error", err, "requestId", requestID)...)
+			writeServerError(w, requestID)
 			return
 		}
 	})
@@ -116,25 +123,28 @@ func createSecret(secrets secret.Service, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		secretRequest, err := decode[api.CreateSecretRequest](r)
 		if err != nil {
-			writeError(w, errorCode(err), err)
+			statusCode, code := errorCode(err)
+			writeError(w, statusCode, code, err)
 			return
 		}
 
 		secret, err := secrets.Create(toCreateSecret(&secretRequest))
 		if err != nil {
-			if statusCode := errorCode(err); statusCode != 0 {
-				writeError(w, statusCode, err)
+			if statusCode, code := errorCode(err); statusCode != 0 {
+				writeError(w, statusCode, code, err)
 				return
 			}
-			log.Error("Failed to create secret.", serviceLog("handler", "createSecret", "error", err)...)
-			writeServerError(w)
+			requestID := requestIDFromContext(r.Context())
+			log.Error("Failed to create secret.", serviceLog("handler", "createSecret", "error", err, "requestId", requestID)...)
+			writeServerError(w, requestID)
 			return
 		}
 
 		w.Header().Set("Location", "/secrets/"+secret.ID)
 		if err := encode(w, http.StatusCreated, toAPISecret(&secret)); err != nil {
-			log.Error("Failed to encode response.", serviceLog("handler", "createSecret", "error", err)...)
-			writeServerError(w)
+			requestID := requestIDFromContext(r.Context())
+			log.Error("Failed to encode response.", serviceLog("handler", "createSecret", "error", err, "requestId", requestID)...)
+			writeServerError(w, requestID)
 			return
 		}
 	})
@@ -145,13 +155,14 @@ func deleteSecret(secrets secret.Service, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("id")
 		if len(id) == 0 {
-			writeError(w, http.StatusBadRequest, errors.New("secret ID is required"))
+			writeError(w, http.StatusBadRequest, "SecretIDRequired", errors.New("secret ID is required"))
 			return
 		}
 
 		passphrase, err := getPassphrase(r.Header)
 		if err != nil {
-			writeError(w, http.StatusUnauthorized, err)
+			statusCode, code := errorCode(err)
+			writeError(w, statusCode, code, err)
 			return
 		}
 
@@ -159,12 +170,13 @@ func deleteSecret(secrets secret.Service, log log.Logger) http.Handler {
 			o.VerifyPassphrase = true
 			o.Passphrase = passphrase
 		}); err != nil {
-			if statusCode := errorCode(err); statusCode != 0 {
-				writeError(w, statusCode, err)
+			if statusCode, code := errorCode(err); statusCode != 0 {
+				writeError(w, statusCode, code, err)
 				return
 			}
-			log.Error("Failed to delete secret.", serviceLog("handler", "deleteSecret", "error", err)...)
-			writeServerError(w)
+			requestID := requestIDFromContext(r.Context())
+			log.Error("Failed to delete secret.", serviceLog("handler", "deleteSecret", "error", err, "requestId", requestID)...)
+			writeServerError(w, requestID)
 			return
 		}
 		w.WriteHeader(http.StatusNoContent)
@@ -229,4 +241,9 @@ func toAPISecret(s *secret.Secret) api.Secret {
 // serviceLog prepends the log message with type service.
 func serviceLog(args ...any) []any {
 	return append([]any{"type", "service"}, args...)
+}
+
+// requestIDFromContext returns the request ID from the context.
+func requestIDFromContext(ctx context.Context) string {
+	return middleware.RequestIDFromContext(ctx)
 }

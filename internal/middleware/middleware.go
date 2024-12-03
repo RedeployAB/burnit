@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -21,23 +20,6 @@ func Chain(h http.Handler, middlewares ...Middleware) http.Handler {
 		h = middlewares[i](h)
 	}
 	return h
-}
-
-// responseError represents an error response.
-type responseError struct {
-	StatusCode int    `json:"statusCode"`
-	Err        string `json:"error"`
-}
-
-// Error returns the error message.
-func (e *responseError) Error() string {
-	return e.Err
-}
-
-// JSON returns the error as a JSON byte slice.
-func (e responseError) JSON() []byte {
-	b, _ := json.Marshal(e)
-	return b
 }
 
 // newUUID generates a new UUID.
