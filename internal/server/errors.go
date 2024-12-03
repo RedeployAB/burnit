@@ -35,8 +35,8 @@ func writeError(w http.ResponseWriter, statusCode int, code string, err error) {
 
 	respErr := api.Error{
 		StatusCode: statusCode,
-		Err:        err.Error(),
 		Code:       code,
+		Err:        err.Error(),
 	}
 
 	if err := encode(w, statusCode, respErr); err != nil {
@@ -49,9 +49,9 @@ func writeError(w http.ResponseWriter, statusCode int, code string, err error) {
 func writeServerError(w http.ResponseWriter, requestID string) {
 	respErr := api.Error{
 		StatusCode: http.StatusInternalServerError,
+		Code:       "ServerError",
 		Err:        "internal server error",
 		RequestID:  requestID,
-		Code:       "ServerError",
 	}
 
 	if err := encode(w, http.StatusInternalServerError, respErr); err != nil {
