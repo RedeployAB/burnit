@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/RedeployAB/burnit/internal/api"
 	"golang.org/x/time/rate"
 )
 
@@ -134,7 +135,7 @@ func RateLimiter(options ...rateLimiterOption) (func(next http.Handler) http.Han
 				seconds := int(math.Ceil(rl.limiter.Reserve().DelayFrom(time.Now()).Seconds()))
 				w.Header().Set("Retry-After", strconv.Itoa(seconds))
 				w.WriteHeader(http.StatusTooManyRequests)
-				w.Write(responseError{StatusCode: http.StatusTooManyRequests, Err: ErrTooManyRequests.Error()}.JSON())
+				w.Write(api.Error{StatusCode: http.StatusTooManyRequests, Err: ErrTooManyRequests.Error()}.JSON())
 				return
 			}
 			next.ServeHTTP(w, r)

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/RedeployAB/burnit/internal/api"
 	"github.com/RedeployAB/burnit/internal/secret"
 	"github.com/RedeployAB/burnit/internal/security"
 )
@@ -26,26 +27,16 @@ var (
 	ErrPassphraseNotBase64 = errors.New("passphrase should be base64 encoded")
 )
 
-// responseError represents an error response.
-type responseError struct {
-	StatusCode int    `json:"statusCode"`
-	Err        string `json:"error"`
-}
-
-// Error returns the error message.
-func (e *responseError) Error() string {
-	return e.Err
-}
-
 // writeError writes an error response to the caller.
-func writeError(w http.ResponseWriter, statusCode int, err error) {
+func writeError(w http.ResponseWriter, statusCode int, code string, err error) {
 	if err == nil {
 		err = errors.New("internal server error")
 	}
 
-	respErr := &responseError{
+	respErr := api.Error{
 		StatusCode: statusCode,
 		Err:        err.Error(),
+		Code:       code,
 	}
 
 	if err := encode(w, statusCode, respErr); err != nil {
@@ -55,40 +46,52 @@ func writeError(w http.ResponseWriter, statusCode int, err error) {
 }
 
 // writeServerError writes a server error response to the caller.
-func writeServerError(w http.ResponseWriter) {
-	writeError(w, http.StatusInternalServerError, nil)
+func writeServerError(w http.ResponseWriter, requestID string) {
+	respErr := api.Error{
+		StatusCode: http.StatusInternalServerError,
+		Err:        "internal server error",
+		RequestID:  requestID,
+		Code:       "ServerError",
+	}
+
+	if err := encode(w, http.StatusInternalServerError, respErr); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 // errorCode returns the status code for the given error.
-func errorCode(err error) int {
+func errorCode(err error) (int, string) {
 	for statusCode, errs := range errorCodeMaps {
-		for _, e := range errs {
+		for e, code := range errs {
 			if errors.Is(err, e) {
-				return statusCode
+				return statusCode, code
 			}
 		}
 	}
-	return 0
+	return 0, ""
 }
 
 // errorCodeMaps maps errors to status codes.
-var errorCodeMaps = map[int][]error{
+var errorCodeMaps = map[int]map[error]string{
 	http.StatusBadRequest: {
-		ErrEmptyRequest,
-		ErrInvalidRequest,
-		ErrMalformedRequest,
-		secret.ErrInvalidExpirationTime,
-		secret.ErrValueInvalid,
-		secret.ErrValueTooManyCharacters,
-		secret.ErrPassphraseInvalid,
-		secret.ErrPassphraseTooFewCharacters,
-		secret.ErrPassphraseTooManyCharacters,
-		security.ErrInvalidBase64,
+		ErrEmptyRequest:                       "EmptyRequest",
+		ErrInvalidRequest:                     "InvalidRequest",
+		ErrMalformedRequest:                   "MalformedRequest",
+		ErrPassphraseNotBase64:                "PassphraseNotBase64",
+		secret.ErrInvalidExpirationTime:       "InvalidExpirationTime",
+		secret.ErrValueInvalid:                "ValueInvalid",
+		secret.ErrValueTooManyCharacters:      "ValueTooManyCharacters",
+		secret.ErrPassphraseInvalid:           "PassphraseInvalid",
+		secret.ErrPassphraseTooFewCharacters:  "PassphraseTooFewCharacters",
+		secret.ErrPassphraseTooManyCharacters: "PassphraseTooManyCharacters",
+		security.ErrInvalidBase64:             "InvalidBase64",
 	},
 	http.StatusUnauthorized: {
-		secret.ErrInvalidPassphrase,
+		ErrPassphraseRequired:       "PassphraseRequired",
+		secret.ErrInvalidPassphrase: "InvalidPassphrase",
 	},
 	http.StatusNotFound: {
-		secret.ErrSecretNotFound,
+		secret.ErrSecretNotFound: "SecretNotFound",
 	},
 }
