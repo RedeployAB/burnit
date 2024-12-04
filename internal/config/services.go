@@ -82,6 +82,7 @@ func setupMongoSecretRepository(config *Database) (*mongo.SecretRepository, erro
 		o.Username = config.Username
 		o.Password = config.Password
 		o.ConnectTimeout = config.ConnectTimeout
+		o.MaxOpenConnections = config.MaxOpenConnections
 		o.EnableTLS = enableTLS
 	})
 	if err != nil {
@@ -113,11 +114,14 @@ func setupSQLSecretRepository(config *Database, driver string) (*sql.SecretRepos
 		o.Database = config.Database
 		o.Username = config.Username
 		o.Password = config.Password
+		o.ConnectTimeout = config.ConnectTimeout
+		o.MaxOpenConnections = config.MaxOpenConnections
+		o.MaxIdleConnections = config.MaxIdleConnections
+		o.MaxConnectionLifetime = config.MaxConnectionLifetime
 		o.Postgres.SSLMode = sql.PostgresSSLMode(config.Postgres.SSLMode)
 		o.MSSQL.Encrypt = sql.MSSQLEncrypt(config.MSSQL.Encrypt)
 		o.SQLite.File = config.SQLite.File
 		o.SQLite.InMemory = inMemory
-		o.ConnectTimeout = config.ConnectTimeout
 	})
 	if err != nil {
 		return nil, err
@@ -141,11 +145,14 @@ func setupRedisSecretRepository(config *Database) (*redis.SecretRepository, erro
 		o.Username = config.Username
 		o.Password = config.Password
 		o.ConnectTimeout = config.ConnectTimeout
-		o.EnableTLS = enableTLS
 		o.DialTimeout = config.Redis.DialTimeout
 		o.MaxRetries = config.Redis.MaxRetries
 		o.MinRetryBackoff = config.Redis.MinRetryBackoff
 		o.MaxRetryBackoff = config.Redis.MaxRetryBackoff
+		o.MaxOpenConnections = config.MaxOpenConnections
+		o.MaxIdleConnections = config.MaxIdleConnections
+		o.MaxConnectionLifetime = config.MaxConnectionLifetime
+		o.EnableTLS = enableTLS
 	})
 	if err != nil {
 		return nil, err
