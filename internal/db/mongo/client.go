@@ -24,12 +24,13 @@ type Result interface {
 
 // ClientOptions contains options for the client.
 type ClientOptions struct {
-	URI            string
-	Hosts          []string
-	Username       string
-	Password       string
-	ConnectTimeout time.Duration
-	EnableTLS      bool
+	URI                string
+	Hosts              []string
+	Username           string
+	Password           string
+	ConnectTimeout     time.Duration
+	MaxOpenConnections int
+	EnableTLS          bool
 }
 
 // ClientOption is a function that sets options for the client.
@@ -89,7 +90,6 @@ func createClientOptions(options *ClientOptions) *mgoopts.ClientOptions {
 	if len(options.URI) > 0 {
 		return opts.ApplyURI(options.URI)
 	}
-
 	if len(options.Hosts) > 0 {
 		opts.Hosts = options.Hosts
 	}
@@ -98,6 +98,9 @@ func createClientOptions(options *ClientOptions) *mgoopts.ClientOptions {
 			Username: options.Username,
 			Password: options.Password,
 		}
+	}
+	if options.MaxOpenConnections > 0 {
+		opts.SetMaxPoolSize(uint64(options.MaxOpenConnections))
 	}
 	if options.EnableTLS {
 		opts.TLSConfig = &tls.Config{}

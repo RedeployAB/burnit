@@ -80,16 +80,19 @@ type DB struct {
 
 // Options contains the options for the database.
 type Options struct {
-	Driver         Driver
-	DSN            string
-	Address        string
-	Database       string
-	Username       string
-	Password       string
-	ConnectTimeout time.Duration
-	Postgres       PostgresOptions
-	MSSQL          MSSQLOptions
-	SQLite         SQLiteOptions
+	Driver                Driver
+	DSN                   string
+	Address               string
+	Database              string
+	Username              string
+	Password              string
+	ConnectTimeout        time.Duration
+	MaxOpenConnections    int
+	MaxIdleConnections    int
+	MaxConnectionLifetime time.Duration
+	Postgres              PostgresOptions
+	MSSQL                 MSSQLOptions
+	SQLite                SQLiteOptions
 }
 
 // PostgresOptions contains the options for PostgreSQL.
@@ -148,6 +151,16 @@ func Open(options ...Option) (*DB, error) {
 
 	if err := db.PingContext(ctx); err != nil {
 		return nil, err
+	}
+
+	if opts.MaxOpenConnections > 0 {
+		db.SetMaxOpenConns(opts.MaxOpenConnections)
+	}
+	if opts.MaxIdleConnections > 0 {
+		db.SetMaxIdleConns(opts.MaxIdleConnections)
+	}
+	if opts.MaxConnectionLifetime > 0 {
+		db.SetConnMaxLifetime(opts.MaxConnectionLifetime)
 	}
 
 	return &DB{DB: db, driver: driver}, nil

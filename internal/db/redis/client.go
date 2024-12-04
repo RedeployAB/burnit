@@ -32,17 +32,20 @@ type client struct {
 
 // ClientOptions contains options for the client.
 type ClientOptions struct {
-	URI             string
-	Address         string
-	Database        int
-	Username        string
-	Password        string
-	ConnectTimeout  time.Duration
-	DialTimeout     time.Duration
-	EnableTLS       bool
-	MaxRetries      int
-	MinRetryBackoff time.Duration
-	MaxRetryBackoff time.Duration
+	URI                   string
+	Address               string
+	Database              int
+	Username              string
+	Password              string
+	ConnectTimeout        time.Duration
+	DialTimeout           time.Duration
+	MaxRetries            int
+	MinRetryBackoff       time.Duration
+	MaxRetryBackoff       time.Duration
+	MaxOpenConnections    int
+	MaxIdleConnections    int
+	MaxConnectionLifetime time.Duration
+	EnableTLS             bool
 }
 
 // ClientOption is a function that sets options for the client.
@@ -121,11 +124,9 @@ func createClientOptions(options *ClientOptions) (*redis.Options, error) {
 		}
 		return opts, nil
 	}
-
 	if options.Database > 0 {
 		opts.DB = options.Database
 	}
-
 	if len(options.Address) > 0 {
 		opts.Addr = options.Address
 	}
@@ -145,7 +146,15 @@ func createClientOptions(options *ClientOptions) (*redis.Options, error) {
 	if options.MaxRetryBackoff > 0 {
 		opts.MaxRetryBackoff = options.MaxRetryBackoff
 	}
-
+	if options.MaxOpenConnections > 0 {
+		opts.MaxActiveConns = options.MaxOpenConnections
+	}
+	if options.MaxIdleConnections > 0 {
+		opts.MaxIdleConns = options.MaxIdleConnections
+	}
+	if options.MaxConnectionLifetime > 0 {
+		opts.ConnMaxLifetime = options.MaxConnectionLifetime
+	}
 	if options.EnableTLS {
 		opts.TLSConfig = &tls.Config{}
 	}

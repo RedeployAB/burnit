@@ -139,19 +139,22 @@ func (s Secret) MarshalJSON() ([]byte, error) {
 
 // Database contains the configuration for the database.
 type Database struct {
-	Driver         string        `env:"DATABASE_DRIVER" yaml:"driver"`
-	URI            string        `env:"DATABASE_URI" yaml:"uri"`
-	Address        string        `env:"DATABASE_ADDRESS" yaml:"address"`
-	Database       string        `env:"DATABASE" yaml:"database"`
-	Username       string        `env:"DATABASE_USERNAME" yaml:"username"`
-	Password       string        `env:"DATABASE_PASSWORD" yaml:"password"`
-	Timeout        time.Duration `env:"DATABASE_TIMEOUT" yaml:"timeout"`
-	ConnectTimeout time.Duration `env:"DATABASE_CONNECT_TIMEOUT" yaml:"connectTimeout"`
-	Mongo          Mongo         `yaml:"mongo"`
-	Postgres       Postgres      `yaml:"postgres"`
-	MSSQL          MSSQL         `yaml:"mssql"`
-	SQLite         SQLite        `yaml:"sqlite"`
-	Redis          Redis         `yaml:"redis"`
+	Driver                string        `env:"DATABASE_DRIVER" yaml:"driver"`
+	URI                   string        `env:"DATABASE_URI" yaml:"uri"`
+	Address               string        `env:"DATABASE_ADDRESS" yaml:"address"`
+	Database              string        `env:"DATABASE" yaml:"database"`
+	Username              string        `env:"DATABASE_USERNAME" yaml:"username"`
+	Password              string        `env:"DATABASE_PASSWORD" yaml:"password"`
+	Timeout               time.Duration `env:"DATABASE_TIMEOUT" yaml:"timeout"`
+	ConnectTimeout        time.Duration `env:"DATABASE_CONNECT_TIMEOUT" yaml:"connectTimeout"`
+	MaxOpenConnections    int           `env:"DATABASE_MAX_OPEN_CONNECTIONS" yaml:"maxOpenConnections"`
+	MaxIdleConnections    int           `env:"DATABASE_MAX_IDLE_CONNECTIONS" yaml:"maxIdleConnections"`
+	MaxConnectionLifetime time.Duration `env:"DATABASE_MAX_CONNECTION_LIFETIME" yaml:"maxConnectionLifetime"`
+	Mongo                 Mongo         `yaml:"mongo"`
+	Postgres              Postgres      `yaml:"postgres"`
+	MSSQL                 MSSQL         `yaml:"mssql"`
+	SQLite                SQLite        `yaml:"sqlite"`
+	Redis                 Redis         `yaml:"redis"`
 }
 
 // MarshalJSON returns the JSON encoding of Database. A custom marshalling method
