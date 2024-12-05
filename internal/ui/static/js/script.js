@@ -208,7 +208,7 @@ function copyToClipboard(elementId, feedbackElementId) {
       const feedback = document.getElementById(feedbackElementId);
       feedback.disabled = true;
 
-      feedback.classList.remove('hover:text-gray-200');
+      feedback.classList.remove('hover:text-gray-300');
       const innerHTML = feedback.innerHTML;
 
       feedback.innerHTML = `
@@ -220,7 +220,7 @@ function copyToClipboard(elementId, feedbackElementId) {
       setTimeout(() => {
         feedback.innerHTML = innerHTML;
         feedback.disabled = false;
-        feedback.classList.add('hover:text-gray-200');
+        feedback.classList.add('hover:text-gray-300');
       }, 1500);
     }
   });
