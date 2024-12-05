@@ -37,17 +37,17 @@ func About(ui UI) http.Handler {
 	})
 }
 
-// Privacy handles requests to the privacy route.
-func Privacy(ui UI) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ui.Render(w, http.StatusOK, "privacy", nil)
-	})
-}
-
 // Docs handles requests to the docs route.
 func Docs(ui UI) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ui.Render(w, http.StatusOK, "docs", nil)
+	})
+}
+
+// Privacy handles requests to the privacy route.
+func Privacy(ui UI) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ui.Render(w, http.StatusOK, "privacy", nil)
 	})
 }
 
