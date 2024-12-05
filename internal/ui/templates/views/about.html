@@ -1,0 +1,16 @@
+{{ define "content" }}
+    <div class="max-w-lg mx-auto">
+      <p class="text-gray-300 text-sm">
+        <span class="font-mono">burnit</span> is an application to create and share secrets. 
+        The secrets expire after a set time and can be read only once.<br><br>
+        Each secret is encrypted with 256-bit AES-GCM together with a passphrase that is either randomly generated
+        or provided by the user.<br><br>
+        After the creation of a secret the user is provided with two links and a passphrase. The first link is
+        a "full" link to the secret that includes the passphrase in the URL. The second link is a "partial" link
+        that does not include the passphrase, and the user is prompted to enter the passphrase manually at 
+        secret retrieval.<br><br>
+        In addition to this interface, <span class="font-mono">burnit</span> provides an API that allows for
+        programmatic creation and retrieval of secrets. The API is documented in the <a href="/ui/docs" class="text-gray-200 hover:text-white hover:underline underline">docs</a> page.<br><br>
+      </p>
+    </div>
+{{ end }}

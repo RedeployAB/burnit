@@ -30,6 +30,27 @@ func NotFound(ui UI) http.Handler {
 	})
 }
 
+// About handles requests to the about route.
+func About(ui UI) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ui.Render(w, http.StatusOK, "about", nil)
+	})
+}
+
+// Privacy handles requests to the privacy route.
+func Privacy(ui UI) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ui.Render(w, http.StatusOK, "privacy", nil)
+	})
+}
+
+// Docs handles requests to the docs route.
+func Docs(ui UI) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ui.Render(w, http.StatusOK, "docs", nil)
+	})
+}
+
 // CreateSecret handles requests to create a secret.
 func CreateSecret(ui UI, secrets secret.Service, sessions session.Store) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
