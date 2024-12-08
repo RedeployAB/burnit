@@ -90,7 +90,7 @@ func GetSecret(ui UI, secrets secret.Service, sessions session.Store, log log.Lo
 			// Use the CSRF token as the session ID when setting the session.
 			sess := session.NewSession(session.WithCSRF(session.NewCSRF()))
 			sessions.Set(sess.CSRF().Token(), sess)
-			ui.Render(w, http.StatusUnauthorized, "secret-get", secretGetResponse{ID: id, CSRFToken: sess.CSRF().Token()})
+			ui.Render(w, http.StatusUnauthorized, "secret-get-passphrase", secretGetResponse{ID: id, CSRFToken: sess.CSRF().Token()})
 			return
 		}
 
@@ -125,8 +125,8 @@ func GetSecret(ui UI, secrets secret.Service, sessions session.Store, log log.Lo
 	})
 }
 
-// HandlerCreateSecret handles requests containing a form to create a secret.
-func HandlerCreateSecret(ui UI, secrets secret.Service, sessions session.Store, log log.Logger) http.Handler {
+// CreateSecretHandler handles requests containing a form to create a secret.
+func CreateSecretHandler(ui UI, secrets secret.Service, sessions session.Store, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
 			sess := session.NewSession(session.WithCSRF(session.NewCSRF()))
@@ -202,9 +202,9 @@ func HandlerCreateSecret(ui UI, secrets secret.Service, sessions session.Store, 
 	})
 }
 
-// HandlerGetSecret handles requests containing a form to get a secret.
+// GetSecretHandler handles requests containing a form to get a secret.
 // This form will be used when a passphrase is not provided in the URL.
-func HandlerGetSecret(ui UI, secrets secret.Service, sessions session.Store, log log.Logger) http.Handler {
+func GetSecretHandler(ui UI, secrets secret.Service, sessions session.Store, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			requestID := middleware.RequestIDFromContext(r.Context())
@@ -233,7 +233,7 @@ func HandlerGetSecret(ui UI, secrets secret.Service, sessions session.Store, log
 		}
 		passphrase := r.FormValue("custom-value")
 		if len(passphrase) == 0 {
-			ui.Render(w, http.StatusOK, "secret-get", secretGetResponse{ID: id}, WithPartial())
+			ui.Render(w, http.StatusOK, "secret-get-passphrase", secretGetResponse{ID: id}, WithPartial())
 			return
 		}
 
@@ -244,7 +244,7 @@ func HandlerGetSecret(ui UI, secrets secret.Service, sessions session.Store, log
 				return
 			}
 			if errors.Is(err, secret.ErrInvalidPassphrase) {
-				ui.Render(w, http.StatusUnauthorized, "secret-get", secretGetResponse{ID: id, CSRFToken: r.FormValue("csrf-token")}, WithPartial())
+				ui.Render(w, http.StatusUnauthorized, "secret-get-passphrase", secretGetResponse{ID: id, CSRFToken: r.FormValue("csrf-token")}, WithPartial())
 				return
 			}
 
