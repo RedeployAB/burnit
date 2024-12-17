@@ -32,9 +32,9 @@ type server struct {
 	secrets       secret.Service
 	ui            ui.UI
 	sessions      session.Store
-	log           log.Logger
 	tls           TLSConfig
 	rateLimiter   RateLimiter
+	log           log.Logger
 	cors          CORS
 	shutdownFuncs []func() error
 	stopCh        chan os.Signal
@@ -45,6 +45,11 @@ type server struct {
 type TLSConfig struct {
 	Certificate string
 	Key         string
+}
+
+// isEmpty returns true if the TLSConfig is empty.
+func (c TLSConfig) isEmpty() bool {
+	return len(c.Certificate) == 0 && len(c.Key) == 0
 }
 
 // RateLimiter holds the configuration for the server's rate limiter settings.
@@ -60,11 +65,6 @@ func (r RateLimiter) isEmpty() bool {
 	return r.Rate == 0 && r.Burst == 0 && r.TTL == 0 && r.CleanupInterval == 0
 }
 
-// isEmpty returns true if the TLSConfig is empty.
-func (c TLSConfig) isEmpty() bool {
-	return len(c.Certificate) == 0 && len(c.Key) == 0
-}
-
 // CORS holds the configuration for the server's CORS settings.
 type CORS struct {
 	Origin string
@@ -78,10 +78,10 @@ func (c CORS) isEmpty() bool {
 // Options holds the configuration for the server.
 type Options struct {
 	Router       *router
-	Logger       log.Logger
 	Host         string
 	Port         int
 	TLS          TLSConfig
+	Logger       log.Logger
 	RateLimiter  RateLimiter
 	CORS         CORS
 	BackendOnly  bool
