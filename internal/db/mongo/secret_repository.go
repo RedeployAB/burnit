@@ -79,7 +79,7 @@ func (r SecretRepository) Get(ctx context.Context, id string) (db.Secret, error)
 	return secret, nil
 }
 
-// Create a new secret.
+// Create a secret.
 func (r SecretRepository) Create(ctx context.Context, secret db.Secret) (db.Secret, error) {
 	id, err := r.client.Collection(r.collection).InsertOne(ctx, secret)
 	if err != nil {

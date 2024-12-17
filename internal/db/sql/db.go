@@ -260,3 +260,11 @@ func validMSSQLEncrypt(encrypt MSSQLEncrypt) bool {
 	}
 	return false
 }
+
+// queries contains queries used by the repository.
+type queries struct {
+	selectByID    string
+	insert        string
+	delete        string
+	deleteExpired string
+}

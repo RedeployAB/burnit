@@ -53,7 +53,7 @@ func (r SecretRepository) Get(ctx context.Context, id string) (db.Secret, error)
 	return secret, nil
 }
 
-// Create a new secret.
+// Create a secret.
 func (r SecretRepository) Create(ctx context.Context, secret db.Secret) (db.Secret, error) {
 	if err := r.client.Set(ctx, secret.ID, secretToJSON(secret), time.Until(secret.ExpiresAt)); err != nil {
 		return db.Secret{}, err

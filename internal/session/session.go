@@ -1,10 +1,8 @@
 package session
 
 import (
-	"encoding/base64"
 	"time"
 
-	"github.com/RedeployAB/burnit/internal/secret"
 	"github.com/google/uuid"
 )
 
@@ -97,8 +95,4 @@ var newUUID = func() string {
 
 var now = func() time.Time {
 	return time.Now().UTC()
-}
-
-var randomString = func() string {
-	return base64.RawURLEncoding.EncodeToString([]byte(secret.Generate(32, true)))
 }

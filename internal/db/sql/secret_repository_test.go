@@ -7,7 +7,7 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
-func TestCreateQueries(t *testing.T) {
+func TestCreateSecretQueries(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input struct {
@@ -69,14 +69,14 @@ func TestCreateQueries(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			got, gotErr := createQueries(test.input.driver, test.input.table)
+			got, gotErr := createSecretQueries(test.input.driver, test.input.table)
 
 			if diff := cmp.Diff(test.want, got, cmp.AllowUnexported(queries{})); diff != "" {
-				t.Errorf("createQueries() = unexpected result (-want +got)\n%s\n", diff)
+				t.Errorf("createSecretQueries() = unexpected result (-want +got)\n%s\n", diff)
 			}
 
 			if diff := cmp.Diff(test.wantErr, gotErr, cmpopts.EquateErrors()); diff != "" {
-				t.Errorf("createQueries() = unexpected error (-want +got)\n%s\n", diff)
+				t.Errorf("createSecretQueries() = unexpected error (-want +got)\n%s\n", diff)
 			}
 		})
 	}

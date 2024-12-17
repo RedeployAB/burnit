@@ -50,7 +50,7 @@ func NewSecretRepository(db *DB, options ...SecretRepositoryOption) (*SecretRepo
 		option(&opts)
 	}
 
-	queries, err := createQueries(db.driver, opts.Table)
+	queries, err := createSecretQueries(db.driver, opts.Table)
 	if err != nil {
 		return nil, err
 	}
@@ -198,16 +198,8 @@ func (r SecretRepository) Close() error {
 	return r.db.Close()
 }
 
-// querie contains queries used by the repository.
-type queries struct {
-	selectByID    string
-	insert        string
-	delete        string
-	deleteExpired string
-}
-
-// createQueries creates the queries used by the repository.
-func createQueries(driver Driver, table string) (queries, error) {
+// createSecretQueries creates the queries used by the repository.
+func createSecretQueries(driver Driver, table string) (queries, error) {
 	var columns, placeholders []string
 	var now string
 	switch driver {

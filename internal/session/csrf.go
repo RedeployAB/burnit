@@ -1,6 +1,11 @@
 package session
 
-import "time"
+import (
+	"encoding/base64"
+	"time"
+
+	"github.com/RedeployAB/burnit/internal/secret"
+)
 
 const (
 	// defaultCSRFDuration is the default duration for a CSRF token.
@@ -46,4 +51,8 @@ func (c CSRF) ExpiresAt() time.Time {
 // Expired returns true if the CSRF token has expired.
 func (c CSRF) Expired() bool {
 	return c.expiresAt.Before(now())
+}
+
+var randomString = func() string {
+	return base64.RawURLEncoding.EncodeToString([]byte(secret.Generate(32, true)))
 }
