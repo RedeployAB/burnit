@@ -24,8 +24,9 @@ type SecretRepository interface {
 type SessionRepository interface {
 	// Get a session by its ID.
 	Get(ctx context.Context, id string) (Session, error)
-	// Create a session.
-	Create(ctx context.Context, session Session) (Session, error)
+	// Upsert a session. Create the session if it does not exist, otherwise
+	// update it.
+	Upsert(ctx context.Context, session Session) (Session, error)
 	// Delete a session by its ID.
 	Delete(ctx context.Context, id string) error
 	// DeleteExpired deletes all expired sessions.

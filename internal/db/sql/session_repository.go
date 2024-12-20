@@ -23,7 +23,7 @@ type SessionRepository struct {
 	db      *sql.DB
 	driver  Driver
 	table   string
-	queries queries
+	queries sessionQueries
 	timeout time.Duration
 }
 
@@ -130,10 +130,24 @@ func (r SessionRepository) Get(ctx context.Context, id string) (db.Session, erro
 	return session, nil
 }
 
-// Create a session.
-func (r SessionRepository) Create(ctx context.Context, session db.Session) (db.Session, error) {
+// Upsert a session. Create the session if it does not exist, otherwise
+// update it.
+func (r SessionRepository) Upsert(ctx context.Context, session db.Session) (db.Session, error) {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
+		return db.Session{}, nil
+	}
+
+	row := tx.QueryRowContext(ctx, r.queries.selectByID, session.ID)
+	if row.Err() == nil {
+		if _, err = tx.ExecContext(ctx, r.queries.update, session.ID, session.ExpiresAt, session.CSRF.Token, session.CSRF.ExpiresAt); err != nil {
+			if err := tx.Rollback(); err != nil {
+				return db.Session{}, err
+			}
+			return db.Session{}, err
+		}
+	}
+	if !errors.Is(err, sql.ErrNoRows) {
 		return db.Session{}, err
 	}
 
@@ -201,8 +215,17 @@ func (r SessionRepository) Close() error {
 	return r.db.Close()
 }
 
+// sessionQueries contains queries used by the repository.
+type sessionQueries struct {
+	selectByID    string
+	insert        string
+	update        string
+	delete        string
+	deleteExpired string
+}
+
 // createSessionQueries creates the queries used by the repository.
-func createSessionQueries(driver Driver, table string) (queries, error) {
+func createSessionQueries(driver Driver, table string) (sessionQueries, error) {
 	var columns, placeholders []string
 	var now string
 	switch driver {
@@ -220,12 +243,13 @@ func createSessionQueries(driver Driver, table string) (queries, error) {
 		placeholders = []string{"?1", "?2", "?3", "?4"}
 		now = "DATETIME('now')"
 	default:
-		return queries{}, fmt.Errorf("%w: %s", ErrDriverNotSupported, driver)
+		return sessionQueries{}, fmt.Errorf("%w: %s", ErrDriverNotSupported, driver)
 	}
 
-	return queries{
+	return sessionQueries{
 		selectByID:    fmt.Sprintf("SELECT %s, %s, %s, %s FROM %s WHERE %s = %s", columns[0], columns[1], columns[2], columns[3], table, columns[0], placeholders[0]),
 		insert:        fmt.Sprintf("INSERT INTO %s (%s, %s, %s, %s) VALUES (%s, %s, %s, %s)", table, columns[0], columns[1], columns[2], columns[3], placeholders[0], placeholders[1], placeholders[2], placeholders[3]),
+		update:        fmt.Sprintf("UPDATE %s SET %s = %s, %s = %s, %s = %s, %s = %s WHERE %s = %s", table, columns[0], placeholders[0], columns[1], placeholders[1], columns[2], placeholders[2], columns[3], placeholders[3], columns[0], placeholders[0]),
 		delete:        fmt.Sprintf("DELETE FROM %s WHERE %s = %s", table, columns[0], placeholders[0]),
 		deleteExpired: fmt.Sprintf("DELETE FROM %s WHERE %s < %s", table, columns[1], now),
 	}, nil

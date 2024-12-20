@@ -23,7 +23,7 @@ type SecretRepository struct {
 	db      *sql.DB
 	driver  Driver
 	table   string
-	queries queries
+	queries secretQueries
 	timeout time.Duration
 }
 
@@ -198,8 +198,16 @@ func (r SecretRepository) Close() error {
 	return r.db.Close()
 }
 
+// secretQueries contains queries used by the repository.
+type secretQueries struct {
+	selectByID    string
+	insert        string
+	delete        string
+	deleteExpired string
+}
+
 // createSecretQueries creates the queries used by the repository.
-func createSecretQueries(driver Driver, table string) (queries, error) {
+func createSecretQueries(driver Driver, table string) (secretQueries, error) {
 	var columns, placeholders []string
 	var now string
 	switch driver {
@@ -217,10 +225,10 @@ func createSecretQueries(driver Driver, table string) (queries, error) {
 		placeholders = []string{"?1", "?2", "?3"}
 		now = "DATETIME('now')"
 	default:
-		return queries{}, fmt.Errorf("%w: %s", ErrDriverNotSupported, driver)
+		return secretQueries{}, fmt.Errorf("%w: %s", ErrDriverNotSupported, driver)
 	}
 
-	return queries{
+	return secretQueries{
 		selectByID:    fmt.Sprintf("SELECT %s, %s, %s FROM %s WHERE %s = %s", columns[0], columns[1], columns[2], table, columns[0], placeholders[0]),
 		insert:        fmt.Sprintf("INSERT INTO %s (%s, %s, %s) VALUES (%s, %s, %s)", table, columns[0], columns[1], columns[2], placeholders[0], placeholders[1], placeholders[2]),
 		delete:        fmt.Sprintf("DELETE FROM %s WHERE %s = %s", table, columns[0], placeholders[0]),
