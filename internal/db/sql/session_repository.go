@@ -80,33 +80,14 @@ func (r SessionRepository) createTableIfNotExists(ctx context.Context) error {
 
 	switch r.driver {
 	case DriverPostgres:
-		query = `
-		CREATE TABLE IF NOT EXISTS %s (
-			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-			expires_at TIMESTAMPTZ NOT NULL,
-			csrf_token VARCHAR(43),
-			csrf_expires_at TIMESTAMPTZ NOT NULL
-		)`
+		query = "CREATE TABLE IF NOT EXISTS %s (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), expires_at TIMESTAMPTZ NOT NULL, csrf_token VARCHAR(43), csrf_expires_at TIMESTAMPTZ NOT NULL)"
 		args = append(args, r.table)
 	case DriverMSSQL:
 		table := firstToUpper(r.table)
-		query = `
-		IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='%s' and xtype='U')
-		CREATE TABLE %s (
-			ID VARCHAR(36) NOT NULL PRIMARY KEY,
-			ExpiresAt DATETIMEOFFSET NOT NULL,
-			CSRFToken VARCHAR(43),
-			CSRFExpiresAt DATETIMEOFFSET NOT NULL
-		)`
+		query = "IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='%s' and xtype='U') CREATE TABLE %s (ID VARCHAR(36) NOT NULL PRIMARY KEY, ExpiresAt DATETIMEOFFSET NOT NULL, CSRFToken VARCHAR(43), CSRFExpiresAt DATETIMEOFFSET NOT NULL)"
 		args = append(args, table, table)
 	case DriverSQLite:
-		query = `
-		CREATE TABLE IF NOT EXISTS %s (
-			id TEXT NOT NULL PRIMARY KEY,
-			expires_at DATETIME NOT NULL,
-			csrf_token TEXT NOT NULL,
-			csrf_expires_at DATETIME NOT NULL
-		)`
+		query = "CREATE TABLE IF NOT EXISTS %s (id TEXT NOT NULL PRIMARY KEY, expires_at DATETIME NOT NULL, csrf_token TEXT NOT NULL, csrf_expires_at DATETIME NOT NULL)"
 		args = append(args, r.table)
 	default:
 		return fmt.Errorf("%w: %s", ErrDriverNotSupported, r.driver)
@@ -138,20 +119,7 @@ func (r SessionRepository) Upsert(ctx context.Context, session db.Session) (db.S
 		return db.Session{}, nil
 	}
 
-	row := tx.QueryRowContext(ctx, r.queries.selectByID, session.ID)
-	if row.Err() == nil {
-		if _, err = tx.ExecContext(ctx, r.queries.update, session.ID, session.ExpiresAt, session.CSRF.Token, session.CSRF.ExpiresAt); err != nil {
-			if err := tx.Rollback(); err != nil {
-				return db.Session{}, err
-			}
-			return db.Session{}, err
-		}
-	}
-	if !errors.Is(err, sql.ErrNoRows) {
-		return db.Session{}, err
-	}
-
-	if _, err := tx.ExecContext(ctx, r.queries.insert, session.ID, session.ExpiresAt, session.CSRF.Token, session.CSRF.ExpiresAt); err != nil {
+	if _, err := tx.ExecContext(ctx, r.queries.upsert, session.ID, session.ExpiresAt, session.CSRF.Token, session.CSRF.ExpiresAt); err != nil {
 		if err := tx.Rollback(); err != nil {
 			return db.Session{}, err
 		}
@@ -218,8 +186,7 @@ func (r SessionRepository) Close() error {
 // sessionQueries contains queries used by the repository.
 type sessionQueries struct {
 	selectByID    string
-	insert        string
-	update        string
+	upsert        string
 	delete        string
 	deleteExpired string
 }
@@ -227,29 +194,31 @@ type sessionQueries struct {
 // createSessionQueries creates the queries used by the repository.
 func createSessionQueries(driver Driver, table string) (sessionQueries, error) {
 	var columns, placeholders []string
-	var now string
+	var now, upsert string
 	switch driver {
 	case DriverPostgres:
 		columns = []string{"id", "expires_at", "csrf_token", "csrf_expires_at"}
 		placeholders = []string{"$1", "$2", "$3", "$4"}
 		now = "NOW() AT TIME ZONE 'UTC'"
+		upsert = "INSERT INTO %s (id, expires_at, csrf_token, csrf_expires_at) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE SET expires_at = EXCLUDED.expires_at, csrf_token = EXCLUDED.csrf_token, csrf_expires_at = EXCLUDED.csrf_expires_at"
 	case DriverMSSQL:
 		table = firstToUpper(table)
 		columns = []string{"ID", "ExpiresAt", "CSRFToken", "CSRFExpiresAt"}
 		placeholders = []string{"@p1", "@p2", "@p3", "@p4"}
 		now = "GETUTCDATE()"
+		upsert = "MERGE INTO %s AS target USING (VALUES (@p1, @p2, @p3, @p4)) AS source (ID, ExpiresAt, CSRFToken, CSRFExpiresAt) ON target.ID = source.ID WHEN MATCHED THEN UPDATE SET target.ExpiresAt = source.ExpiresAt, target.CSRFToken = source.CSRFToken, target.CSRFExpiresAt = source.CSRFExpiresAt WHEN NOT MATCHED THEN INSERT (ID, ExpiresAt, CSRFToken, CSRFExpiresAt) VALUES (source.ID, source.ExpiresAt, source.CSRFToken, source.CSRFExpiresAt);"
 	case DriverSQLite:
 		columns = []string{"id", "expires_at", "csrf_token", "csrf_expires_at"}
 		placeholders = []string{"?1", "?2", "?3", "?4"}
 		now = "DATETIME('now')"
+		upsert = "INSERT INTO %s (id, expires_at, csrf_token, csrf_expires_at) VALUES (?1, ?2, ?3, ?4) ON CONFLICT(id) DO UPDATE SET expires_at = excluded.expires_at, csrf_token = excluded.csrf_token, csrf_expires_at = excluded.csrf_expires_at"
 	default:
 		return sessionQueries{}, fmt.Errorf("%w: %s", ErrDriverNotSupported, driver)
 	}
 
 	return sessionQueries{
 		selectByID:    fmt.Sprintf("SELECT %s, %s, %s, %s FROM %s WHERE %s = %s", columns[0], columns[1], columns[2], columns[3], table, columns[0], placeholders[0]),
-		insert:        fmt.Sprintf("INSERT INTO %s (%s, %s, %s, %s) VALUES (%s, %s, %s, %s)", table, columns[0], columns[1], columns[2], columns[3], placeholders[0], placeholders[1], placeholders[2], placeholders[3]),
-		update:        fmt.Sprintf("UPDATE %s SET %s = %s, %s = %s, %s = %s, %s = %s WHERE %s = %s", table, columns[0], placeholders[0], columns[1], placeholders[1], columns[2], placeholders[2], columns[3], placeholders[3], columns[0], placeholders[0]),
+		upsert:        fmt.Sprintf(upsert, table),
 		delete:        fmt.Sprintf("DELETE FROM %s WHERE %s = %s", table, columns[0], placeholders[0]),
 		deleteExpired: fmt.Sprintf("DELETE FROM %s WHERE %s < %s", table, columns[1], now),
 	}, nil
