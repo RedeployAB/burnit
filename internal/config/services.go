@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -21,15 +22,27 @@ type services struct {
 	Secrets secret.Service
 }
 
+// dbClient contains configured db client.
+type dbClient struct {
+	mongo mongo.Client
+	sql   *sql.DB
+	redis redis.Client
+}
+
 // SetupServices configures and sets up the services.
 func SetupServices(config Services) (*services, error) {
-	repo, err := setupSecretRepository(&config.Database)
+	dbClient, err := setupDBClient(&config.Database)
 	if err != nil {
-		return nil, fmt.Errorf("failed to setup secret repository: %w", err)
+		return nil, fmt.Errorf("failed to setup db clients: %w", err)
+	}
+
+	store, err := setupSecretStore(dbClient, &config.Database)
+	if err != nil {
+		return nil, fmt.Errorf("failed to setup secret store: %w", err)
 	}
 
 	secrets, err := secret.NewService(
-		repo,
+		store,
 		secret.WithValueMaxCharacters(config.Secret.ValueMaxCharacters),
 		secret.WithTimeout(config.Secret.Timeout),
 	)
@@ -42,41 +55,37 @@ func SetupServices(config Services) (*services, error) {
 	}, nil
 }
 
-// setupSecretRepository sets up the secret repository.
-func setupSecretRepository(config *Database) (db.SecretRepository, error) {
-	var repo db.SecretRepository
+// setupDBClient sets up the db client.
+func setupDBClient(config *Database) (*dbClient, error) {
 	var err error
 	config.Driver, err = databaseDriver(config)
 	if err != nil {
 		return nil, err
 	}
 
+	var client dbClient
 	switch config.Driver {
 	case databaseDriverMongo:
-		repo, err = setupMongoSecretRepository(config)
+		client.mongo, err = setupMongoClient(config)
 	case databaseDriverPostgres, databaseDriverMSSQL, databaseDriverSQLite:
-		repo, err = setupSQLSecretRepository(config, config.Driver)
+		client.sql, err = setupSQLClient(config)
 	case databaseDriverRedis:
-		repo, err = setupRedisSecretRepository(config)
-	default:
-		return nil, fmt.Errorf("unsupported database driver")
+		client.redis, err = setupRedisClient(config)
 	}
-
 	if err != nil {
 		return nil, err
 	}
-
-	return repo, nil
+	return &client, nil
 }
 
-// setupMongoSecretRepository sets up the MongoDB secret repository.
-func setupMongoSecretRepository(config *Database) (*mongo.SecretRepository, error) {
+// setupMongoClient sets up the mongo client.
+func setupMongoClient(config *Database) (mongo.Client, error) {
 	var enableTLS bool
 	if config.Redis.EnableTLS != nil {
 		enableTLS = *config.Redis.EnableTLS
 	}
 
-	client, err := mongo.NewClient(func(o *mongo.ClientOptions) {
+	return mongo.NewClient(func(o *mongo.ClientOptions) {
 		o.URI = config.URI
 		o.Hosts = []string{config.Address}
 		o.Username = config.Username
@@ -85,19 +94,11 @@ func setupMongoSecretRepository(config *Database) (*mongo.SecretRepository, erro
 		o.MaxOpenConnections = config.MaxOpenConnections
 		o.EnableTLS = enableTLS
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	return mongo.NewSecretRepository(client, func(o *mongo.SecretRepositoryOptions) {
-		o.Database = config.Database
-		o.Timeout = config.Timeout
-	})
 }
 
-// setupSQLSecretRepository sets up the SQL secret repository.
-func setupSQLSecretRepository(config *Database, driver string) (*sql.SecretRepository, error) {
-	drv := sql.Driver(driver)
+// setupSQLClient sets up SQL client (connection).
+func setupSQLClient(config *Database) (*sql.DB, error) {
+	drv := sql.Driver(config.Driver)
 	if drv == sql.DriverMSSQL && config.Database == defaultDatabaseName {
 		config.Database = strings.ToUpper(config.Database[:1]) + config.Database[1:]
 	}
@@ -107,7 +108,7 @@ func setupSQLSecretRepository(config *Database, driver string) (*sql.SecretRepos
 		inMemory = *config.SQLite.InMemory
 	}
 
-	db, err := sql.Open(func(o *sql.Options) {
+	return sql.Open(func(o *sql.Options) {
 		o.Driver = drv
 		o.DSN = config.URI
 		o.Address = config.Address
@@ -123,23 +124,42 @@ func setupSQLSecretRepository(config *Database, driver string) (*sql.SecretRepos
 		o.SQLite.File = config.SQLite.File
 		o.SQLite.InMemory = inMemory
 	})
+}
+
+// setupSecretStore sets up the secret store.
+func setupSecretStore(clients *dbClient, config *Database) (db.SecretStore, error) {
+	var store db.SecretStore
+	var err error
+	switch {
+	case clients.mongo != nil:
+		store, err = mongo.NewSecretStore(clients.mongo, func(o *mongo.SecretStoreOptions) {
+			o.Timeout = config.Timeout
+		})
+	case clients.sql != nil:
+		store, err = sql.NewSecretStore(clients.sql, func(o *sql.SecretStoreOptions) {
+			o.Timeout = config.Timeout
+		})
+	case clients.redis != nil:
+		store, err = redis.NewSecretStore(clients.redis)
+	default:
+		return nil, errors.New("no database clients configured")
+	}
+
 	if err != nil {
 		return nil, err
 	}
 
-	return sql.NewSecretRepository(db, func(o *sql.SecretRepositoryOptions) {
-		o.Timeout = config.Timeout
-	})
+	return store, nil
 }
 
-// setupRedisSecretRepository sets up the Redis secret repository.
-func setupRedisSecretRepository(config *Database) (*redis.SecretRepository, error) {
+// setupRedisClient sets up redis client.
+func setupRedisClient(config *Database) (redis.Client, error) {
 	var enableTLS bool
 	if config.Redis.EnableTLS != nil {
 		enableTLS = *config.Redis.EnableTLS
 	}
 
-	client, err := redis.NewClient(func(o *redis.ClientOptions) {
+	return redis.NewClient(func(o *redis.ClientOptions) {
 		o.URI = config.URI
 		o.Address = config.Address
 		o.Username = config.Username
@@ -154,11 +174,6 @@ func setupRedisSecretRepository(config *Database) (*redis.SecretRepository, erro
 		o.MaxConnectionLifetime = config.MaxConnectionLifetime
 		o.EnableTLS = enableTLS
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	return redis.NewSecretRepository(client, func(o *redis.SecretRepositoryOptions) {})
 }
 
 // databaseDriver returns the database driver.

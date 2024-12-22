@@ -69,7 +69,7 @@ type Service interface {
 
 // service provides handling operations for secrets and satisfies Service.
 type service struct {
-	secrets                 db.SecretRepository
+	secrets                 db.SecretStore
 	timeout                 time.Duration
 	cleanupInterval         time.Duration
 	valueMaxCharacters      int
@@ -82,13 +82,13 @@ type service struct {
 type ServiceOption func(s *service)
 
 // NewService creates a new secret service.
-func NewService(secrets db.SecretRepository, options ...ServiceOption) (*service, error) {
-	if secrets == nil {
-		return nil, ErrNilRepository
+func NewService(store db.SecretStore, options ...ServiceOption) (*service, error) {
+	if store == nil {
+		return nil, ErrNilStore
 	}
 
 	svc := &service{
-		secrets:                 secrets,
+		secrets:                 store,
 		timeout:                 defaultTimeout,
 		cleanupInterval:         defaultCleanupInterval,
 		valueMaxCharacters:      defaultValueMaxCharacters,
@@ -110,7 +110,7 @@ func (s *service) Start() error {
 		select {
 		case <-time.After(s.cleanupInterval):
 			if err := s.DeleteExpired(); err != nil {
-				return fmt.Errorf("secret repository: %w", err)
+				return fmt.Errorf("secret store: %w", err)
 			}
 		case <-s.stopCh:
 			close(s.stopCh)
@@ -165,12 +165,12 @@ func (s service) Get(id, passphrase string, options ...GetOption) (Secret, error
 		if errors.Is(err, dberrors.ErrSecretNotFound) {
 			return Secret{}, ErrSecretNotFound
 		}
-		return Secret{}, fmt.Errorf("secret repository: %w", err)
+		return Secret{}, fmt.Errorf("secret store: %w", err)
 	}
 
 	if dbSecret.ExpiresAt.Before(now()) {
 		if err := s.secrets.Delete(ctx, id); err != nil {
-			return Secret{}, fmt.Errorf("secret repository: %w", err)
+			return Secret{}, fmt.Errorf("secret store: %w", err)
 		}
 		return Secret{}, ErrSecretNotFound
 	}
@@ -199,7 +199,7 @@ func (s service) Get(id, passphrase string, options ...GetOption) (Secret, error
 	}
 
 	if err := s.secrets.Delete(ctx, id); err != nil {
-		return secret, fmt.Errorf("secret repository: %w", err)
+		return secret, fmt.Errorf("secret store: %w", err)
 	}
 
 	return secret, nil
@@ -239,7 +239,7 @@ func (s service) Create(secret Secret) (Secret, error) {
 		ExpiresAt: expiresAt,
 	})
 	if err != nil {
-		return Secret{}, fmt.Errorf("secret repository: %w", err)
+		return Secret{}, fmt.Errorf("secret store: %w", err)
 	}
 
 	return Secret{
@@ -289,7 +289,7 @@ func (s service) Delete(id string, options ...DeleteOption) error {
 	if errors.Is(err, dberrors.ErrSecretNotFound) || errors.Is(err, dberrors.ErrSecretNotDeleted) {
 		return ErrSecretNotFound
 	}
-	return fmt.Errorf("secret repository: %w", err)
+	return fmt.Errorf("secret store: %w", err)
 }
 
 // DeleteExpired deletes all expired secrets.
@@ -305,7 +305,7 @@ func (s service) DeleteExpired() error {
 		return nil
 	}
 
-	return fmt.Errorf("secret repository: %w", err)
+	return fmt.Errorf("secret store: %w", err)
 }
 
 // expirationTime returns the expiration time of a secret. It

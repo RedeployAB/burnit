@@ -4,9 +4,9 @@ import (
 	"context"
 )
 
-// SecretRepository defines the methods needed for persisting
+// SecretStore defines the methods needed for persisting
 // and retrieving secrets.
-type SecretRepository interface {
+type SecretStore interface {
 	// Get a secret by its ID.
 	Get(ctx context.Context, id string) (Secret, error)
 	// Create a secret.
@@ -15,15 +15,17 @@ type SecretRepository interface {
 	Delete(ctx context.Context, id string) error
 	// DeleteExpired deletes all expired secrets.
 	DeleteExpired(ctx context.Context) error
-	// Close the repository and its underlying connections.
+	// Close the SecretStore and its underlying connections.
 	Close() error
 }
 
-// SessionRepository defines the methods needed for persisting
+// SessionStore defines the methods needed for persisting
 // and retrieving sessions.
-type SessionRepository interface {
+type SessionStore interface {
 	// Get a session by its ID.
 	Get(ctx context.Context, id string) (Session, error)
+	// Get a session by its CSRF token.
+	GetByCSRFToken(ctx context.Context, token string) (Session, error)
 	// Upsert a session. Create the session if it does not exist, otherwise
 	// update it.
 	Upsert(ctx context.Context, session Session) (Session, error)
@@ -31,6 +33,6 @@ type SessionRepository interface {
 	Delete(ctx context.Context, id string) error
 	// DeleteExpired deletes all expired sessions.
 	DeleteExpired(ctx context.Context) error
-	// Close the repository and its underlying connections.
+	// Close the SecretStore and its underlying connections.
 	Close() error
 }

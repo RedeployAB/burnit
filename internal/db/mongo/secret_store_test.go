@@ -11,55 +11,55 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
-func TestNewSecretRepository(t *testing.T) {
+func TestNewSecretStore(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input struct {
 			client  Client
-			options []SecretRepositoryOption
+			options []SecretStoreOption
 		}
-		want    *SecretRepository
+		want    *secretStore
 		wantErr error
 	}{
 		{
-			name: "new secret repository",
+			name: "new secret store",
 			input: struct {
 				client  Client
-				options []SecretRepositoryOption
+				options []SecretStoreOption
 			}{
 				client: &mockMongoClient{},
 			},
-			want: &SecretRepository{
+			want: &secretStore{
 				client:     &mockMongoClient{},
-				collection: defaultSecretRepositoryCollection,
-				timeout:    defaultSecretRepositoryTimeout,
+				collection: defaultSecretStoreCollection,
+				timeout:    defaultSecretStoreTimeout,
 			},
 		},
 		{
-			name: "new secret repository - with options",
+			name: "new secret store - with options",
 			input: struct {
 				client  Client
-				options []SecretRepositoryOption
+				options []SecretStoreOption
 			}{
 				client: &mockMongoClient{},
-				options: []SecretRepositoryOption{
-					func(o *SecretRepositoryOptions) {
+				options: []SecretStoreOption{
+					func(o *SecretStoreOptions) {
 						o.Database = "test"
 						o.Collection = "test"
 					},
 				},
 			},
-			want: &SecretRepository{
+			want: &secretStore{
 				client:     &mockMongoClient{},
 				collection: "test",
-				timeout:    defaultSecretRepositoryTimeout,
+				timeout:    defaultSecretStoreTimeout,
 			},
 		},
 		{
-			name: "new secret repository - nil client",
+			name: "new secret store - nil client",
 			input: struct {
 				client  Client
-				options []SecretRepositoryOption
+				options []SecretStoreOption
 			}{
 				client: nil,
 			},
@@ -69,20 +69,20 @@ func TestNewSecretRepository(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			got, gotErr := NewSecretRepository(test.input.client, test.input.options...)
+			got, gotErr := NewSecretStore(test.input.client, test.input.options...)
 
-			if diff := cmp.Diff(test.want, got, cmp.AllowUnexported(SecretRepository{}, mockMongoClient{})); diff != "" {
-				t.Errorf("NewSecretRepository() = unexpected result (-want +got)\n%s\n", diff)
+			if diff := cmp.Diff(test.want, got, cmp.AllowUnexported(secretStore{}, mockMongoClient{})); diff != "" {
+				t.Errorf("NewSecretStore() = unexpected result (-want +got)\n%s\n", diff)
 			}
 
 			if diff := cmp.Diff(test.wantErr, gotErr, cmpopts.EquateErrors()); diff != "" {
-				t.Errorf("NewSecretRepository() = unexpected error (-want +got)\n%s\n", diff)
+				t.Errorf("NewSecretStore() = unexpected error (-want +got)\n%s\n", diff)
 			}
 		})
 	}
 }
 
-func TestSecretRepository_Get(t *testing.T) {
+func TestSecretStore_Get(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input struct {
@@ -142,14 +142,14 @@ func TestSecretRepository_Get(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			repo := &SecretRepository{
+			store := &secretStore{
 				client: &mockMongoClient{
 					secrets: test.input.secrets,
 					err:     test.input.err,
 				},
 			}
 
-			got, gotErr := repo.Get(context.Background(), test.input.id)
+			got, gotErr := store.Get(context.Background(), test.input.id)
 
 			if diff := cmp.Diff(test.want, got); diff != "" {
 				t.Errorf("Get() = unexpected result (-want +got)\n%s\n", diff)
@@ -162,7 +162,7 @@ func TestSecretRepository_Get(t *testing.T) {
 	}
 }
 
-func TestSecretRepository_Create(t *testing.T) {
+func TestSecretStore_Create(t *testing.T) {
 	date := time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC)
 	now = func() time.Time {
 		return date
@@ -217,14 +217,14 @@ func TestSecretRepository_Create(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			repo := &SecretRepository{
+			store := &secretStore{
 				client: &mockMongoClient{
 					secrets: test.input.secrets,
 					err:     test.input.err,
 				},
 			}
 
-			got, gotErr := repo.Create(context.Background(), test.input.secret)
+			got, gotErr := store.Create(context.Background(), test.input.secret)
 
 			if diff := cmp.Diff(test.want, got); diff != "" {
 				t.Errorf("Create() = unexpected result (-want +got)\n%s\n", diff)
@@ -237,7 +237,7 @@ func TestSecretRepository_Create(t *testing.T) {
 	}
 }
 
-func TestSecretRepository_Delete(t *testing.T) {
+func TestSecretStore_Delete(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input struct {
@@ -292,14 +292,14 @@ func TestSecretRepository_Delete(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			repo := &SecretRepository{
+			store := &secretStore{
 				client: &mockMongoClient{
 					secrets: test.input.secrets,
 					err:     test.input.err,
 				},
 			}
 
-			gotErr := repo.Delete(context.Background(), test.input.id)
+			gotErr := store.Delete(context.Background(), test.input.id)
 
 			if diff := cmp.Diff(test.wantErr, gotErr, cmpopts.EquateErrors()); diff != "" {
 				t.Errorf("Delete() = unexpected error (-want +got)\n%s\n", diff)
@@ -308,7 +308,7 @@ func TestSecretRepository_Delete(t *testing.T) {
 	}
 }
 
-func TestSecretRepository_DeleteExpired(t *testing.T) {
+func TestSecretStore_DeleteExpired(t *testing.T) {
 	date := time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC)
 	now = func() time.Time {
 		return date
@@ -356,14 +356,14 @@ func TestSecretRepository_DeleteExpired(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			repo := &SecretRepository{
+			store := &secretStore{
 				client: &mockMongoClient{
 					secrets: test.input.secrets,
 					err:     test.input.err,
 				},
 			}
 
-			gotErr := repo.DeleteExpired(context.Background())
+			gotErr := store.DeleteExpired(context.Background())
 
 			if diff := cmp.Diff(test.wantErr, gotErr, cmpopts.EquateErrors()); diff != "" {
 				t.Errorf("DeleteExpired() = unexpected error (-want +got)\n%s\n", diff)

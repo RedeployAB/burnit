@@ -12,14 +12,14 @@ import (
 )
 
 const (
-	// defaultSecretRepositoryTable is the default table for the SecretRepository.
-	defaultSecretRepositoryTable = "secrets"
-	// defaultSecretRepositoryTimeout is the default timeout for the SecretRepository.
-	defaultSecretRepositoryTimeout = 10 * time.Second
+	// defaultSecretStoreTable is the default table for the SecretStore.
+	defaultSecretStoreTable = "secrets"
+	// defaultSecretStoreTimeout is the default timeout for the SecretStore.
+	defaultSecretStoreTimeout = 10 * time.Second
 )
 
-// SecretRepository is a SQL implementation of a SecretRepository.
-type SecretRepository struct {
+// secretStore is a SQL implementation of a SecretStore.
+type secretStore struct {
 	db      *sql.DB
 	driver  Driver
 	table   string
@@ -27,24 +27,24 @@ type SecretRepository struct {
 	timeout time.Duration
 }
 
-// SecretRepositoryOptions is the options for the SecretRepository.
-type SecretRepositoryOptions struct {
+// SecretStoreOptions is the options for the SecretStore.
+type SecretStoreOptions struct {
 	Table   string
 	Timeout time.Duration
 }
 
-// SecretRepositoryOption is a function that sets options for the SecretRepository.
-type SecretRepositoryOption func(o *SecretRepositoryOptions)
+// SecretStoreOption is a function that sets options for the SecreStore.
+type SecretStoreOption func(o *SecretStoreOptions)
 
-// NewSecretRepository returns a new SecretRepository.
-func NewSecretRepository(db *DB, options ...SecretRepositoryOption) (*SecretRepository, error) {
+// NewSecretStore returns a new SecretStore.
+func NewSecretStore(db *DB, options ...SecretStoreOption) (*secretStore, error) {
 	if db == nil {
 		return nil, ErrNilDB
 	}
 
-	opts := SecretRepositoryOptions{
-		Table:   defaultSecretRepositoryTable,
-		Timeout: defaultSecretRepositoryTimeout,
+	opts := SecretStoreOptions{
+		Table:   defaultSecretStoreTable,
+		Timeout: defaultSecretStoreTimeout,
 	}
 	for _, option := range options {
 		option(&opts)
@@ -55,7 +55,7 @@ func NewSecretRepository(db *DB, options ...SecretRepositoryOption) (*SecretRepo
 		return nil, err
 	}
 
-	r := &SecretRepository{
+	r := &secretStore{
 		db:      db.DB,
 		driver:  db.driver,
 		table:   opts.Table,
@@ -74,7 +74,7 @@ func NewSecretRepository(db *DB, options ...SecretRepositoryOption) (*SecretRepo
 }
 
 // createTableIfNotExists creates the table if it does not exist.
-func (r SecretRepository) createTableIfNotExists(ctx context.Context) error {
+func (r secretStore) createTableIfNotExists(ctx context.Context) error {
 	var query string
 	var args []any
 
@@ -116,7 +116,7 @@ func (r SecretRepository) createTableIfNotExists(ctx context.Context) error {
 }
 
 // Get a secret by its ID.
-func (r SecretRepository) Get(ctx context.Context, id string) (db.Secret, error) {
+func (r secretStore) Get(ctx context.Context, id string) (db.Secret, error) {
 	var secret db.Secret
 	if err := r.db.QueryRowContext(ctx, r.queries.selectByID, id).Scan(&secret.ID, &secret.Value, &secret.ExpiresAt); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -128,7 +128,7 @@ func (r SecretRepository) Get(ctx context.Context, id string) (db.Secret, error)
 }
 
 // Create a secret.
-func (r SecretRepository) Create(ctx context.Context, secret db.Secret) (db.Secret, error) {
+func (r secretStore) Create(ctx context.Context, secret db.Secret) (db.Secret, error) {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return db.Secret{}, err
@@ -156,7 +156,7 @@ func (r SecretRepository) Create(ctx context.Context, secret db.Secret) (db.Secr
 }
 
 // Delete a secret by its ID.
-func (r SecretRepository) Delete(ctx context.Context, id string) error {
+func (r secretStore) Delete(ctx context.Context, id string) error {
 	result, err := r.db.ExecContext(ctx, r.queries.delete, id)
 	if err != nil {
 		return err
@@ -175,7 +175,7 @@ func (r SecretRepository) Delete(ctx context.Context, id string) error {
 }
 
 // DeleteExpired deletes all expired secrets.
-func (r SecretRepository) DeleteExpired(ctx context.Context) error {
+func (r secretStore) DeleteExpired(ctx context.Context) error {
 	result, err := r.db.ExecContext(ctx, r.queries.deleteExpired)
 	if err != nil {
 		return err
@@ -193,12 +193,12 @@ func (r SecretRepository) DeleteExpired(ctx context.Context) error {
 	return nil
 }
 
-// Close the repository and its underlying connections.
-func (r SecretRepository) Close() error {
+// Close the store and its underlying connections.
+func (r secretStore) Close() error {
 	return r.db.Close()
 }
 
-// secretQueries contains queries used by the repository.
+// secretQueries contains queries used by the store.
 type secretQueries struct {
 	selectByID    string
 	insert        string
@@ -206,7 +206,7 @@ type secretQueries struct {
 	deleteExpired string
 }
 
-// createSecretQueries creates the queries used by the repository.
+// createSecretQueries creates the queries used by the store.
 func createSecretQueries(driver Driver, table string) (secretQueries, error) {
 	var columns, placeholders []string
 	var now string

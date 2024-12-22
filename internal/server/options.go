@@ -122,8 +122,8 @@ func WithUI(ui ui.UI) Option {
 	}
 }
 
-// WithSessionStore configures the server with the given session store.
-func WithSessionStore(sessions session.Store) Option {
+// WithSessionService configures the server with the given session service.
+func WithSessionService(sessions session.Service) Option {
 	return func(s *server) {
 		if sessions != nil {
 			s.sessions = sessions

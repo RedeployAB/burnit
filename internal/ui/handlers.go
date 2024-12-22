@@ -52,18 +52,18 @@ func Privacy(ui UI) http.Handler {
 }
 
 // CreateSecret handles requests to create a secret.
-func CreateSecret(ui UI, secrets secret.Service, sessions session.Store) http.Handler {
+func CreateSecret(ui UI, secrets secret.Service, sessions session.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Sessions are only implemented for CSRF tokens at the moment.
 		// Use the CSRF token as the session ID when setting the session.
 		sess := session.NewSession(session.WithCSRF(session.NewCSRF()))
-		sessions.Set(sess.CSRF().Token(), sess)
+		sessions.Set(sess)
 		ui.Render(w, http.StatusOK, "secret-create", secretCreateResponse{CSRFToken: sess.CSRF().Token()})
 	})
 }
 
 // GetSecret handles requests to get a secret.
-func GetSecret(ui UI, secrets secret.Service, sessions session.Store, log log.Logger) http.Handler {
+func GetSecret(ui UI, secrets secret.Service, sessions session.Service, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id, passphrase, err := extractIDAndPassphrase("/ui/secrets/", r.URL.Path)
 		if err != nil || len(id) == 0 {
@@ -89,7 +89,7 @@ func GetSecret(ui UI, secrets secret.Service, sessions session.Store, log log.Lo
 			// Sessions are only implemented for CSRF tokens at the moment.
 			// Use the CSRF token as the session ID when setting the session.
 			sess := session.NewSession(session.WithCSRF(session.NewCSRF()))
-			sessions.Set(sess.CSRF().Token(), sess)
+			sessions.Set(sess)
 			ui.Render(w, http.StatusUnauthorized, "secret-get-passphrase", secretGetResponse{ID: id, CSRFToken: sess.CSRF().Token()})
 			return
 		}
@@ -126,11 +126,11 @@ func GetSecret(ui UI, secrets secret.Service, sessions session.Store, log log.Lo
 }
 
 // CreateSecretHandler handles requests containing a form to create a secret.
-func CreateSecretHandler(ui UI, secrets secret.Service, sessions session.Store, log log.Logger) http.Handler {
+func CreateSecretHandler(ui UI, secrets secret.Service, sessions session.Service, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
 			sess := session.NewSession(session.WithCSRF(session.NewCSRF()))
-			sessions.Set(sess.CSRF().Token(), sess)
+			sessions.Set(sess)
 			ui.Render(w, http.StatusOK, "secret-create", secretCreateResponse{CSRFToken: sess.CSRF().Token()}, WithPartial())
 			return
 		}
@@ -204,7 +204,7 @@ func CreateSecretHandler(ui UI, secrets secret.Service, sessions session.Store, 
 
 // GetSecretHandler handles requests containing a form to get a secret.
 // This form will be used when a passphrase is not provided in the URL.
-func GetSecretHandler(ui UI, secrets secret.Service, sessions session.Store, log log.Logger) http.Handler {
+func GetSecretHandler(ui UI, secrets secret.Service, sessions session.Service, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			requestID := middleware.RequestIDFromContext(r.Context())
@@ -289,8 +289,8 @@ func extractIDAndPassphrase(route, path string) (string, string, error) {
 //
 // In this implementation the CSRF token is the session ID, since
 // sessions have only been implemented for CSRF tokens.
-func validateCSRFTToken(ctx context.Context, sessions session.Store, id string) (bool, int, errorResponse, error) {
-	sess, err := sessions.Get(id)
+func validateCSRFTToken(ctx context.Context, sessions session.Service, token string) (bool, int, errorResponse, error) {
+	sess, err := sessions.Get(session.WithCSRFToken(token))
 	if err != nil {
 		title := "Could not retrieve session"
 		if errors.Is(err, session.ErrSessionNotFound) {
@@ -307,7 +307,7 @@ func validateCSRFTToken(ctx context.Context, sessions session.Store, id string) 
 	if len(t) == 0 {
 		return false, http.StatusBadRequest, errorResponse{Title: title, Message: "CSRF token not found."}, errors.New("CSRF token not found")
 	}
-	if t != id {
+	if t != token {
 		return false, http.StatusBadRequest, errorResponse{Title: title, Message: "CSRF token does not match with session."}, errors.New("CSRF token does not match with session")
 	}
 	if csrf.Expired() {

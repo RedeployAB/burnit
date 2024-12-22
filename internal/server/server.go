@@ -31,7 +31,7 @@ type server struct {
 	router        *router
 	secrets       secret.Service
 	ui            ui.UI
-	sessions      session.Store
+	sessions      session.Service
 	tls           TLSConfig
 	rateLimiter   RateLimiter
 	log           log.Logger

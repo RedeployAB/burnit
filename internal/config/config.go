@@ -298,7 +298,9 @@ func New() (*Configuration, error) {
 	localDev, ok := os.LookupEnv("BURNIT_LOCAL_DEVELOPMENT")
 	if ok && strings.ToLower(localDev) == "true" || localDev == "1" || flags.localDevelopment != nil && *flags.localDevelopment {
 		cfg.UI.RuntimeRender = toPtr(true)
-		cfg.Services.Database.Driver = "sqlite"
+		if len(cfg.Services.Database.URI) == 0 {
+			cfg.Services.Database.Driver = "sqlite"
+		}
 	}
 
 	return cfg, nil

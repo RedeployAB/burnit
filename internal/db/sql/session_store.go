@@ -12,14 +12,14 @@ import (
 )
 
 const (
-	// defaultSessionRepositoryTable is the default table for the SessionRepository.
-	defaultSessionRepositoryTable = "sessions"
-	// defaultSessionRepositoryTimeout is the default timeout for the SessionRepository.
-	defaultSessionRepositoryTimeout = 10 * time.Second
+	// defaultSessionStoreTable is the default table for the SessionStore.
+	defaultSessionStoreTable = "sessions"
+	// defaultSessionStoreTimeout is the default timeout for the SessionStore.
+	defaultSessionStoreTimeout = 10 * time.Second
 )
 
-// SessionRepository is a SQL implementation of a SessionRepository.
-type SessionRepository struct {
+// sessionStore is a SQL implementation of a SessionStore.
+type sessionStore struct {
 	db      *sql.DB
 	driver  Driver
 	table   string
@@ -27,24 +27,24 @@ type SessionRepository struct {
 	timeout time.Duration
 }
 
-// SessionRepositoryOptions is the options for the SessionRepository.
-type SessionRepositoryOptions struct {
+// SessionStoreOptions is the options for the SessionStore.
+type SessionStoreOptions struct {
 	Table   string
 	Timeout time.Duration
 }
 
-// SessionRepositoryOption is a function that sets options for the SessionRepository.
-type SessionRepositoryOption func(o *SessionRepositoryOptions)
+// SessionStoreOption is a function that sets options for the SessionStore.
+type SessionStoreOption func(o *SessionStoreOptions)
 
-// NewSessionRepository returns a new SessionRepository.
-func NewSessionRepository(db *DB, options ...SessionRepositoryOption) (*SessionRepository, error) {
+// NewSessionStore returns a new SessionStore.
+func NewSessionStore(db *DB, options ...SessionStoreOption) (*sessionStore, error) {
 	if db == nil {
 		return nil, ErrNilDB
 	}
 
-	opts := SessionRepositoryOptions{
-		Table:   defaultSessionRepositoryTable,
-		Timeout: defaultSessionRepositoryTimeout,
+	opts := SessionStoreOptions{
+		Table:   defaultSessionStoreTable,
+		Timeout: defaultSessionStoreTimeout,
 	}
 	for _, option := range options {
 		option(&opts)
@@ -55,7 +55,7 @@ func NewSessionRepository(db *DB, options ...SessionRepositoryOption) (*SessionR
 		return nil, err
 	}
 
-	r := &SessionRepository{
+	r := &sessionStore{
 		db:      db.DB,
 		driver:  db.driver,
 		table:   opts.Table,
@@ -74,7 +74,7 @@ func NewSessionRepository(db *DB, options ...SessionRepositoryOption) (*SessionR
 }
 
 // createTableIfNotExists creates the table if it does not exist.
-func (r SessionRepository) createTableIfNotExists(ctx context.Context) error {
+func (r sessionStore) createTableIfNotExists(ctx context.Context) error {
 	var query string
 	var args []any
 
@@ -100,7 +100,7 @@ func (r SessionRepository) createTableIfNotExists(ctx context.Context) error {
 }
 
 // Get a session by its ID.
-func (r SessionRepository) Get(ctx context.Context, id string) (db.Session, error) {
+func (r sessionStore) Get(ctx context.Context, id string) (db.Session, error) {
 	var session db.Session
 	if err := r.db.QueryRowContext(ctx, r.queries.selectByID, id).Scan(&session.ID, &session.ExpiresAt, &session.CSRF.Token, &session.CSRF.ExpiresAt); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -111,9 +111,21 @@ func (r SessionRepository) Get(ctx context.Context, id string) (db.Session, erro
 	return session, nil
 }
 
+// Get a session by its CSRF token.
+func (r sessionStore) GetByCSRFToken(ctx context.Context, token string) (db.Session, error) {
+	var session db.Session
+	if err := r.db.QueryRowContext(ctx, r.queries.selectByCSRFToken, token).Scan(&session.ID, &session.ExpiresAt, &session.CSRF.Token, &session.CSRF.ExpiresAt); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return db.Session{}, dberrors.ErrSessionNotFound
+		}
+		return db.Session{}, err
+	}
+	return session, nil
+}
+
 // Upsert a session. Create the session if it does not exist, otherwise
 // update it.
-func (r SessionRepository) Upsert(ctx context.Context, session db.Session) (db.Session, error) {
+func (r sessionStore) Upsert(ctx context.Context, session db.Session) (db.Session, error) {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return db.Session{}, nil
@@ -141,7 +153,7 @@ func (r SessionRepository) Upsert(ctx context.Context, session db.Session) (db.S
 }
 
 // Delete a session by its ID.
-func (r SessionRepository) Delete(ctx context.Context, id string) error {
+func (r sessionStore) Delete(ctx context.Context, id string) error {
 	result, err := r.db.ExecContext(ctx, r.queries.delete, id)
 	if err != nil {
 		return err
@@ -160,7 +172,7 @@ func (r SessionRepository) Delete(ctx context.Context, id string) error {
 }
 
 // DeleteExpired deletes all expired sessions.
-func (r SessionRepository) DeleteExpired(ctx context.Context) error {
+func (r sessionStore) DeleteExpired(ctx context.Context) error {
 	result, err := r.db.ExecContext(ctx, r.queries.deleteExpired)
 	if err != nil {
 		return err
@@ -178,20 +190,21 @@ func (r SessionRepository) DeleteExpired(ctx context.Context) error {
 	return nil
 }
 
-// Close the repository and its underlying connections.
-func (r SessionRepository) Close() error {
+// Close the Store and its underlying connections.
+func (r sessionStore) Close() error {
 	return r.db.Close()
 }
 
-// sessionQueries contains queries used by the repository.
+// sessionQueries contains queries used by the Store.
 type sessionQueries struct {
-	selectByID    string
-	upsert        string
-	delete        string
-	deleteExpired string
+	selectByID        string
+	selectByCSRFToken string
+	upsert            string
+	delete            string
+	deleteExpired     string
 }
 
-// createSessionQueries creates the queries used by the repository.
+// createSessionQueries creates the queries used by the Store.
 func createSessionQueries(driver Driver, table string) (sessionQueries, error) {
 	var columns, placeholders []string
 	var now, upsert string
@@ -217,9 +230,10 @@ func createSessionQueries(driver Driver, table string) (sessionQueries, error) {
 	}
 
 	return sessionQueries{
-		selectByID:    fmt.Sprintf("SELECT %s, %s, %s, %s FROM %s WHERE %s = %s", columns[0], columns[1], columns[2], columns[3], table, columns[0], placeholders[0]),
-		upsert:        fmt.Sprintf(upsert, table),
-		delete:        fmt.Sprintf("DELETE FROM %s WHERE %s = %s", table, columns[0], placeholders[0]),
-		deleteExpired: fmt.Sprintf("DELETE FROM %s WHERE %s < %s", table, columns[1], now),
+		selectByID:        fmt.Sprintf("SELECT %s, %s, %s, %s FROM %s WHERE %s = %s", columns[0], columns[1], columns[2], columns[3], table, columns[0], placeholders[0]),
+		selectByCSRFToken: fmt.Sprintf("SELECT %s, %s, %s, %s FROM %s WHERE %s = %s", columns[0], columns[1], columns[2], columns[3], table, columns[2], placeholders[2]),
+		upsert:            fmt.Sprintf(upsert, table),
+		delete:            fmt.Sprintf("DELETE FROM %s WHERE %s = %s", table, columns[0], placeholders[0]),
+		deleteExpired:     fmt.Sprintf("DELETE FROM %s WHERE %s < %s", table, columns[1], now),
 	}, nil
 }

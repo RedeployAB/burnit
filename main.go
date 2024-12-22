@@ -36,9 +36,9 @@ func run(log log.Logger) error {
 	}
 
 	var ui ui.UI
-	var sessions session.Store
+	var sessions session.Service
 	if cfg.Server.BackendOnly == nil || !*cfg.Server.BackendOnly {
-		ui, sessions, err = config.SetupUI(cfg.UI)
+		ui, sessions, err = config.SetupUI(cfg.UI, cfg.Services.Database)
 		if err != nil {
 			return fmt.Errorf("could not setup ui: %w", err)
 		}
@@ -57,7 +57,7 @@ func run(log log.Logger) error {
 			CleanupInterval: cfg.Server.RateLimiter.CleanupInterval,
 		}),
 		server.WithUI(ui),
-		server.WithSessionStore(sessions),
+		server.WithSessionService(sessions),
 	)
 	if err != nil {
 		return fmt.Errorf("could setup server: %w", err)
