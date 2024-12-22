@@ -13,9 +13,15 @@ const (
 
 // Store is an interface for storing sessions.
 type Store interface {
+	// Get a session by its ID.
 	Get(id string) (Session, error)
+	// Set a session.
 	Set(id string, session Session) error
+	// Delete a session by its ID.
 	Delete(id string) error
+	// Cleanup runs a cleanup routine to delete expired sessions.
+	Cleanup() chan error
+	// Close the store.
 	Close() error
 }
 
@@ -29,19 +35,17 @@ type inMemoryStore struct {
 	mu       sync.RWMutex
 }
 
-// NewInMemoryStore creates a new in-memory store.
+// NewInMemoryStore creates a new in-memory session store.
 func NewInMemoryStore() *inMemoryStore {
 	s := &inMemoryStore{
 		sessions: make(sessions),
 		mu:       sync.RWMutex{},
 		stopCh:   make(chan struct{}),
 	}
-
-	go s.cleanup()
 	return s
 }
 
-// Get returns the session with the given ID.
+// Get a session by its ID.
 func (s *inMemoryStore) Get(id string) (Session, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -57,7 +61,7 @@ func (s *inMemoryStore) Get(id string) (Session, error) {
 	return session, nil
 }
 
-// Set sets the session with the given ID.
+// Set a session.
 func (s *inMemoryStore) Set(id string, sessions Session) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -66,7 +70,7 @@ func (s *inMemoryStore) Set(id string, sessions Session) error {
 	return nil
 }
 
-// Delete deletes the session with the given ID.
+// Delete a session by its ID.
 func (s *inMemoryStore) Delete(id string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -75,32 +79,39 @@ func (s *inMemoryStore) Delete(id string) error {
 	return nil
 }
 
-// Close closes the in-memory store.
+// Close the store.
 func (s *inMemoryStore) Close() error {
 	s.stopCh <- struct{}{}
 	return nil
 }
 
-// cleanup deletes expired sessions.
-func (s *inMemoryStore) cleanup() {
-	for {
-		select {
-		case <-time.After(defaultInMemoryStoreCleanupInterval):
-			s.mu.Lock()
-			for id := range s.sessions {
-				if s.sessions[id].Expired() {
-					delete(s.sessions, id)
+// Cleanup deletes expired sessions. The channel returned
+// by the in-memory store has no real use since it does not
+// return any errors.
+func (s *inMemoryStore) Cleanup() chan error {
+	errCh := make(chan error)
+	go func() {
+		for {
+			select {
+			case <-time.After(defaultInMemoryStoreCleanupInterval):
+				s.mu.Lock()
+				for id := range s.sessions {
+					if s.sessions[id].Expired() {
+						delete(s.sessions, id)
+					}
+					if !s.sessions[id].CSRF().IsEmpty() && s.sessions[id].CSRF().Expired() {
+						sess := s.sessions[id]
+						(&sess).DeleteCSRF()
+						s.sessions[id] = sess
+					}
 				}
-				if !s.sessions[id].CSRF().IsEmpty() && s.sessions[id].CSRF().Expired() {
-					sess := s.sessions[id]
-					(&sess).DeleteCSRF()
-					s.sessions[id] = sess
-				}
+				s.mu.Unlock()
+			case <-s.stopCh:
+				close(errCh)
+				close(s.stopCh)
+				return
 			}
-			s.mu.Unlock()
-		case <-s.stopCh:
-			close(s.stopCh)
-			return
 		}
-	}
+	}()
+	return errCh
 }

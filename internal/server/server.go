@@ -134,16 +134,23 @@ func New(secrets secret.Service, options ...Option) (*server, error) {
 
 // Start the server.
 func (s server) Start() error {
-	s.routes()
-
 	go func() {
-		if err := s.listenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := s.secrets.Start(); err != nil {
 			s.errCh <- err
 		}
 	}()
 
+	if s.sessions != nil {
+		go func() {
+			for err := range s.sessions.Cleanup() {
+				s.log.Error("Could not cleanup sessions", "error", err)
+			}
+		}()
+	}
+
+	s.routes()
 	go func() {
-		if err := s.secrets.Start(); err != nil {
+		if err := s.listenAndServe(); err != nil && err != http.ErrServerClosed {
 			s.errCh <- err
 		}
 	}()

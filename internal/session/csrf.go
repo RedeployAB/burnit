@@ -18,17 +18,31 @@ type CSRF struct {
 	expiresAt time.Time
 }
 
+// CSRFOptions is a struct that holds the CSRF options.
+type CSRFOptions struct {
+	Token     string
+	ExpiresAt time.Time
+}
+
 // CSRFOption is a function that sets a CSRF option.
-type CSRFOption func(c *CSRF)
+type CSRFOption func(o *CSRFOptions)
 
 // NewCSRF creates a new CSRF.
 func NewCSRF(options ...CSRFOption) CSRF {
-	c := CSRF{
-		token:     randomString(),
-		expiresAt: now().Add(defaultCSRFDuration),
-	}
+	opts := CSRFOptions{}
 	for _, option := range options {
-		option(&c)
+		option(&opts)
+	}
+	if len(opts.Token) == 0 {
+		opts.Token = randomString()
+	}
+	if opts.ExpiresAt.IsZero() {
+		opts.ExpiresAt = now().Add(defaultCSRFDuration)
+	}
+
+	c := CSRF{
+		token:     opts.Token,
+		expiresAt: opts.ExpiresAt,
 	}
 	return c
 }
