@@ -14,8 +14,7 @@ const (
 	defaultTimeout = 5 * time.Second
 	// defaultCleanupInterval is the default interval for cleaning up expired sessions
 	// and CSRF tokens in the store.
-	defaultCleanupInterval = 5 * time.Second //time.Minute
-
+	defaultCleanupInterval = time.Minute
 )
 
 // Service is an interface for handling sessions.
