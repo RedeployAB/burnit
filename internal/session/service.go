@@ -52,6 +52,7 @@ func NewService(store db.SessionStore, options ...ServiceOption) (*service, erro
 		sessions:        store,
 		timeout:         defaultTimeout,
 		cleanupInterval: defaultCleanupInterval,
+		stopCh:          make(chan struct{}),
 	}
 
 	for _, option := range options {
@@ -142,7 +143,7 @@ func (s service) Delete(id string) error {
 // It returns a channel to receive errors. When the store is
 // closed with Close, the channel is closed as it is not
 // intended for further use.
-func (s service) Cleanup() chan error {
+func (s *service) Cleanup() chan error {
 	errCh := make(chan error)
 	go func() {
 		for {
@@ -167,7 +168,7 @@ func (s service) Cleanup() chan error {
 }
 
 // Close the service.
-func (s service) Close() error {
+func (s *service) Close() error {
 	s.stopCh <- struct{}{}
 	return s.sessions.Close()
 }

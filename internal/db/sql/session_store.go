@@ -231,7 +231,7 @@ func createSessionQueries(driver Driver, table string) (sessionQueries, error) {
 
 	return sessionQueries{
 		selectByID:        fmt.Sprintf("SELECT %s, %s, %s, %s FROM %s WHERE %s = %s", columns[0], columns[1], columns[2], columns[3], table, columns[0], placeholders[0]),
-		selectByCSRFToken: fmt.Sprintf("SELECT %s, %s, %s, %s FROM %s WHERE %s = %s", columns[0], columns[1], columns[2], columns[3], table, columns[2], placeholders[2]),
+		selectByCSRFToken: fmt.Sprintf("SELECT %s, %s, %s, %s FROM %s WHERE %s = %s", columns[0], columns[1], columns[2], columns[3], table, columns[2], placeholders[0]),
 		upsert:            fmt.Sprintf(upsert, table),
 		delete:            fmt.Sprintf("DELETE FROM %s WHERE %s = %s", table, columns[0], placeholders[0]),
 		deleteExpired:     fmt.Sprintf("DELETE FROM %s WHERE %s < %s", table, columns[1], now),
