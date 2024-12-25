@@ -119,8 +119,3 @@ func (s secretStore) Close() error {
 
 	return s.client.Disconnect(ctx)
 }
-
-// now is a function that returns the current time.
-var now = func() time.Time {
-	return time.Now().UTC()
-}
