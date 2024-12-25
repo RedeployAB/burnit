@@ -30,19 +30,19 @@ func SetupUI(config UI, databaseConfig Database) (ui.UI, session.Service, error)
 		return nil, nil, fmt.Errorf("failed to setup UI: %w", err)
 	}
 
-	sessionStore, err := setupSessionService(&databaseConfig)
+	sessionSvc, err := setupSessionService(&databaseConfig)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to setup session store: %w", err)
 	}
 
-	return u, sessionStore, nil
+	return u, sessionSvc, nil
 }
 
 // setupSessionService sets up the session service.
 func setupSessionService(config *Database) (session.Service, error) {
 	client, err := setupDBClient(config)
 	if err != nil {
-		return nil, fmt.Errorf("failed to setup db client: %w", err)
+		return nil, fmt.Errorf("failed to setup database client: %w", err)
 	}
 
 	var store db.SessionStore
