@@ -1,10 +1,8 @@
 package session
 
 import (
-	"encoding/base64"
 	"time"
 
-	"github.com/RedeployAB/burnit/internal/secret"
 	"github.com/google/uuid"
 )
 
@@ -22,13 +20,14 @@ type Session struct {
 
 // SessionOptions is a struct that holds the session options.
 type SessionOptions struct {
+	ID          string
 	ExpiresAt   time.Time
 	CSRF        CSRF
 	CSRFOptions []CSRFOption
 }
 
 // SessionOption is a function that sets a session option.
-type SessionOption func(s *SessionOptions)
+type SessionOption func(o *SessionOptions)
 
 // NewSession creates a new session.
 func NewSession(options ...SessionOption) Session {
@@ -46,8 +45,15 @@ func NewSession(options ...SessionOption) Session {
 		csrf = opts.CSRF
 	}
 
+	var id string
+	if len(opts.ID) > 0 {
+		id = opts.ID
+	} else {
+		id = newUUID()
+	}
+
 	return Session{
-		id:        newUUID(),
+		id:        id,
 		expiresAt: opts.ExpiresAt,
 		csrf:      csrf,
 	}
@@ -97,8 +103,4 @@ var newUUID = func() string {
 
 var now = func() time.Time {
 	return time.Now().UTC()
-}
-
-var randomString = func() string {
-	return base64.RawURLEncoding.EncodeToString([]byte(secret.Generate(32, true)))
 }

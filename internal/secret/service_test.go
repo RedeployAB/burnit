@@ -22,7 +22,7 @@ func TestNewService(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input struct {
-			secrets db.SecretRepository
+			secrets db.SecretStore
 			options []ServiceOption
 		}
 		want    *service
@@ -31,13 +31,13 @@ func TestNewService(t *testing.T) {
 		{
 			name: "new service",
 			input: struct {
-				secrets db.SecretRepository
+				secrets db.SecretStore
 				options []ServiceOption
 			}{
-				secrets: &mockSecretRepository{},
+				secrets: &stubSecretStore{},
 			},
 			want: &service{
-				secrets:                 &mockSecretRepository{},
+				secrets:                 &stubSecretStore{},
 				timeout:                 defaultTimeout,
 				cleanupInterval:         defaultCleanupInterval,
 				valueMaxCharacters:      defaultValueMaxCharacters,
@@ -48,10 +48,10 @@ func TestNewService(t *testing.T) {
 		{
 			name: "new service - with options",
 			input: struct {
-				secrets db.SecretRepository
+				secrets db.SecretStore
 				options []ServiceOption
 			}{
-				secrets: &mockSecretRepository{},
+				secrets: &stubSecretStore{},
 				options: []ServiceOption{
 					func(s *service) {
 						s.timeout = 30 * time.Second
@@ -63,7 +63,7 @@ func TestNewService(t *testing.T) {
 				},
 			},
 			want: &service{
-				secrets:                 &mockSecretRepository{},
+				secrets:                 &stubSecretStore{},
 				timeout:                 30 * time.Second,
 				cleanupInterval:         30 * time.Second,
 				valueMaxCharacters:      4000,
@@ -72,14 +72,14 @@ func TestNewService(t *testing.T) {
 			},
 		},
 		{
-			name: "new service - nil repository",
+			name: "new service - nil store",
 			input: struct {
-				secrets db.SecretRepository
+				secrets db.SecretStore
 				options []ServiceOption
 			}{
 				secrets: nil,
 			},
-			wantErr: ErrNilRepository,
+			wantErr: ErrNilStore,
 		},
 	}
 
@@ -87,7 +87,7 @@ func TestNewService(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			got, gotErr := NewService(test.input.secrets, test.input.options...)
 
-			if diff := cmp.Diff(test.want, got, cmp.AllowUnexported(service{}, mockSecretRepository{}), cmpopts.IgnoreFields(service{}, "stopCh")); diff != "" {
+			if diff := cmp.Diff(test.want, got, cmp.AllowUnexported(service{}, stubSecretStore{}), cmpopts.IgnoreFields(service{}, "stopCh")); diff != "" {
 				t.Errorf("NewService() = unexpected result (-want +got)\n%s\n", diff)
 			}
 
@@ -102,7 +102,7 @@ func TestService_Get(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input struct {
-			secrets db.SecretRepository
+			secrets db.SecretStore
 			id      string
 			key     string
 		}
@@ -112,11 +112,11 @@ func TestService_Get(t *testing.T) {
 		{
 			name: "get secret",
 			input: struct {
-				secrets db.SecretRepository
+				secrets db.SecretStore
 				id      string
 				key     string
 			}{
-				secrets: &mockSecretRepository{
+				secrets: &stubSecretStore{
 					secrets: []db.Secret{
 						{
 							ID: "1",
@@ -139,11 +139,11 @@ func TestService_Get(t *testing.T) {
 		{
 			name: "get secret - not found",
 			input: struct {
-				secrets db.SecretRepository
+				secrets db.SecretStore
 				id      string
 				key     string
 			}{
-				secrets: &mockSecretRepository{},
+				secrets: &stubSecretStore{},
 				id:      "1",
 			},
 			wantErr: ErrSecretNotFound,
@@ -151,11 +151,11 @@ func TestService_Get(t *testing.T) {
 		{
 			name: "get secret - expired",
 			input: struct {
-				secrets db.SecretRepository
+				secrets db.SecretStore
 				id      string
 				key     string
 			}{
-				secrets: &mockSecretRepository{
+				secrets: &stubSecretStore{
 					secrets: []db.Secret{
 						{
 							ID: "1",
@@ -175,11 +175,11 @@ func TestService_Get(t *testing.T) {
 		{
 			name: "get secret - error",
 			input: struct {
-				secrets db.SecretRepository
+				secrets db.SecretStore
 				id      string
 				key     string
 			}{
-				secrets: &mockSecretRepository{
+				secrets: &stubSecretStore{
 					err: errGetSecret,
 				},
 				id: "1",
@@ -218,7 +218,7 @@ func TestService_Create(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input struct {
-			secrets db.SecretRepository
+			secrets db.SecretStore
 			secret  Secret
 			id      string
 		}
@@ -228,11 +228,11 @@ func TestService_Create(t *testing.T) {
 		{
 			name: "create secret",
 			input: struct {
-				secrets db.SecretRepository
+				secrets db.SecretStore
 				secret  Secret
 				id      string
 			}{
-				secrets: &mockSecretRepository{},
+				secrets: &stubSecretStore{},
 				secret: Secret{
 					Value:      "secret",
 					Passphrase: "key",
@@ -249,11 +249,11 @@ func TestService_Create(t *testing.T) {
 		{
 			name: "create secret - base64 encoded value",
 			input: struct {
-				secrets db.SecretRepository
+				secrets db.SecretStore
 				secret  Secret
 				id      string
 			}{
-				secrets: &mockSecretRepository{},
+				secrets: &stubSecretStore{},
 				secret: Secret{
 					Value: func() string {
 						return base64.StdEncoding.EncodeToString([]byte("secret"))
@@ -272,11 +272,11 @@ func TestService_Create(t *testing.T) {
 		{
 			name: "create secret - base64 encoded value with invalid data",
 			input: struct {
-				secrets db.SecretRepository
+				secrets db.SecretStore
 				secret  Secret
 				id      string
 			}{
-				secrets: &mockSecretRepository{},
+				secrets: &stubSecretStore{},
 				secret: Secret{
 					Value: func() string {
 						f, err := os.OpenFile("../../assets/burnit.png", os.O_RDONLY, 0644)
@@ -295,11 +295,11 @@ func TestService_Create(t *testing.T) {
 		{
 			name: "create secret - error",
 			input: struct {
-				secrets db.SecretRepository
+				secrets db.SecretStore
 				secret  Secret
 				id      string
 			}{
-				secrets: &mockSecretRepository{
+				secrets: &stubSecretStore{
 					err: errCreateSecret,
 				},
 				secret: Secret{
@@ -342,7 +342,7 @@ func TestService_Delete(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input struct {
-			secrets db.SecretRepository
+			secrets db.SecretStore
 			id      string
 		}
 		wantErr error
@@ -350,10 +350,10 @@ func TestService_Delete(t *testing.T) {
 		{
 			name: "delete secret",
 			input: struct {
-				secrets db.SecretRepository
+				secrets db.SecretStore
 				id      string
 			}{
-				secrets: &mockSecretRepository{
+				secrets: &stubSecretStore{
 					secrets: []db.Secret{
 						{
 							ID:    "1",
@@ -368,10 +368,10 @@ func TestService_Delete(t *testing.T) {
 		{
 			name: "delete secret - not found",
 			input: struct {
-				secrets db.SecretRepository
+				secrets db.SecretStore
 				id      string
 			}{
-				secrets: &mockSecretRepository{},
+				secrets: &stubSecretStore{},
 				id:      "1",
 			},
 			wantErr: ErrSecretNotFound,
@@ -379,10 +379,10 @@ func TestService_Delete(t *testing.T) {
 		{
 			name: "delete secret - error",
 			input: struct {
-				secrets db.SecretRepository
+				secrets db.SecretStore
 				id      string
 			}{
-				secrets: &mockSecretRepository{
+				secrets: &stubSecretStore{
 					secrets: []db.Secret{
 						{
 							ID:    "1",
@@ -417,16 +417,16 @@ func TestService_DeleteExpired(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input struct {
-			secrets db.SecretRepository
+			secrets db.SecretStore
 		}
 		wantErr error
 	}{
 		{
 			name: "delete expired secrets",
 			input: struct {
-				secrets db.SecretRepository
+				secrets db.SecretStore
 			}{
-				secrets: &mockSecretRepository{
+				secrets: &stubSecretStore{
 					secrets: []db.Secret{
 						{
 							ID:        "1",
@@ -441,9 +441,9 @@ func TestService_DeleteExpired(t *testing.T) {
 		{
 			name: "delete expired secrets - no secrets",
 			input: struct {
-				secrets db.SecretRepository
+				secrets db.SecretStore
 			}{
-				secrets: &mockSecretRepository{
+				secrets: &stubSecretStore{
 					secrets: []db.Secret{},
 				},
 			},
@@ -452,9 +452,9 @@ func TestService_DeleteExpired(t *testing.T) {
 		{
 			name: "delete expired secrets - error",
 			input: struct {
-				secrets db.SecretRepository
+				secrets db.SecretStore
 			}{
-				secrets: &mockSecretRepository{
+				secrets: &stubSecretStore{
 					secrets: []db.Secret{
 						{
 							ID:        "1",
@@ -636,12 +636,12 @@ func TestValidPassphrase(t *testing.T) {
 	}
 }
 
-type mockSecretRepository struct {
+type stubSecretStore struct {
 	secrets []db.Secret
 	err     error
 }
 
-func (r mockSecretRepository) Get(ctx context.Context, id string) (db.Secret, error) {
+func (r stubSecretStore) Get(ctx context.Context, id string) (db.Secret, error) {
 	if r.err != nil {
 		return db.Secret{}, r.err
 	}
@@ -654,7 +654,7 @@ func (r mockSecretRepository) Get(ctx context.Context, id string) (db.Secret, er
 	return db.Secret{}, dberrors.ErrSecretNotFound
 }
 
-func (r *mockSecretRepository) Create(ctx context.Context, s db.Secret) (db.Secret, error) {
+func (r *stubSecretStore) Create(ctx context.Context, s db.Secret) (db.Secret, error) {
 	if r.err != nil {
 		return db.Secret{}, r.err
 	}
@@ -666,7 +666,7 @@ func (r *mockSecretRepository) Create(ctx context.Context, s db.Secret) (db.Secr
 	}, nil
 }
 
-func (r *mockSecretRepository) Delete(ctx context.Context, id string) error {
+func (r *stubSecretStore) Delete(ctx context.Context, id string) error {
 	if r.err != nil && errors.Is(r.err, errDeleteSecret) {
 		return r.err
 	}
@@ -681,7 +681,7 @@ func (r *mockSecretRepository) Delete(ctx context.Context, id string) error {
 	return dberrors.ErrSecretNotFound
 }
 
-func (r *mockSecretRepository) DeleteExpired(ctx context.Context) error {
+func (r *stubSecretStore) DeleteExpired(ctx context.Context) error {
 	if r.err != nil && errors.Is(r.err, errDeleteManySecrets) {
 		return r.err
 	}
@@ -694,7 +694,7 @@ func (r *mockSecretRepository) DeleteExpired(ctx context.Context) error {
 	return dberrors.ErrSecretsNotDeleted
 }
 
-func (r mockSecretRepository) Close() error {
+func (r stubSecretStore) Close() error {
 	return nil
 }
 

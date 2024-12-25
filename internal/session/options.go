@@ -27,7 +27,21 @@ func WithCSRFOptions(options ...CSRFOption) SessionOption {
 
 // WithCSRFExpiresAt sets the expiration time of the CSRF token.
 func WithCSRFExpiresAt(exp time.Time) CSRFOption {
-	return func(c *CSRF) {
-		c.expiresAt = exp
+	return func(o *CSRFOptions) {
+		o.ExpiresAt = exp
+	}
+}
+
+// Get a session by its ID.
+func WithID(id string) GetOption {
+	return func(o *GetOptions) {
+		o.ID = id
+	}
+}
+
+// Get a session by its CSRF token.
+func WithCSRFToken(token string) GetOption {
+	return func(o *GetOptions) {
+		o.CSRFToken = token
 	}
 }
