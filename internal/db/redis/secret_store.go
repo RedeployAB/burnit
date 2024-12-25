@@ -38,8 +38,8 @@ func NewSecretStore(client Client, options ...SecretStoreOption) (*secretStore, 
 }
 
 // Get a secret by its ID.
-func (r secretStore) Get(ctx context.Context, id string) (db.Secret, error) {
-	data, err := r.client.Get(ctx, id)
+func (s secretStore) Get(ctx context.Context, id string) (db.Secret, error) {
+	data, err := s.client.Get(ctx, id)
 	if err != nil {
 		if errors.Is(err, ErrKeyNotFound) {
 			return db.Secret{}, dberrors.ErrSecretNotFound
@@ -54,16 +54,16 @@ func (r secretStore) Get(ctx context.Context, id string) (db.Secret, error) {
 }
 
 // Create a secret.
-func (r secretStore) Create(ctx context.Context, secret db.Secret) (db.Secret, error) {
-	if err := r.client.Set(ctx, secret.ID, secretToJSON(secret), time.Until(secret.ExpiresAt)); err != nil {
+func (s secretStore) Create(ctx context.Context, secret db.Secret) (db.Secret, error) {
+	if err := s.client.Set(ctx, secret.ID, secretToJSON(secret), time.Until(secret.ExpiresAt)); err != nil {
 		return db.Secret{}, err
 	}
-	return r.Get(ctx, secret.ID)
+	return s.Get(ctx, secret.ID)
 }
 
 // Delete a secret by its ID.
-func (r secretStore) Delete(ctx context.Context, id string) error {
-	if err := r.client.Delete(ctx, id); err != nil {
+func (s secretStore) Delete(ctx context.Context, id string) error {
+	if err := s.client.Delete(ctx, id); err != nil {
 		if errors.Is(err, ErrKeyNotFound) {
 			return dberrors.ErrSecretNotFound
 		}
@@ -74,13 +74,13 @@ func (r secretStore) Delete(ctx context.Context, id string) error {
 
 // DeleteExpired deletes all expired secrets. This is a no-op for Redis
 // since Redis handles expiration automatically.
-func (r secretStore) DeleteExpired(ctx context.Context) error {
+func (s secretStore) DeleteExpired(ctx context.Context) error {
 	return nil
 }
 
 // Close the store and its underlying connections.
-func (r secretStore) Close() error {
-	return r.client.Close()
+func (s secretStore) Close() error {
+	return s.client.Close()
 }
 
 // secretToJSON converts a secret to JSON.

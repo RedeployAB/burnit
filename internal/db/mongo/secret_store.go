@@ -11,11 +11,11 @@ import (
 )
 
 const (
-	// defaultSecretStoreDatabase is the default database for the secret store.
+	// defaultSecretStoreDatabase is the default database for the SecretStore.
 	defaultSecretStoreDatabase = "burnit"
-	// defaultSecretStoreCollection is the default collection for the secret store.
+	// defaultSecretStoreCollection is the default collection for the SecretStore.
 	defaultSecretStoreCollection = "secrets"
-	// defaultSecretStoreTimeout is the default timeout for the secret store.
+	// defaultSecretStoreTimeout is the default timeout for the SecretStore.
 	defaultSecretStoreTimeout = 10 * time.Second
 )
 
@@ -63,8 +63,8 @@ func NewSecretStore(client Client, options ...SecretStoreOption) (*secretStore, 
 }
 
 // Get a secret by its ID.
-func (r secretStore) Get(ctx context.Context, id string) (db.Secret, error) {
-	res, err := r.client.Collection(r.collection).FindOne(ctx, bson.D{{Key: "_id", Value: id}})
+func (s secretStore) Get(ctx context.Context, id string) (db.Secret, error) {
+	res, err := s.client.Collection(s.collection).FindOne(ctx, bson.D{{Key: "_id", Value: id}})
 	if err != nil {
 		if errors.Is(err, ErrNoDocuments) {
 			return db.Secret{}, dberrors.ErrSecretNotFound
@@ -80,17 +80,17 @@ func (r secretStore) Get(ctx context.Context, id string) (db.Secret, error) {
 }
 
 // Create a secret.
-func (r secretStore) Create(ctx context.Context, secret db.Secret) (db.Secret, error) {
-	id, err := r.client.Collection(r.collection).InsertOne(ctx, secret)
+func (s secretStore) Create(ctx context.Context, secret db.Secret) (db.Secret, error) {
+	id, err := s.client.Collection(s.collection).InsertOne(ctx, secret)
 	if err != nil {
 		return db.Secret{}, err
 	}
-	return r.Get(ctx, id)
+	return s.Get(ctx, id)
 }
 
 // Delete a secret by its ID.
-func (r secretStore) Delete(ctx context.Context, id string) error {
-	if err := r.client.Collection(r.collection).DeleteOne(ctx, bson.D{{Key: "_id", Value: id}}); err != nil {
+func (s secretStore) Delete(ctx context.Context, id string) error {
+	if err := s.client.Collection(s.collection).DeleteOne(ctx, bson.D{{Key: "_id", Value: id}}); err != nil {
 		if errors.Is(err, ErrDocumentNotDeleted) {
 			return dberrors.ErrSecretNotFound
 		}
@@ -100,9 +100,9 @@ func (r secretStore) Delete(ctx context.Context, id string) error {
 }
 
 // DeleteExpired deletes all expired secrets.
-func (r secretStore) DeleteExpired(ctx context.Context) error {
+func (s secretStore) DeleteExpired(ctx context.Context) error {
 	filter := bson.D{{Key: "expiresAt", Value: bson.D{{Key: "$lt", Value: now()}}}}
-	err := r.client.Collection(r.collection).DeleteMany(ctx, filter)
+	err := s.client.Collection(s.collection).DeleteMany(ctx, filter)
 	if err != nil {
 		if errors.Is(err, ErrDocumentsNotDeleted) {
 			return dberrors.ErrSecretsNotDeleted
@@ -113,11 +113,11 @@ func (r secretStore) DeleteExpired(ctx context.Context) error {
 }
 
 // Close the store and its underlying connections.
-func (r secretStore) Close() error {
-	ctx, cancel := context.WithTimeout(context.Background(), r.timeout)
+func (s secretStore) Close() error {
+	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
 	defer cancel()
 
-	return r.client.Disconnect(ctx)
+	return s.client.Disconnect(ctx)
 }
 
 // now is a function that returns the current time.
