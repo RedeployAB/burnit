@@ -10,20 +10,20 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-type mockMongoClient struct {
+type stubMongoClient struct {
 	err     error
 	secrets []db.Secret
 }
 
-func (c *mockMongoClient) Database(database string) Client {
+func (c *stubMongoClient) Database(database string) Client {
 	return c
 }
 
-func (c *mockMongoClient) Collection(collection string) Client {
+func (c *stubMongoClient) Collection(collection string) Client {
 	return c
 }
 
-func (c mockMongoClient) FindOne(ctx context.Context, filter any) (Result, error) {
+func (c stubMongoClient) FindOne(ctx context.Context, filter any) (Result, error) {
 	if c.err != nil {
 		return nil, c.err
 	}
@@ -36,7 +36,7 @@ func (c mockMongoClient) FindOne(ctx context.Context, filter any) (Result, error
 					if err != nil {
 						return nil, err
 					}
-					return mockResult{data: data}, nil
+					return stubResult{data: data}, nil
 				}
 			default:
 				return nil, errors.New("invalid filter")
@@ -47,7 +47,7 @@ func (c mockMongoClient) FindOne(ctx context.Context, filter any) (Result, error
 	return nil, ErrNoDocuments
 }
 
-func (c *mockMongoClient) InsertOne(ctx context.Context, document any) (string, error) {
+func (c *stubMongoClient) InsertOne(ctx context.Context, document any) (string, error) {
 	if c.err != nil {
 		return "", c.err
 	}
@@ -64,7 +64,7 @@ func (c *mockMongoClient) InsertOne(ctx context.Context, document any) (string, 
 	return "", errors.New("could not determine database type")
 }
 
-func (c *mockMongoClient) DeleteOne(ctx context.Context, filter any) error {
+func (c *stubMongoClient) DeleteOne(ctx context.Context, filter any) error {
 	if c.err != nil {
 		return c.err
 	}
@@ -82,7 +82,7 @@ func (c *mockMongoClient) DeleteOne(ctx context.Context, filter any) error {
 	return ErrDocumentNotDeleted
 }
 
-func (c *mockMongoClient) DeleteMany(ctx context.Context, filter any) error {
+func (c *stubMongoClient) DeleteMany(ctx context.Context, filter any) error {
 	if c.err != nil {
 		return c.err
 	}
@@ -97,16 +97,16 @@ func (c *mockMongoClient) DeleteMany(ctx context.Context, filter any) error {
 	return nil
 }
 
-func (c mockMongoClient) Disconnect(ctx context.Context) error {
+func (c stubMongoClient) Disconnect(ctx context.Context) error {
 	return nil
 }
 
-type mockResult struct {
+type stubResult struct {
 	err  error
 	data []byte
 }
 
-func (r mockResult) Decode(v any) error {
+func (r stubResult) Decode(v any) error {
 	if r.err != nil {
 		return r.err
 	}

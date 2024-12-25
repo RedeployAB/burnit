@@ -57,7 +57,7 @@ func TestLogger(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			logs := []string{}
-			log := &mockLogger{
+			log := &stubLogger{
 				logs: &logs,
 			}
 
@@ -79,11 +79,11 @@ func TestLogger(t *testing.T) {
 	}
 }
 
-type mockLogger struct {
+type stubLogger struct {
 	logs *[]string
 }
 
-func (l *mockLogger) Info(msg string, args ...any) {
+func (l *stubLogger) Info(msg string, args ...any) {
 	if l.logs == nil {
 		l.logs = &[]string{}
 	}
@@ -102,7 +102,7 @@ func (l *mockLogger) Info(msg string, args ...any) {
 	*l.logs = append(*l.logs, messages...)
 }
 
-func (l *mockLogger) Error(msg string, args ...any) {
+func (l *stubLogger) Error(msg string, args ...any) {
 	if l.logs == nil {
 		l.logs = &[]string{}
 	}
@@ -121,6 +121,6 @@ func (l *mockLogger) Error(msg string, args ...any) {
 	*l.logs = append(*l.logs, messages...)
 }
 
-func (l *mockLogger) Debug(msg string, args ...any) {}
+func (l *stubLogger) Debug(msg string, args ...any) {}
 
-func (l *mockLogger) Warn(msg string, args ...any) {}
+func (l *stubLogger) Warn(msg string, args ...any) {}

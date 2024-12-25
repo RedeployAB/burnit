@@ -1,5 +1,5 @@
-# golang:1.23.2-alpine3.20 SHA digest.
-FROM golang@sha256:9dd2625a1ff2859b8d8b01d8f7822c0f528942fe56cfe7a1e7c38d3b8d72d679 AS builder
+# golang:1.23.4-alpine3.21 SHA digest.
+FROM golang@sha256:6c5c9590f169f77c8046e45c611d3b28fe477789acd8d3762d23d4744de69812 AS builder
 
 ARG BIN=burnit
 

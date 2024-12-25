@@ -134,9 +134,14 @@ func New(secrets secret.Service, options ...Option) (*server, error) {
 
 // Start the server.
 func (s server) Start() error {
+	defer func() {
+		close(s.errCh)
+		close(s.stopCh)
+	}()
+
 	go func() {
-		if err := s.secrets.Start(); err != nil {
-			s.errCh <- err
+		for err := range s.secrets.Cleanup() {
+			s.log.Error("Could not cleanup secrets", "error", err)
 		}
 	}()
 
@@ -163,11 +168,9 @@ func (s server) Start() error {
 	for {
 		select {
 		case err := <-s.errCh:
-			close(s.errCh)
 			return err
 		case sig := <-s.stopCh:
 			s.log.Info("Server stopped.", "reason", sig.String())
-			close(s.stopCh)
 			return nil
 		}
 	}
