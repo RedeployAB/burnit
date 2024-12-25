@@ -32,16 +32,30 @@ func WithCSRFExpiresAt(exp time.Time) CSRFOption {
 	}
 }
 
-// Get a session by its ID.
-func WithID(id string) GetOption {
+// GetWithID a session by its ID.
+func GetWithID(id string) GetOption {
 	return func(o *GetOptions) {
 		o.ID = id
 	}
 }
 
-// Get a session by its CSRF token.
-func WithCSRFToken(token string) GetOption {
+// GetWithCSRFToken a session by its CSRF token.
+func GetWithCSRFToken(token string) GetOption {
 	return func(o *GetOptions) {
+		o.CSRFToken = token
+	}
+}
+
+// DeleteWithID deletes a session by its ID.
+func DeleteWithID(id string) DeleteOption {
+	return func(o *DeleteOptions) {
+		o.ID = id
+	}
+}
+
+// DeleteWithCSRFToken deletes a session by its CSRF token.
+func DeleteWithCSRFToken(token string) DeleteOption {
+	return func(o *DeleteOptions) {
 		o.CSRFToken = token
 	}
 }
