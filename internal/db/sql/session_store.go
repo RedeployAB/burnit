@@ -171,6 +171,25 @@ func (r sessionStore) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
+// DeleteByCSRFToken deletes a session by its CSRF token.
+func (r sessionStore) DeleteByCSRFToken(ctx context.Context, token string) error {
+	result, err := r.db.ExecContext(ctx, r.queries.deleteByCSRFToken, token)
+	if err != nil {
+		return err
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rows == 0 {
+		return dberrors.ErrSessionNotFound
+	}
+
+	return nil
+}
+
 // DeleteExpired deletes all expired sessions.
 func (r sessionStore) DeleteExpired(ctx context.Context) error {
 	result, err := r.db.ExecContext(ctx, r.queries.deleteExpired)
@@ -201,6 +220,7 @@ type sessionQueries struct {
 	selectByCSRFToken string
 	upsert            string
 	delete            string
+	deleteByCSRFToken string
 	deleteExpired     string
 }
 
@@ -234,6 +254,7 @@ func createSessionQueries(driver Driver, table string) (sessionQueries, error) {
 		selectByCSRFToken: fmt.Sprintf("SELECT %s, %s, %s, %s FROM %s WHERE %s = %s", columns[0], columns[1], columns[2], columns[3], table, columns[2], placeholders[0]),
 		upsert:            fmt.Sprintf(upsert, table),
 		delete:            fmt.Sprintf("DELETE FROM %s WHERE %s = %s", table, columns[0], placeholders[0]),
+		deleteByCSRFToken: fmt.Sprintf("DELETE FROM %s WHERE %s = %s", table, columns[2], placeholders[0]),
 		deleteExpired:     fmt.Sprintf("DELETE FROM %s WHERE %s < %s", table, columns[1], now),
 	}, nil
 }

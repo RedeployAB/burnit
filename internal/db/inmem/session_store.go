@@ -95,6 +95,27 @@ func (s *sessionStore) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
+// DeleteByCSRFToken deletes a session by its CSRF token.
+func (s *sessionStore) DeleteByCSRFToken(ctx context.Context, token string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	id, ok := s.sessionCSRF[token]
+	if !ok {
+		return dberrors.ErrSessionNotFound
+	}
+
+	session, ok := s.sessions[id]
+	if !ok {
+		return dberrors.ErrSessionNotFound
+	}
+
+	delete(s.sessionCSRF, session.CSRF.Token)
+	delete(s.sessions, session.ID)
+
+	return nil
+}
+
 // DeleteExpired deletes all expired sessions.
 func (s *sessionStore) DeleteExpired(ctx context.Context) error {
 	s.mu.Lock()

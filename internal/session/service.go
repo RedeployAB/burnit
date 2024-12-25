@@ -25,7 +25,7 @@ type Service interface {
 	// Set a session.
 	Set(session Session) error
 	// Delete a session by its ID.
-	Delete(id string) error
+	Delete(options ...DeleteOption) error
 	// Cleanup runs a cleanup routine to delete expired sessions.
 	Cleanup() chan error
 	// Close the service.
@@ -74,13 +74,13 @@ type GetOption func(o *GetOptions)
 
 // Get a session by its ID.
 func (s service) Get(options ...GetOption) (Session, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
-	defer cancel()
-
 	opts := GetOptions{}
 	for _, option := range options {
 		option(&opts)
 	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
+	defer cancel()
 
 	var getFunc func(context.Context, string) (db.Session, error)
 	var param string
@@ -132,12 +132,39 @@ func (s service) Set(session Session) error {
 	return nil
 }
 
+// DeleteOptions contains options for deleting a session.
+type DeleteOptions struct {
+	ID        string
+	CSRFToken string
+}
+
+// DeleteOption is a function that configures the DeleteOptions.
+type DeleteOption func(o *DeleteOptions)
+
 // Delete a session by its ID.
-func (s service) Delete(id string) error {
+func (s service) Delete(options ...DeleteOption) error {
+	opts := DeleteOptions{}
+	for _, option := range options {
+		option(&opts)
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
 	defer cancel()
 
-	return s.sessions.Delete(ctx, id)
+	var deleteFunc func(context.Context, string) error
+	var param string
+	switch {
+	case len(opts.ID) > 0:
+		deleteFunc = s.sessions.Delete
+		param = opts.ID
+	case len(opts.CSRFToken) > 0:
+		deleteFunc = s.sessions.DeleteByCSRFToken
+		param = opts.CSRFToken
+	default:
+		return errors.New("no ID or CSRF token provided")
+	}
+
+	return deleteFunc(ctx, param)
 }
 
 // Cleanup runs a cleanup routine to delete expired sessions.

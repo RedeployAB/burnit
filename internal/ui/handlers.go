@@ -187,7 +187,7 @@ func CreateSecretHandler(ui UI, secrets secret.Service, sessions session.Service
 			return
 		}
 
-		if err := sessions.Delete(r.FormValue("csrf-token")); err != nil {
+		if err := sessions.Delete(session.DeleteWithCSRFToken(r.FormValue("csrf-token"))); err != nil {
 			log.Error("Failed to delete session.", uiLog(err, "HandlerCreateSecret", requestIDFromContext(r.Context()))...)
 		}
 
@@ -254,7 +254,7 @@ func GetSecretHandler(ui UI, secrets secret.Service, sessions session.Service, l
 			return
 		}
 
-		if err := sessions.Delete(r.FormValue("csrf-token")); err != nil {
+		if err := sessions.Delete(session.DeleteWithCSRFToken(r.FormValue("csrf-token"))); err != nil {
 			log.Error("Failed to delete session.", "handler", "HandlerGetSecret", "error", err, "requestId", requestIDFromContext(r.Context()))
 		}
 
@@ -290,7 +290,7 @@ func extractIDAndPassphrase(route, path string) (string, string, error) {
 // In this implementation the CSRF token is the session ID, since
 // sessions have only been implemented for CSRF tokens.
 func validateCSRFTToken(ctx context.Context, sessions session.Service, token string) (bool, int, errorResponse, error) {
-	sess, err := sessions.Get(session.WithCSRFToken(token))
+	sess, err := sessions.Get(session.GetWithCSRFToken(token))
 	if err != nil {
 		title := "Could not retrieve session"
 		if errors.Is(err, session.ErrSessionNotFound) {
