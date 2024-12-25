@@ -190,7 +190,7 @@ func (r sessionStore) DeleteExpired(ctx context.Context) error {
 	return nil
 }
 
-// Close the Store and its underlying connections.
+// Close the store and its underlying connections.
 func (r sessionStore) Close() error {
 	return r.db.Close()
 }

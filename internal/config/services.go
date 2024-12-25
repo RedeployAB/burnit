@@ -33,7 +33,7 @@ type dbClient struct {
 func SetupServices(config Services) (*services, error) {
 	dbClient, err := setupDBClient(&config.Database)
 	if err != nil {
-		return nil, fmt.Errorf("failed to setup db clients: %w", err)
+		return nil, fmt.Errorf("failed to setup database client: %w", err)
 	}
 
 	store, err := setupSecretStore(dbClient, &config.Database)

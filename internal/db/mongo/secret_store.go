@@ -112,7 +112,7 @@ func (r secretStore) DeleteExpired(ctx context.Context) error {
 	return nil
 }
 
-// Close the SecetStore and its underlying connections.
+// Close the store and its underlying connections.
 func (r secretStore) Close() error {
 	ctx, cancel := context.WithTimeout(context.Background(), r.timeout)
 	defer cancel()

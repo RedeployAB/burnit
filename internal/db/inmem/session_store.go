@@ -95,7 +95,7 @@ func (s *sessionStore) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-// DeleteExpired deletes ≤all expired sessions.
+// DeleteExpired deletes all expired sessions.
 func (s *sessionStore) DeleteExpired(ctx context.Context) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -110,7 +110,7 @@ func (s *sessionStore) DeleteExpired(ctx context.Context) error {
 	return nil
 }
 
-// Close the SecretStore and its underlying connections.
+// Close the store and its underlying connections.
 func (s *sessionStore) Close() error {
 	return nil
 }
