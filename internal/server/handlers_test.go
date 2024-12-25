@@ -32,7 +32,7 @@ func TestServer_generateSecret(t *testing.T) {
 				secrets secret.Service
 				req     *http.Request
 			}{
-				secrets: &mockSecretService{},
+				secrets: &stubSecretService{},
 				req:     httptest.NewRequest("GET", "/secret?length=8", nil),
 			},
 			want: struct {
@@ -49,7 +49,7 @@ func TestServer_generateSecret(t *testing.T) {
 				secrets secret.Service
 				req     *http.Request
 			}{
-				secrets: &mockSecretService{},
+				secrets: &stubSecretService{},
 				req:     httptest.NewRequest("GET", "/secret?length=8&specialCharacters=true", nil),
 			},
 			want: struct {
@@ -66,7 +66,7 @@ func TestServer_generateSecret(t *testing.T) {
 				secrets secret.Service
 				req     *http.Request
 			}{
-				secrets: &mockSecretService{},
+				secrets: &stubSecretService{},
 				req:     httptest.NewRequest("GET", "/secret?length=16", nil),
 			},
 			want: struct {
@@ -83,7 +83,7 @@ func TestServer_generateSecret(t *testing.T) {
 				secrets secret.Service
 				req     *http.Request
 			}{
-				secrets: &mockSecretService{},
+				secrets: &stubSecretService{},
 				req:     httptest.NewRequest("GET", "/secret?length=16&specialCharacters=true", nil),
 			},
 			want: struct {
@@ -100,7 +100,7 @@ func TestServer_generateSecret(t *testing.T) {
 				secrets secret.Service
 				req     *http.Request
 			}{
-				secrets: &mockSecretService{},
+				secrets: &stubSecretService{},
 				req: func() *http.Request {
 					req := httptest.NewRequest("GET", "/secret?length=8", nil)
 					req.Header.Set("Accept", "text/plain")
@@ -122,7 +122,7 @@ func TestServer_generateSecret(t *testing.T) {
 			rr := httptest.NewRecorder()
 			req := test.input.req
 
-			generateSecret(test.input.secrets, &mockLogger{}).ServeHTTP(rr, req)
+			generateSecret(test.input.secrets, &stubLogger{}).ServeHTTP(rr, req)
 
 			gotCode := rr.Code
 			gotBody := rr.Body.Bytes()
@@ -158,7 +158,7 @@ func TestServer_getSecret(t *testing.T) {
 				req     *http.Request
 				path    string
 			}{
-				secrets: &mockSecretService{
+				secrets: &stubSecretService{
 					secrets: []secret.Secret{
 						{ID: "1", Value: "secret"},
 					},
@@ -186,7 +186,7 @@ func TestServer_getSecret(t *testing.T) {
 				req     *http.Request
 				path    string
 			}{
-				secrets: &mockSecretService{
+				secrets: &stubSecretService{
 					secrets: []secret.Secret{
 						{ID: "1", Value: "secret", Passphrase: "passphrase"},
 					},
@@ -213,7 +213,7 @@ func TestServer_getSecret(t *testing.T) {
 				req     *http.Request
 				path    string
 			}{
-				secrets: &mockSecretService{
+				secrets: &stubSecretService{
 					secrets: []secret.Secret{
 						{ID: "1", Value: "secret", Passphrase: "passphrase"},
 					},
@@ -241,7 +241,7 @@ func TestServer_getSecret(t *testing.T) {
 				req     *http.Request
 				path    string
 			}{
-				secrets: &mockSecretService{
+				secrets: &stubSecretService{
 					secrets: []secret.Secret{},
 				},
 				req: func() *http.Request {
@@ -267,7 +267,7 @@ func TestServer_getSecret(t *testing.T) {
 				req     *http.Request
 				path    string
 			}{
-				secrets: &mockSecretService{
+				secrets: &stubSecretService{
 					err: errSecretService,
 				},
 				req: func() *http.Request {
@@ -292,7 +292,7 @@ func TestServer_getSecret(t *testing.T) {
 			rr := httptest.NewRecorder()
 			req := test.input.req
 
-			getSecret(test.input.secrets, &mockLogger{}).ServeHTTP(rr, req)
+			getSecret(test.input.secrets, &stubLogger{}).ServeHTTP(rr, req)
 
 			gotCode := rr.Code
 			gotBody := rr.Body.Bytes()
@@ -326,7 +326,7 @@ func TestServer_createSecret(t *testing.T) {
 				secrets secret.Service
 				req     *http.Request
 			}{
-				secrets: &mockSecretService{},
+				secrets: &stubSecretService{},
 				req:     httptest.NewRequest("POST", "/secret", strings.NewReader(`{"value":"1","ttl":"1h"}`)),
 			},
 			want: struct {
@@ -343,7 +343,7 @@ func TestServer_createSecret(t *testing.T) {
 				secrets secret.Service
 				req     *http.Request
 			}{
-				secrets: &mockSecretService{},
+				secrets: &stubSecretService{},
 				req:     httptest.NewRequest("POST", "/secret", strings.NewReader(`{"value":"","ttl":"1h"}`)),
 			},
 			want: struct {
@@ -360,7 +360,7 @@ func TestServer_createSecret(t *testing.T) {
 				secrets secret.Service
 				req     *http.Request
 			}{
-				secrets: &mockSecretService{
+				secrets: &stubSecretService{
 					err: errSecretService,
 				},
 				req: httptest.NewRequest("POST", "/secret", strings.NewReader(`{"value":"1","ttl":"1h"}`)),
@@ -380,7 +380,7 @@ func TestServer_createSecret(t *testing.T) {
 			rr := httptest.NewRecorder()
 			req := test.input.req
 
-			createSecret(test.input.secrets, &mockLogger{}).ServeHTTP(rr, req)
+			createSecret(test.input.secrets, &stubLogger{}).ServeHTTP(rr, req)
 
 			gotCode := rr.Code
 			gotBody := rr.Body.Bytes()
@@ -396,20 +396,16 @@ func TestServer_createSecret(t *testing.T) {
 	}
 }
 
-type mockSecretService struct {
+type stubSecretService struct {
 	secrets []secret.Secret
 	err     error
 }
 
-func (s mockSecretService) Start() error {
+func (s stubSecretService) Start() error {
 	return nil
 }
 
-func (s mockSecretService) Close() error {
-	return nil
-}
-
-func (s mockSecretService) Generate(length int, specialCharacters bool) string {
+func (s stubSecretService) Generate(length int, specialCharacters bool) string {
 	var builder strings.Builder
 	for i := 0; i < length; i++ {
 		if specialCharacters && i%2 != 0 {
@@ -421,7 +417,7 @@ func (s mockSecretService) Generate(length int, specialCharacters bool) string {
 	return builder.String()
 }
 
-func (s mockSecretService) Get(id, passphrase string, options ...secret.GetOption) (secret.Secret, error) {
+func (s stubSecretService) Get(id, passphrase string, options ...secret.GetOption) (secret.Secret, error) {
 	if s.err != nil {
 		return secret.Secret{}, s.err
 	}
@@ -447,7 +443,7 @@ func (s mockSecretService) Get(id, passphrase string, options ...secret.GetOptio
 	return sec, nil
 }
 
-func (s *mockSecretService) Create(se secret.Secret) (secret.Secret, error) {
+func (s *stubSecretService) Create(se secret.Secret) (secret.Secret, error) {
 	if s.err != nil {
 		return secret.Secret{}, s.err
 	}
@@ -477,11 +473,15 @@ func (s *mockSecretService) Create(se secret.Secret) (secret.Secret, error) {
 	return secret, nil
 }
 
-func (s mockSecretService) Delete(id string, options ...secret.DeleteOption) error {
+func (s stubSecretService) Delete(id string, options ...secret.DeleteOption) error {
 	return nil
 }
 
-func (s mockSecretService) DeleteExpired() error {
+func (s stubSecretService) Close() error {
+	return nil
+}
+
+func (s stubSecretService) Cleanup() chan error {
 	return nil
 }
 

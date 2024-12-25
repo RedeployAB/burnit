@@ -31,7 +31,7 @@ func TestNew(t *testing.T) {
 				secrets secret.Service
 				options []Option
 			}{
-				secrets: &mockSecretService{},
+				secrets: &stubSecretService{},
 				options: nil,
 			},
 			want: &server{
@@ -42,7 +42,7 @@ func TestNew(t *testing.T) {
 					WriteTimeout: defaultWriteTimeout,
 					IdleTimeout:  defaultIdleTimeout,
 				},
-				secrets: &mockSecretService{},
+				secrets: &stubSecretService{},
 				router:  &router{ServeMux: http.NewServeMux()},
 				log:     log.New(),
 			},
@@ -53,7 +53,7 @@ func TestNew(t *testing.T) {
 				secrets secret.Service
 				options []Option
 			}{
-				secrets: &mockSecretService{},
+				secrets: &stubSecretService{},
 				options: []Option{
 					WithOptions(Options{
 						Router:       NewRouter(),
@@ -74,7 +74,7 @@ func TestNew(t *testing.T) {
 					WriteTimeout: 10 * time.Second,
 					IdleTimeout:  15 * time.Second,
 				},
-				secrets: &mockSecretService{},
+				secrets: &stubSecretService{},
 				router:  NewRouter(),
 				log:     log.New(),
 			},
@@ -88,7 +88,7 @@ func TestNew(t *testing.T) {
 				t.Errorf("New(%v) = nil; want %v", test.input, test.want)
 			}
 
-			if diff := cmp.Diff(test.want, got, cmp.AllowUnexported(server{}, mockSecretService{}), cmpopts.IgnoreUnexported(http.Server{}, http.ServeMux{}), cmpopts.IgnoreFields(server{}, "stopCh", "errCh", "log")); diff != "" {
+			if diff := cmp.Diff(test.want, got, cmp.AllowUnexported(server{}, stubSecretService{}), cmpopts.IgnoreUnexported(http.Server{}, http.ServeMux{}), cmpopts.IgnoreFields(server{}, "stopCh", "errCh", "log")); diff != "" {
 				t.Errorf("New(%v) = unexpected result (-want +got):\n%s\n", test.input, diff)
 			}
 		})
@@ -103,8 +103,8 @@ func TestServer_Start(t *testing.T) {
 				Addr: "localhost:8080",
 			},
 			router:  &router{ServeMux: http.NewServeMux()},
-			secrets: &mockSecretService{},
-			log: &mockLogger{
+			secrets: &stubSecretService{},
+			log: &stubLogger{
 				logs: &logs,
 			},
 			stopCh: make(chan os.Signal),
@@ -139,8 +139,8 @@ func TestServer_Start_Error(t *testing.T) {
 				Addr: "localhost:8080",
 			},
 			router:  &router{ServeMux: http.NewServeMux()},
-			secrets: &mockSecretService{},
-			log: &mockLogger{
+			secrets: &stubSecretService{},
+			log: &stubLogger{
 				logs: &logs,
 			},
 			stopCh: make(chan os.Signal),
@@ -172,11 +172,11 @@ func TestServer_Start_Error(t *testing.T) {
 	})
 }
 
-type mockLogger struct {
+type stubLogger struct {
 	logs *[]string
 }
 
-func (l *mockLogger) Info(msg string, args ...any) {
+func (l *stubLogger) Info(msg string, args ...any) {
 	if l.logs == nil {
 		l.logs = &[]string{}
 	}
@@ -195,7 +195,7 @@ func (l *mockLogger) Info(msg string, args ...any) {
 	*l.logs = append(*l.logs, messages...)
 }
 
-func (l *mockLogger) Error(msg string, args ...any) {
+func (l *stubLogger) Error(msg string, args ...any) {
 	if l.logs == nil {
 		l.logs = &[]string{}
 	}
@@ -214,6 +214,6 @@ func (l *mockLogger) Error(msg string, args ...any) {
 	*l.logs = append(*l.logs, messages...)
 }
 
-func (l *mockLogger) Debug(msg string, args ...any) {}
+func (l *stubLogger) Debug(msg string, args ...any) {}
 
-func (l *mockLogger) Warn(msg string, args ...any) {}
+func (l *stubLogger) Warn(msg string, args ...any) {}

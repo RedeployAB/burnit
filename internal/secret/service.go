@@ -51,10 +51,6 @@ var newUUID = func() string {
 
 // Service is the interface that provides methods for secret operations.
 type Service interface {
-	// Start the service and initialize its resources.
-	Start() error
-	// Close the service and its resources.
-	Close() error
 	// Generate a new secret.
 	Generate(length int, specialCharacters bool) string
 	// Get a secret.
@@ -63,8 +59,10 @@ type Service interface {
 	Create(secret Secret) (Secret, error)
 	// Delete a secret.
 	Delete(id string, options ...DeleteOption) error
-	// Delete expired secrets.
-	DeleteExpired() error
+	// Cleanup runs a cleanup routine to delete expired secrets.
+	Cleanup() chan error
+	// Close the service and its resources.
+	Close() error
 }
 
 // service provides handling operations for secrets and satisfies Service.
@@ -102,27 +100,6 @@ func NewService(store db.SecretStore, options ...ServiceOption) (*service, error
 	}
 
 	return svc, nil
-}
-
-// Start the service and initialize its resources.
-func (s *service) Start() error {
-	for {
-		select {
-		case <-time.After(s.cleanupInterval):
-			if err := s.DeleteExpired(); err != nil {
-				return fmt.Errorf("secret store: %w", err)
-			}
-		case <-s.stopCh:
-			close(s.stopCh)
-			return nil
-		}
-	}
-}
-
-// Close the service and its resources.
-func (s *service) Close() error {
-	s.stopCh <- struct{}{}
-	return s.secrets.Close()
 }
 
 // Generate a new secret. The length of the secret is set by the provided
@@ -306,6 +283,42 @@ func (s service) DeleteExpired() error {
 	}
 
 	return fmt.Errorf("secret store: %w", err)
+}
+
+// Cleanup runs a cleanup routine to delete expired secrets.
+// It returns a channel to receive errors. When the service is
+// closed with Close, the channel is closed as it is not
+// intended for further use.
+func (s *service) Cleanup() chan error {
+	errCh := make(chan error)
+	go func() {
+		defer func() {
+			close(errCh)
+			close(s.stopCh)
+		}()
+		for {
+			select {
+			case <-time.After(s.cleanupInterval):
+				ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
+
+				if err := s.secrets.DeleteExpired(ctx); err != nil {
+					if !errors.Is(err, dberrors.ErrSecretsNotDeleted) {
+						errCh <- err
+					}
+				}
+				cancel()
+			case <-s.stopCh:
+				return
+			}
+		}
+	}()
+	return errCh
+}
+
+// Close the service and its resources.
+func (s *service) Close() error {
+	s.stopCh <- struct{}{}
+	return s.secrets.Close()
 }
 
 // expirationTime returns the expiration time of a secret. It
