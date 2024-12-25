@@ -3,6 +3,7 @@ package session
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/RedeployAB/burnit/internal/db"
@@ -158,7 +159,7 @@ func (s *service) Cleanup() chan error {
 
 				if err := s.sessions.DeleteExpired(ctx); err != nil {
 					if !errors.Is(err, dberrors.ErrSessionsNotDeleted) {
-						errCh <- err
+						errCh <- fmt.Errorf("session store: %w", err)
 					}
 				}
 				cancel()

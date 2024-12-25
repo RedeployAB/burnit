@@ -269,22 +269,6 @@ func (s service) Delete(id string, options ...DeleteOption) error {
 	return fmt.Errorf("secret store: %w", err)
 }
 
-// DeleteExpired deletes all expired secrets.
-func (s service) DeleteExpired() error {
-	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
-	defer cancel()
-
-	err := s.secrets.DeleteExpired(ctx)
-	if err == nil {
-		return nil
-	}
-	if errors.Is(err, dberrors.ErrSecretsNotDeleted) {
-		return nil
-	}
-
-	return fmt.Errorf("secret store: %w", err)
-}
-
 // Cleanup runs a cleanup routine to delete expired secrets.
 // It returns a channel to receive errors. When the service is
 // closed with Close, the channel is closed as it is not
@@ -303,7 +287,7 @@ func (s *service) Cleanup() chan error {
 
 				if err := s.secrets.DeleteExpired(ctx); err != nil {
 					if !errors.Is(err, dberrors.ErrSecretsNotDeleted) {
-						errCh <- err
+						errCh <- fmt.Errorf("secret store: %w", err)
 					}
 				}
 				cancel()
