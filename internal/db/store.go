@@ -31,6 +31,8 @@ type SessionStore interface {
 	Upsert(ctx context.Context, session Session) (Session, error)
 	// Delete a session by its ID.
 	Delete(ctx context.Context, id string) error
+	// DeleteByCSRFToken deletes a session by its CSRF token.
+	DeleteByCSRFToken(ctx context.Context, token string) error
 	// DeleteExpired deletes all expired sessions.
 	DeleteExpired(ctx context.Context) error
 	// Close the SecretStore and its underlying connections.
