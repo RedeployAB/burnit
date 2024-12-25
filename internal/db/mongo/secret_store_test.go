@@ -27,10 +27,10 @@ func TestNewSecretStore(t *testing.T) {
 				client  Client
 				options []SecretStoreOption
 			}{
-				client: &mockMongoClient{},
+				client: &stubMongoClient{},
 			},
 			want: &secretStore{
-				client:     &mockMongoClient{},
+				client:     &stubMongoClient{},
 				collection: defaultSecretStoreCollection,
 				timeout:    defaultSecretStoreTimeout,
 			},
@@ -41,7 +41,7 @@ func TestNewSecretStore(t *testing.T) {
 				client  Client
 				options []SecretStoreOption
 			}{
-				client: &mockMongoClient{},
+				client: &stubMongoClient{},
 				options: []SecretStoreOption{
 					func(o *SecretStoreOptions) {
 						o.Database = "test"
@@ -50,7 +50,7 @@ func TestNewSecretStore(t *testing.T) {
 				},
 			},
 			want: &secretStore{
-				client:     &mockMongoClient{},
+				client:     &stubMongoClient{},
 				collection: "test",
 				timeout:    defaultSecretStoreTimeout,
 			},
@@ -71,7 +71,7 @@ func TestNewSecretStore(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			got, gotErr := NewSecretStore(test.input.client, test.input.options...)
 
-			if diff := cmp.Diff(test.want, got, cmp.AllowUnexported(secretStore{}, mockMongoClient{})); diff != "" {
+			if diff := cmp.Diff(test.want, got, cmp.AllowUnexported(secretStore{}, stubMongoClient{})); diff != "" {
 				t.Errorf("NewSecretStore() = unexpected result (-want +got)\n%s\n", diff)
 			}
 
@@ -143,7 +143,7 @@ func TestSecretStore_Get(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			store := &secretStore{
-				client: &mockMongoClient{
+				client: &stubMongoClient{
 					secrets: test.input.secrets,
 					err:     test.input.err,
 				},
@@ -218,7 +218,7 @@ func TestSecretStore_Create(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			store := &secretStore{
-				client: &mockMongoClient{
+				client: &stubMongoClient{
 					secrets: test.input.secrets,
 					err:     test.input.err,
 				},
@@ -293,7 +293,7 @@ func TestSecretStore_Delete(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			store := &secretStore{
-				client: &mockMongoClient{
+				client: &stubMongoClient{
 					secrets: test.input.secrets,
 					err:     test.input.err,
 				},
@@ -357,7 +357,7 @@ func TestSecretStore_DeleteExpired(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			store := &secretStore{
-				client: &mockMongoClient{
+				client: &stubMongoClient{
 					secrets: test.input.secrets,
 					err:     test.input.err,
 				},

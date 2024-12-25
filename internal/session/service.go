@@ -140,12 +140,16 @@ func (s service) Delete(id string) error {
 }
 
 // Cleanup runs a cleanup routine to delete expired sessions.
-// It returns a channel to receive errors. When the store is
+// It returns a channel to receive errors. When the service is
 // closed with Close, the channel is closed as it is not
 // intended for further use.
 func (s *service) Cleanup() chan error {
 	errCh := make(chan error)
 	go func() {
+		defer func() {
+			close(errCh)
+			close(s.stopCh)
+		}()
 		for {
 			select {
 			case <-time.After(s.cleanupInterval):
@@ -157,9 +161,8 @@ func (s *service) Cleanup() chan error {
 						errCh <- err
 					}
 				}
+				cancel()
 			case <-s.stopCh:
-				close(errCh)
-				close(s.stopCh)
 				return
 			}
 		}
