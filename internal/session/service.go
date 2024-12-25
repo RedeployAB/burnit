@@ -155,7 +155,6 @@ func (s *service) Cleanup() chan error {
 			select {
 			case <-time.After(s.cleanupInterval):
 				ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
-				defer cancel()
 
 				if err := s.sessions.DeleteExpired(ctx); err != nil {
 					if !errors.Is(err, dberrors.ErrSessionsNotDeleted) {
