@@ -11,8 +11,9 @@ import (
 )
 
 type stubMongoClient struct {
-	err     error
-	secrets []db.Secret
+	err      error
+	secrets  []db.Secret
+	sessions []db.Session
 }
 
 func (c *stubMongoClient) Database(database string) Client {
@@ -33,6 +34,29 @@ func (c stubMongoClient) FindOne(ctx context.Context, filter any) (Result, error
 			case bson.D:
 				if f[0].Key == "id" || f[0].Key == "_id" && f[0].Value == secret.ID {
 					data, err := json.Marshal(secret)
+					if err != nil {
+						return nil, err
+					}
+					return stubResult{data: data}, nil
+				}
+			default:
+				return nil, errors.New("invalid filter")
+			}
+		}
+	}
+	if c.sessions != nil {
+		for _, session := range c.sessions {
+			switch f := filter.(type) {
+			case bson.D:
+				if f[0].Key == "id" || f[0].Key == "_id" && f[0].Value == session.ID {
+					data, err := json.Marshal(session)
+					if err != nil {
+						return nil, err
+					}
+					return stubResult{data: data}, nil
+				}
+				if f[0].Key == "csrf.token" && f[0].Value == session.CSRF.Token {
+					data, err := json.Marshal(session)
 					if err != nil {
 						return nil, err
 					}
@@ -64,19 +88,26 @@ func (c *stubMongoClient) InsertOne(ctx context.Context, document any) (string, 
 	return "", errors.New("could not determine database type")
 }
 
+func (c *stubMongoClient) UpsertOne(ctx context.Context, filter, update any) (string, error) {
+	return "", nil
+}
+
 func (c *stubMongoClient) DeleteOne(ctx context.Context, filter any) error {
 	if c.err != nil {
 		return c.err
 	}
-	for i, secret := range c.secrets {
-		switch f := filter.(type) {
-		case bson.D:
-			if f[0].Key == "id" || f[0].Key == "_id" && f[0].Value == secret.ID {
-				c.secrets = append(c.secrets[:i], c.secrets[i+1:]...)
-				return nil
+
+	if c.secrets != nil {
+		for i, secret := range c.secrets {
+			switch f := filter.(type) {
+			case bson.D:
+				if f[0].Key == "id" || f[0].Key == "_id" && f[0].Value == secret.ID {
+					c.secrets = append(c.secrets[:i], c.secrets[i+1:]...)
+					return nil
+				}
+			default:
+				return errors.New("invalid filter")
 			}
-		default:
-			return errors.New("invalid filter")
 		}
 	}
 	return ErrDocumentNotDeleted
@@ -87,13 +118,16 @@ func (c *stubMongoClient) DeleteMany(ctx context.Context, filter any) error {
 		return c.err
 	}
 
-	secretsToKeep := []db.Secret{}
-	for _, secret := range c.secrets {
-		if !secret.ExpiresAt.Before(time.Now().UTC()) {
-			secretsToKeep = append(secretsToKeep, secret)
+	if c.secrets != nil {
+		secretsToKeep := []db.Secret{}
+		for _, secret := range c.secrets {
+			if !secret.ExpiresAt.Before(time.Now().UTC()) {
+				secretsToKeep = append(secretsToKeep, secret)
+			}
 		}
+		c.secrets = secretsToKeep
 	}
-	c.secrets = secretsToKeep
+
 	return nil
 }
 

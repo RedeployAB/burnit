@@ -13,8 +13,8 @@ var (
 	ErrDatabaseNotSet = errors.New("database not set")
 	// ErrCollectionNotSet is returned when the collection is not set.
 	ErrCollectionNotSet = errors.New("collection not set")
-	// ErrDocumentNotUpdated is returned when a document is not updated.
-	ErrDocumentNotUpdated = errors.New("document not updated")
+	// ErrDocumentNotUpserted is returned when a document is not upserted.
+	ErrDocumentNotUpserted = errors.New("document not upserted")
 	// ErrDocumentNotDeleted is returned when a document is not deleted.
 	ErrDocumentNotDeleted = errors.New("document not deleted")
 	// ErrDocumentsNotDeleted is returned when documents are not deleted.

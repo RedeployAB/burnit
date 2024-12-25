@@ -5,6 +5,7 @@ import (
 
 	"github.com/RedeployAB/burnit/internal/db"
 	"github.com/RedeployAB/burnit/internal/db/inmem"
+	"github.com/RedeployAB/burnit/internal/db/mongo"
 	"github.com/RedeployAB/burnit/internal/db/sql"
 	"github.com/RedeployAB/burnit/internal/session"
 	"github.com/RedeployAB/burnit/internal/ui"
@@ -47,6 +48,8 @@ func setupSessionService(config *Database) (session.Service, error) {
 
 	var store db.SessionStore
 	switch {
+	case client.mongo != nil:
+		store, err = mongo.NewSessionStore(client.mongo)
 	case client.sql != nil:
 		store, err = sql.NewSessionStore(client.sql)
 	default:

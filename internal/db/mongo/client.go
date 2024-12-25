@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	mgoopts "go.mongodb.org/mongo-driver/mongo/options"
@@ -43,6 +44,7 @@ type Client interface {
 	Collection(collection string) Client
 	FindOne(ctx context.Context, filter any) (Result, error)
 	InsertOne(ctx context.Context, document any) (string, error)
+	UpsertOne(ctx context.Context, filter, update any) (string, error)
 	DeleteOne(ctx context.Context, filter any) error
 	DeleteMany(ctx context.Context, filter any) error
 	Disconnect(ctx context.Context) error
@@ -142,6 +144,31 @@ func (c *client) InsertOne(ctx context.Context, document any) (string, error) {
 	return parseID(res.InsertedID)
 }
 
+// UpsertOne upserts a document into the collection.
+func (c *client) UpsertOne(ctx context.Context, filter, update any) (string, error) {
+	res, err := c.coll.UpdateOne(ctx, filter, update, mgoopts.Update().SetUpsert(true))
+	if err != nil {
+		return "", err
+	}
+
+	if res.UpsertedCount > 0 {
+		return parseID(res.UpsertedID)
+	}
+	if res.ModifiedCount > 0 {
+		filter, ok := filter.(bson.D)
+		if !ok {
+			return "", errors.New("could not parse ID")
+		}
+		id, ok := filter[0].Value.(string)
+		if !ok {
+			return "", errors.New("could not parse ID")
+		}
+		return id, nil
+	}
+
+	return "", ErrDocumentNotUpserted
+}
+
 // DeleteOne deletes a document from the collection.
 func (c *client) DeleteOne(ctx context.Context, filter any) error {
 	res, err := c.coll.DeleteOne(ctx, filter)
@@ -184,4 +211,9 @@ func parseID(id any) (string, error) {
 		return id, nil
 	}
 	return "", errors.New("invalid ID")
+}
+
+// now is a function that returns the current time.
+var now = func() time.Time {
+	return time.Now().UTC()
 }

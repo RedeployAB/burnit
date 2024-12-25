@@ -55,7 +55,7 @@ func NewSecretStore(db *DB, options ...SecretStoreOption) (*secretStore, error) 
 		return nil, err
 	}
 
-	r := &secretStore{
+	s := &secretStore{
 		db:      db.DB,
 		driver:  db.driver,
 		table:   opts.Table,
@@ -66,19 +66,19 @@ func NewSecretStore(db *DB, options ...SecretStoreOption) (*secretStore, error) 
 	ctx, cancel := context.WithTimeout(context.Background(), opts.Timeout)
 	defer cancel()
 
-	if err := r.createTableIfNotExists(ctx); err != nil {
+	if err := s.createTableIfNotExists(ctx); err != nil {
 		return nil, err
 	}
 
-	return r, nil
+	return s, nil
 }
 
 // createTableIfNotExists creates the table if it does not exist.
-func (r secretStore) createTableIfNotExists(ctx context.Context) error {
+func (s secretStore) createTableIfNotExists(ctx context.Context) error {
 	var query string
 	var args []any
 
-	switch r.driver {
+	switch s.driver {
 	case DriverPostgres:
 		query = `
 		CREATE TABLE IF NOT EXISTS %s (
@@ -86,9 +86,9 @@ func (r secretStore) createTableIfNotExists(ctx context.Context) error {
 			value TEXT NOT NULL,
 			expires_at TIMESTAMPTZ NOT NULL
 		)`
-		args = append(args, r.table)
+		args = append(args, s.table)
 	case DriverMSSQL:
-		table := firstToUpper(r.table)
+		table := firstToUpper(s.table)
 		query = `
 		IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='%s' and xtype='U')
 		CREATE TABLE %s (
@@ -104,21 +104,21 @@ func (r secretStore) createTableIfNotExists(ctx context.Context) error {
 			value TEXT NOT NULL,
 			expires_at DATETIME NOT NULL
 		)`
-		args = append(args, r.table)
+		args = append(args, s.table)
 	default:
-		return fmt.Errorf("%w: %s", ErrDriverNotSupported, r.driver)
+		return fmt.Errorf("%w: %s", ErrDriverNotSupported, s.driver)
 	}
 
-	if _, err := r.db.ExecContext(ctx, fmt.Sprintf(query, args...)); err != nil {
+	if _, err := s.db.ExecContext(ctx, fmt.Sprintf(query, args...)); err != nil {
 		return err
 	}
 	return nil
 }
 
 // Get a secret by its ID.
-func (r secretStore) Get(ctx context.Context, id string) (db.Secret, error) {
+func (s secretStore) Get(ctx context.Context, id string) (db.Secret, error) {
 	var secret db.Secret
-	if err := r.db.QueryRowContext(ctx, r.queries.selectByID, id).Scan(&secret.ID, &secret.Value, &secret.ExpiresAt); err != nil {
+	if err := s.db.QueryRowContext(ctx, s.queries.selectByID, id).Scan(&secret.ID, &secret.Value, &secret.ExpiresAt); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return db.Secret{}, dberrors.ErrSecretNotFound
 		}
@@ -128,20 +128,20 @@ func (r secretStore) Get(ctx context.Context, id string) (db.Secret, error) {
 }
 
 // Create a secret.
-func (r secretStore) Create(ctx context.Context, secret db.Secret) (db.Secret, error) {
-	tx, err := r.db.BeginTx(ctx, nil)
+func (s secretStore) Create(ctx context.Context, secret db.Secret) (db.Secret, error) {
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return db.Secret{}, err
 	}
 
-	if _, err := tx.ExecContext(ctx, r.queries.insert, secret.ID, secret.Value, secret.ExpiresAt); err != nil {
+	if _, err := tx.ExecContext(ctx, s.queries.insert, secret.ID, secret.Value, secret.ExpiresAt); err != nil {
 		if err := tx.Rollback(); err != nil {
 			return db.Secret{}, err
 		}
 		return db.Secret{}, err
 	}
 
-	if err := tx.QueryRowContext(ctx, r.queries.selectByID, secret.ID).Scan(&secret.ID, &secret.Value, &secret.ExpiresAt); err != nil {
+	if err := tx.QueryRowContext(ctx, s.queries.selectByID, secret.ID).Scan(&secret.ID, &secret.Value, &secret.ExpiresAt); err != nil {
 		if err := tx.Rollback(); err != nil {
 			return db.Secret{}, err
 		}
@@ -156,8 +156,8 @@ func (r secretStore) Create(ctx context.Context, secret db.Secret) (db.Secret, e
 }
 
 // Delete a secret by its ID.
-func (r secretStore) Delete(ctx context.Context, id string) error {
-	result, err := r.db.ExecContext(ctx, r.queries.delete, id)
+func (s secretStore) Delete(ctx context.Context, id string) error {
+	result, err := s.db.ExecContext(ctx, s.queries.delete, id)
 	if err != nil {
 		return err
 	}
@@ -175,8 +175,8 @@ func (r secretStore) Delete(ctx context.Context, id string) error {
 }
 
 // DeleteExpired deletes all expired secrets.
-func (r secretStore) DeleteExpired(ctx context.Context) error {
-	result, err := r.db.ExecContext(ctx, r.queries.deleteExpired)
+func (s secretStore) DeleteExpired(ctx context.Context) error {
+	result, err := s.db.ExecContext(ctx, s.queries.deleteExpired)
 	if err != nil {
 		return err
 	}
@@ -194,8 +194,8 @@ func (r secretStore) DeleteExpired(ctx context.Context) error {
 }
 
 // Close the store and its underlying connections.
-func (r secretStore) Close() error {
-	return r.db.Close()
+func (s secretStore) Close() error {
+	return s.db.Close()
 }
 
 // secretQueries contains queries used by the store.
