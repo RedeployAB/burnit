@@ -9,8 +9,11 @@ it can be used to generate new secrets.
 
 * [Features](#features)
 * [Requirements](#requirements)
+  * [Supported databases](#supported-databases)
 * [Configuration](#configuration)
   * [Environment variables](#environment-variables)
+  * [Sessions](#sessions)
+  * [Rate limiting](#rate-limiting)
 * [TODO](#todo)
 
 ## Features
@@ -25,6 +28,9 @@ Either the encryption key (passphrase) kan be provided upon creation of a secret
 The secret generation functionality returns a random string with length
 and complexity based on the incoming request. These secrets are not stored.
 
+## Reqiuirements
+
+### Supported databases
 
 ## Configuration
 
@@ -37,13 +43,18 @@ Order of precedence:
 * Environment variables
 * Command line arguments
 
-### Environment variables**
+### Environment variables
 
 | Name | Description |
 |------|-------------|
+
+### Sessions
+
+### Rate limiting
 
 
 ## TODO
 
 - [ ] Update documentation
 - [ ] Add deployment examples, templates and scripts
+- [ ] Transactions for MongoDB commands
