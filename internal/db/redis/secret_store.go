@@ -2,12 +2,16 @@ package redis
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"time"
 
 	"github.com/RedeployAB/burnit/internal/db"
 	dberrors "github.com/RedeployAB/burnit/internal/db/errors"
+)
+
+const (
+	// secretPrefix is the key prefix for secrets.
+	secretPrefix = "secret:"
 )
 
 // secretStore is a Redis implementation of a SecretStore.
@@ -39,31 +43,37 @@ func NewSecretStore(client Client, options ...SecretStoreOption) (*secretStore, 
 
 // Get a secret by its ID.
 func (s secretStore) Get(ctx context.Context, id string) (db.Secret, error) {
-	data, err := s.client.Get(ctx, id)
+	data, err := s.client.HGet(ctx, secretPrefix+id)
 	if err != nil {
 		if errors.Is(err, ErrKeyNotFound) {
 			return db.Secret{}, dberrors.ErrSecretNotFound
 		}
 		return db.Secret{}, err
 	}
-	secret, err := secretFromJSON(data)
-	if err != nil {
-		return db.Secret{}, err
-	}
-	return secret, nil
+	return secretFromMap(data)
 }
 
 // Create a secret.
 func (s secretStore) Create(ctx context.Context, secret db.Secret) (db.Secret, error) {
-	if err := s.client.Set(ctx, secret.ID, secretToJSON(secret), time.Until(secret.ExpiresAt)); err != nil {
-		return db.Secret{}, err
+	result, err := s.client.WithTransaction(ctx, func(tx Tx) {
+		tx.HSet(ctx, secretPrefix+secret.ID, secretToMap(&secret))
+		tx.Expire(ctx, secretPrefix+secret.ID, time.Until(secret.ExpiresAt))
+		tx.HGet(ctx, secretPrefix+secret.ID)
+	})
+	if err != nil {
+		return db.Secret{}, nil
 	}
-	return s.Get(ctx, secret.ID)
+
+	data := result.LastMap()
+	if data == nil {
+		return db.Secret{}, ErrKeyNotFound
+	}
+	return secretFromMap(data)
 }
 
 // Delete a secret by its ID.
 func (s secretStore) Delete(ctx context.Context, id string) error {
-	if err := s.client.Delete(ctx, id); err != nil {
+	if err := s.client.Delete(ctx, secretPrefix+id); err != nil {
 		if errors.Is(err, ErrKeyNotFound) {
 			return dberrors.ErrSecretNotFound
 		}
@@ -83,17 +93,24 @@ func (s secretStore) Close() error {
 	return s.client.Close()
 }
 
-// secretToJSON converts a secret to JSON.
-func secretToJSON(s db.Secret) []byte {
-	b, _ := json.Marshal(s)
-	return b
+// secretToMap creates a map from the provided secret.
+func secretToMap(secret *db.Secret) map[string]any {
+	return map[string]any{
+		"id":         secret.ID,
+		"value":      secret.Value,
+		"expires_at": secret.ExpiresAt,
+	}
 }
 
-// secretFromJSON converts JSON to a secret.
-func secretFromJSON(b []byte) (db.Secret, error) {
-	var s db.Secret
-	if err := json.Unmarshal(b, &s); err != nil {
+// secretFromMap creates a db.Secret from the provided map.
+func secretFromMap(secret map[string]string) (db.Secret, error) {
+	expiresAt, err := time.Parse(time.RFC3339, secret["expires_at"])
+	if err != nil {
 		return db.Secret{}, err
 	}
-	return s, nil
+	return db.Secret{
+		ID:        secret["id"],
+		Value:     secret["value"],
+		ExpiresAt: expiresAt,
+	}, nil
 }

@@ -20,8 +20,13 @@ const (
 // for interacting with the database.
 type Client interface {
 	Get(ctx context.Context, key string) ([]byte, error)
+	HGet(ctx context.Context, key string) (map[string]string, error)
 	Set(ctx context.Context, key string, value []byte, exp time.Duration) error
+	HSet(ctx context.Context, key string, value map[string]any) error
 	Delete(ctx context.Context, key string) error
+	Expire(ctx context.Context, key string, exp time.Duration) error
+	WithTransaction(ctx context.Context, fn TxFunc) (TxResult, error)
+	WithTransactions(ctx context.Context, fns ...TxFunc) (TxResult, error)
 	Close() error
 }
 
@@ -91,10 +96,30 @@ func (c client) Get(ctx context.Context, key string) ([]byte, error) {
 	return b, nil
 }
 
+// HGet returns the structured data for the key as a map of strings.
+func (c client) HGet(ctx context.Context, key string) (map[string]string, error) {
+	res, err := c.rdb.HGetAll(ctx, key).Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, ErrKeyNotFound
+		}
+		return nil, err
+	}
+	if len(res) == 0 {
+		return nil, ErrKeyNotFound
+	}
+	return res, nil
+}
+
 // Set the value for the key with an expiration time. If the expiration
 // time is zero, the key will not expire.
 func (c client) Set(ctx context.Context, key string, value []byte, exp time.Duration) error {
 	return c.rdb.Set(ctx, key, value, exp).Err()
+}
+
+// HSet sets the value (structured data).
+func (c client) HSet(ctx context.Context, key string, value map[string]any) error {
+	return c.rdb.HSet(ctx, key, value).Err()
 }
 
 // Delete the key.
@@ -107,6 +132,38 @@ func (c client) Delete(ctx context.Context, key string) error {
 		return ErrKeyNotFound
 	}
 	return nil
+}
+
+// Expire sets expire time for the key.
+func (c client) Expire(ctx context.Context, key string, exp time.Duration) error {
+	return c.rdb.Expire(ctx, key, exp).Err()
+}
+
+// WithTransaction runs the function as a transaction.
+func (c *client) WithTransaction(ctx context.Context, fn TxFunc) (TxResult, error) {
+	pipe := c.rdb.TxPipeline()
+	tx := &tx{pipe: pipe}
+
+	fn(tx)
+
+	return execCommands(ctx, tx)
+}
+
+// WithTransactions runs the functions as transactions.
+func (c *client) WithTransactions(ctx context.Context, fns ...TxFunc) (TxResult, error) {
+	pipe := c.rdb.TxPipeline()
+	tx := &tx{pipe: pipe}
+
+	for _, fn := range fns {
+		fn(tx)
+	}
+
+	return execCommands(ctx, tx)
+}
+
+// Close the client and its underlying connections.
+func (c client) Close() error {
+	return c.rdb.Close()
 }
 
 // createClientOptions creates a new client options for the underlying Redis client.
@@ -160,9 +217,4 @@ func createClientOptions(options *ClientOptions) (*redis.Options, error) {
 	}
 
 	return opts, nil
-}
-
-// Close the client and its underlying connections.
-func (c client) Close() error {
-	return c.rdb.Close()
 }
