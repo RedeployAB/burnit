@@ -66,7 +66,7 @@ func (s secretStore) Create(ctx context.Context, secret db.Secret) (db.Secret, e
 
 	data := result.LastMap()
 	if data == nil {
-		return db.Secret{}, ErrKeyNotFound
+		return db.Secret{}, dberrors.ErrSessionNotFound
 	}
 	return secretFromMap(data)
 }

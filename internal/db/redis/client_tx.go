@@ -22,7 +22,14 @@ type Tx interface {
 // TxFunc is a function that contains all steps in a transaction.
 type TxFunc func(tx Tx)
 
-// tx contains the transaction pipe and the results.
+// command contains the key that the command target and the redis.Cmder
+// containing the issued command.
+type command struct {
+	key string
+	cmd redis.Cmder
+}
+
+// tx contains the transaction pipe and the commands.
 type tx struct {
 	pipe redis.Pipeliner
 	cmds []command
@@ -113,13 +120,6 @@ func (r TxResult) IndexBytes(i int) []byte {
 // AllMaps returns all maps retreived with successful HGet operations
 func (r TxResult) AllMaps() []map[string]string {
 	return r.m
-}
-
-// command contains the key that the command target and the redis.Cmder
-// containing the issued command.
-type command struct {
-	key string
-	cmd redis.Cmder
 }
 
 // FirstMap returns the first map retreived with the transaction.

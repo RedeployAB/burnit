@@ -162,6 +162,3 @@ func sessionFromMap(session map[string]string) (db.Session, error) {
 		},
 	}, nil
 }
-
-var SessionFromMap = sessionFromMap
-var SessionToMap = sessionToMap
