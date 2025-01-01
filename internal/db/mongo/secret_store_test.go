@@ -71,7 +71,7 @@ func TestNewSecretStore(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			got, gotErr := NewSecretStore(test.input.client, test.input.options...)
 
-			if diff := cmp.Diff(test.want, got, cmp.AllowUnexported(secretStore{}, stubMongoClient{})); diff != "" {
+			if diff := cmp.Diff(test.want, got, cmp.AllowUnexported(secretStore{}, stubMongoClient{}), cmpopts.IgnoreFields(secretStore{}, "createSecret")); diff != "" {
 				t.Errorf("NewSecretStore() = unexpected result (-want +got)\n%s\n", diff)
 			}
 
@@ -223,6 +223,7 @@ func TestSecretStore_Create(t *testing.T) {
 					err:     test.input.err,
 				},
 			}
+			setCreateSecret(store)
 
 			got, gotErr := store.Create(context.Background(), test.input.secret)
 

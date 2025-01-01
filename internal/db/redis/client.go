@@ -84,6 +84,59 @@ func NewClient(options ...ClientOption) (*client, error) {
 	}, nil
 }
 
+// createClientOptions creates a new client options for the underlying Redis client.
+func createClientOptions(options *ClientOptions) (*redis.Options, error) {
+	opts := &redis.Options{}
+	if options == nil {
+		return opts, nil
+	}
+
+	if len(options.URI) > 0 {
+		var err error
+		opts, err = redis.ParseURL(options.URI)
+		if err != nil {
+			return nil, err
+		}
+		return opts, nil
+	}
+	if options.Database > 0 {
+		opts.DB = options.Database
+	}
+	if len(options.Address) > 0 {
+		opts.Addr = options.Address
+	}
+	if len(options.Username) > 0 && len(options.Password) > 0 {
+		opts.Username = options.Username
+		opts.Password = options.Password
+	}
+	if options.DialTimeout > 0 {
+		opts.DialTimeout = options.DialTimeout
+	}
+	if options.MaxRetries > 0 {
+		opts.MaxRetries = options.MaxRetries
+	}
+	if options.MinRetryBackoff > 0 {
+		opts.MinRetryBackoff = options.MinRetryBackoff
+	}
+	if options.MaxRetryBackoff > 0 {
+		opts.MaxRetryBackoff = options.MaxRetryBackoff
+	}
+	if options.MaxOpenConnections > 0 {
+		opts.MaxActiveConns = options.MaxOpenConnections
+	}
+	if options.MaxIdleConnections > 0 {
+		opts.MaxIdleConns = options.MaxIdleConnections
+	}
+	if options.MaxConnectionLifetime > 0 {
+		opts.ConnMaxLifetime = options.MaxConnectionLifetime
+	}
+	if options.EnableTLS {
+		opts.TLSConfig = &tls.Config{}
+	}
+
+	return opts, nil
+}
+
 // Get returns the value for the key.
 func (c client) Get(ctx context.Context, key string) ([]byte, error) {
 	b, err := c.rdb.Get(ctx, key).Bytes()
@@ -164,57 +217,4 @@ func (c *client) WithTransactions(ctx context.Context, fns ...TxFunc) (TxResult,
 // Close the client and its underlying connections.
 func (c client) Close() error {
 	return c.rdb.Close()
-}
-
-// createClientOptions creates a new client options for the underlying Redis client.
-func createClientOptions(options *ClientOptions) (*redis.Options, error) {
-	opts := &redis.Options{}
-	if options == nil {
-		return opts, nil
-	}
-
-	if len(options.URI) > 0 {
-		var err error
-		opts, err = redis.ParseURL(options.URI)
-		if err != nil {
-			return nil, err
-		}
-		return opts, nil
-	}
-	if options.Database > 0 {
-		opts.DB = options.Database
-	}
-	if len(options.Address) > 0 {
-		opts.Addr = options.Address
-	}
-	if len(options.Username) > 0 && len(options.Password) > 0 {
-		opts.Username = options.Username
-		opts.Password = options.Password
-	}
-	if options.DialTimeout > 0 {
-		opts.DialTimeout = options.DialTimeout
-	}
-	if options.MaxRetries > 0 {
-		opts.MaxRetries = options.MaxRetries
-	}
-	if options.MinRetryBackoff > 0 {
-		opts.MinRetryBackoff = options.MinRetryBackoff
-	}
-	if options.MaxRetryBackoff > 0 {
-		opts.MaxRetryBackoff = options.MaxRetryBackoff
-	}
-	if options.MaxOpenConnections > 0 {
-		opts.MaxActiveConns = options.MaxOpenConnections
-	}
-	if options.MaxIdleConnections > 0 {
-		opts.MaxIdleConns = options.MaxIdleConnections
-	}
-	if options.MaxConnectionLifetime > 0 {
-		opts.ConnMaxLifetime = options.MaxConnectionLifetime
-	}
-	if options.EnableTLS {
-		opts.TLSConfig = &tls.Config{}
-	}
-
-	return opts, nil
 }

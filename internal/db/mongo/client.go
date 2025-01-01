@@ -11,6 +11,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	mgoopts "go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readconcern"
+	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 )
 
 const (
@@ -32,10 +34,14 @@ type ClientOptions struct {
 	ConnectTimeout     time.Duration
 	MaxOpenConnections int
 	EnableTLS          bool
+	ReplicaSet         string
 }
 
 // ClientOption is a function that sets options for the client.
 type ClientOption func(o *ClientOptions)
+
+// TxFunc is a function that performs a transaction.
+type TxFunc func(ctx context.Context, client Client) (any, error)
 
 // Client is the interface for the MongoDB client. Contains
 // methods for interacting with the database and collections.
@@ -47,15 +53,19 @@ type Client interface {
 	UpsertOne(ctx context.Context, filter, update any) (string, error)
 	DeleteOne(ctx context.Context, filter any) error
 	DeleteMany(ctx context.Context, filter any) error
+	WithTransaction(ctx context.Context, fn TxFunc) (any, error)
+	WithTransactions(ctx context.Context, fns ...TxFunc) ([]any, error)
+	ReplicaSetEnabled() bool
 	Disconnect(ctx context.Context) error
 }
 
 // client wraps the MongoDB client.
 type client struct {
-	cl   *mongo.Client
-	db   *mongo.Database
-	coll *mongo.Collection
-	mu   sync.Mutex
+	cl         *mongo.Client
+	db         *mongo.Database
+	coll       *mongo.Collection
+	mu         sync.Mutex
+	replicaSet string
 }
 
 // NewClient creates and configures a new client.
@@ -70,15 +80,30 @@ func NewClient(options ...ClientOption) (*client, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), opts.ConnectTimeout)
 	defer cancel()
 
-	cl, err := mongo.Connect(ctx, createClientOptions(&opts))
+	clientOpts := createClientOptions(&opts)
+	cl, err := mongo.Connect(ctx, clientOpts)
 	if err != nil {
 		return nil, err
 	}
 	if err := cl.Ping(ctx, nil); err != nil {
 		return nil, err
 	}
+
+	var replicaSet string
+	if clientOpts.ReplicaSet != nil && len(*clientOpts.ReplicaSet) > 0 {
+		replicaSet = *clientOpts.ReplicaSet
+		ok, err := replicaSetEnabled(ctx, cl)
+		if err != nil {
+			return nil, err
+		}
+		if !ok {
+			return nil, errors.New("replica set not enabled")
+		}
+	}
+
 	return &client{
-		cl: cl,
+		cl:         cl,
+		replicaSet: replicaSet,
 	}, nil
 }
 
@@ -106,6 +131,9 @@ func createClientOptions(options *ClientOptions) *mgoopts.ClientOptions {
 	}
 	if options.EnableTLS {
 		opts.TLSConfig = &tls.Config{}
+	}
+	if len(options.ReplicaSet) > 0 {
+		opts.SetReplicaSet(options.ReplicaSet)
 	}
 
 	return opts
@@ -193,6 +221,57 @@ func (c *client) DeleteMany(ctx context.Context, filter any) error {
 	return nil
 }
 
+// WithTransaction runs the function as a transaction. Transactions
+// can only be run if replica set is configured.
+func (c *client) WithTransaction(ctx context.Context, fn TxFunc) (any, error) {
+	session, err := c.cl.StartSession()
+	if err != nil {
+		return nil, err
+	}
+	defer session.EndSession(ctx)
+
+	return execTransaction(ctx, c, session, fn)
+}
+
+// WithTransactions runs the functions as transactions. Transactions
+// can only be run if replica set is configured.
+func (c *client) WithTransactions(ctx context.Context, fns ...TxFunc) ([]any, error) {
+	session, err := c.cl.StartSession()
+	if err != nil {
+		return nil, err
+	}
+	defer session.EndSession(ctx)
+
+	var results []any
+	for _, fn := range fns {
+		result, err := execTransaction(ctx, c, session, fn)
+		if err != nil {
+			return nil, err
+		}
+		results = append(results, result)
+	}
+	return results, nil
+}
+
+// execTransaction runs the provided TxFunc.
+func execTransaction(ctx context.Context, client Client, session mongo.Session, fn TxFunc) (any, error) {
+	result, err := session.WithTransaction(ctx, func(ctx mongo.SessionContext) (any, error) {
+		return fn(ctx, client)
+	}, mgoopts.Transaction().
+		SetWriteConcern(writeconcern.Majority()).
+		SetReadConcern(readconcern.Snapshot()))
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// ReplicaSetEnabled returns true if the client is configured
+// with a replica set.
+func (c *client) ReplicaSetEnabled() bool {
+	return len(c.replicaSet) > 0
+}
+
 // Disconnect disconnects the client.
 func (c *client) Disconnect(ctx context.Context) error {
 	err := c.cl.Disconnect(ctx)
@@ -211,6 +290,24 @@ func parseID(id any) (string, error) {
 		return id, nil
 	}
 	return "", errors.New("invalid ID")
+}
+
+// replicaSetEnabled checks if the server has replica set enabled.
+func replicaSetEnabled(ctx context.Context, client *mongo.Client) (bool, error) {
+	res := client.Database("admin").RunCommand(ctx, bson.M{"hello": 1})
+	if res.Err() != nil {
+		return false, res.Err()
+	}
+
+	var cmdRes bson.M
+	if err := res.Decode(&cmdRes); err != nil {
+		return false, err
+	}
+
+	if _, ok := cmdRes["setName"]; ok {
+		return true, nil
+	}
+	return false, nil
 }
 
 // now is a function that returns the current time.
