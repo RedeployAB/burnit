@@ -21,9 +21,10 @@ const (
 
 // secretStore is a MongoDB implementation of a SecretStore.
 type secretStore struct {
-	client     Client
-	collection string
-	timeout    time.Duration
+	client       Client
+	collection   string
+	createSecret createSecretFunc
+	timeout      time.Duration
 }
 
 // SecretStoreOptions is the options for the SecretStore.
@@ -55,11 +56,19 @@ func NewSecretStore(client Client, options ...SecretStoreOption) (*secretStore, 
 		return nil, ErrDatabaseNotSet
 	}
 
-	return &secretStore{
+	store := &secretStore{
 		client:     client.Database(opts.Database),
 		collection: opts.Collection,
 		timeout:    opts.Timeout,
-	}, nil
+	}
+
+	if client.ReplicaSetEnabled() {
+		setCreateSecretWithTransaction(store)
+	} else {
+		setCreateSecret(store)
+	}
+
+	return store, nil
 }
 
 // Get a secret by its ID.
@@ -81,11 +90,7 @@ func (s secretStore) Get(ctx context.Context, id string) (db.Secret, error) {
 
 // Create a secret.
 func (s secretStore) Create(ctx context.Context, secret db.Secret) (db.Secret, error) {
-	id, err := s.client.Collection(s.collection).InsertOne(ctx, secret)
-	if err != nil {
-		return db.Secret{}, err
-	}
-	return s.Get(ctx, id)
+	return s.createSecret(ctx, secret)
 }
 
 // Delete a secret by its ID.
@@ -118,4 +123,54 @@ func (s secretStore) Close() error {
 	defer cancel()
 
 	return s.client.Disconnect(ctx)
+}
+
+// createSecretFunc is a function that creates a secret.
+type createSecretFunc func(ctx context.Context, secret db.Secret) (db.Secret, error)
+
+// setCreateSecret sets a createSecretFunc to the store.
+func setCreateSecret(store *secretStore) {
+	store.createSecret = func(ctx context.Context, secret db.Secret) (db.Secret, error) {
+		id, err := store.client.Collection(store.collection).InsertOne(ctx, secret)
+		if err != nil {
+			return db.Secret{}, err
+		}
+		return store.Get(ctx, id)
+	}
+}
+
+// setCreateSecretWithTransaction sets a createSecretFunc for use with transactions
+// to the store.
+func setCreateSecretWithTransaction(store *secretStore) {
+	store.createSecret = func(ctx context.Context, secret db.Secret) (db.Secret, error) {
+		result, err := store.client.WithTransaction(ctx, func(ctx context.Context, client Client) (any, error) {
+			id, err := store.client.Collection(store.collection).InsertOne(ctx, secret)
+			if err != nil {
+				return nil, err
+			}
+
+			res, err := store.client.Collection(store.collection).FindOne(ctx, bson.D{{Key: "_id", Value: id}})
+			if err != nil {
+				if errors.Is(err, ErrNoDocuments) {
+					return db.Secret{}, err
+				}
+				return nil, err
+			}
+
+			var secret db.Secret
+			if err := res.Decode(&secret); err != nil {
+				return db.Secret{}, err
+			}
+			return secret, nil
+		})
+		if err != nil {
+			return db.Secret{}, err
+		}
+
+		secret, ok := result.(db.Secret)
+		if !ok {
+			return db.Secret{}, errors.New("invalid document for secret")
+		}
+		return secret, nil
+	}
 }
