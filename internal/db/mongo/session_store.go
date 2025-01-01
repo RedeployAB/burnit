@@ -21,9 +21,10 @@ const (
 
 // sessionStore is a MongoDB implementation of a SessionStore.
 type sessionStore struct {
-	client     Client
-	collection string
-	timeout    time.Duration
+	client        Client
+	collection    string
+	upsertSession upsertSessionFunc
+	timeout       time.Duration
 }
 
 // SessionStoreOptions is the options for the SessionStore.
@@ -55,11 +56,19 @@ func NewSessionStore(client Client, options ...SessionStoreOption) (*sessionStor
 		return nil, ErrDatabaseNotSet
 	}
 
-	return &sessionStore{
+	store := &sessionStore{
 		client:     client.Database(opts.Database),
 		collection: opts.Collection,
 		timeout:    opts.Timeout,
-	}, nil
+	}
+
+	if client.ReplicaSetEnabled() {
+		setUpsertSessionWithTransaction(store)
+	} else {
+		setUpsertSession(store)
+	}
+
+	return store, nil
 }
 
 // Get a session by its ID.
@@ -98,19 +107,7 @@ func (s sessionStore) GetByCSRFToken(ctx context.Context, token string) (db.Sess
 
 // Upsert a session. Create the session if it does not exist, otherwise update it.
 func (s sessionStore) Upsert(ctx context.Context, session db.Session) (db.Session, error) {
-	update := bson.D{
-		{Key: "$set", Value: bson.D{
-			{Key: "expiresAt", Value: session.ExpiresAt},
-			{Key: "csrf.token", Value: session.CSRF.Token},
-			{Key: "csrf.expiresAt", Value: session.CSRF.ExpiresAt},
-		}},
-	}
-
-	id, err := s.client.Collection(s.collection).UpsertOne(ctx, bson.D{{Key: "_id", Value: session.ID}}, update)
-	if err != nil {
-		return db.Session{}, err
-	}
-	return s.Get(ctx, id)
+	return s.upsertSession(ctx, session)
 }
 
 // Delete a session by its ID.
@@ -154,4 +151,70 @@ func (s sessionStore) Close() error {
 	defer cancel()
 
 	return s.client.Disconnect(ctx)
+}
+
+// upsertSessionFunc is a function that upserts a session.
+type upsertSessionFunc func(ctx context.Context, session db.Session) (db.Session, error)
+
+// setUpsertSession sets an upsertSessionFunc to the store.
+func setUpsertSession(store *sessionStore) {
+	store.upsertSession = func(ctx context.Context, session db.Session) (db.Session, error) {
+		update := bson.D{
+			{Key: "$set", Value: bson.D{
+				{Key: "expiresAt", Value: session.ExpiresAt},
+				{Key: "csrf.token", Value: session.CSRF.Token},
+				{Key: "csrf.expiresAt", Value: session.CSRF.ExpiresAt},
+			}},
+		}
+
+		id, err := store.client.Collection(store.collection).UpsertOne(ctx, bson.D{{Key: "_id", Value: session.ID}}, update)
+		if err != nil {
+			return db.Session{}, err
+		}
+		return store.Get(ctx, id)
+	}
+}
+
+// setUpsertSessionWithTransaction sets an upsertSecretFunc for use with transactions
+// to the store.
+func setUpsertSessionWithTransaction(store *sessionStore) {
+	store.upsertSession = func(ctx context.Context, session db.Session) (db.Session, error) {
+		result, err := store.client.WithTransaction(ctx, func(ctx context.Context, client Client) (any, error) {
+			update := bson.D{
+				{Key: "$set", Value: bson.D{
+					{Key: "expiresAt", Value: session.ExpiresAt},
+					{Key: "csrf.token", Value: session.CSRF.Token},
+					{Key: "csrf.expiresAt", Value: session.CSRF.ExpiresAt},
+				}},
+			}
+
+			id, err := store.client.Collection(store.collection).UpsertOne(ctx, bson.D{{Key: "_id", Value: session.ID}}, update)
+			if err != nil {
+				return db.Session{}, err
+			}
+
+			res, err := store.client.Collection(store.collection).FindOne(ctx, bson.D{{Key: "_id", Value: id}})
+			if err != nil {
+				if errors.Is(err, ErrNoDocuments) {
+					return db.Session{}, dberrors.ErrSessionNotFound
+				}
+				return db.Session{}, err
+			}
+
+			var session db.Session
+			if err := res.Decode(&session); err != nil {
+				return db.Session{}, err
+			}
+			return session, nil
+		})
+		if err != nil {
+			return db.Session{}, nil
+		}
+
+		session, ok := result.(db.Session)
+		if !ok {
+			return db.Session{}, errors.New("invalid document for session")
+		}
+		return session, nil
+	}
 }
