@@ -131,6 +131,18 @@ func (c *stubMongoClient) DeleteMany(ctx context.Context, filter any) error {
 	return nil
 }
 
+func (c stubMongoClient) WithTransaction(ctx context.Context, fn TxFunc) (any, error) {
+	return nil, nil
+}
+
+func (c stubMongoClient) WithTransactions(ctx context.Context, fns ...TxFunc) ([]any, error) {
+	return nil, nil
+}
+
+func (c stubMongoClient) ReplicaSetEnabled() bool {
+	return false
+}
+
 func (c stubMongoClient) Disconnect(ctx context.Context) error {
 	return nil
 }
