@@ -39,7 +39,7 @@ type flags struct {
 	databaseRedisMaxRetryBackoff time.Duration
 	databaseRedisEnableTLS       *bool
 	// UI flags.
-	runtimeRender *bool
+	uiRuntimeRender *bool
 	// Session database flags.
 	sessionDatabaseDriver               string
 	sessionDatabaseURI                  string
@@ -71,7 +71,7 @@ func parseFlags(args []string) (flags, string, error) {
 
 	var (
 		f                             flags
-		runtimeRender                 boolFlag
+		uiRuntimeRender               boolFlag
 		databaseMongoEnableTLS        boolFlag
 		databaseSQLiteInMemory        boolFlag
 		databaseRedisEnableTLS        boolFlag
@@ -112,7 +112,7 @@ func parseFlags(args []string) (flags, string, error) {
 	fs.DurationVar(&f.databaseRedisMaxRetryBackoff, "database-redis-max-retry-backoff", 0, "Optional. Maximum retry backoff for the Redis client.")
 	fs.Var(&databaseRedisEnableTLS, "database-redis-enable-tls", "Optional. Enable TLS for the Redis client. Defaults to: true.")
 	// UI flags.
-	fs.Var(&runtimeRender, "runtime-render", "Optional. Enable runtime rendering of the UI.")
+	fs.Var(&uiRuntimeRender, "ui-runtime-render", "Optional. Enable runtime rendering of the UI.")
 	// Session database flags.
 	fs.StringVar(&f.sessionDatabaseDriver, "session-database-driver", "", "Optional. Database driver.")
 	fs.StringVar(&f.sessionDatabaseURI, "session-database-uri", "", "Optional. URI for the database.")
@@ -149,8 +149,8 @@ func parseFlags(args []string) (flags, string, error) {
 	if databaseRedisEnableTLS.isSet {
 		f.databaseRedisEnableTLS = &databaseRedisEnableTLS.value
 	}
-	if runtimeRender.isSet {
-		f.runtimeRender = &runtimeRender.value
+	if uiRuntimeRender.isSet {
+		f.uiRuntimeRender = &uiRuntimeRender.value
 	}
 	if sessionDatabaseMongoEnableTLS.isSet {
 		f.sessionDatabaseMongoEnableTLS = &sessionDatabaseMongoEnableTLS.value
@@ -224,7 +224,7 @@ func configurationFromFlags(flags *flags) (Configuration, error) {
 			},
 		},
 		UI: UI{
-			RuntimeRender: flags.runtimeRender,
+			RuntimeRender: flags.uiRuntimeRender,
 			Services: UIServices{
 				Session: Session{
 					Database: SessionDatabase{
