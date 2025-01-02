@@ -1,7 +1,6 @@
 package config
 
 import (
-	"errors"
 	"net/url"
 	"strings"
 
@@ -23,11 +22,6 @@ var (
 		databaseDriverMSSQL:    "1433",
 		databaseDriverRedis:    "6379",
 	}
-)
-
-var (
-	// ErrCouldNotDetermineDatabaseDriver is returned when the database driver could not be determined.
-	ErrCouldNotDetermineDatabaseDriver = errors.New("could not determine database driver")
 )
 
 // dbClient contains configured db client.

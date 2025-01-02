@@ -1,7 +1,6 @@
 package config
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/RedeployAB/burnit/internal/db"
@@ -52,7 +51,7 @@ func SetupUI(config UI) (ui.UI, session.Service, error) {
 // setupSessionStore sets up the session store.
 func setupSessionStore(config *SessionDatabase) (db.SessionStore, error) {
 	client, err := setupDBClient(sessionDatabaseToDatabase(config))
-	if err != nil && !errors.Is(err, ErrCouldNotDetermineDatabaseDriver) {
+	if err != nil {
 		return nil, fmt.Errorf("failed to setup database client: %w", err)
 	}
 
