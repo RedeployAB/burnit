@@ -50,6 +50,20 @@ const (
 	defaultUIRuntimeRenderStaticDir = "internal/ui/static"
 )
 
+const (
+	// defaultSessionServiceTimeout is the default timeout for the session service.
+	defaultSessionServiceTimeout = 5 * time.Second
+)
+
+const (
+	// defaultSessionDatabaseTimeout is the default timeout for the session database.
+	defaultSessionDatabaseTimeout = 5 * time.Second
+	// defaultSessionDatabaseConnectTimeout is the default connect timeout for the database.
+	defaultSessionDatabaseConnectTimeout = 10 * time.Second
+	// defaultSessionDatabaseName is the default name for the database.
+	defaultSessionDatabaseName = "burnit"
+)
+
 // ConfigOruration contains the configuration for the application.
 type Configuration struct {
 	Server   Server   `yaml:"server"`
@@ -72,6 +86,16 @@ type Server struct {
 // `json:"-"` is that this way we must explicitly set the properties to be marshalled
 // and thus output to the logs.
 func (s Server) MarshalJSON() ([]byte, error) {
+	var tls *TLS
+	if len(s.TLS.CertFile) > 0 || len(s.TLS.KeyFile) > 0 {
+		tls = &s.TLS
+	}
+
+	var cors *CORS
+	if len(s.CORS.Origin) > 0 {
+		cors = &s.CORS
+	}
+
 	var rateLimiter *RateLimiter
 	if s.RateLimiter.Burst > 0 || s.RateLimiter.Rate > 0 || s.RateLimiter.TTL > 0 || s.RateLimiter.CleanupInterval > 0 {
 		rateLimiter = &s.RateLimiter
@@ -87,8 +111,8 @@ func (s Server) MarshalJSON() ([]byte, error) {
 	}{
 		Host:        s.Host,
 		Port:        s.Port,
-		TLS:         &s.TLS,
-		CORS:        &s.CORS,
+		TLS:         tls,
+		CORS:        cors,
 		RateLimiter: rateLimiter,
 		BackendOnly: s.BackendOnly,
 	})
@@ -121,8 +145,8 @@ type Services struct {
 
 // Secret contains the configuration for the secret service.
 type Secret struct {
-	ValueMaxCharacters int           `env:"SECRETS_VALUE_MAX_CHARACTERS" yaml:"valueMaxCharacters"`
-	Timeout            time.Duration `env:"SECRETS_TIMEOUT" yaml:"timeout"`
+	ValueMaxCharacters int           `env:"SECRET_VALUE_MAX_CHARACTERS" yaml:"valueMaxCharacters"`
+	Timeout            time.Duration `env:"SECRET_SERVICE_TIMEOUT" yaml:"timeout"`
 }
 
 // MarshalJSON returns the JSON encoding of Secret. A custom marshalling method
@@ -166,6 +190,8 @@ func (d Database) MarshalJSON() ([]byte, error) {
 	reg := regexp.MustCompile(`://.*:.*@`)
 	if len(d.URI) > 0 && reg.MatchString(d.URI) {
 		uri = reg.ReplaceAllString(d.URI, "://***:***@")
+	} else {
+		uri = d.URI
 	}
 
 	var mongo *Mongo
@@ -248,7 +274,149 @@ type Redis struct {
 
 // UI contains the configuration for the UI.
 type UI struct {
-	RuntimeRender *bool `env:"UI_RUNTIME_RENDER" yaml:"runtimeRender"`
+	RuntimeRender *bool      `env:"UI_RUNTIME_RENDER" yaml:"runtimeRender"`
+	Services      UIServices `yaml:"services"`
+}
+
+// UIServices contains the configuration for the UI services.
+type UIServices struct {
+	Session Session `yaml:"session"`
+}
+
+// Session contains the configuration for the session service.
+type Session struct {
+	Timeout  time.Duration   `env:"SESSION_SERVICE_TIMEOUT" yaml:"timeout"`
+	Database SessionDatabase `yaml:"database"`
+}
+
+// MarshalJSON returns the JSON encoding of Session. A custom marshalling method
+// is defined to hide sensitive values. The reason for not just using the struct tag
+// `json:"-"` is that this way we must explicitly set the properties to be marshalled
+// and thus output to the logs.
+func (s Session) MarshalJSON() ([]byte, error) {
+	var sessionDatabase *SessionDatabase
+	if len(s.Database.Driver) > 0 {
+		sessionDatabase = &s.Database
+	}
+
+	return json.Marshal(struct {
+		Timeout  time.Duration    `json:",omitempty"`
+		Database *SessionDatabase `json:",omitempty"`
+	}{
+		Timeout:  s.Timeout,
+		Database: sessionDatabase,
+	})
+}
+
+// SessionDatabase contains the configuration for the session database.
+type SessionDatabase struct {
+	Driver                string          `env:"SESSION_DATABASE_DRIVER" yaml:"driver"`
+	URI                   string          `env:"SESSION_DATABASE_URI" yaml:"uri"`
+	Address               string          `env:"SESSION_DATABASE_ADDRESS" yaml:"address"`
+	Database              string          `env:"SESSION_DATABASE" yaml:"database"`
+	Username              string          `env:"SESSION_DATABASE_USERNAME" yaml:"username"`
+	Password              string          `env:"SESSION_DATABASE_PASSWORD" yaml:"password"`
+	Timeout               time.Duration   `env:"SESSION_DATABASE_TIMEOUT" yaml:"timeout"`
+	ConnectTimeout        time.Duration   `env:"SESSION_DATABASE_CONNECT_TIMEOUT" yaml:"connectTimeout"`
+	MaxOpenConnections    int             `env:"SESSION_DATABASE_MAX_OPEN_CONNECTIONS" yaml:"maxOpenConnections"`
+	MaxIdleConnections    int             `env:"SESSION_DATABASE_MAX_IDLE_CONNECTIONS" yaml:"maxIdleConnections"`
+	MaxConnectionLifetime time.Duration   `env:"SESSION_DATABASE_MAX_CONNECTION_LIFETIME" yaml:"maxConnectionLifetime"`
+	Mongo                 SessionMongo    `yaml:"mongo"`
+	Postgres              SessionPostgres `yaml:"postgres"`
+	MSSQL                 SessionMSSQL    `yaml:"mssql"`
+	SQLite                SessionSQLite   `yaml:"sqlite"`
+	Redis                 SessionRedis    `yaml:"redis"`
+}
+
+// MarshalJSON returns the JSON encoding of SessionDatabase. A custom marshalling method
+// is defined to hide sensitive values. The reason for not just using the struct tag
+// `json:"-"` is that this way we must explicitly set the properties to be marshalled
+// and thus output to the logs.
+func (d SessionDatabase) MarshalJSON() ([]byte, error) {
+	var uri string
+	reg := regexp.MustCompile(`://.*:.*@`)
+	if len(d.URI) > 0 && reg.MatchString(d.URI) {
+		uri = reg.ReplaceAllString(d.URI, "://***:***@")
+	} else {
+		uri = d.URI
+	}
+
+	var mongo *SessionMongo
+	if d.Mongo.EnableTLS != nil {
+		mongo = &d.Mongo
+	}
+	var postgres *SessionPostgres
+	if len(d.Postgres.SSLMode) > 0 {
+		postgres = &d.Postgres
+	}
+	var mssql *SessionMSSQL
+	if len(d.MSSQL.Encrypt) > 0 {
+		mssql = &d.MSSQL
+	}
+	var sqlite *SessionSQLite
+	if len(d.SQLite.File) > 0 || d.SQLite.InMemory != nil {
+		sqlite = &d.SQLite
+	}
+	var redis *SessionRedis
+	if d.Redis.DialTimeout > 0 || d.Redis.MaxRetries > 0 || d.Redis.MinRetryBackoff > 0 || d.Redis.MaxRetryBackoff > 0 || d.Redis.EnableTLS != nil {
+		redis = &d.Redis
+	}
+
+	return json.Marshal(struct {
+		Driver         string           `json:",omitempty"`
+		URI            string           `json:",omitempty"`
+		Address        string           `json:",omitempty"`
+		Database       string           `json:",omitempty"`
+		Timeout        time.Duration    `json:",omitempty"`
+		ConnectTimeout time.Duration    `json:",omitempty"`
+		Mongo          *SessionMongo    `json:",omitempty"`
+		Postgres       *SessionPostgres `json:",omitempty"`
+		MSSQL          *SessionMSSQL    `json:",omitempty"`
+		SQLite         *SessionSQLite   `json:",omitempty"`
+		Redis          *SessionRedis    `json:",omitempty"`
+	}{
+		Driver:         d.Driver,
+		URI:            uri,
+		Address:        d.Address,
+		Database:       d.Database,
+		Timeout:        d.Timeout,
+		ConnectTimeout: d.ConnectTimeout,
+		Mongo:          mongo,
+		Postgres:       postgres,
+		MSSQL:          mssql,
+		SQLite:         sqlite,
+		Redis:          redis,
+	})
+}
+
+// SessionMongo contains the configuration for the Mongo database.
+type SessionMongo struct {
+	EnableTLS *bool `env:"SESSION_DATABASE_MONGO_ENABLE_TLS" yaml:"enableTLS"`
+}
+
+// SessionPostgres contains the configuration for the Postgres database.
+type SessionPostgres struct {
+	SSLMode string `env:"SESSION_DATABASE_POSTGRES_SSL_MODE" yaml:"sslMode"`
+}
+
+// SessionMSSQL contains the configuration for the MSSQL database.
+type SessionMSSQL struct {
+	Encrypt string `env:"SESSION_DATABASE_MSSQL_ENCRYPT" yaml:"encrypt"`
+}
+
+// SessionSQLite contains the configuration for the SQLite database.
+type SessionSQLite struct {
+	File     string `env:"SESSION_DATABASE_SQLITE_FILE" yaml:"file"`
+	InMemory *bool  `env:"SESSION_DATABASE_SQLITE_IN_MEMORY" yaml:"inMemory"`
+}
+
+// SessionRedis contains the configuration for the Redis database.
+type SessionRedis struct {
+	DialTimeout     time.Duration `env:"SESSION_DATABASE_REDIS_DIAL_TIMEOUT" yaml:"dialTimeout"`
+	MaxRetries      int           `env:"SESSION_DATABASE_REDIS_MAX_RETRIES" yaml:"maxRetries"`
+	MinRetryBackoff time.Duration `env:"SESSION_DATABASE_REDIS_MIN_RETRY_BACKOFF" yaml:"minRetryBackoff"`
+	MaxRetryBackoff time.Duration `env:"SESSION_DATABASE_REDIS_MAX_RETRY_BACKOFF" yaml:"maxRetryBackoff"`
+	EnableTLS       *bool         `env:"SESSION_DATABASE_MONGO_ENABLE_TLS" yaml:"enableTLS"`
 }
 
 // New creates a new Configuration.
@@ -274,6 +442,18 @@ func New() (*Configuration, error) {
 				ConnectTimeout: defaultDatabaseConnectTimeout,
 			},
 		},
+		UI: UI{
+			Services: UIServices{
+				Session: Session{
+					Timeout: defaultSessionServiceTimeout,
+					Database: SessionDatabase{
+						Database:       defaultSessionDatabaseName,
+						Timeout:        defaultSessionDatabaseTimeout,
+						ConnectTimeout: defaultSessionDatabaseConnectTimeout,
+					},
+				},
+			},
+		},
 	}
 
 	yamlCfg, err := configurationFromYAMLFile(flags.configPath)
@@ -293,6 +473,11 @@ func New() (*Configuration, error) {
 
 	if err := mergeConfigurations(cfg, &yamlCfg, &envCfg, &flagCfg); err != nil {
 		return nil, err
+	}
+
+	cfg.Services.Database.Driver = databaseDriver(&cfg.Services.Database)
+	if cfg.Server.BackendOnly == nil || !*cfg.Server.BackendOnly {
+		cfg.UI.Services.Session.Database.Driver = databaseDriver(sessionDatabaseToDatabase(&cfg.UI.Services.Session.Database))
 	}
 
 	localDev, ok := os.LookupEnv("BURNIT_LOCAL_DEVELOPMENT")
@@ -388,64 +573,6 @@ func configurationFromEnvironment() (Configuration, error) {
 		return Configuration{}, err
 	}
 	return cfg, nil
-}
-
-// configurationFromFlags reads the configuration from the flags.
-func configurationFromFlags(flags *flags) (Configuration, error) {
-	return Configuration{
-		Server: Server{
-			Host: flags.host,
-			Port: flags.port,
-			TLS: TLS{
-				CertFile: flags.tlsCertFile,
-				KeyFile:  flags.tlsKeyFile,
-			},
-			CORS: CORS{
-				Origin: flags.corsOrigin,
-			},
-			RateLimiter: RateLimiter{
-				Rate:            flags.rateLimiterRate,
-				Burst:           flags.rateLimiterBurst,
-				CleanupInterval: flags.rateLimiterCleanupInterval,
-				TTL:             flags.rateLimiterTTL,
-			},
-		},
-		Services: Services{
-			Secret: Secret{
-				Timeout: flags.timeout,
-			},
-			Database: Database{
-				Driver:         flags.databaseDriver,
-				URI:            flags.databaseURI,
-				Address:        flags.databaseAddr,
-				Database:       flags.database,
-				Username:       flags.databaseUser,
-				Password:       flags.databasePass,
-				Timeout:        flags.databaseTimeout,
-				ConnectTimeout: flags.databaseConnectTimeout,
-				Mongo: Mongo{
-					EnableTLS: flags.databaseMongoEnableTLS,
-				},
-				Postgres: Postgres{
-					SSLMode: flags.databasePostgresSSLMode,
-				},
-				MSSQL: MSSQL{
-					Encrypt: flags.databaseMSSQLEncrypt,
-				},
-				SQLite: SQLite{
-					File:     flags.databaseSQLiteFile,
-					InMemory: flags.databaseSQLiteInMemory,
-				},
-				Redis: Redis{
-					DialTimeout:     flags.databaseRedisDialTimeout,
-					MaxRetries:      flags.databaseRedisMaxRetries,
-					MinRetryBackoff: flags.databaseRedisMinRetryBackoff,
-					MaxRetryBackoff: flags.databaseRedisMaxRetryBackoff,
-					EnableTLS:       flags.databaseRedisEnableTLS,
-				},
-			},
-		},
-	}, nil
 }
 
 // toPtr returns a pointer to the given value.

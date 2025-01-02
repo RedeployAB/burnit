@@ -102,9 +102,6 @@ func (s sessionStore) Upsert(ctx context.Context, session db.Session) (db.Sessio
 func (s sessionStore) Delete(ctx context.Context, id string) error {
 	session, err := s.Get(ctx, id)
 	if err != nil {
-		if errors.Is(err, dberrors.ErrSessionNotFound) {
-			return nil
-		}
 		return err
 	}
 
@@ -112,6 +109,25 @@ func (s sessionStore) Delete(ctx context.Context, id string) error {
 		if len(session.CSRF.Token) > 0 {
 			tx.Delete(ctx, sessionCSRFPrefix+session.CSRF.Token)
 		}
+		tx.Delete(ctx, sessionPrefix+session.ID)
+	}); err != nil {
+		if errors.Is(err, ErrKeyNotFound) {
+			return dberrors.ErrSessionNotFound
+		}
+		return err
+	}
+	return nil
+}
+
+// DeleteByCSRFToken deletes a session by its CSRF token.
+func (s sessionStore) DeleteByCSRFToken(ctx context.Context, token string) error {
+	session, err := s.GetByCSRFToken(ctx, token)
+	if err != nil {
+		return err
+	}
+
+	if _, err := s.client.WithTransaction(ctx, func(tx Tx) {
+		tx.Delete(ctx, sessionCSRFPrefix+token)
 		tx.Delete(ctx, sessionPrefix+session.ID)
 	}); err != nil {
 		if errors.Is(err, ErrKeyNotFound) {
