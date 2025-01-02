@@ -62,7 +62,7 @@ func setupSecretStore(clients *dbClient, config *Database) (db.SecretStore, erro
 	case clients.redis != nil:
 		store, err = redis.NewSecretStore(clients.redis)
 	default:
-		return nil, errors.New("no database clients configured")
+		return nil, errors.New("no database client configured")
 	}
 
 	if err != nil {
