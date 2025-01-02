@@ -405,10 +405,15 @@ func (s stubSecretService) Start() error {
 	return nil
 }
 
-func (s stubSecretService) Generate(length int, specialCharacters bool) string {
+func (s stubSecretService) Generate(options ...secret.GenerateOption) string {
+	opts := secret.GenerateOptions{}
+	for _, option := range options {
+		option(&opts)
+	}
+
 	var builder strings.Builder
-	for i := 0; i < length; i++ {
-		if specialCharacters && i%2 != 0 {
+	for i := 0; i < opts.Length; i++ {
+		if opts.SpecialCharacters && i%2 != 0 {
 			builder.WriteString("?")
 		} else {
 			builder.WriteString("a")

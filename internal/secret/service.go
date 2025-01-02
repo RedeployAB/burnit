@@ -52,7 +52,7 @@ var newUUID = func() string {
 // Service is the interface that provides methods for secret operations.
 type Service interface {
 	// Generate a new secret.
-	Generate(length int, specialCharacters bool) string
+	Generate(options ...GenerateOption) string
 	// Get a secret.
 	Get(id, passphrase string, options ...GetOption) (Secret, error)
 	// Create a secret.
@@ -105,8 +105,8 @@ func NewService(store db.SecretStore, options ...ServiceOption) (*service, error
 // Generate a new secret. The length of the secret is set by the provided
 // length argument (with a max of 512 characters, a longer length will be trimmed to this value).
 // If specialCharacters is set to true, the secret will contain special characters.
-func (s service) Generate(length int, specialCharacters bool) string {
-	return generate(length, specialCharacters)
+func (s service) Generate(opts ...GenerateOption) string {
+	return generate(opts...)
 }
 
 // GetOptions contains options for getting a secret.
@@ -195,7 +195,10 @@ func (s service) Create(secret Secret) (Secret, error) {
 
 	passphrase := secret.Passphrase
 	if len(passphrase) == 0 {
-		passphrase = generate(defaultPassphraseCharacters, true)
+		passphrase = generate(func(o *GenerateOptions) {
+			o.Length = defaultPassphraseCharacters
+			o.SpecialCharacters = true
+		})
 	} else {
 		if err := validPassphrase(passphrase, s.passphraseMinCharacters, s.passphraseMaxCharacters); err != nil {
 			return Secret{}, err
