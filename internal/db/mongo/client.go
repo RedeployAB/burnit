@@ -275,7 +275,7 @@ func (c *client) ReplicaSetEnabled() bool {
 // Disconnect disconnects the client.
 func (c *client) Disconnect(ctx context.Context) error {
 	err := c.cl.Disconnect(ctx)
-	if err == nil || err == mongo.ErrClientDisconnected {
+	if err == nil || errors.Is(err, mongo.ErrClientDisconnected) {
 		return nil
 	}
 	return err

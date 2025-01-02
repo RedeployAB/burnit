@@ -216,5 +216,9 @@ func (c *client) WithTransactions(ctx context.Context, fns ...TxFunc) (TxResult,
 
 // Close the client and its underlying connections.
 func (c client) Close() error {
-	return c.rdb.Close()
+	err := c.rdb.Close()
+	if err == nil || errors.Is(err, redis.ErrClosed) {
+		return nil
+	}
+	return err
 }
