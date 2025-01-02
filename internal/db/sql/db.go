@@ -3,6 +3,7 @@ package sql
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -76,6 +77,15 @@ const (
 type DB struct {
 	*sql.DB
 	driver Driver
+}
+
+// Close the database and release any open resources.
+func (db DB) Close() error {
+	err := db.DB.Close()
+	if err == nil || errors.Is(err, sql.ErrConnDone) {
+		return nil
+	}
+	return err
 }
 
 // Options contains the options for the database.
