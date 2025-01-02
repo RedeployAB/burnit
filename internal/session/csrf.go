@@ -68,5 +68,8 @@ func (c CSRF) Expired() bool {
 }
 
 var randomString = func() string {
-	return base64.RawURLEncoding.EncodeToString([]byte(secret.Generate(32, true)))
+	return base64.RawURLEncoding.EncodeToString([]byte(secret.Generate(func(o *secret.GenerateOptions) {
+		o.Length = 32
+		o.SpecialCharacters = true
+	})))
 }

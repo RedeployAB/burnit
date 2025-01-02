@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/RedeployAB/burnit/internal/api"
+	"github.com/RedeployAB/burnit/internal/secret"
 )
 
 const (
@@ -71,7 +72,7 @@ func writeValue(w http.ResponseWriter, value string) {
 
 // parseGenerateSecretQuery parses the query parameters for length
 // and special characters.
-func parseGenerateSecretQuery(v url.Values) (int, bool) {
+func parseGenerateSecretQuery(v url.Values) secret.GenerateOption {
 	var length string
 	if l, ok := v["length"]; ok {
 		length = l[0]
@@ -97,5 +98,8 @@ func parseGenerateSecretQuery(v url.Values) (int, bool) {
 		sc = false
 	}
 
-	return l, sc
+	return func(o *secret.GenerateOptions) {
+		o.Length = l
+		o.SpecialCharacters = sc
+	}
 }
