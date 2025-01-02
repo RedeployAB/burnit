@@ -50,6 +50,20 @@ const (
 	defaultUIRuntimeRenderStaticDir = "internal/ui/static"
 )
 
+const (
+	// defaultSessionServiceTimeout is the default timeout for the session service.
+	defaultSessionServiceTimeout = 5 * time.Second
+)
+
+const (
+	// defaultSessionDatabaseTimeoout is the default timeout for the session database.
+	defaultSessionDatabaseTimeoout = 5 * time.Second
+	// defaultSessionDatabaseConnectTimeout is the default connect timeout for the database.
+	defaultSessionDatabaseConnectTimeout = 10 * time.Second
+	// defaultSessionDatabaseName is the default name for the database.
+	defaultSessionDatabaseName = "burnit"
+)
+
 // ConfigOruration contains the configuration for the application.
 type Configuration struct {
 	Server   Server   `yaml:"server"`
@@ -72,6 +86,16 @@ type Server struct {
 // `json:"-"` is that this way we must explicitly set the properties to be marshalled
 // and thus output to the logs.
 func (s Server) MarshalJSON() ([]byte, error) {
+	var tls *TLS
+	if len(s.TLS.CertFile) > 0 || len(s.TLS.KeyFile) > 0 {
+		tls = &s.TLS
+	}
+
+	var cors *CORS
+	if len(s.CORS.Origin) > 0 {
+		cors = &s.CORS
+	}
+
 	var rateLimiter *RateLimiter
 	if s.RateLimiter.Burst > 0 || s.RateLimiter.Rate > 0 || s.RateLimiter.TTL > 0 || s.RateLimiter.CleanupInterval > 0 {
 		rateLimiter = &s.RateLimiter
@@ -87,8 +111,8 @@ func (s Server) MarshalJSON() ([]byte, error) {
 	}{
 		Host:        s.Host,
 		Port:        s.Port,
-		TLS:         &s.TLS,
-		CORS:        &s.CORS,
+		TLS:         tls,
+		CORS:        cors,
 		RateLimiter: rateLimiter,
 		BackendOnly: s.BackendOnly,
 	})
@@ -254,12 +278,32 @@ type UI struct {
 
 // UIServices contains the configuration for the UI services.
 type UIServices struct {
-	Session SessionService `yaml:"session"`
+	Session Session `yaml:"session"`
 }
 
-// SessionService contains the configuration for the session service.
-type SessionService struct {
+// Session contains the configuration for the session service.
+type Session struct {
+	Timeout  time.Duration   `env:"SESSIONS_TIMEOUT" yaml:"timeout"`
 	Database SessionDatabase `yaml:"database"`
+}
+
+// MarshalJSON returns the JSON encoding of SessionService. A custom marshalling method
+// is defined to hide sensitive values. The reason for not just using the struct tag
+// `json:"-"` is that this way we must explicitly set the properties to be marshalled
+// and thus output to the logs.
+func (s Session) MarshalJSON() ([]byte, error) {
+	var sessionDatabase *SessionDatabase
+	if len(s.Database.Driver) > 0 {
+		sessionDatabase = &s.Database
+	}
+
+	return json.Marshal(struct {
+		Timeout  time.Duration    `json:",omitempty"`
+		Database *SessionDatabase `json:",omitempty"`
+	}{
+		Timeout:  s.Timeout,
+		Database: sessionDatabase,
+	})
 }
 
 // SessionDatabase contains the configuration for the session database.
@@ -291,6 +335,8 @@ func (d SessionDatabase) MarshalJSON() ([]byte, error) {
 	reg := regexp.MustCompile(`://.*:.*@`)
 	if len(d.URI) > 0 && reg.MatchString(d.URI) {
 		uri = reg.ReplaceAllString(d.URI, "://***:***@")
+	} else {
+		uri = d.URI
 	}
 
 	var mongo *SessionMongo
@@ -394,6 +440,18 @@ func New() (*Configuration, error) {
 				ConnectTimeout: defaultDatabaseConnectTimeout,
 			},
 		},
+		UI: UI{
+			Services: UIServices{
+				Session: Session{
+					Timeout: defaultSessionServiceTimeout,
+					Database: SessionDatabase{
+						Database:       defaultSessionDatabaseName,
+						Timeout:        defaultSessionDatabaseTimeoout,
+						ConnectTimeout: defaultSessionDatabaseConnectTimeout,
+					},
+				},
+			},
+		},
 	}
 
 	yamlCfg, err := configurationFromYAMLFile(flags.configPath)
@@ -413,6 +471,11 @@ func New() (*Configuration, error) {
 
 	if err := mergeConfigurations(cfg, &yamlCfg, &envCfg, &flagCfg); err != nil {
 		return nil, err
+	}
+
+	cfg.Services.Database.Driver = databaseDriver(&cfg.Services.Database)
+	if cfg.Server.BackendOnly == nil || !*cfg.Server.BackendOnly {
+		cfg.UI.Services.Session.Database.Driver = databaseDriver(sessionDatabaseToDatabase(&cfg.UI.Services.Session.Database))
 	}
 
 	localDev, ok := os.LookupEnv("BURNIT_LOCAL_DEVELOPMENT")
@@ -508,64 +571,6 @@ func configurationFromEnvironment() (Configuration, error) {
 		return Configuration{}, err
 	}
 	return cfg, nil
-}
-
-// configurationFromFlags reads the configuration from the flags.
-func configurationFromFlags(flags *flags) (Configuration, error) {
-	return Configuration{
-		Server: Server{
-			Host: flags.host,
-			Port: flags.port,
-			TLS: TLS{
-				CertFile: flags.tlsCertFile,
-				KeyFile:  flags.tlsKeyFile,
-			},
-			CORS: CORS{
-				Origin: flags.corsOrigin,
-			},
-			RateLimiter: RateLimiter{
-				Rate:            flags.rateLimiterRate,
-				Burst:           flags.rateLimiterBurst,
-				CleanupInterval: flags.rateLimiterCleanupInterval,
-				TTL:             flags.rateLimiterTTL,
-			},
-		},
-		Services: Services{
-			Secret: Secret{
-				Timeout: flags.timeout,
-			},
-			Database: Database{
-				Driver:         flags.databaseDriver,
-				URI:            flags.databaseURI,
-				Address:        flags.databaseAddr,
-				Database:       flags.database,
-				Username:       flags.databaseUser,
-				Password:       flags.databasePass,
-				Timeout:        flags.databaseTimeout,
-				ConnectTimeout: flags.databaseConnectTimeout,
-				Mongo: Mongo{
-					EnableTLS: flags.databaseMongoEnableTLS,
-				},
-				Postgres: Postgres{
-					SSLMode: flags.databasePostgresSSLMode,
-				},
-				MSSQL: MSSQL{
-					Encrypt: flags.databaseMSSQLEncrypt,
-				},
-				SQLite: SQLite{
-					File:     flags.databaseSQLiteFile,
-					InMemory: flags.databaseSQLiteInMemory,
-				},
-				Redis: Redis{
-					DialTimeout:     flags.databaseRedisDialTimeout,
-					MaxRetries:      flags.databaseRedisMaxRetries,
-					MinRetryBackoff: flags.databaseRedisMinRetryBackoff,
-					MaxRetryBackoff: flags.databaseRedisMaxRetryBackoff,
-					EnableTLS:       flags.databaseRedisEnableTLS,
-				},
-			},
-		},
-	}, nil
 }
 
 // toPtr returns a pointer to the given value.

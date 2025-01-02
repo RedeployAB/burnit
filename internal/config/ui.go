@@ -33,16 +33,24 @@ func SetupUI(config UI) (ui.UI, session.Service, error) {
 		return nil, nil, fmt.Errorf("failed to setup UI: %w", err)
 	}
 
-	sessionSvc, err := setupSessionService(&config.Services.Session.Database)
+	sessionStore, err := setupSessionStore(&config.Services.Session.Database)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to setup session store: %w", err)
+	}
+
+	sessionSvc, err := session.NewService(
+		sessionStore,
+		session.WithTimeout(config.Services.Session.Timeout),
+	)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to setup session service: %w", err)
 	}
 
 	return u, sessionSvc, nil
 }
 
-// setupSessionService sets up the session service.
-func setupSessionService(config *SessionDatabase) (session.Service, error) {
+// setupSessionStore sets up the session store.
+func setupSessionStore(config *SessionDatabase) (db.SessionStore, error) {
 	client, err := setupDBClient(sessionDatabaseToDatabase(config))
 	if err != nil && !errors.Is(err, ErrCouldNotDetermineDatabaseDriver) {
 		return nil, fmt.Errorf("failed to setup database client: %w", err)
@@ -51,9 +59,13 @@ func setupSessionService(config *SessionDatabase) (session.Service, error) {
 	var store db.SessionStore
 	switch {
 	case client != nil && client.mongo != nil:
-		store, err = mongo.NewSessionStore(client.mongo)
+		store, err = mongo.NewSessionStore(client.mongo, func(o *mongo.SessionStoreOptions) {
+			o.Timeout = config.Timeout
+		})
 	case client != nil && client.sql != nil:
-		store, err = sql.NewSessionStore(client.sql)
+		store, err = sql.NewSessionStore(client.sql, func(o *sql.SessionStoreOptions) {
+			o.Timeout = config.Timeout
+		})
 	case client != nil && client.redis != nil:
 		store, err = redis.NewSessionStore(client.redis)
 	default:
@@ -64,12 +76,7 @@ func setupSessionService(config *SessionDatabase) (session.Service, error) {
 		return nil, fmt.Errorf("failed to setup session store: %w", err)
 	}
 
-	svc, err := session.NewService(store)
-	if err != nil {
-		return nil, fmt.Errorf("failed to setup session service: %w", err)
-	}
-
-	return svc, nil
+	return store, nil
 }
 
 // sessionDatabaseToDatabase converts a session database to a database.

@@ -37,33 +37,32 @@ type dbClient struct {
 	redis redis.Client
 }
 
-// databaseDriver returns the database driver.
-func databaseDriver(db *Database) (string, error) {
+// databaseDriver returns the database driver. Returns empty string if the driver could not be determined.
+func databaseDriver(db *Database) string {
 	var driver string
-
 	if len(db.Driver) > 0 && supportedDBDriver(db.Driver) {
-		return db.Driver, nil
+		return db.Driver
 	}
 
 	if len(db.URI) > 0 {
 		driver = dbDriverFromURI(db.URI)
 		if len(driver) > 0 && supportedDBDriver(driver) {
-			return driver, nil
+			return driver
 		}
 	}
 
 	if len(db.Address) > 0 {
 		driver = dbDriverFromAddress(db.Address)
 		if len(driver) > 0 && supportedDBDriver(driver) {
-			return driver, nil
+			return driver
 		}
 	}
 
 	if len(db.SQLite.File) > 0 || db.SQLite.InMemory != nil && *db.SQLite.InMemory {
-		return databaseDriverSQLite, nil
+		return databaseDriverSQLite
 	}
 
-	return driver, ErrCouldNotDetermineDatabaseDriver
+	return driver
 }
 
 // dbDriverFromURI returns the database driver from the URI.
@@ -96,13 +95,8 @@ func supportedDBDriver(driver string) bool {
 
 // setupDBClient sets up the db client.
 func setupDBClient(config *Database) (*dbClient, error) {
-	var err error
-	config.Driver, err = databaseDriver(config)
-	if err != nil {
-		return nil, err
-	}
-
 	var client dbClient
+	var err error
 	switch config.Driver {
 	case databaseDriverMongo:
 		client.mongo, err = setupMongoClient(config)

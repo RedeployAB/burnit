@@ -2,6 +2,13 @@ package session
 
 import "time"
 
+// WithTimeout sets the timeout for the service.
+func WithTimeout(d time.Duration) ServiceOption {
+	return func(s *service) {
+		s.timeout = d
+	}
+}
+
 // WithExpiresAt sets the expiration time of the session.
 func WithExpiresAt(exp time.Time) SessionOption {
 	return func(o *SessionOptions) {
