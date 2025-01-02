@@ -56,8 +56,8 @@ const (
 )
 
 const (
-	// defaultSessionDatabaseTimeoout is the default timeout for the session database.
-	defaultSessionDatabaseTimeoout = 5 * time.Second
+	// defaultSessionDatabaseTimeout is the default timeout for the session database.
+	defaultSessionDatabaseTimeout = 5 * time.Second
 	// defaultSessionDatabaseConnectTimeout is the default connect timeout for the database.
 	defaultSessionDatabaseConnectTimeout = 10 * time.Second
 	// defaultSessionDatabaseName is the default name for the database.
@@ -446,7 +446,7 @@ func New() (*Configuration, error) {
 					Timeout: defaultSessionServiceTimeout,
 					Database: SessionDatabase{
 						Database:       defaultSessionDatabaseName,
-						Timeout:        defaultSessionDatabaseTimeoout,
+						Timeout:        defaultSessionDatabaseTimeout,
 						ConnectTimeout: defaultSessionDatabaseConnectTimeout,
 					},
 				},
