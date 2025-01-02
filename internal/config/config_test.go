@@ -40,6 +40,18 @@ func TestNew(t *testing.T) {
 						ConnectTimeout: defaultDatabaseConnectTimeout,
 					},
 				},
+				UI: UI{
+					Services: UIServices{
+						Session: Session{
+							Timeout: defaultSessionServiceTimeout,
+							Database: SessionDatabase{
+								Database:       defaultSessionDatabaseName,
+								Timeout:        defaultSessionDatabaseTimeout,
+								ConnectTimeout: defaultSessionDatabaseConnectTimeout,
+							},
+						},
+					},
+				},
 			},
 		},
 		{
@@ -74,6 +86,7 @@ func TestNew(t *testing.T) {
 						Timeout:            15 * time.Second,
 					},
 					Database: Database{
+						Driver:         "mongodb",
 						URI:            "mongodb://localhost:27017",
 						Address:        "localhost:27017",
 						Database:       "test",
@@ -81,6 +94,18 @@ func TestNew(t *testing.T) {
 						Password:       "test",
 						Timeout:        15 * time.Second,
 						ConnectTimeout: 15 * time.Second,
+					},
+				},
+				UI: UI{
+					Services: UIServices{
+						Session: Session{
+							Timeout: defaultSessionServiceTimeout,
+							Database: SessionDatabase{
+								Database:       defaultSessionDatabaseName,
+								Timeout:        defaultSessionDatabaseTimeout,
+								ConnectTimeout: defaultSessionDatabaseConnectTimeout,
+							},
+						},
 					},
 				},
 			},
@@ -102,8 +127,7 @@ func TestNew(t *testing.T) {
 					"BURNIT_RATE_LIMITER_BURST":            "6",
 					"BURNIT_RATE_LIMITER_CLEANUP_INTERVAL": "10m",
 					"BURNIT_RATE_LIMITER_TTL":              "15m",
-					"BURNIT_SECRETS_ENCRYPTION_KEY":        "key2",
-					"BURNIT_SECRETS_TIMEOUT":               "20s",
+					"BURNIT_SECRET_SERVICE_TIMEOUT":        "20s",
 					"BURNIT_DATABASE_URI":                  "mongodb://localhost2:27018",
 					"BURNIT_DATABASE_ADDRESS":              "localhost2:27018",
 					"BURNIT_DATABASE":                      "test2",
@@ -137,6 +161,7 @@ func TestNew(t *testing.T) {
 						Timeout:            20 * time.Second,
 					},
 					Database: Database{
+						Driver:         "mongodb",
 						URI:            "mongodb://localhost2:27018",
 						Address:        "localhost2:27018",
 						Database:       "test2",
@@ -144,6 +169,18 @@ func TestNew(t *testing.T) {
 						Password:       "test2",
 						Timeout:        20 * time.Second,
 						ConnectTimeout: 20 * time.Second,
+					},
+				},
+				UI: UI{
+					Services: UIServices{
+						Session: Session{
+							Timeout: defaultSessionServiceTimeout,
+							Database: SessionDatabase{
+								Database:       defaultSessionDatabaseName,
+								Timeout:        defaultSessionDatabaseTimeout,
+								ConnectTimeout: defaultSessionDatabaseConnectTimeout,
+							},
+						},
 					},
 				},
 			},
@@ -219,6 +256,7 @@ func TestNew(t *testing.T) {
 						Timeout:            25 * time.Second,
 					},
 					Database: Database{
+						Driver:         "mongodb",
 						URI:            "mongodb://localhost3:27019",
 						Address:        "localhost3:27019",
 						Database:       "test3",
@@ -226,6 +264,18 @@ func TestNew(t *testing.T) {
 						Password:       "test3",
 						Timeout:        25 * time.Second,
 						ConnectTimeout: 25 * time.Second,
+					},
+				},
+				UI: UI{
+					Services: UIServices{
+						Session: Session{
+							Timeout: defaultSessionServiceTimeout,
+							Database: SessionDatabase{
+								Database:       defaultSessionDatabaseName,
+								Timeout:        defaultSessionDatabaseTimeout,
+								ConnectTimeout: defaultSessionDatabaseConnectTimeout,
+							},
+						},
 					},
 				},
 			},
