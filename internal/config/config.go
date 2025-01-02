@@ -190,6 +190,8 @@ func (d Database) MarshalJSON() ([]byte, error) {
 	reg := regexp.MustCompile(`://.*:.*@`)
 	if len(d.URI) > 0 && reg.MatchString(d.URI) {
 		uri = reg.ReplaceAllString(d.URI, "://***:***@")
+	} else {
+		uri = d.URI
 	}
 
 	var mongo *Mongo
@@ -308,17 +310,17 @@ func (s Session) MarshalJSON() ([]byte, error) {
 
 // SessionDatabase contains the configuration for the session database.
 type SessionDatabase struct {
-	Driver                string          `env:"SESSION_DATABASE_DRIVER" yaml:"driver"`
-	URI                   string          `env:"SESSION_DATABASE_URI" yaml:"uri"`
-	Address               string          `env:"SESSION_DATABASE_ADDRESS" yaml:"address"`
-	Database              string          `env:"SESSION_DATABASE" yaml:"database"`
-	Username              string          `env:"SESSION_DATABASE_USERNAME" yaml:"username"`
-	Password              string          `env:"SESSION_DATABASE_PASSWORD" yaml:"password"`
-	Timeout               time.Duration   `env:"SESSION_DATABASE_TIMEOUT" yaml:"timeout"`
-	ConnectTimeout        time.Duration   `env:"SESSION_DATABASE_CONNECT_TIMEOUT" yaml:"connectTimeout"`
-	MaxOpenConnections    int             `env:"SESSION_DATABASE_MAX_OPEN_CONNECTIONS" yaml:"maxOpenConnections"`
-	MaxIdleConnections    int             `env:"SESSION_DATABASE_MAX_IDLE_CONNECTIONS" yaml:"maxIdleConnections"`
-	MaxConnectionLifetime time.Duration   `env:"SESSION_DATABASE_MAX_CONNECTION_LIFETIME" yaml:"maxConnectionLifetime"`
+	Driver                string          `env:"SESSIONS_DATABASE_DRIVER" yaml:"driver"`
+	URI                   string          `env:"SESSIONS_DATABASE_URI" yaml:"uri"`
+	Address               string          `env:"SESSIONS_DATABASE_ADDRESS" yaml:"address"`
+	Database              string          `env:"SESSIONS_DATABASE" yaml:"database"`
+	Username              string          `env:"SESSIONS_DATABASE_USERNAME" yaml:"username"`
+	Password              string          `env:"SESSIONS_DATABASE_PASSWORD" yaml:"password"`
+	Timeout               time.Duration   `env:"SESSIONS_DATABASE_TIMEOUT" yaml:"timeout"`
+	ConnectTimeout        time.Duration   `env:"SESSIONS_DATABASE_CONNECT_TIMEOUT" yaml:"connectTimeout"`
+	MaxOpenConnections    int             `env:"SESSIONS_DATABASE_MAX_OPEN_CONNECTIONS" yaml:"maxOpenConnections"`
+	MaxIdleConnections    int             `env:"SESSIONS_DATABASE_MAX_IDLE_CONNECTIONS" yaml:"maxIdleConnections"`
+	MaxConnectionLifetime time.Duration   `env:"SESSIONS_DATABASE_MAX_CONNECTION_LIFETIME" yaml:"maxConnectionLifetime"`
 	Mongo                 SessionMongo    `yaml:"mongo"`
 	Postgres              SessionPostgres `yaml:"postgres"`
 	MSSQL                 SessionMSSQL    `yaml:"mssql"`
@@ -389,32 +391,32 @@ func (d SessionDatabase) MarshalJSON() ([]byte, error) {
 
 // SessionMongo contains the configuration for the Mongo database.
 type SessionMongo struct {
-	EnableTLS *bool `env:"SESSION_DATABASE_MONGO_ENABLE_TLS" yaml:"enableTLS"`
+	EnableTLS *bool `env:"SESSIONS_DATABASE_MONGO_ENABLE_TLS" yaml:"enableTLS"`
 }
 
 // SessionPostgres contains the configuration for the Postgres database.
 type SessionPostgres struct {
-	SSLMode string `env:"SESSION_DATABASE_POSTGRES_SSL_MODE" yaml:"sslMode"`
+	SSLMode string `env:"SESSIONS_DATABASE_POSTGRES_SSL_MODE" yaml:"sslMode"`
 }
 
 // SessionMSSQL contains the configuration for the MSSQL database.
 type SessionMSSQL struct {
-	Encrypt string `env:"SESSION_DATABASE_MSSQL_ENCRYPT" yaml:"encrypt"`
+	Encrypt string `env:"SESSIONS_DATABASE_MSSQL_ENCRYPT" yaml:"encrypt"`
 }
 
 // SessionSQLite contains the configuration for the SQLite database.
 type SessionSQLite struct {
-	File     string `env:"SESSION_DATABASE_SQLITE_FILE" yaml:"file"`
-	InMemory *bool  `env:"SESSION_DATABASE_SQLITE_IN_MEMORY" yaml:"inMemory"`
+	File     string `env:"SESSIONS_DATABASE_SQLITE_FILE" yaml:"file"`
+	InMemory *bool  `env:"SESSIONS_DATABASE_SQLITE_IN_MEMORY" yaml:"inMemory"`
 }
 
 // SessionRedis contains the configuration for the Redis database.
 type SessionRedis struct {
-	DialTimeout     time.Duration `env:"SESSION_DATABASE_REDIS_DIAL_TIMEOUT" yaml:"dialTimeout"`
-	MaxRetries      int           `env:"SESSION_DATABASE_REDIS_MAX_RETRIES" yaml:"maxRetries"`
-	MinRetryBackoff time.Duration `env:"SESSION_DATABASE_REDIS_MIN_RETRY_BACKOFF" yaml:"minRetryBackoff"`
-	MaxRetryBackoff time.Duration `env:"SESSION_DATABASE_REDIS_MAX_RETRY_BACKOFF" yaml:"maxRetryBackoff"`
-	EnableTLS       *bool         `env:"SESSION_DATABASE_MONGO_ENABLE_TLS" yaml:"enableTLS"`
+	DialTimeout     time.Duration `env:"SESSIONS_DATABASE_REDIS_DIAL_TIMEOUT" yaml:"dialTimeout"`
+	MaxRetries      int           `env:"SESSIONS_DATABASE_REDIS_MAX_RETRIES" yaml:"maxRetries"`
+	MinRetryBackoff time.Duration `env:"SESSIONS_DATABASE_REDIS_MIN_RETRY_BACKOFF" yaml:"minRetryBackoff"`
+	MaxRetryBackoff time.Duration `env:"SESSIONS_DATABASE_REDIS_MAX_RETRY_BACKOFF" yaml:"maxRetryBackoff"`
+	EnableTLS       *bool         `env:"SESSIONS_DATABASE_MONGO_ENABLE_TLS" yaml:"enableTLS"`
 }
 
 // New creates a new Configuration.
