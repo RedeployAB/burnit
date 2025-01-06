@@ -73,6 +73,16 @@ const (
 	MSSQLEncryptStrict MSSQLEncrypt = "strict"
 )
 
+// Row is a result row.
+type Row interface {
+	Scan(dest ...any) error
+}
+
+// Result is the result of a query.
+type Result interface {
+	RowsAffected() (int64, error)
+}
+
 // Client is the interface for the database client.
 type Client interface {
 	QueryRow(ctx context.Context, query string, args ...any) Row
@@ -88,47 +98,6 @@ type Tx interface {
 	Exec(ctx context.Context, query string, args ...any) (Result, error)
 	Commit() error
 	Rollback() error
-}
-
-// tx is a transaction. It wraps a *sql.Tx.
-type tx struct {
-	*sql.Tx
-}
-
-// Query executes a query that is expected to return at most one row.
-func (t tx) QueryRow(ctx context.Context, query string, args ...any) Row {
-	return t.Tx.QueryRowContext(ctx, query, args...)
-}
-
-// Exec executes a query without returning any rows.
-func (t tx) Exec(ctx context.Context, query string, args ...any) (Result, error) {
-	return t.Tx.ExecContext(ctx, query, args...)
-}
-
-// Commit commits the transaction.
-func (t tx) Commit() error {
-	return t.Tx.Commit()
-}
-
-// Rollback rolls back the transaction.
-func (t tx) Rollback() error {
-	return t.Tx.Rollback()
-}
-
-// Tx starts a new transaction.
-func (c client) Transaction(ctx context.Context) (Tx, error) {
-	t, err := c.db.BeginTx(ctx, nil)
-	return tx{t}, err
-}
-
-// Row is a result row.
-type Row interface {
-	Scan(dest ...any) error
-}
-
-// Result is the result of a query.
-type Result interface {
-	RowsAffected() (int64, error)
 }
 
 // client is the database client.
@@ -209,7 +178,7 @@ func NewClient(options ...ClientOption) (*client, error) {
 	return &client{db: db, driver: driver}, nil
 }
 
-// Query executes a query that is expected to return at most one row.
+// QueryRow executes a query that is expected to return at most one row.
 func (c client) QueryRow(ctx context.Context, query string, args ...any) Row {
 	return c.db.QueryRowContext(ctx, query, args...)
 }
@@ -231,6 +200,37 @@ func (c client) Close() error {
 		return nil
 	}
 	return err
+}
+
+// tx is a transaction. It wraps a *sql.Tx.
+type tx struct {
+	*sql.Tx
+}
+
+// QueryRow executes a query that is expected to return at most one row.
+func (t tx) QueryRow(ctx context.Context, query string, args ...any) Row {
+	return t.Tx.QueryRowContext(ctx, query, args...)
+}
+
+// Exec executes a query without returning any rows.
+func (t tx) Exec(ctx context.Context, query string, args ...any) (Result, error) {
+	return t.Tx.ExecContext(ctx, query, args...)
+}
+
+// Commit commits the transaction.
+func (t tx) Commit() error {
+	return t.Tx.Commit()
+}
+
+// Rollback rolls back the transaction.
+func (t tx) Rollback() error {
+	return t.Tx.Rollback()
+}
+
+// Tx starts a new transaction.
+func (c client) Transaction(ctx context.Context) (Tx, error) {
+	t, err := c.db.BeginTx(ctx, nil)
+	return tx{t}, err
 }
 
 // PostgresOptions contains the options for PostgreSQL.
