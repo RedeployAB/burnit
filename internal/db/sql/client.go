@@ -75,7 +75,7 @@ const (
 
 // Client is the interface for the database client.
 type Client interface {
-	Query(ctx context.Context, query string, args ...any) Row
+	QueryRow(ctx context.Context, query string, args ...any) Row
 	Exec(ctx context.Context, query string, args ...any) (Result, error)
 	Transaction(ctx context.Context) (Tx, error)
 	Driver() Driver
@@ -84,7 +84,7 @@ type Client interface {
 
 // Tx is the interface for the database transaction.
 type Tx interface {
-	Query(ctx context.Context, query string, args ...any) Row
+	QueryRow(ctx context.Context, query string, args ...any) Row
 	Exec(ctx context.Context, query string, args ...any) (Result, error)
 	Commit() error
 	Rollback() error
@@ -96,7 +96,7 @@ type tx struct {
 }
 
 // Query executes a query that is expected to return at most one row.
-func (t tx) Query(ctx context.Context, query string, args ...any) Row {
+func (t tx) QueryRow(ctx context.Context, query string, args ...any) Row {
 	return t.Tx.QueryRowContext(ctx, query, args...)
 }
 
@@ -210,7 +210,7 @@ func NewClient(options ...ClientOption) (*client, error) {
 }
 
 // Query executes a query that is expected to return at most one row.
-func (c client) Query(ctx context.Context, query string, args ...any) Row {
+func (c client) QueryRow(ctx context.Context, query string, args ...any) Row {
 	return c.db.QueryRowContext(ctx, query, args...)
 }
 

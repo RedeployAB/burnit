@@ -103,7 +103,7 @@ func (s sessionStore) createTableIfNotExists(ctx context.Context) error {
 // Get a session by its ID.
 func (s sessionStore) Get(ctx context.Context, id string) (db.Session, error) {
 	var session db.Session
-	if err := s.client.Query(ctx, s.queries.selectByID, id).Scan(&session.ID, &session.ExpiresAt, &session.CSRF.Token, &session.CSRF.ExpiresAt); err != nil {
+	if err := s.client.QueryRow(ctx, s.queries.selectByID, id).Scan(&session.ID, &session.ExpiresAt, &session.CSRF.Token, &session.CSRF.ExpiresAt); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return db.Session{}, dberrors.ErrSessionNotFound
 		}
@@ -115,7 +115,7 @@ func (s sessionStore) Get(ctx context.Context, id string) (db.Session, error) {
 // Get a session by its CSRF token.
 func (s sessionStore) GetByCSRFToken(ctx context.Context, token string) (db.Session, error) {
 	var session db.Session
-	if err := s.client.Query(ctx, s.queries.selectByCSRFToken, token).Scan(&session.ID, &session.ExpiresAt, &session.CSRF.Token, &session.CSRF.ExpiresAt); err != nil {
+	if err := s.client.QueryRow(ctx, s.queries.selectByCSRFToken, token).Scan(&session.ID, &session.ExpiresAt, &session.CSRF.Token, &session.CSRF.ExpiresAt); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return db.Session{}, dberrors.ErrSessionNotFound
 		}
@@ -139,7 +139,7 @@ func (s sessionStore) Upsert(ctx context.Context, session db.Session) (db.Sessio
 		return db.Session{}, err
 	}
 
-	if err := tx.Query(ctx, s.queries.selectByID, session.ID).Scan(&session.ID, &session.ExpiresAt, &session.CSRF.Token, &session.CSRF.ExpiresAt); err != nil {
+	if err := tx.QueryRow(ctx, s.queries.selectByID, session.ID).Scan(&session.ID, &session.ExpiresAt, &session.CSRF.Token, &session.CSRF.ExpiresAt); err != nil {
 		if err := tx.Rollback(); err != nil {
 			return db.Session{}, err
 		}

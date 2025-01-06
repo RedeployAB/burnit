@@ -119,7 +119,7 @@ func (s secretStore) createTableIfNotExists(ctx context.Context) error {
 // Get a secret by its ID.
 func (s secretStore) Get(ctx context.Context, id string) (db.Secret, error) {
 	var secret db.Secret
-	if err := s.client.Query(ctx, s.queries.selectByID, id).Scan(&secret.ID, &secret.Value, &secret.ExpiresAt); err != nil {
+	if err := s.client.QueryRow(ctx, s.queries.selectByID, id).Scan(&secret.ID, &secret.Value, &secret.ExpiresAt); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return db.Secret{}, dberrors.ErrSecretNotFound
 		}
@@ -142,7 +142,7 @@ func (s secretStore) Create(ctx context.Context, secret db.Secret) (db.Secret, e
 		return db.Secret{}, err
 	}
 
-	if err := tx.Query(ctx, s.queries.selectByID, secret.ID).Scan(&secret.ID, &secret.Value, &secret.ExpiresAt); err != nil {
+	if err := tx.QueryRow(ctx, s.queries.selectByID, secret.ID).Scan(&secret.ID, &secret.Value, &secret.ExpiresAt); err != nil {
 		if err := tx.Rollback(); err != nil {
 			return db.Secret{}, err
 		}
