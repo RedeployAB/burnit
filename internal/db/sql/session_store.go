@@ -20,7 +20,7 @@ const (
 
 // sessionStore is a SQL implementation of a SessionStore.
 type sessionStore struct {
-	db      *sql.DB
+	client  Client
 	driver  Driver
 	table   string
 	queries sessionQueries
@@ -37,9 +37,9 @@ type SessionStoreOptions struct {
 type SessionStoreOption func(o *SessionStoreOptions)
 
 // NewSessionStore returns a new SessionStore.
-func NewSessionStore(db *DB, options ...SessionStoreOption) (*sessionStore, error) {
-	if db == nil {
-		return nil, ErrNilDB
+func NewSessionStore(client Client, options ...SessionStoreOption) (*sessionStore, error) {
+	if client == nil {
+		return nil, ErrNilClient
 	}
 
 	opts := SessionStoreOptions{
@@ -50,14 +50,15 @@ func NewSessionStore(db *DB, options ...SessionStoreOption) (*sessionStore, erro
 		option(&opts)
 	}
 
-	queries, err := createSessionQueries(db.driver, opts.Table)
+	driver := client.Driver()
+	queries, err := createSessionQueries(driver, opts.Table)
 	if err != nil {
 		return nil, err
 	}
 
 	s := &sessionStore{
-		db:      db.DB,
-		driver:  db.driver,
+		client:  client,
+		driver:  driver,
 		table:   opts.Table,
 		queries: queries,
 		timeout: opts.Timeout,
@@ -93,7 +94,7 @@ func (s sessionStore) createTableIfNotExists(ctx context.Context) error {
 		return fmt.Errorf("%w: %s", ErrDriverNotSupported, s.driver)
 	}
 
-	if _, err := s.db.ExecContext(ctx, fmt.Sprintf(query, args...)); err != nil {
+	if _, err := s.client.Exec(ctx, fmt.Sprintf(query, args...)); err != nil {
 		return err
 	}
 	return nil
@@ -102,7 +103,7 @@ func (s sessionStore) createTableIfNotExists(ctx context.Context) error {
 // Get a session by its ID.
 func (s sessionStore) Get(ctx context.Context, id string) (db.Session, error) {
 	var session db.Session
-	if err := s.db.QueryRowContext(ctx, s.queries.selectByID, id).Scan(&session.ID, &session.ExpiresAt, &session.CSRF.Token, &session.CSRF.ExpiresAt); err != nil {
+	if err := s.client.QueryRow(ctx, s.queries.selectByID, id).Scan(&session.ID, &session.ExpiresAt, &session.CSRF.Token, &session.CSRF.ExpiresAt); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return db.Session{}, dberrors.ErrSessionNotFound
 		}
@@ -114,7 +115,7 @@ func (s sessionStore) Get(ctx context.Context, id string) (db.Session, error) {
 // Get a session by its CSRF token.
 func (s sessionStore) GetByCSRFToken(ctx context.Context, token string) (db.Session, error) {
 	var session db.Session
-	if err := s.db.QueryRowContext(ctx, s.queries.selectByCSRFToken, token).Scan(&session.ID, &session.ExpiresAt, &session.CSRF.Token, &session.CSRF.ExpiresAt); err != nil {
+	if err := s.client.QueryRow(ctx, s.queries.selectByCSRFToken, token).Scan(&session.ID, &session.ExpiresAt, &session.CSRF.Token, &session.CSRF.ExpiresAt); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return db.Session{}, dberrors.ErrSessionNotFound
 		}
@@ -126,19 +127,19 @@ func (s sessionStore) GetByCSRFToken(ctx context.Context, token string) (db.Sess
 // Upsert a session. Create the session if it does not exist, otherwise
 // update it.
 func (s sessionStore) Upsert(ctx context.Context, session db.Session) (db.Session, error) {
-	tx, err := s.db.BeginTx(ctx, nil)
+	tx, err := s.client.Transaction(ctx)
 	if err != nil {
 		return db.Session{}, nil
 	}
 
-	if _, err := tx.ExecContext(ctx, s.queries.upsert, session.ID, session.ExpiresAt, session.CSRF.Token, session.CSRF.ExpiresAt); err != nil {
+	if _, err := tx.Exec(ctx, s.queries.upsert, session.ID, session.ExpiresAt, session.CSRF.Token, session.CSRF.ExpiresAt); err != nil {
 		if err := tx.Rollback(); err != nil {
 			return db.Session{}, err
 		}
 		return db.Session{}, err
 	}
 
-	if err := tx.QueryRowContext(ctx, s.queries.selectByID, session.ID).Scan(&session.ID, &session.ExpiresAt, &session.CSRF.Token, &session.CSRF.ExpiresAt); err != nil {
+	if err := tx.QueryRow(ctx, s.queries.selectByID, session.ID).Scan(&session.ID, &session.ExpiresAt, &session.CSRF.Token, &session.CSRF.ExpiresAt); err != nil {
 		if err := tx.Rollback(); err != nil {
 			return db.Session{}, err
 		}
@@ -154,7 +155,7 @@ func (s sessionStore) Upsert(ctx context.Context, session db.Session) (db.Sessio
 
 // Delete a session by its ID.
 func (s sessionStore) Delete(ctx context.Context, id string) error {
-	result, err := s.db.ExecContext(ctx, s.queries.delete, id)
+	result, err := s.client.Exec(ctx, s.queries.delete, id)
 	if err != nil {
 		return err
 	}
@@ -173,7 +174,7 @@ func (s sessionStore) Delete(ctx context.Context, id string) error {
 
 // DeleteByCSRFToken deletes a session by its CSRF token.
 func (s sessionStore) DeleteByCSRFToken(ctx context.Context, token string) error {
-	result, err := s.db.ExecContext(ctx, s.queries.deleteByCSRFToken, token)
+	result, err := s.client.Exec(ctx, s.queries.deleteByCSRFToken, token)
 	if err != nil {
 		return err
 	}
@@ -192,7 +193,7 @@ func (s sessionStore) DeleteByCSRFToken(ctx context.Context, token string) error
 
 // DeleteExpired deletes all expired sessions.
 func (s sessionStore) DeleteExpired(ctx context.Context) error {
-	result, err := s.db.ExecContext(ctx, s.queries.deleteExpired)
+	result, err := s.client.Exec(ctx, s.queries.deleteExpired)
 	if err != nil {
 		return err
 	}
@@ -211,7 +212,7 @@ func (s sessionStore) DeleteExpired(ctx context.Context) error {
 
 // Close the store and its underlying connections.
 func (s sessionStore) Close() error {
-	return s.db.Close()
+	return s.client.Close()
 }
 
 // sessionQueries contains queries used by the Store.

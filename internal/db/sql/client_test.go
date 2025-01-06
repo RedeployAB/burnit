@@ -11,7 +11,7 @@ func TestBuildDSN(t *testing.T) {
 		name  string
 		input struct {
 			driver  Driver
-			options *Options
+			options *ClientOptions
 		}
 		want string
 	}{
@@ -19,10 +19,10 @@ func TestBuildDSN(t *testing.T) {
 			name: "postgres",
 			input: struct {
 				driver  Driver
-				options *Options
+				options *ClientOptions
 			}{
 				driver: DriverPostgres,
-				options: &Options{
+				options: &ClientOptions{
 					Address: "localhost",
 				},
 			},
@@ -32,10 +32,10 @@ func TestBuildDSN(t *testing.T) {
 			name: "postgres - database, username, password and TLS mode",
 			input: struct {
 				driver  Driver
-				options *Options
+				options *ClientOptions
 			}{
 				driver: DriverPostgres,
-				options: &Options{
+				options: &ClientOptions{
 					Address:  "localhost",
 					Database: "database",
 					Username: "user",
@@ -51,10 +51,10 @@ func TestBuildDSN(t *testing.T) {
 			name: "postgres with DSN/URI",
 			input: struct {
 				driver  Driver
-				options *Options
+				options *ClientOptions
 			}{
 				driver: DriverPostgres,
-				options: &Options{
+				options: &ClientOptions{
 					Driver: DriverPostgres,
 					DSN:    "postgres://user:password@localhost/database?sslmode=prefer",
 				},
@@ -65,10 +65,10 @@ func TestBuildDSN(t *testing.T) {
 			name: "mssql",
 			input: struct {
 				driver  Driver
-				options *Options
+				options *ClientOptions
 			}{
 				driver: DriverMSSQL,
-				options: &Options{
+				options: &ClientOptions{
 					Address: "localhost",
 				},
 			},
@@ -78,10 +78,10 @@ func TestBuildDSN(t *testing.T) {
 			name: "mssql - database, username, password and TLS mode",
 			input: struct {
 				driver  Driver
-				options *Options
+				options *ClientOptions
 			}{
 				driver: DriverMSSQL,
-				options: &Options{
+				options: &ClientOptions{
 					Address:  "localhost",
 					Database: "database",
 					Username: "user",
@@ -97,10 +97,10 @@ func TestBuildDSN(t *testing.T) {
 			name: "mssql with DSN/URI",
 			input: struct {
 				driver  Driver
-				options *Options
+				options *ClientOptions
 			}{
 				driver: DriverMSSQL,
-				options: &Options{
+				options: &ClientOptions{
 					Driver: DriverMSSQL,
 					DSN:    "sqlserver://user:password@localhost?database=database&encrypt=true",
 				},
@@ -111,10 +111,10 @@ func TestBuildDSN(t *testing.T) {
 			name: "sqlite - file",
 			input: struct {
 				driver  Driver
-				options *Options
+				options *ClientOptions
 			}{
 				driver: DriverSQLite,
-				options: &Options{
+				options: &ClientOptions{
 					SQLite: SQLiteOptions{
 						File: "file.db",
 					},
@@ -126,10 +126,10 @@ func TestBuildDSN(t *testing.T) {
 			name: "sqlite - default file",
 			input: struct {
 				driver  Driver
-				options *Options
+				options *ClientOptions
 			}{
 				driver:  DriverSQLite,
-				options: &Options{},
+				options: &ClientOptions{},
 			},
 			want: "file:burnit.db",
 		},
@@ -137,10 +137,10 @@ func TestBuildDSN(t *testing.T) {
 			name: "sqlite - in-memory",
 			input: struct {
 				driver  Driver
-				options *Options
+				options *ClientOptions
 			}{
 				driver: DriverSQLite,
-				options: &Options{
+				options: &ClientOptions{
 					SQLite: SQLiteOptions{
 						InMemory: true,
 					},

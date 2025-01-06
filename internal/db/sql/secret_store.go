@@ -20,7 +20,7 @@ const (
 
 // secretStore is a SQL implementation of a SecretStore.
 type secretStore struct {
-	db      *sql.DB
+	client  Client
 	driver  Driver
 	table   string
 	queries secretQueries
@@ -37,9 +37,9 @@ type SecretStoreOptions struct {
 type SecretStoreOption func(o *SecretStoreOptions)
 
 // NewSecretStore returns a new SecretStore.
-func NewSecretStore(db *DB, options ...SecretStoreOption) (*secretStore, error) {
-	if db == nil {
-		return nil, ErrNilDB
+func NewSecretStore(client Client, options ...SecretStoreOption) (*secretStore, error) {
+	if client == nil {
+		return nil, ErrNilClient
 	}
 
 	opts := SecretStoreOptions{
@@ -50,14 +50,15 @@ func NewSecretStore(db *DB, options ...SecretStoreOption) (*secretStore, error) 
 		option(&opts)
 	}
 
-	queries, err := createSecretQueries(db.driver, opts.Table)
+	driver := client.Driver()
+	queries, err := createSecretQueries(driver, opts.Table)
 	if err != nil {
 		return nil, err
 	}
 
 	s := &secretStore{
-		db:      db.DB,
-		driver:  db.driver,
+		client:  client,
+		driver:  driver,
 		table:   opts.Table,
 		queries: queries,
 		timeout: opts.Timeout,
@@ -109,7 +110,7 @@ func (s secretStore) createTableIfNotExists(ctx context.Context) error {
 		return fmt.Errorf("%w: %s", ErrDriverNotSupported, s.driver)
 	}
 
-	if _, err := s.db.ExecContext(ctx, fmt.Sprintf(query, args...)); err != nil {
+	if _, err := s.client.Exec(ctx, fmt.Sprintf(query, args...)); err != nil {
 		return err
 	}
 	return nil
@@ -118,7 +119,7 @@ func (s secretStore) createTableIfNotExists(ctx context.Context) error {
 // Get a secret by its ID.
 func (s secretStore) Get(ctx context.Context, id string) (db.Secret, error) {
 	var secret db.Secret
-	if err := s.db.QueryRowContext(ctx, s.queries.selectByID, id).Scan(&secret.ID, &secret.Value, &secret.ExpiresAt); err != nil {
+	if err := s.client.QueryRow(ctx, s.queries.selectByID, id).Scan(&secret.ID, &secret.Value, &secret.ExpiresAt); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return db.Secret{}, dberrors.ErrSecretNotFound
 		}
@@ -129,19 +130,19 @@ func (s secretStore) Get(ctx context.Context, id string) (db.Secret, error) {
 
 // Create a secret.
 func (s secretStore) Create(ctx context.Context, secret db.Secret) (db.Secret, error) {
-	tx, err := s.db.BeginTx(ctx, nil)
+	tx, err := s.client.Transaction(ctx)
 	if err != nil {
 		return db.Secret{}, err
 	}
 
-	if _, err := tx.ExecContext(ctx, s.queries.insert, secret.ID, secret.Value, secret.ExpiresAt); err != nil {
+	if _, err := tx.Exec(ctx, s.queries.insert, secret.ID, secret.Value, secret.ExpiresAt); err != nil {
 		if err := tx.Rollback(); err != nil {
 			return db.Secret{}, err
 		}
 		return db.Secret{}, err
 	}
 
-	if err := tx.QueryRowContext(ctx, s.queries.selectByID, secret.ID).Scan(&secret.ID, &secret.Value, &secret.ExpiresAt); err != nil {
+	if err := tx.QueryRow(ctx, s.queries.selectByID, secret.ID).Scan(&secret.ID, &secret.Value, &secret.ExpiresAt); err != nil {
 		if err := tx.Rollback(); err != nil {
 			return db.Secret{}, err
 		}
@@ -157,7 +158,7 @@ func (s secretStore) Create(ctx context.Context, secret db.Secret) (db.Secret, e
 
 // Delete a secret by its ID.
 func (s secretStore) Delete(ctx context.Context, id string) error {
-	result, err := s.db.ExecContext(ctx, s.queries.delete, id)
+	result, err := s.client.Exec(ctx, s.queries.delete, id)
 	if err != nil {
 		return err
 	}
@@ -176,7 +177,7 @@ func (s secretStore) Delete(ctx context.Context, id string) error {
 
 // DeleteExpired deletes all expired secrets.
 func (s secretStore) DeleteExpired(ctx context.Context) error {
-	result, err := s.db.ExecContext(ctx, s.queries.deleteExpired)
+	result, err := s.client.Exec(ctx, s.queries.deleteExpired)
 	if err != nil {
 		return err
 	}
@@ -195,7 +196,7 @@ func (s secretStore) DeleteExpired(ctx context.Context) error {
 
 // Close the store and its underlying connections.
 func (s secretStore) Close() error {
-	return s.db.Close()
+	return s.client.Close()
 }
 
 // secretQueries contains queries used by the store.
