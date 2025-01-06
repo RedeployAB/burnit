@@ -73,23 +73,72 @@ const (
 	MSSQLEncryptStrict MSSQLEncrypt = "strict"
 )
 
-// DB is a database handle representing a pool of zero or more underlying connections.
-type DB struct {
-	*sql.DB
+// Client is the interface for the database client.
+type Client interface {
+	Query(ctx context.Context, query string, args ...any) Row
+	Exec(ctx context.Context, query string, args ...any) (Result, error)
+	Transaction(ctx context.Context) (Tx, error)
+	Driver() Driver
+	Close() error
+}
+
+// Tx is the interface for the database transaction.
+type Tx interface {
+	Query(ctx context.Context, query string, args ...any) Row
+	Exec(ctx context.Context, query string, args ...any) (Result, error)
+	Commit() error
+	Rollback() error
+}
+
+// tx is a transaction. It wraps a *sql.Tx.
+type tx struct {
+	*sql.Tx
+}
+
+// Query executes a query that is expected to return at most one row.
+func (t tx) Query(ctx context.Context, query string, args ...any) Row {
+	return t.Tx.QueryRowContext(ctx, query, args...)
+}
+
+// Exec executes a query without returning any rows.
+func (t tx) Exec(ctx context.Context, query string, args ...any) (Result, error) {
+	return t.Tx.ExecContext(ctx, query, args...)
+}
+
+// Commit commits the transaction.
+func (t tx) Commit() error {
+	return t.Tx.Commit()
+}
+
+// Rollback rolls back the transaction.
+func (t tx) Rollback() error {
+	return t.Tx.Rollback()
+}
+
+// Tx starts a new transaction.
+func (c client) Transaction(ctx context.Context) (Tx, error) {
+	t, err := c.db.BeginTx(ctx, nil)
+	return tx{t}, err
+}
+
+// Row is a result row.
+type Row interface {
+	Scan(dest ...any) error
+}
+
+// Result is the result of a query.
+type Result interface {
+	RowsAffected() (int64, error)
+}
+
+// client is the database client.
+type client struct {
+	db     *sql.DB
 	driver Driver
 }
 
-// Close the database and release any open resources.
-func (db DB) Close() error {
-	err := db.DB.Close()
-	if err == nil || errors.Is(err, sql.ErrConnDone) {
-		return nil
-	}
-	return err
-}
-
-// Options contains the options for the database.
-type Options struct {
+// ClientOptions contains the options for the client.
+type ClientOptions struct {
 	Driver                Driver
 	DSN                   string
 	Address               string
@@ -105,28 +154,12 @@ type Options struct {
 	SQLite                SQLiteOptions
 }
 
-// PostgresOptions contains the options for PostgreSQL.
-type PostgresOptions struct {
-	SSLMode PostgresSSLMode
-}
+// ClientOption is a function that sets options for the client.
+type ClientOption func(o *ClientOptions)
 
-// MSSQLOptions contains the options for MSSQL.
-type MSSQLOptions struct {
-	Encrypt MSSQLEncrypt
-}
-
-// SQLiteOptions contains the options for SQLite.
-type SQLiteOptions struct {
-	File     string
-	InMemory bool
-}
-
-// Option is a function that sets options for the database.
-type Option func(o *Options)
-
-// Open a database specified by its database driver and data source name.
-func Open(options ...Option) (*DB, error) {
-	opts := Options{
+// NewClient creates a new database client.
+func NewClient(options ...ClientOption) (*client, error) {
+	opts := ClientOptions{
 		Database:       defaultDatabase,
 		ConnectTimeout: defaultConnectTimeout,
 		SQLite: SQLiteOptions{
@@ -173,7 +206,47 @@ func Open(options ...Option) (*DB, error) {
 		db.SetConnMaxLifetime(opts.MaxConnectionLifetime)
 	}
 
-	return &DB{DB: db, driver: driver}, nil
+	return &client{db: db, driver: driver}, nil
+}
+
+// Query executes a query that is expected to return at most one row.
+func (c client) Query(ctx context.Context, query string, args ...any) Row {
+	return c.db.QueryRowContext(ctx, query, args...)
+}
+
+// Exec executes a query without returning any rows.
+func (c client) Exec(ctx context.Context, query string, args ...any) (Result, error) {
+	return c.db.ExecContext(ctx, query, args...)
+}
+
+// Driver returns the database driver.
+func (c client) Driver() Driver {
+	return c.driver
+}
+
+// Close the database and release any open resources.
+func (c client) Close() error {
+	err := c.db.Close()
+	if err == nil || errors.Is(err, sql.ErrConnDone) {
+		return nil
+	}
+	return err
+}
+
+// PostgresOptions contains the options for PostgreSQL.
+type PostgresOptions struct {
+	SSLMode PostgresSSLMode
+}
+
+// MSSQLOptions contains the options for MSSQL.
+type MSSQLOptions struct {
+	Encrypt MSSQLEncrypt
+}
+
+// SQLiteOptions contains the options for SQLite.
+type SQLiteOptions struct {
+	File     string
+	InMemory bool
 }
 
 // checkDriver checks if the database driver is supported and returns the driver
@@ -191,7 +264,7 @@ func checkDriver(driver Driver) (Driver, error) {
 }
 
 // buildDSN builds the data source name for the database connection.
-func buildDSN(driver Driver, options *Options) string {
+func buildDSN(driver Driver, options *ClientOptions) string {
 	if options == nil {
 		return ""
 	}

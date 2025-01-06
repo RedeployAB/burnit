@@ -27,7 +27,7 @@ var (
 // dbClient contains configured db client.
 type dbClient struct {
 	mongo mongo.Client
-	sql   *sql.DB
+	sql   sql.Client
 	redis redis.Client
 }
 
@@ -124,7 +124,7 @@ func setupMongoClient(config *Database) (mongo.Client, error) {
 }
 
 // setupSQLClient sets up SQL client (connection).
-func setupSQLClient(config *Database) (*sql.DB, error) {
+func setupSQLClient(config *Database) (sql.Client, error) {
 	drv := sql.Driver(config.Driver)
 	if drv == sql.DriverMSSQL && config.Database == defaultDatabaseName {
 		config.Database = strings.ToUpper(config.Database[:1]) + config.Database[1:]
@@ -135,7 +135,7 @@ func setupSQLClient(config *Database) (*sql.DB, error) {
 		inMemory = *config.SQLite.InMemory
 	}
 
-	return sql.Open(func(o *sql.Options) {
+	return sql.NewClient(func(o *sql.ClientOptions) {
 		o.Driver = drv
 		o.DSN = config.URI
 		o.Address = config.Address
