@@ -1,14 +1,29 @@
 {
+  "openapi": "3.1.1",
   "info": {
     "description": "burnit API",
     "title": "burnit",
     "version": "0.1.0"
   },
-  "openapi": "3.1.1",
+  "servers": [
+    {
+      "url": "https://{host}"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Index",
+      "description": "Information about the API and available endpoints."
+    },
+    {
+      "name": "Secrets",
+      "description": "Operations related to secrets."
+    }
+  ],
   "paths": {
     "/": {
       "get": {
-        "Summary": "Get API information and endpoints.",
+        "summary": "Get API information and endpoints.",
         "description": "Get information about the API and available endpoints.",
         "responses": {
           "200": {
@@ -574,20 +589,5 @@
         ]
       }
     }
-  },
-  "servers": [
-    {
-      "url": "https://{host}"
-    }
-  ],
-  "tags": [
-    {
-      "description": "Information about the API and available endpoints.",
-      "name": "Index"
-    },
-    {
-      "description": "Operations related to secrets.",
-      "name": "Secrets"
-    }
-  ]
+  }
 }
