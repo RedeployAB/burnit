@@ -1,0 +1,593 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "burnit",
+    "description": "API documentation for burnit.",
+    "version": "0.1.0"
+  },
+  "servers": [
+    {
+      "url": "https://{host}"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Index",
+      "description": "Information about the API and available endpoints."
+    },
+    {
+      "name": "Secrets",
+      "description": "Operations related to secrets."
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Get API information and endpoints.",
+        "description": "Get information about the API and available endpoints.",
+        "tags": [
+          "Index"
+        ],
+        "responses": {
+          "200": {
+            "description": "API information and endpoints.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "The name of the API.",
+                      "example": "burnit"
+                    },
+                    "version": {
+                      "type": "string",
+                      "description": "The version of the API.",
+                      "example": "0.1.0"
+                    },
+                    "endpoints": {
+                      "type": "array",
+                      "description": "The available endpoints of the API.",
+                      "items": {
+                        "type": "string",
+                        "example": [
+                          "/secret",
+                          "/secrets"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "description": "The status code of the error.",
+                      "example": 500
+                    },
+                    "code": {
+                      "type": "string",
+                      "description": "The error code.",
+                      "example": "ServerError"
+                    },
+                    "error": {
+                      "type": "string",
+                      "description": "The error message.",
+                      "example": "internal server error"
+                    },
+                    "requestId": {
+                      "type": "string",
+                      "description": "The request ID of the error.",
+                      "format": "uuid"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/secret": {
+      "get": {
+        "description": "Generate a secret with specified length and special characters. Default length is 16 characters with no special characters.",
+        "summary": "Generate a secret.",
+        "tags": [
+          "Secrets"
+        ],
+        "parameters": [
+          {
+            "description": "Length (amount of characters) of the secret. Alias 'l' is short for length.",
+            "in": "query",
+            "name": "length",
+            "required": false,
+            "schema": {
+              "maximum": 512,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Include special characters in the secret. Alias 'sc' is short for specialCharacters.",
+            "in": "query",
+            "name": "specialCharacters",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "value": {
+                      "description": "The generated secret value.",
+                      "example": "secret",
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "description": "The generated secret value.",
+                  "example": "secret",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Secret generated successfully."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "statusCode": {
+                      "description": "The status code of the error.",
+                      "example": 500,
+                      "type": "integer"
+                    },
+                    "code": {
+                      "description": "The error code.",
+                      "example": "ServerError",
+                      "type": "string"
+                    },
+                    "error": {
+                      "description": "The error message.",
+                      "example": "internal server error",
+                      "type": "string"
+                    },
+                    "requestId": {
+                      "description": "The request ID of the error.",
+                      "format": "uuid",
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Internal server error."
+          }
+        }
+      }
+    },
+    "/secrets": {
+      "post": {
+        "summary": "Create a secret.",
+        "tags": [
+          "Secrets"
+        ],
+        "requestBody": {
+          "description": "The secret to create.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "value": {
+                    "description": "The value of the secret.",
+                    "example": "secret",
+                    "required": true,
+                    "type": "string"
+                  },
+                  "passphrase": {
+                    "description": "The passphrase of the secret. If not provided, a passphrase will be generated.",
+                    "example": "passphrase",
+                    "required": false,
+                    "type": "string"
+                  },
+                  "ttl": {
+                    "description": "The time-to-live of the secret. If neither this or expiresAt is provided, the secret will will expire in 1 hour. Format example: 1s, 1m, 1h, 1h30m. Maximum unit is hours.",
+                    "example": "1h",
+                    "required": false,
+                    "type": "string"
+                  },
+                  "expiresAt": {
+                    "description": "The expiration date of the secret. If neither this or ttl is provided, the secret will will expire in 1 hour.",
+                    "example": "2025-01-08T23:28:14+01:00",
+                    "required": false,
+                    "type": "date-time"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Secret created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "description": "The ID of the secret.",
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "passphrase": {
+                      "description": "The passphrase of the secret.",
+                      "example": "passphrase",
+                      "type": "string"
+                    },
+                    "ttl": {
+                      "description": "The time-to-live of the secret.",
+                      "example": "1h0m0s",
+                      "type": "string"
+                    },
+                    "expiresAt": {
+                      "description": "The expiration date of the secret.",
+                      "example": "2025-01-08T23:28:14+01:00",
+                      "format": "date-time",
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request. For a available error codes and their error messages, see the documentation at section [Error codes]().",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "description": "The status code of the error.",
+                      "example": 400
+                    },
+                    "code": {
+                      "type": "string",
+                      "description": "The error code.",
+                      "example": "InvalidRequest"
+                    },
+                    "error": {
+                      "type": "string",
+                      "description": "The error message.",
+                      "example": "invalid request"
+                    },
+                    "requestId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "description": "The request ID of the error."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "description": "The status code of the error.",
+                      "example": 500
+                    },
+                    "code": {
+                      "type": "string",
+                      "description": "The error code.",
+                      "example": "ServerError"
+                    },
+                    "error": {
+                      "type": "string",
+                      "description": "The error message.",
+                      "example": "internal server error"
+                    },
+                    "requestId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "description": "The request ID of the error."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/secrets/{id}": {
+      "get": {
+        "summary": "Get a secret by ID.",
+        "tags": [
+          "Secrets"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "description": "The ID of the secret.",
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Secret retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "description": "The ID of the secret."
+                    },
+                    "value": {
+                      "type": "string",
+                      "description": "The value of the secret.",
+                      "example": "secret"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid passphrase.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "description": "The status code of the error.",
+                      "example": 401
+                    },
+                    "code": {
+                      "type": "string",
+                      "description": "The error code.",
+                      "example": "InvalidPassphrase"
+                    },
+                    "error": {
+                      "type": "string",
+                      "description": "The error message.",
+                      "example": "invalid passphrase"
+                    },
+                    "requestId": {
+                      "type": "string",
+                      "description": "The request ID of the error.",
+                      "format": "uuid"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Secret not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "description": "The status code of the error.",
+                      "example": 404
+                    },
+                    "code": {
+                      "type": "string",
+                      "description": "The error code.",
+                      "example": "SecretNotFound"
+                    },
+                    "error": {
+                      "type": "string",
+                      "description": "The error message.",
+                      "example": "secret not found"
+                    },
+                    "requestId": {
+                      "type": "string",
+                      "description": "The request ID of the error.",
+                      "format": "uuid"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "description": "The status code of the error.",
+                      "example": 500
+                    },
+                    "code": {
+                      "type": "string",
+                      "description": "The error code.",
+                      "example": "ServerError"
+                    },
+                    "error": {
+                      "type": "string",
+                      "description": "The error message.",
+                      "example": "internal server error"
+                    },
+                    "requestId": {
+                      "type": "string",
+                      "description": "The request ID of the error.",
+                      "format": "uuid"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a secret by ID.",
+        "tags": [
+          "Secrets"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "description": "The ID of the secret.",
+            "in": "path",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Secret deleted successfully."
+          },
+          "401": {
+            "description": "Invalid passphrase.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "description": "The status code of the error.",
+                      "example": 400
+                    },
+                    "code": {
+                      "type": "string",
+                      "description": "The error code.",
+                      "example": "InvalidPassphrase"
+                    },
+                    "error": {
+                      "type": "string",
+                      "description": "The error message.",
+                      "example": "invalid passphrase"
+                    },
+                    "requestId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "description": "The request ID of the error."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Secret not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "description": "The status code of the error.",
+                      "example": 404
+                    },
+                    "code": {
+                      "type": "string",
+                      "description": "The error code.",
+                      "example": "SecretNotFound"
+                    },
+                    "error": {
+                      "type": "string",
+                      "description": "The error message.",
+                      "example": "secret not found"
+                    },
+                    "requestId": {
+                      "type": "string",
+                      "description": "The request ID of the error.",
+                      "format": "uuid"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "description": "The status code of the error.",
+                      "example": 500
+                    },
+                    "code": {
+                      "type": "string",
+                      "description": "The error code.",
+                      "example": "ServerError"
+                    },
+                    "error": {
+                      "type": "string",
+                      "description": "The error message.",
+                      "example": "internal server error"
+                    },
+                    "requestId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "description": "The request ID of the error."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

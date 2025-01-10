@@ -30,4 +30,6 @@ run.sh
 *.plan
 *.backup
 
+openapi.yaml
+
 TODO.md
