@@ -37,13 +37,6 @@ func About(ui UI) http.Handler {
 	})
 }
 
-// Docs handles requests to the docs route.
-func Docs(ui UI) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ui.Render(w, http.StatusOK, "docs", nil)
-	})
-}
-
 // Privacy handles requests to the privacy route.
 func Privacy(ui UI) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -134,12 +127,19 @@ func CreateSecretHandler(ui UI, secrets secret.Service, sessions session.Service
 			ui.Render(w, http.StatusOK, "secret-create", secretCreateResponse{CSRFToken: sess.CSRF().Token()}, WithPartial())
 			return
 		}
+
 		if err := r.ParseForm(); err != nil {
 			requestID := requestIDFromContext(r.Context())
 			log.Error("Failed to parse form.", uiLog(err, "HandlerCreateSecret", requestID)...)
 			ui.Render(w, http.StatusBadRequest, "error", errorResponse{Title: "An error occured", Message: "Could not parse form.", RequestID: requestID}, WithPartial())
 			return
 		}
+
+		defer func() {
+			if err := sessions.Delete(session.DeleteWithCSRFToken(r.FormValue("csrf-token"))); err != nil {
+				log.Error("Failed to delete session.", uiLog(err, "HandlerCreateSecret", requestIDFromContext(r.Context()))...)
+			}
+		}()
 
 		ok, statusCode, errResp, err := validateCSRFTToken(r.Context(), sessions, r.FormValue("csrf-token"))
 		if err != nil {
@@ -187,10 +187,6 @@ func CreateSecretHandler(ui UI, secrets secret.Service, sessions session.Service
 			return
 		}
 
-		if err := sessions.Delete(session.DeleteWithCSRFToken(r.FormValue("csrf-token"))); err != nil {
-			log.Error("Failed to delete session.", uiLog(err, "HandlerCreateSecret", requestIDFromContext(r.Context()))...)
-		}
-
 		response := secretCreateResponse{
 			BaseURL:        baseURL,
 			ID:             s.ID,
@@ -212,6 +208,12 @@ func GetSecretHandler(ui UI, secrets secret.Service, sessions session.Service, l
 			ui.Render(w, http.StatusInternalServerError, "error", errorResponse{Title: "An error occured", Message: "Could not parse form.", RequestID: requestID}, WithPartial())
 			return
 		}
+
+		defer func() {
+			if err := sessions.Delete(session.DeleteWithCSRFToken(r.FormValue("csrf-token"))); err != nil {
+				log.Error("Failed to delete session.", "handler", "HandlerGetSecret", "error", err, "requestId", requestIDFromContext(r.Context()))
+			}
+		}()
 
 		ok, statusCode, errResp, err := validateCSRFTToken(r.Context(), sessions, r.FormValue("csrf-token"))
 		if err != nil {
@@ -254,10 +256,6 @@ func GetSecretHandler(ui UI, secrets secret.Service, sessions session.Service, l
 			return
 		}
 
-		if err := sessions.Delete(session.DeleteWithCSRFToken(r.FormValue("csrf-token"))); err != nil {
-			log.Error("Failed to delete session.", "handler", "HandlerGetSecret", "error", err, "requestId", requestIDFromContext(r.Context()))
-		}
-
 		response := secretGetResponse{
 			ID:             s.ID,
 			PassphraseHash: passphrase,
@@ -297,7 +295,7 @@ func validateCSRFTToken(ctx context.Context, sessions session.Service, token str
 			return false, http.StatusBadRequest, errorResponse{Title: title, Message: "Session not found."}, errors.New("session not found")
 		}
 		if errors.Is(err, session.ErrSessionExpired) {
-			return false, http.StatusBadRequest, errorResponse{Title: title, Message: "Session expired. Please refresh the page."}, nil
+			return false, http.StatusBadRequest, errorResponse{Title: title, Message: "Session expired. Please reload the page."}, nil
 		}
 		return false, http.StatusInternalServerError, errorResponse{Title: "An error occured", Message: "Could not validate CSRF token.", RequestID: middleware.RequestIDFromContext(ctx)}, err
 	}
@@ -311,7 +309,7 @@ func validateCSRFTToken(ctx context.Context, sessions session.Service, token str
 		return false, http.StatusBadRequest, errorResponse{Title: title, Message: "CSRF token does not match with session."}, errors.New("CSRF token does not match with session")
 	}
 	if csrf.Expired() {
-		return false, http.StatusBadRequest, errorResponse{Title: title, Message: "CSRF token expired. Please refresh the page."}, nil
+		return false, http.StatusBadRequest, errorResponse{Title: title, Message: "CSRF token expired. Please reload the page."}, nil
 	}
 	return true, 0, errorResponse{}, nil
 }
