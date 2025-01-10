@@ -34,13 +34,12 @@
             "content": {
               "application/json": {
                 "schema": {
-                   "type": "object",
+                  "type": "object",
                   "properties": {
                     "name": {
                       "type": "string",
                       "description": "The name of the API.",
                       "example": "burnit"
-                      
                     },
                     "version": {
                       "type": "string",
@@ -79,7 +78,6 @@
                       "type": "string",
                       "description": "The error code.",
                       "example": "ServerError"
-                      
                     },
                     "error": {
                       "type": "string",
@@ -525,8 +523,8 @@
             }
           },
           "404": {
+            "description": "Secret not found.",
             "content": {
-              "description": "Secret not found.",
               "application/json": {
                 "schema": {
                   "type": "object",
@@ -557,8 +555,8 @@
             }
           },
           "500": {
+            "description": "Internal server error.",
             "content": {
-              "description": "Internal server error.",
               "application/json": {
                 "schema": {
                   "type": "object",
