@@ -42,10 +42,10 @@ const (
 )
 
 const (
-	// defaultUIRuntimeRenderTemplateDir is the default directory for the runtime render templates.
-	defaultUIRuntimeRenderTemplateDir = "internal/ui/templates"
-	// defaultUIRuntimeRenderStaticDir is the default directory for the runtime render static files.
-	defaultUIRuntimeRenderStaticDir = "internal/ui/static"
+	// defaultRuntimeRenderTemplateDir is the default directory for the runtime render templates.
+	defaultRuntimeRenderTemplateDir = "internal/ui/templates"
+	// defaultRuntimeRenderStaticDir is the default directory for the runtime render static files.
+	defaultRuntimeRenderStaticDir = "internal/ui/static"
 )
 
 const (
@@ -271,7 +271,7 @@ type Redis struct {
 
 // UI contains the configuration for the UI.
 type UI struct {
-	RuntimeRender *bool      `env:"UI_RUNTIME_RENDER" yaml:"runtimeRender"`
+	RuntimeRender *bool      `env:"RUNTIME_RENDER" yaml:"runtimeRender"`
 	Services      UIServices `yaml:"services"`
 }
 

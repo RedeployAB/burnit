@@ -9,62 +9,58 @@ import (
 
 // flags contains the flags.
 type flags struct {
-	configPath                    string
-	host                          string
-	port                          int
-	tlsCertFile                   string
-	tlsKeyFile                    string
-	corsOrigin                    string
-	rateLimiterRate               float64
-	rateLimiterBurst              int
-	rateLimiterCleanupInterval    time.Duration
-	rateLimiterTTL                time.Duration
-	timeout                       time.Duration
-	databaseDriver                string
-	databaseURI                   string
-	databaseAddr                  string
-	database                      string
-	databaseUser                  string
-	databasePass                  string
-	databaseTimeout               time.Duration
-	databaseConnectTimeout        time.Duration
-	databaseMaxOpenConnections    int
-	databaseMaxIdleConnections    int
-	databaseMaxConnectionLifeTime time.Duration
-	databaseMongoEnableTLS        *bool
-	databasePostgresSSLMode       string
-	databaseMSSQLEncrypt          string
-	databaseSQLiteFile            string
-	databaseSQLiteInMemory        *bool
-	databaseRedisDialTimeout      time.Duration
-	databaseRedisMaxRetries       int
-	databaseRedisMinRetryBackoff  time.Duration
-	databaseRedisMaxRetryBackoff  time.Duration
-	databaseRedisEnableTLS        *bool
+	configPath                   string
+	host                         string
+	port                         int
+	tlsCertFile                  string
+	tlsKeyFile                   string
+	corsOrigin                   string
+	rateLimiterRate              float64
+	rateLimiterBurst             int
+	rateLimiterCleanupInterval   time.Duration
+	rateLimiterTTL               time.Duration
+	secretServiceTimeout         time.Duration
+	backendOnly                  *bool
+	databaseDriver               string
+	databaseURI                  string
+	databaseAddr                 string
+	database                     string
+	databaseUser                 string
+	databasePass                 string
+	databaseTimeout              time.Duration
+	databaseConnectTimeout       time.Duration
+	databaseMongoEnableTLS       *bool
+	databasePostgresSSLMode      string
+	databaseMSSQLEncrypt         string
+	databaseSQLiteFile           string
+	databaseSQLiteInMemory       *bool
+	databaseRedisDialTimeout     time.Duration
+	databaseRedisMaxRetries      int
+	databaseRedisMinRetryBackoff time.Duration
+	databaseRedisMaxRetryBackoff time.Duration
+	databaseRedisEnableTLS       *bool
 	// UI flags.
-	uiRuntimeRender *bool
+	sessionServiceTimeout time.Duration
+	runtimeRender         *bool
 	// Session database flags.
-	sessionDatabaseDriver                string
-	sessionDatabaseURI                   string
-	sessionDatabaseAddr                  string
-	sessionDatabase                      string
-	sessionDatabaseUser                  string
-	sessionDatabasePass                  string
-	sessionDatabaseTimeout               time.Duration
-	sessionDatabaseConnectTimeout        time.Duration
-	sessionDatabaseMaxOpenConnections    int
-	sessionDatabaseMaxIdleConnections    int
-	sessionDatabaseMaxConnectionLifeTime time.Duration
-	sessionDatabaseMongoEnableTLS        *bool
-	sessionDatabasePostgresSSLMode       string
-	sessionDatabaseMSSQLEncrypt          string
-	sessionDatabaseSQLiteFile            string
-	sessionDatabaseSQLiteInMemory        *bool
-	sessionDatabaseRedisDialTimeout      time.Duration
-	sessionDatabaseRedisMaxRetries       int
-	sessionDatabaseRedisMinRetryBackoff  time.Duration
-	sessionDatabaseRedisMaxRetryBackoff  time.Duration
-	sessionDatabaseRedisEnableTLS        *bool
+	sessionDatabaseDriver               string
+	sessionDatabaseURI                  string
+	sessionDatabaseAddr                 string
+	sessionDatabase                     string
+	sessionDatabaseUser                 string
+	sessionDatabasePass                 string
+	sessionDatabaseTimeout              time.Duration
+	sessionDatabaseConnectTimeout       time.Duration
+	sessionDatabaseMongoEnableTLS       *bool
+	sessionDatabasePostgresSSLMode      string
+	sessionDatabaseMSSQLEncrypt         string
+	sessionDatabaseSQLiteFile           string
+	sessionDatabaseSQLiteInMemory       *bool
+	sessionDatabaseRedisDialTimeout     time.Duration
+	sessionDatabaseRedisMaxRetries      int
+	sessionDatabaseRedisMinRetryBackoff time.Duration
+	sessionDatabaseRedisMaxRetryBackoff time.Duration
+	sessionDatabaseRedisEnableTLS       *bool
 	// Local development flag.
 	localDevelopment *bool
 }
@@ -77,14 +73,15 @@ func parseFlags(args []string) (flags, string, error) {
 
 	var (
 		f                             flags
-		uiRuntimeRender               boolFlag
+		backendOnly                   boolFlag
+		runtimeRender                 boolFlag
+		localDevelopment              boolFlag
 		databaseMongoEnableTLS        boolFlag
 		databaseSQLiteInMemory        boolFlag
 		databaseRedisEnableTLS        boolFlag
 		sessionDatabaseMongoEnableTLS boolFlag
 		sessionDatabaseSQLiteInMemory boolFlag
 		sessionDatabaseRedisEnableTLS boolFlag
-		localDevelopment              boolFlag
 	)
 
 	fs.StringVar(&f.configPath, "config-path", "", "Optional. Path to a configuration file. Defaults to: "+defaultConfigPath+".")
@@ -92,12 +89,13 @@ func parseFlags(args []string) (flags, string, error) {
 	fs.IntVar(&f.port, "port", 0, "Optional. Port to listen on. Default: "+strconv.Itoa(defaultListenPort)+".")
 	fs.StringVar(&f.tlsCertFile, "tls-cert-file", "", "Optional. Path to TLS certificate file.")
 	fs.StringVar(&f.tlsKeyFile, "tls-key-file", "", "Optional. Path to TLS key file.")
-	fs.StringVar(&f.corsOrigin, "cors-origin", "", "Optional. CORS origin for application. Only necessary if UI is not served through this application.")
+	fs.StringVar(&f.corsOrigin, "cors-origin", "", "Optional. CORS origin. Only necessary if frontend is not served through the server.")
 	fs.Float64Var(&f.rateLimiterRate, "rate-limiter-rate", 0, "Optional. The average number of requests per second.")
 	fs.IntVar(&f.rateLimiterBurst, "rate-limiter-burst", 0, "Optional. The maximum burst of requests.")
 	fs.DurationVar(&f.rateLimiterCleanupInterval, "rate-limiter-cleanup-interval", 0, "Optional. The interval at which to clean up stale rate limiter entires.")
 	fs.DurationVar(&f.rateLimiterTTL, "rate-limiter-ttl", 0, "Optional. The time-to-live for rate limiter entries.")
-	fs.DurationVar(&f.timeout, "timeout", 0, "Optional. Timeout for the internal secret service. Default: "+defaultSecretServiceTimeout.String()+".")
+	fs.DurationVar(&f.secretServiceTimeout, "secret-service-timeout", 0, "Optional. Timeout for the internal secret service. Default: "+defaultSecretServiceTimeout.String()+".")
+	fs.Var(&backendOnly, "backend-only", "Optional. Disable UI (frontend). Default: false.")
 	// Database flags.
 	fs.StringVar(&f.databaseDriver, "database-driver", "", "Optional. Database driver.")
 	fs.StringVar(&f.databaseURI, "database-uri", "", "Optional. URI (DSN) for the database.")
@@ -107,9 +105,6 @@ func parseFlags(args []string) (flags, string, error) {
 	fs.StringVar(&f.databasePass, "database-password", "", "Optional. Database password.")
 	fs.DurationVar(&f.databaseTimeout, "database-timeout", 0, "Optional. Timeout for database operations. Default: "+defaultDatabaseTimeout.String()+".")
 	fs.DurationVar(&f.databaseConnectTimeout, "database-connect-timeout", 0, "Optional. Connect timeout for the database. Default: "+defaultDatabaseConnectTimeout.String()+".")
-	fs.IntVar(&f.databaseMaxOpenConnections, "database-max-open-connections", 0, "Optional. Maximum number of open connections to the database.")
-	fs.IntVar(&f.databaseMaxIdleConnections, "database-max-idle-connections", 0, "Optional. Maximum number of idle connections to the database.")
-	fs.DurationVar(&f.databaseMaxConnectionLifeTime, "database-max-connection-life-time", 0, "Optional. Maximum connection lifetime for the database.")
 	fs.Var(&databaseMongoEnableTLS, "database-mongo-enable-tls", "Optional. Enable TLS for MongoDB. Default: true.")
 	fs.StringVar(&f.databasePostgresSSLMode, "database-postgres-ssl-mode", "", "Optional. SSL mode for PostgreSQL. Default: require.")
 	fs.StringVar(&f.databaseMSSQLEncrypt, "database-mssql-encrypt", "", "Optional. Encrypt for MSSQL. Default: true.")
@@ -121,7 +116,8 @@ func parseFlags(args []string) (flags, string, error) {
 	fs.DurationVar(&f.databaseRedisMaxRetryBackoff, "database-redis-max-retry-backoff", 0, "Optional. Maximum retry backoff for the Redis client.")
 	fs.Var(&databaseRedisEnableTLS, "database-redis-enable-tls", "Optional. Enable TLS for the Redis client. Default: true.")
 	// UI flags.
-	fs.Var(&uiRuntimeRender, "ui-runtime-render", "Optional. Enable runtime rendering of the UI.")
+	fs.DurationVar(&f.sessionServiceTimeout, "session-service-timeout", 0, "Optional. Timeout for the internal session service. Default: "+defaultSessionServiceTimeout.String()+".")
+	fs.Var(&runtimeRender, "runtime-render", "Optional. Enable runtime rendering of the UI.")
 	// Session database flags.
 	fs.StringVar(&f.sessionDatabaseDriver, "session-database-driver", "", "Optional. Database driver.")
 	fs.StringVar(&f.sessionDatabaseURI, "session-database-uri", "", "Optional. URI for the session database.")
@@ -131,9 +127,6 @@ func parseFlags(args []string) (flags, string, error) {
 	fs.StringVar(&f.sessionDatabasePass, "session-database-password", "", "Optional. Session database password.")
 	fs.DurationVar(&f.sessionDatabaseTimeout, "session-database-timeout", 0, "Optional. Timeout for session database operations. Default: "+defaultDatabaseTimeout.String()+".")
 	fs.DurationVar(&f.sessionDatabaseConnectTimeout, "session-database-connect-timeout", 0, "Optional. Connect timeout for the session database. Default: "+defaultDatabaseConnectTimeout.String()+".")
-	fs.IntVar(&f.sessionDatabaseMaxOpenConnections, "session-database-max-open-connections", 0, "Optional. Maximum number of open connections to the session database.")
-	fs.IntVar(&f.sessionDatabaseMaxIdleConnections, "session-database-max-idle-connections", 0, "Optional. Maximum number of idle connections to the session database.")
-	fs.DurationVar(&f.sessionDatabaseMaxConnectionLifeTime, "session-database-max-connection-life-time", 0, "Optional. Maximum connection lifetime for the session database.")
 	fs.Var(&sessionDatabaseMongoEnableTLS, "session-database-mongo-enable-tls", "Optional. Enable TLS for MongoDB. Default: true.")
 	fs.StringVar(&f.sessionDatabasePostgresSSLMode, "session-database-postgres-ssl-mode", "", "Optional. SSL mode for PostgreSQL. Default: require.")
 	fs.StringVar(&f.sessionDatabaseMSSQLEncrypt, "session-database-mssql-encrypt", "", "Optional. Encrypt for MSSQL. Default: true.")
@@ -152,6 +145,16 @@ func parseFlags(args []string) (flags, string, error) {
 		return f, buf.String(), err
 	}
 
+	if backendOnly.isSet {
+		f.backendOnly = &backendOnly.value
+	}
+	if localDevelopment.isSet {
+		f.localDevelopment = &localDevelopment.value
+	}
+	if runtimeRender.isSet {
+		f.runtimeRender = &runtimeRender.value
+	}
+
 	if databaseMongoEnableTLS.isSet {
 		f.databaseMongoEnableTLS = &databaseMongoEnableTLS.value
 	}
@@ -161,9 +164,7 @@ func parseFlags(args []string) (flags, string, error) {
 	if databaseRedisEnableTLS.isSet {
 		f.databaseRedisEnableTLS = &databaseRedisEnableTLS.value
 	}
-	if uiRuntimeRender.isSet {
-		f.uiRuntimeRender = &uiRuntimeRender.value
-	}
+
 	if sessionDatabaseMongoEnableTLS.isSet {
 		f.sessionDatabaseMongoEnableTLS = &sessionDatabaseMongoEnableTLS.value
 	}
@@ -172,9 +173,6 @@ func parseFlags(args []string) (flags, string, error) {
 	}
 	if sessionDatabaseRedisEnableTLS.isSet {
 		f.sessionDatabaseRedisEnableTLS = &sessionDatabaseRedisEnableTLS.value
-	}
-	if localDevelopment.isSet {
-		f.localDevelopment = &localDevelopment.value
 	}
 
 	return f, buf.String(), nil
@@ -202,7 +200,7 @@ func configurationFromFlags(flags *flags) (Configuration, error) {
 		},
 		Services: Services{
 			Secret: Secret{
-				Timeout: flags.timeout,
+				Timeout: flags.secretServiceTimeout,
 			},
 			Database: Database{
 				Driver:         flags.databaseDriver,
@@ -236,7 +234,7 @@ func configurationFromFlags(flags *flags) (Configuration, error) {
 			},
 		},
 		UI: UI{
-			RuntimeRender: flags.uiRuntimeRender,
+			RuntimeRender: flags.runtimeRender,
 			Services: UIServices{
 				Session: Session{
 					Database: SessionDatabase{

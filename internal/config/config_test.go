@@ -199,7 +199,7 @@ func TestNew(t *testing.T) {
 					"-rate-limiter-burst", "8",
 					"-rate-limiter-cleanup-interval", "15m",
 					"-rate-limiter-ttl", "20m",
-					"-timeout", "25s",
+					"-secret-service-timeout", "25s",
 					"-database-uri", "mongodb://localhost3:27019",
 					"-database-address", "localhost3:27019",
 					"-database", "test3",

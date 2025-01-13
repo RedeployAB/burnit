@@ -18,8 +18,8 @@ func SetupUI(config UI) (ui.UI, session.Service, error) {
 	var runtimeRender bool
 
 	if config.RuntimeRender != nil && *config.RuntimeRender {
-		templatesDir = defaultUIRuntimeRenderTemplateDir
-		staticDir = defaultUIRuntimeRenderStaticDir
+		templatesDir = defaultRuntimeRenderTemplateDir
+		staticDir = defaultRuntimeRenderStaticDir
 		runtimeRender = true
 	}
 
