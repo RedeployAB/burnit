@@ -31,8 +31,7 @@ func TestNew(t *testing.T) {
 				},
 				Services: Services{
 					Secret: Secret{
-						ValueMaxCharacters: defaultSecretServiceValueMaxCharacters,
-						Timeout:            defaultSecretServiceTimeout,
+						Timeout: defaultSecretServiceTimeout,
 					},
 					Database: Database{
 						Database:       defaultDatabaseName,
@@ -82,8 +81,7 @@ func TestNew(t *testing.T) {
 				},
 				Services: Services{
 					Secret: Secret{
-						ValueMaxCharacters: defaultSecretServiceValueMaxCharacters,
-						Timeout:            15 * time.Second,
+						Timeout: 15 * time.Second,
 					},
 					Database: Database{
 						Driver:         "mongodb",
@@ -157,8 +155,7 @@ func TestNew(t *testing.T) {
 				},
 				Services: Services{
 					Secret: Secret{
-						ValueMaxCharacters: defaultSecretServiceValueMaxCharacters,
-						Timeout:            20 * time.Second,
+						Timeout: 20 * time.Second,
 					},
 					Database: Database{
 						Driver:         "mongodb",
@@ -221,7 +218,6 @@ func TestNew(t *testing.T) {
 					"BURNIT_RATE_LIMITER_BURST":            "6",
 					"BURNIT_RATE_LIMITER_CLEANUP_INTERVAL": "10m",
 					"BURNIT_RATE_LIMITER_TTL":              "15m",
-					"BURNIT_SECRETS_ENCRYPTION_KEY":        "key2",
 					"BURNIT_SECRETS_TIMEOUT":               "20s",
 					"BURNIT_DATABASE_URI":                  "mongodb://localhost2:27018",
 					"BURNIT_DATABASE_ADDRESS":              "localhost2:27018",
@@ -252,8 +248,7 @@ func TestNew(t *testing.T) {
 				},
 				Services: Services{
 					Secret: Secret{
-						ValueMaxCharacters: defaultSecretServiceValueMaxCharacters,
-						Timeout:            25 * time.Second,
+						Timeout: 25 * time.Second,
 					},
 					Database: Database{
 						Driver:         "mongodb",

@@ -9,56 +9,62 @@ import (
 
 // flags contains the flags.
 type flags struct {
-	configPath                   string
-	host                         string
-	port                         int
-	tlsCertFile                  string
-	tlsKeyFile                   string
-	corsOrigin                   string
-	rateLimiterRate              float64
-	rateLimiterBurst             int
-	rateLimiterCleanupInterval   time.Duration
-	rateLimiterTTL               time.Duration
-	timeout                      time.Duration
-	databaseDriver               string
-	databaseURI                  string
-	databaseAddr                 string
-	database                     string
-	databaseUser                 string
-	databasePass                 string
-	databaseTimeout              time.Duration
-	databaseConnectTimeout       time.Duration
-	databaseMongoEnableTLS       *bool
-	databasePostgresSSLMode      string
-	databaseMSSQLEncrypt         string
-	databaseSQLiteFile           string
-	databaseSQLiteInMemory       *bool
-	databaseRedisDialTimeout     time.Duration
-	databaseRedisMaxRetries      int
-	databaseRedisMinRetryBackoff time.Duration
-	databaseRedisMaxRetryBackoff time.Duration
-	databaseRedisEnableTLS       *bool
+	configPath                    string
+	host                          string
+	port                          int
+	tlsCertFile                   string
+	tlsKeyFile                    string
+	corsOrigin                    string
+	rateLimiterRate               float64
+	rateLimiterBurst              int
+	rateLimiterCleanupInterval    time.Duration
+	rateLimiterTTL                time.Duration
+	timeout                       time.Duration
+	databaseDriver                string
+	databaseURI                   string
+	databaseAddr                  string
+	database                      string
+	databaseUser                  string
+	databasePass                  string
+	databaseTimeout               time.Duration
+	databaseConnectTimeout        time.Duration
+	databaseMaxOpenConnections    int
+	databaseMaxIdleConnections    int
+	databaseMaxConnectionLifeTime time.Duration
+	databaseMongoEnableTLS        *bool
+	databasePostgresSSLMode       string
+	databaseMSSQLEncrypt          string
+	databaseSQLiteFile            string
+	databaseSQLiteInMemory        *bool
+	databaseRedisDialTimeout      time.Duration
+	databaseRedisMaxRetries       int
+	databaseRedisMinRetryBackoff  time.Duration
+	databaseRedisMaxRetryBackoff  time.Duration
+	databaseRedisEnableTLS        *bool
 	// UI flags.
 	uiRuntimeRender *bool
 	// Session database flags.
-	sessionDatabaseDriver               string
-	sessionDatabaseURI                  string
-	sessionDatabaseAddr                 string
-	sessionDatabase                     string
-	sessionDatabaseUser                 string
-	sessionDatabasePass                 string
-	sessionDatabaseTimeout              time.Duration
-	sessionDatabaseConnectTimeout       time.Duration
-	sessionDatabaseMongoEnableTLS       *bool
-	sessionDatabasePostgresSSLMode      string
-	sessionDatabaseMSSQLEncrypt         string
-	sessionDatabaseSQLiteFile           string
-	sessionDatabaseSQLiteInMemory       *bool
-	sessionDatabaseRedisDialTimeout     time.Duration
-	sessionDatabaseRedisMaxRetries      int
-	sessionDatabaseRedisMinRetryBackoff time.Duration
-	sessionDatabaseRedisMaxRetryBackoff time.Duration
-	sessionDatabaseRedisEnableTLS       *bool
+	sessionDatabaseDriver                string
+	sessionDatabaseURI                   string
+	sessionDatabaseAddr                  string
+	sessionDatabase                      string
+	sessionDatabaseUser                  string
+	sessionDatabasePass                  string
+	sessionDatabaseTimeout               time.Duration
+	sessionDatabaseConnectTimeout        time.Duration
+	sessionDatabaseMaxOpenConnections    int
+	sessionDatabaseMaxIdleConnections    int
+	sessionDatabaseMaxConnectionLifeTime time.Duration
+	sessionDatabaseMongoEnableTLS        *bool
+	sessionDatabasePostgresSSLMode       string
+	sessionDatabaseMSSQLEncrypt          string
+	sessionDatabaseSQLiteFile            string
+	sessionDatabaseSQLiteInMemory        *bool
+	sessionDatabaseRedisDialTimeout      time.Duration
+	sessionDatabaseRedisMaxRetries       int
+	sessionDatabaseRedisMinRetryBackoff  time.Duration
+	sessionDatabaseRedisMaxRetryBackoff  time.Duration
+	sessionDatabaseRedisEnableTLS        *bool
 	// Local development flag.
 	localDevelopment *bool
 }
@@ -82,56 +88,62 @@ func parseFlags(args []string) (flags, string, error) {
 	)
 
 	fs.StringVar(&f.configPath, "config-path", "", "Optional. Path to a configuration file. Defaults to: "+defaultConfigPath+".")
-	fs.StringVar(&f.host, "host", "", "Optional. Host to listen on. Defaults to: "+defaultListenHost+".")
-	fs.IntVar(&f.port, "port", 0, "Optional. Port to listen on. Defaults to: "+strconv.Itoa(defaultListenPort)+".")
-	fs.StringVar(&f.tlsCertFile, "tls-cert-file", "", "Optional. TLS certificate file.")
-	fs.StringVar(&f.tlsKeyFile, "tls-key-file", "", "Optional. TLS key file.")
-	fs.StringVar(&f.corsOrigin, "cors-origin", "", "Optional. CORS origin.")
+	fs.StringVar(&f.host, "host", "", "Optional. Host (IP) to listen on. Default: "+defaultListenHost+".")
+	fs.IntVar(&f.port, "port", 0, "Optional. Port to listen on. Default: "+strconv.Itoa(defaultListenPort)+".")
+	fs.StringVar(&f.tlsCertFile, "tls-cert-file", "", "Optional. Path to TLS certificate file.")
+	fs.StringVar(&f.tlsKeyFile, "tls-key-file", "", "Optional. Path to TLS key file.")
+	fs.StringVar(&f.corsOrigin, "cors-origin", "", "Optional. CORS origin for application. Only necessary if UI is not served through this application.")
 	fs.Float64Var(&f.rateLimiterRate, "rate-limiter-rate", 0, "Optional. The average number of requests per second.")
 	fs.IntVar(&f.rateLimiterBurst, "rate-limiter-burst", 0, "Optional. The maximum burst of requests.")
-	fs.DurationVar(&f.rateLimiterCleanupInterval, "rate-limiter-cleanup-interval", 0, "Optional. The interval at which to clean up stale rate limiters.")
-	fs.DurationVar(&f.rateLimiterTTL, "rate-limiter-ttl", 0, "Optional. The time-to-live for rate limiters.")
-	fs.DurationVar(&f.timeout, "timeout", 0, "Optional. Default timeout for the service. Defaults to: "+defaultSecretServiceTimeout.String()+".")
+	fs.DurationVar(&f.rateLimiterCleanupInterval, "rate-limiter-cleanup-interval", 0, "Optional. The interval at which to clean up stale rate limiter entires.")
+	fs.DurationVar(&f.rateLimiterTTL, "rate-limiter-ttl", 0, "Optional. The time-to-live for rate limiter entries.")
+	fs.DurationVar(&f.timeout, "timeout", 0, "Optional. Timeout for the internal secret service. Default: "+defaultSecretServiceTimeout.String()+".")
 	// Database flags.
 	fs.StringVar(&f.databaseDriver, "database-driver", "", "Optional. Database driver.")
-	fs.StringVar(&f.databaseURI, "database-uri", "", "Optional. URI for the database.")
-	fs.StringVar(&f.databaseAddr, "database-address", "", "Optional. Address for the database.")
+	fs.StringVar(&f.databaseURI, "database-uri", "", "Optional. URI (DSN) for the database.")
+	fs.StringVar(&f.databaseAddr, "database-address", "", "Optional. Address (host and port) for the database. ")
 	fs.StringVar(&f.database, "database", "", "Optional. Database name.")
 	fs.StringVar(&f.databaseUser, "database-user", "", "Optional. Database username.")
 	fs.StringVar(&f.databasePass, "database-password", "", "Optional. Database password.")
-	fs.DurationVar(&f.databaseTimeout, "database-timeout", 0, "Optional. Timeout for the database. Defaults to: "+defaultDatabaseTimeout.String()+".")
-	fs.DurationVar(&f.databaseConnectTimeout, "database-connect-timeout", 0, "Optional. Connect timeout for the database. Defaults to: "+defaultDatabaseConnectTimeout.String()+".")
-	fs.Var(&databaseMongoEnableTLS, "database-mongo-enable-tls", "Optional. Enable TLS for MongoDB. Defaults to: true.")
-	fs.StringVar(&f.databasePostgresSSLMode, "database-postgres-ssl-mode", "", "Optional. SSL mode for PostgreSQL. Defaults to: require.")
-	fs.StringVar(&f.databaseMSSQLEncrypt, "database-mssql-encrypt", "", "Optional. Encrypt for MSSQL. Defaults to: true.")
-	fs.StringVar(&f.databaseSQLiteFile, "database-sqlite-file", "", "Optional. Path to the database file for SQLite.")
-	fs.Var(&databaseSQLiteInMemory, "database-sqlite-in-memory", "Optional. Use an in-memory database for SQLite. Defaults to: false.")
+	fs.DurationVar(&f.databaseTimeout, "database-timeout", 0, "Optional. Timeout for database operations. Default: "+defaultDatabaseTimeout.String()+".")
+	fs.DurationVar(&f.databaseConnectTimeout, "database-connect-timeout", 0, "Optional. Connect timeout for the database. Default: "+defaultDatabaseConnectTimeout.String()+".")
+	fs.IntVar(&f.databaseMaxOpenConnections, "database-max-open-connections", 0, "Optional. Maximum number of open connections to the database.")
+	fs.IntVar(&f.databaseMaxIdleConnections, "database-max-idle-connections", 0, "Optional. Maximum number of idle connections to the database.")
+	fs.DurationVar(&f.databaseMaxConnectionLifeTime, "database-max-connection-life-time", 0, "Optional. Maximum connection lifetime for the database.")
+	fs.Var(&databaseMongoEnableTLS, "database-mongo-enable-tls", "Optional. Enable TLS for MongoDB. Default: true.")
+	fs.StringVar(&f.databasePostgresSSLMode, "database-postgres-ssl-mode", "", "Optional. SSL mode for PostgreSQL. Default: require.")
+	fs.StringVar(&f.databaseMSSQLEncrypt, "database-mssql-encrypt", "", "Optional. Encrypt for MSSQL. Default: true.")
+	fs.StringVar(&f.databaseSQLiteFile, "database-sqlite-file", "", "Optional. Path to the database file for SQLite. Default: burnit.db.")
+	fs.Var(&databaseSQLiteInMemory, "database-sqlite-in-memory", "Optional. Use an in-memory database for SQLite. Default: false.")
 	fs.DurationVar(&f.databaseRedisDialTimeout, "database-redis-dial-timeout", 0, "Optional. Dial timeout for the Redis client.")
 	fs.IntVar(&f.databaseRedisMaxRetries, "database-redis-max-retries", 0, "Optional. Maximum number of retries for the Redis client.")
 	fs.DurationVar(&f.databaseRedisMinRetryBackoff, "database-redis-min-retry-backoff", 0, "Optional. Minimum retry backoff for the Redis client.")
 	fs.DurationVar(&f.databaseRedisMaxRetryBackoff, "database-redis-max-retry-backoff", 0, "Optional. Maximum retry backoff for the Redis client.")
-	fs.Var(&databaseRedisEnableTLS, "database-redis-enable-tls", "Optional. Enable TLS for the Redis client. Defaults to: true.")
+	fs.Var(&databaseRedisEnableTLS, "database-redis-enable-tls", "Optional. Enable TLS for the Redis client. Default: true.")
 	// UI flags.
 	fs.Var(&uiRuntimeRender, "ui-runtime-render", "Optional. Enable runtime rendering of the UI.")
 	// Session database flags.
 	fs.StringVar(&f.sessionDatabaseDriver, "session-database-driver", "", "Optional. Database driver.")
-	fs.StringVar(&f.sessionDatabaseURI, "session-database-uri", "", "Optional. URI for the database.")
-	fs.StringVar(&f.sessionDatabaseAddr, "session-database-address", "", "Optional. Address for the database.")
-	fs.StringVar(&f.sessionDatabase, "session-database", "", "Optional. Database name.")
-	fs.StringVar(&f.sessionDatabaseUser, "session-database-user", "", "Optional. Database username.")
-	fs.StringVar(&f.sessionDatabasePass, "session-database-password", "", "Optional. Database password.")
-	fs.DurationVar(&f.sessionDatabaseTimeout, "session-database-timeout", 0, "Optional. Timeout for the database. Defaults to: "+defaultDatabaseTimeout.String()+".")
-	fs.DurationVar(&f.sessionDatabaseConnectTimeout, "session-database-connect-timeout", 0, "Optional. Connect timeout for the database. Defaults to: "+defaultDatabaseConnectTimeout.String()+".")
-	fs.Var(&sessionDatabaseMongoEnableTLS, "session-database-mongo-enable-tls", "Optional. Enable TLS for MongoDB. Defaults to: true.")
-	fs.StringVar(&f.sessionDatabasePostgresSSLMode, "session-database-postgres-ssl-mode", "", "Optional. SSL mode for PostgreSQL. Defaults to: require.")
-	fs.StringVar(&f.sessionDatabaseMSSQLEncrypt, "session-database-mssql-encrypt", "", "Optional. Encrypt for MSSQL. Defaults to: true.")
-	fs.StringVar(&f.sessionDatabaseSQLiteFile, "session-database-sqlite-file", "", "Optional. Path to the database file for SQLite.")
-	fs.Var(&sessionDatabaseSQLiteInMemory, "session-database-sqlite-in-memory", "Optional. Use an in-memory database for SQLite. Defaults to: false.")
+	fs.StringVar(&f.sessionDatabaseURI, "session-database-uri", "", "Optional. URI for the session database.")
+	fs.StringVar(&f.sessionDatabaseAddr, "session-database-address", "", "Optional. Address for the session database.")
+	fs.StringVar(&f.sessionDatabase, "session-database", "", "Optional. Session database name.")
+	fs.StringVar(&f.sessionDatabaseUser, "session-database-user", "", "Optional. Session database username.")
+	fs.StringVar(&f.sessionDatabasePass, "session-database-password", "", "Optional. Session database password.")
+	fs.DurationVar(&f.sessionDatabaseTimeout, "session-database-timeout", 0, "Optional. Timeout for session database operations. Default: "+defaultDatabaseTimeout.String()+".")
+	fs.DurationVar(&f.sessionDatabaseConnectTimeout, "session-database-connect-timeout", 0, "Optional. Connect timeout for the session database. Default: "+defaultDatabaseConnectTimeout.String()+".")
+	fs.IntVar(&f.sessionDatabaseMaxOpenConnections, "session-database-max-open-connections", 0, "Optional. Maximum number of open connections to the session database.")
+	fs.IntVar(&f.sessionDatabaseMaxIdleConnections, "session-database-max-idle-connections", 0, "Optional. Maximum number of idle connections to the session database.")
+	fs.DurationVar(&f.sessionDatabaseMaxConnectionLifeTime, "session-database-max-connection-life-time", 0, "Optional. Maximum connection lifetime for the session database.")
+	fs.Var(&sessionDatabaseMongoEnableTLS, "session-database-mongo-enable-tls", "Optional. Enable TLS for MongoDB. Default: true.")
+	fs.StringVar(&f.sessionDatabasePostgresSSLMode, "session-database-postgres-ssl-mode", "", "Optional. SSL mode for PostgreSQL. Default: require.")
+	fs.StringVar(&f.sessionDatabaseMSSQLEncrypt, "session-database-mssql-encrypt", "", "Optional. Encrypt for MSSQL. Default: true.")
+	fs.StringVar(&f.sessionDatabaseSQLiteFile, "session-database-sqlite-file", "", "Optional. Path to the database file for SQLite. Default: burnit.db.")
+	fs.Var(&sessionDatabaseSQLiteInMemory, "session-database-sqlite-in-memory", "Optional. Use an in-memory database for SQLite. Default: false.")
 	fs.DurationVar(&f.sessionDatabaseRedisDialTimeout, "session-database-redis-dial-timeout", 0, "Optional. Dial timeout for the Redis client.")
 	fs.IntVar(&f.sessionDatabaseRedisMaxRetries, "session-database-redis-max-retries", 0, "Optional. Maximum number of retries for the Redis client.")
 	fs.DurationVar(&f.sessionDatabaseRedisMinRetryBackoff, "session-database-redis-min-retry-backoff", 0, "Optional. Minimum retry backoff for the Redis client.")
 	fs.DurationVar(&f.sessionDatabaseRedisMaxRetryBackoff, "session-database-redis-max-retry-backoff", 0, "Optional. Maximum retry backoff for the Redis client.")
-	fs.Var(&sessionDatabaseRedisEnableTLS, "session-database-redis-enable-tls", "Optional. Enable TLS for the Redis client. Defaults to: true.")
+	fs.Var(&sessionDatabaseRedisEnableTLS, "session-database-redis-enable-tls", "Optional. Enable TLS for the Redis client. Default: true.")
 
 	// Local development flag.
 	fs.Var(&localDevelopment, "local-development", "Optional. Enable local development mode.")

@@ -31,8 +31,8 @@ const (
 )
 
 const (
-	// defaultValueMaxCharacters is the maximum number of characters (runes) in a secret.
-	defaultValueMaxCharacters = 512
+	// defaultValueMaxCharacters is the maximum number of characters in a secret.
+	defaultValueMaxCharacters = 4000
 )
 
 const (

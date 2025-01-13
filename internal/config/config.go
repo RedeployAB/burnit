@@ -30,8 +30,6 @@ const (
 const (
 	// defaultSecretServiceTimeout is the default timeout for the secret service.
 	defaultSecretServiceTimeout = 10 * time.Second
-	// defaultSecretServiceValueMaxCharacters is the default maximum number of characters a secret value can have.
-	defaultSecretServiceValueMaxCharacters = 4000
 )
 
 const (
@@ -145,8 +143,7 @@ type Services struct {
 
 // Secret contains the configuration for the secret service.
 type Secret struct {
-	ValueMaxCharacters int           `env:"SECRET_VALUE_MAX_CHARACTERS" yaml:"valueMaxCharacters"`
-	Timeout            time.Duration `env:"SECRET_SERVICE_TIMEOUT" yaml:"timeout"`
+	Timeout time.Duration `env:"SECRET_SERVICE_TIMEOUT" yaml:"timeout"`
 }
 
 // MarshalJSON returns the JSON encoding of Secret. A custom marshalling method
@@ -269,7 +266,7 @@ type Redis struct {
 	MaxRetries      int           `env:"DATABASE_REDIS_MAX_RETRIES" yaml:"maxRetries"`
 	MinRetryBackoff time.Duration `env:"DATABASE_REDIS_MIN_RETRY_BACKOFF" yaml:"minRetryBackoff"`
 	MaxRetryBackoff time.Duration `env:"DATABASE_REDIS_MAX_RETRY_BACKOFF" yaml:"maxRetryBackoff"`
-	EnableTLS       *bool         `env:"DATABASE_MONGO_ENABLE_TLS" yaml:"enableTLS"`
+	EnableTLS       *bool         `env:"DATABASE_REDIS_ENABLE_TLS" yaml:"enableTLS"`
 }
 
 // UI contains the configuration for the UI.
@@ -421,8 +418,9 @@ type SessionRedis struct {
 
 // New creates a new Configuration.
 func New() (*Configuration, error) {
-	flags, _, err := parseFlags(os.Args[1:])
+	flags, output, err := parseFlags(os.Args[1:])
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", output)
 		return nil, err
 	}
 
@@ -433,8 +431,7 @@ func New() (*Configuration, error) {
 		},
 		Services: Services{
 			Secret: Secret{
-				ValueMaxCharacters: defaultSecretServiceValueMaxCharacters,
-				Timeout:            defaultSecretServiceTimeout,
+				Timeout: defaultSecretServiceTimeout,
 			},
 			Database: Database{
 				Database:       defaultDatabaseName,
