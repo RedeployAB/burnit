@@ -97,58 +97,58 @@ services:
   secret:
     # Timeout for the internal secret service.
     timeout: 10s
-  database:
-    # Database driver.
-    driver: ""
-    # URI (DSN) for the database.
-    uri: ""
-    # Address (host and port) for the database.
-    address: ""
-    # Database name.
-    database: ""
-    # Database username.
-    username: ""
-    # Database password.
-    password: ""
-    # Timeout for database operations.
-    timeout: 10s
-    # Connect timeout for the database.
-    connectTimeout: 10s
-    mongo:
-      # Enable TLS for MongoDB.
-      # Default: true.
-      enableTLS: null
-    postgres:
-      # SSL mode for PostgreSQL.
-      # Default: require.
-      sslMode: ""
-    mssql:
-      # Encrypt for MSSQL.
-      # Default: true.
-      encrypt: ""
-    sqlite:
-      # Path to the database file for SQLite.
-      # Default: burnit.db.
-      file: ""
-      # Use an in-memory database for SQLite.
-      # Default: false.
-      inMemory: null
-    redis:
-      # Dial timeout for the Redis client.
-      # Default: 5s,
-      dialTimeout: 0s
-      # Maximum number of retries for the Redis client.
-      # Default: 3,
-      maxRetries: 0
-      # Minimum retry backoff for the Redis client.
-      # Default: 8ms.
-      minRetryBackoff: 0s
-      # Maximum retry backoff for the Redis client.
-      # Default: 512ms.
-      maxRetryBackoff: 0s
-      # Enable TLS for the Redis client.
-      # Default: true.
-      enableTLS: null
+    database:
+      # Database driver.
+      driver: ""
+      # URI (DSN) for the database.
+      uri: ""
+      # Address (host and port) for the database.
+      address: ""
+      # Database name.
+      database: ""
+      # Database username.
+      username: ""
+      # Database password.
+      password: ""
+      # Timeout for database operations.
+      timeout: 10s
+      # Connect timeout for the database.
+      connectTimeout: 10s
+      mongo:
+        # Enable TLS for MongoDB.
+        # Default: true.
+        enableTLS: null
+      postgres:
+        # SSL mode for PostgreSQL.
+        # Default: require.
+        sslMode: ""
+      mssql:
+        # Encrypt for MSSQL.
+        # Default: true.
+        encrypt: ""
+      sqlite:
+        # Path to the database file for SQLite.
+        # Default: burnit.db.
+        file: ""
+        # Use an in-memory database for SQLite.
+        # Default: false.
+        inMemory: null
+      redis:
+        # Dial timeout for the Redis client.
+        # Default: 5s,
+        dialTimeout: 0s
+        # Maximum number of retries for the Redis client.
+        # Default: 3,
+        maxRetries: 0
+        # Minimum retry backoff for the Redis client.
+        # Default: 8ms.
+        minRetryBackoff: 0s
+        # Maximum retry backoff for the Redis client.
+        # Default: 512ms.
+        maxRetryBackoff: 0s
+        # Enable TLS for the Redis client.
+        # Default: true.
+        enableTLS: null
 # UI configuration.
 ui:
   runtimeParse: null

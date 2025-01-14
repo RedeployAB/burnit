@@ -201,35 +201,35 @@ func configurationFromFlags(flags *flags) (Configuration, error) {
 		Services: Services{
 			Secret: Secret{
 				Timeout: flags.secretServiceTimeout,
-			},
-			Database: Database{
-				Driver:         flags.databaseDriver,
-				URI:            flags.databaseURI,
-				Address:        flags.databaseAddr,
-				Database:       flags.database,
-				Username:       flags.databaseUser,
-				Password:       flags.databasePass,
-				Timeout:        flags.databaseTimeout,
-				ConnectTimeout: flags.databaseConnectTimeout,
-				Mongo: Mongo{
-					EnableTLS: flags.databaseMongoEnableTLS,
-				},
-				Postgres: Postgres{
-					SSLMode: flags.databasePostgresSSLMode,
-				},
-				MSSQL: MSSQL{
-					Encrypt: flags.databaseMSSQLEncrypt,
-				},
-				SQLite: SQLite{
-					File:     flags.databaseSQLiteFile,
-					InMemory: flags.databaseSQLiteInMemory,
-				},
-				Redis: Redis{
-					DialTimeout:     flags.databaseRedisDialTimeout,
-					MaxRetries:      flags.databaseRedisMaxRetries,
-					MinRetryBackoff: flags.databaseRedisMinRetryBackoff,
-					MaxRetryBackoff: flags.databaseRedisMaxRetryBackoff,
-					EnableTLS:       flags.databaseRedisEnableTLS,
+				Database: Database{
+					Driver:         flags.databaseDriver,
+					URI:            flags.databaseURI,
+					Address:        flags.databaseAddr,
+					Database:       flags.database,
+					Username:       flags.databaseUser,
+					Password:       flags.databasePass,
+					Timeout:        flags.databaseTimeout,
+					ConnectTimeout: flags.databaseConnectTimeout,
+					Mongo: Mongo{
+						EnableTLS: flags.databaseMongoEnableTLS,
+					},
+					Postgres: Postgres{
+						SSLMode: flags.databasePostgresSSLMode,
+					},
+					MSSQL: MSSQL{
+						Encrypt: flags.databaseMSSQLEncrypt,
+					},
+					SQLite: SQLite{
+						File:     flags.databaseSQLiteFile,
+						InMemory: flags.databaseSQLiteInMemory,
+					},
+					Redis: Redis{
+						DialTimeout:     flags.databaseRedisDialTimeout,
+						MaxRetries:      flags.databaseRedisMaxRetries,
+						MinRetryBackoff: flags.databaseRedisMinRetryBackoff,
+						MaxRetryBackoff: flags.databaseRedisMaxRetryBackoff,
+						EnableTLS:       flags.databaseRedisEnableTLS,
+					},
 				},
 			},
 		},

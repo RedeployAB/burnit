@@ -137,13 +137,13 @@ type RateLimiter struct {
 
 // Services contains the configuration for the services.
 type Services struct {
-	Secret   Secret   `yaml:"secret"`
-	Database Database `yaml:"database"`
+	Secret Secret `yaml:"secret"`
 }
 
 // Secret contains the configuration for the secret service.
 type Secret struct {
-	Timeout time.Duration `env:"SECRET_SERVICE_TIMEOUT" yaml:"timeout"`
+	Timeout  time.Duration `env:"SECRET_SERVICE_TIMEOUT" yaml:"timeout"`
+	Database Database      `yaml:"database"`
 }
 
 // MarshalJSON returns the JSON encoding of Secret. A custom marshalling method
@@ -432,11 +432,11 @@ func New() (*Configuration, error) {
 		Services: Services{
 			Secret: Secret{
 				Timeout: defaultSecretServiceTimeout,
-			},
-			Database: Database{
-				Database:       defaultDatabaseName,
-				Timeout:        defaultDatabaseTimeout,
-				ConnectTimeout: defaultDatabaseConnectTimeout,
+				Database: Database{
+					Database:       defaultDatabaseName,
+					Timeout:        defaultDatabaseTimeout,
+					ConnectTimeout: defaultDatabaseConnectTimeout,
+				},
 			},
 		},
 		UI: UI{
@@ -472,7 +472,7 @@ func New() (*Configuration, error) {
 		return nil, err
 	}
 
-	cfg.Services.Database.Driver = databaseDriver(&cfg.Services.Database)
+	cfg.Services.Secret.Database.Driver = databaseDriver(&cfg.Services.Secret.Database)
 	if cfg.Server.BackendOnly == nil || !*cfg.Server.BackendOnly {
 		cfg.UI.Services.Session.Database.Driver = databaseDriver(sessionDatabaseToDatabase(&cfg.UI.Services.Session.Database))
 	}
@@ -480,8 +480,8 @@ func New() (*Configuration, error) {
 	localDev, ok := os.LookupEnv("BURNIT_LOCAL_DEVELOPMENT")
 	if ok && strings.ToLower(localDev) == "true" || localDev == "1" || flags.localDevelopment != nil && *flags.localDevelopment {
 		cfg.UI.RuntimeParse = toPtr(true)
-		if len(cfg.Services.Database.URI) == 0 {
-			cfg.Services.Database.Driver = "sqlite"
+		if len(cfg.Services.Secret.Database.URI) == 0 {
+			cfg.Services.Secret.Database.Driver = "sqlite"
 		}
 	}
 
