@@ -46,7 +46,7 @@ func (s *server) routes() {
 		return
 	}
 
-	uiMiddlewares := setupUIMiddlewares(s.ui.RuntimeRender())
+	uiMiddlewares := setupUIMiddlewares(s.ui.RuntimeParse())
 
 	fer := http.NewServeMux()
 	fer.Handle("/ui/secrets", ui.CreateSecret(s.ui, s.secrets, s.sessions))
@@ -87,10 +87,10 @@ func setupMiddlewares(rl RateLimiter, c CORS) ([]middleware.Middleware, []func()
 }
 
 // setupUIMiddlewares sets up the middlewares for the UI.
-func setupUIMiddlewares(runtimeRender bool) []middleware.Middleware {
+func setupUIMiddlewares(runtimeParse bool) []middleware.Middleware {
 	middlewares := []middleware.Middleware{}
 	var contentSecurityPolicy string
-	if !runtimeRender {
+	if !runtimeParse {
 		contentSecurityPolicy = defaultContentSecurityPolicy
 	}
 	middlewares = append(middlewares, middleware.Headers(func(o *middleware.HeadersOptions) {

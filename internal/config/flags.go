@@ -41,7 +41,7 @@ type flags struct {
 	databaseRedisEnableTLS       *bool
 	// UI flags.
 	sessionServiceTimeout time.Duration
-	runtimeRender         *bool
+	runtimeParse          *bool
 	// Session database flags.
 	sessionDatabaseDriver               string
 	sessionDatabaseURI                  string
@@ -74,7 +74,7 @@ func parseFlags(args []string) (flags, string, error) {
 	var (
 		f                             flags
 		backendOnly                   boolFlag
-		runtimeRender                 boolFlag
+		runtimeParse                  boolFlag
 		localDevelopment              boolFlag
 		databaseMongoEnableTLS        boolFlag
 		databaseSQLiteInMemory        boolFlag
@@ -117,7 +117,7 @@ func parseFlags(args []string) (flags, string, error) {
 	fs.Var(&databaseRedisEnableTLS, "database-redis-enable-tls", "Optional. Enable TLS for the Redis client. Default: true.")
 	// UI flags.
 	fs.DurationVar(&f.sessionServiceTimeout, "session-service-timeout", 0, "Optional. Timeout for the internal session service. Default: "+defaultSessionServiceTimeout.String()+".")
-	fs.Var(&runtimeRender, "runtime-render", "Optional. Enable runtime rendering of the UI.")
+	fs.Var(&runtimeParse, "runtime-parse", "Optional. Enable runtime parsing of the UI templates.")
 	// Session database flags.
 	fs.StringVar(&f.sessionDatabaseDriver, "session-database-driver", "", "Optional. Database driver.")
 	fs.StringVar(&f.sessionDatabaseURI, "session-database-uri", "", "Optional. URI for the session database.")
@@ -151,8 +151,8 @@ func parseFlags(args []string) (flags, string, error) {
 	if localDevelopment.isSet {
 		f.localDevelopment = &localDevelopment.value
 	}
-	if runtimeRender.isSet {
-		f.runtimeRender = &runtimeRender.value
+	if runtimeParse.isSet {
+		f.runtimeParse = &runtimeParse.value
 	}
 
 	if databaseMongoEnableTLS.isSet {
@@ -234,7 +234,7 @@ func configurationFromFlags(flags *flags) (Configuration, error) {
 			},
 		},
 		UI: UI{
-			RuntimeRender: flags.runtimeRender,
+			RuntimeParse: flags.runtimeParse,
 			Services: UIServices{
 				Session: Session{
 					Database: SessionDatabase{

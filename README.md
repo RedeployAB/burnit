@@ -151,7 +151,7 @@ services:
       enableTLS: null
 # UI configuration.
 ui:
-  runtimeRender: null
+  runtimeParse: null
   # UI services configuration.
   services:
     session:
@@ -240,7 +240,7 @@ ui:
 | Name | Description |
 |------|-------------|
 | `BURNIT_SESSION_SERVICE_TIMEOUT` | Timeout for the internal session service. Default: `5s`. |
-| `BURNIT_RUNTIME_RENDER` | Enable runtime rendering of the UI. |
+| `BURNIT_RUNTIME_PARSE` | Enable runtime parsing of the UI templates. |
 | `BURNIT_LOCAL_DEVELOPMENT` | Enable local development mode. |
 
 **Database**

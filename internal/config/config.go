@@ -42,10 +42,10 @@ const (
 )
 
 const (
-	// defaultRuntimeRenderTemplateDir is the default directory for the runtime render templates.
-	defaultRuntimeRenderTemplateDir = "internal/ui/templates"
-	// defaultRuntimeRenderStaticDir is the default directory for the runtime render static files.
-	defaultRuntimeRenderStaticDir = "internal/ui/static"
+	// defaultRuntimeParseTemplateDir is the default directory for the runtime parse templates.
+	defaultRuntimeParseTemplateDir = "internal/ui/templates"
+	// defaultRuntimeParseStaticDir is the default directory for the runtime parse static files.
+	defaultRuntimeParseStaticDir = "internal/ui/static"
 )
 
 const (
@@ -271,8 +271,8 @@ type Redis struct {
 
 // UI contains the configuration for the UI.
 type UI struct {
-	RuntimeRender *bool      `env:"RUNTIME_RENDER" yaml:"runtimeRender"`
-	Services      UIServices `yaml:"services"`
+	RuntimeParse *bool      `env:"RUNTIME_PARSE" yaml:"runtimeParse"`
+	Services     UIServices `yaml:"services"`
 }
 
 // UIServices contains the configuration for the UI services.
@@ -479,7 +479,7 @@ func New() (*Configuration, error) {
 
 	localDev, ok := os.LookupEnv("BURNIT_LOCAL_DEVELOPMENT")
 	if ok && strings.ToLower(localDev) == "true" || localDev == "1" || flags.localDevelopment != nil && *flags.localDevelopment {
-		cfg.UI.RuntimeRender = toPtr(true)
+		cfg.UI.RuntimeParse = toPtr(true)
 		if len(cfg.Services.Database.URI) == 0 {
 			cfg.Services.Database.Driver = "sqlite"
 		}
