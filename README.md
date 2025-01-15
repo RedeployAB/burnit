@@ -521,4 +521,3 @@ Error responses have the following structure:
 
 - [ ] Update documentation
 - [ ] Add deployment examples, templates and scripts
-- [ ] Transactions for MongoDB commands
