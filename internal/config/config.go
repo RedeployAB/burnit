@@ -413,7 +413,7 @@ type SessionRedis struct {
 	MaxRetries      int           `env:"SESSION_DATABASE_REDIS_MAX_RETRIES" yaml:"maxRetries"`
 	MinRetryBackoff time.Duration `env:"SESSION_DATABASE_REDIS_MIN_RETRY_BACKOFF" yaml:"minRetryBackoff"`
 	MaxRetryBackoff time.Duration `env:"SESSION_DATABASE_REDIS_MAX_RETRY_BACKOFF" yaml:"maxRetryBackoff"`
-	EnableTLS       *bool         `env:"SESSION_DATABASE_MONGO_ENABLE_TLS" yaml:"enableTLS"`
+	EnableTLS       *bool         `env:"SESSION_DATABASE_REDIS_ENABLE_TLS" yaml:"enableTLS"`
 }
 
 // New creates a new Configuration.
