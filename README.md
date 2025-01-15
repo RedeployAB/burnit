@@ -9,6 +9,7 @@ it can be used to generate new secrets.
 
 * [Features](#features)
 * [Requirements](#requirements)
+  * [Container](#container)
   * [Supported databases](#supported-databases)
 * [Configuration](#configuration)
   * [Configuration file](#configuration-file)
@@ -37,13 +38,26 @@ and complexity based on the incoming request. These secrets are not stored.
 
 ## Requirements
 
+### Container
+
+If running as a container the recommended resources are (as a start, and depending on expected load):
+
+- **CPU**: `100m`
+- **Memory**: `64Mi`
+
 ### Supported databases
+
+The supported databases for the application (sessions included) are:
 
 - PostgreSQL
 - MSSQL
 - SQLite
 - MongoDB
 - Redis
+- In-memory (sessions only)
+
+The main application database and the session database does not have to be the same database or driver.
+
 
 ## Configuration
 
@@ -55,6 +69,11 @@ Order of precedence:
 * File
 * Environment variables
 * Command line arguments
+
+
+In most scenarios the only configuration that needs to be set is the connection details for the database (main application).
+
+Sessions and rate limiting uses in-memory databases due to their short lived nature by default. To avoid to use databases for these in scenarios where the application might need to scale, sticky sessions are an alternative.
 
 
 ### Configuration file
@@ -211,7 +230,7 @@ ui:
 
 ### Environment variables
 
-**Server** 
+**Server configuration**
 
 | Name | Description |
 |------|-------------|
@@ -227,23 +246,14 @@ ui:
 | `BURNIT_BACKEND_ONLY` | Disable UI (frontend). Default: `false`. |
 
 
-**Secrets**
+**Secrets configuration**
 
 | Name | Description |
 |------|-------------|
 | `BURNIT_SECRET_SERVICE_TIMEOUT` | Timeout for the internal secret service. Default: `10s`. |
 
 
-
-**UI**
-
-| Name | Description |
-|------|-------------|
-| `BURNIT_SESSION_SERVICE_TIMEOUT` | Timeout for the internal session service. Default: `5s`. |
-| `BURNIT_RUNTIME_PARSE` | Enable runtime parsing of the UI templates. |
-| `BURNIT_LOCAL_DEVELOPMENT` | Enable local development mode. |
-
-**Database**
+**Database configuration**
 
 | Name | Description |
 |------|-------------|
@@ -257,32 +267,32 @@ ui:
 | `BURNIT_DATABASE_CONNECT_TIMEOUT` | Connect timeout for the database. Default: `10s`. |
 
 
-**Database (MongoDB)**
+**Database (MongoDB) configuration**
 
 | Name | Description |
 |------|-------------|
 | `BURNIT_DATABASE_MONGO_ENABLE_TLS` | Enable TLS for MongoDB. Default: true. |
 
-**Database (Postgres)**
+**Database (Postgres) configuration**
 
 | Name | Description |
 |------|-------------|
 | `BURNIT_DATABASE_POSTGRES_SSL_MODE` | SSL mode for PostgreSQL. Default: require. |
 
-**Database (MSSQL)**
+**Database (MSSQL) configuration**
 
 | Name | Description |
 |------|-------------|
 | `BURNIT_DATABASE_MSSQL_ENCRYPT` | Encrypt for MSSQL. Default: true. |
 
-**Database (SQLite)**
+**Database (SQLite) configuration**
 
 | Name | Description |
 |------|-------------|
 | `BURNIT_DATABASE_SQLITE_FILE` | Path to the database file for SQLite. Default: burnit.db. |
 | `BURNIT_DATABASE_SQLITE_IN_MEMORY` | Use an in-memory database for SQLite. Default: false. |
 
-**Database (Redis)**
+**Database (Redis) configuration**
 
 | Name | Description |
 |------|-------------|
@@ -292,8 +302,16 @@ ui:
 | `BURNIT_DATABASE_REDIS_MAX_RETRY_BACKOFF` | Maximum retry backoff for the Redis client. |
 | `BURNIT_DATABASE_REDIS_ENABLE_TLS` | Enable TLS for the Redis client. Default: true. |
 
+**UI configuration**
 
-**Session database**
+| Name | Description |
+|------|-------------|
+| `BURNIT_SESSION_SERVICE_TIMEOUT` | Timeout for the internal session service. Default: `5s`. |
+| `BURNIT_RUNTIME_PARSE` | Enable runtime parsing of the UI templates. |
+| `BURNIT_LOCAL_DEVELOPMENT` | Enable local development mode. |
+
+
+**Session database configuration**
 
 | Name | Description |
 |------|-------------|
@@ -307,32 +325,32 @@ ui:
 | `BURNIT_SESSION_DATABASE_CONNECT_TIMEOUT` | Connect timeout for the session database. Default: `10s`. |
 
 
-**Session database (MongoDB)**
+**Session database (MongoDB) configuration**
 
 | Name | Description |
 |------|-------------|
 | `BURNIT_SESSION_DATABASE_MONGO_ENABLE_TLS` | Enable TLS for MongoDB. Default: true. |
 
-**Session database (Postgres)**
+**Session database (Postgres) configuration**
 
 | Name | Description |
 |------|-------------|
 | `BURNIT_SESSION_DATABASE_POSTGRES_SSL_MODE` | SSL mode for PostgreSQL. Default: require. |
 
-**Session database (MSSQL)**
+**Session database (MSSQL) configuration**
 
 | Name | Description |
 |------|-------------|
 | `BURNIT_SESSION_DATABASE_MSSQL_ENCRYPT` | Encrypt for MSSQL. Default: true. |
 
-**Session database (SQLite)**
+**Session database (SQLite) configuration**
 
 | Name | Description |
 |------|-------------|
 | `BURNIT_SESSION_DATABASE_SQLITE_FILE` | Path to the database file for SQLite. Default: burnit.db. |
 | `BURNIT_SESSION_DATABASE_SQLITE_IN_MEMORY` | Use an in-memory database for SQLite. Default: false. |
 
-**Session database (Redis)**
+**Session database (Redis) configuration**
 
 | Name | Description |
 |------|-------------|
@@ -346,6 +364,7 @@ ui:
 
 ```sh
 Usage of burnit:
+  # Server configuration.
   -config-path string
         Optional. Path to a configuration file. Defaults to: config.yaml.
   -host string
@@ -366,14 +385,9 @@ Usage of burnit:
         Optional. The average number of requests per second.
   -rate-limiter-ttl duration
         Optional. The time-to-live for rate limiter entries.
+  # Secrets configuration.
   -secret-service-timeout duration
         Optional. Timeout for the internal secret service. Default: 10s.
-  -session-service-timeout duration
-        Optional. Timeout for the internal session service. Default: 5s.
-  -runtime-render value
-        Optional. Enable runtime rendering of the UI.
-  -local-development value
-        Optional. Enable local development mode.
   -database-driver string
         Optional. Database driver.
   -database-uri string
@@ -410,6 +424,13 @@ Usage of burnit:
         Optional. Maximum retry backoff for the Redis client.
   -database-redis-min-retry-backoff duration
         Optional. Minimum retry backoff for the Redis client.
+  # UI configuration.
+  -session-service-timeout duration
+        Optional. Timeout for the internal session service. Default: 5s.
+  -runtime-render value
+        Optional. Enable runtime rendering of the UI.
+  -local-development value
+        Optional. Enable local development mode.
   -session-database-driver string
         Optional. Database driver.
   -session-database-uri string
