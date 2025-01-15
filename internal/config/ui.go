@@ -15,16 +15,16 @@ import (
 // SetupUI sets up the UI.
 func SetupUI(config UI) (ui.UI, session.Service, error) {
 	var templatesDir, staticDir string
-	var runtimeRender bool
+	var runtimeParse bool
 
-	if config.RuntimeRender != nil && *config.RuntimeRender {
-		templatesDir = defaultUIRuntimeRenderTemplateDir
-		staticDir = defaultUIRuntimeRenderStaticDir
-		runtimeRender = true
+	if config.RuntimeParse != nil && *config.RuntimeParse {
+		templatesDir = defaultRuntimeParseTemplateDir
+		staticDir = defaultRuntimeParseStaticDir
+		runtimeParse = true
 	}
 
 	u, err := ui.New(func(o *ui.Options) {
-		o.RuntimeRender = runtimeRender
+		o.RuntimeParse = runtimeParse
 		o.TemplateDir = templatesDir
 		o.StaticDir = staticDir
 	})

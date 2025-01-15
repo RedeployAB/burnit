@@ -30,8 +30,6 @@ const (
 const (
 	// defaultSecretServiceTimeout is the default timeout for the secret service.
 	defaultSecretServiceTimeout = 10 * time.Second
-	// defaultSecretServiceValueMaxCharacters is the default maximum number of characters a secret value can have.
-	defaultSecretServiceValueMaxCharacters = 4000
 )
 
 const (
@@ -44,10 +42,10 @@ const (
 )
 
 const (
-	// defaultUIRuntimeRenderTemplateDir is the default directory for the runtime render templates.
-	defaultUIRuntimeRenderTemplateDir = "internal/ui/templates"
-	// defaultUIRuntimeRenderStaticDir is the default directory for the runtime render static files.
-	defaultUIRuntimeRenderStaticDir = "internal/ui/static"
+	// defaultRuntimeParseTemplateDir is the default directory for the runtime parse templates.
+	defaultRuntimeParseTemplateDir = "internal/ui/templates"
+	// defaultRuntimeParseStaticDir is the default directory for the runtime parse static files.
+	defaultRuntimeParseStaticDir = "internal/ui/static"
 )
 
 const (
@@ -139,14 +137,13 @@ type RateLimiter struct {
 
 // Services contains the configuration for the services.
 type Services struct {
-	Secret   Secret   `yaml:"secret"`
-	Database Database `yaml:"database"`
+	Secret Secret `yaml:"secret"`
 }
 
 // Secret contains the configuration for the secret service.
 type Secret struct {
-	ValueMaxCharacters int           `env:"SECRET_VALUE_MAX_CHARACTERS" yaml:"valueMaxCharacters"`
-	Timeout            time.Duration `env:"SECRET_SERVICE_TIMEOUT" yaml:"timeout"`
+	Timeout  time.Duration `env:"SECRET_SERVICE_TIMEOUT" yaml:"timeout"`
+	Database Database      `yaml:"database"`
 }
 
 // MarshalJSON returns the JSON encoding of Secret. A custom marshalling method
@@ -269,13 +266,13 @@ type Redis struct {
 	MaxRetries      int           `env:"DATABASE_REDIS_MAX_RETRIES" yaml:"maxRetries"`
 	MinRetryBackoff time.Duration `env:"DATABASE_REDIS_MIN_RETRY_BACKOFF" yaml:"minRetryBackoff"`
 	MaxRetryBackoff time.Duration `env:"DATABASE_REDIS_MAX_RETRY_BACKOFF" yaml:"maxRetryBackoff"`
-	EnableTLS       *bool         `env:"DATABASE_MONGO_ENABLE_TLS" yaml:"enableTLS"`
+	EnableTLS       *bool         `env:"DATABASE_REDIS_ENABLE_TLS" yaml:"enableTLS"`
 }
 
 // UI contains the configuration for the UI.
 type UI struct {
-	RuntimeRender *bool      `env:"UI_RUNTIME_RENDER" yaml:"runtimeRender"`
-	Services      UIServices `yaml:"services"`
+	RuntimeParse *bool      `env:"RUNTIME_PARSE" yaml:"runtimeParse"`
+	Services     UIServices `yaml:"services"`
 }
 
 // UIServices contains the configuration for the UI services.
@@ -421,8 +418,9 @@ type SessionRedis struct {
 
 // New creates a new Configuration.
 func New() (*Configuration, error) {
-	flags, _, err := parseFlags(os.Args[1:])
+	flags, output, err := parseFlags(os.Args[1:])
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", output)
 		return nil, err
 	}
 
@@ -433,13 +431,12 @@ func New() (*Configuration, error) {
 		},
 		Services: Services{
 			Secret: Secret{
-				ValueMaxCharacters: defaultSecretServiceValueMaxCharacters,
-				Timeout:            defaultSecretServiceTimeout,
-			},
-			Database: Database{
-				Database:       defaultDatabaseName,
-				Timeout:        defaultDatabaseTimeout,
-				ConnectTimeout: defaultDatabaseConnectTimeout,
+				Timeout: defaultSecretServiceTimeout,
+				Database: Database{
+					Database:       defaultDatabaseName,
+					Timeout:        defaultDatabaseTimeout,
+					ConnectTimeout: defaultDatabaseConnectTimeout,
+				},
 			},
 		},
 		UI: UI{
@@ -475,16 +472,16 @@ func New() (*Configuration, error) {
 		return nil, err
 	}
 
-	cfg.Services.Database.Driver = databaseDriver(&cfg.Services.Database)
+	cfg.Services.Secret.Database.Driver = databaseDriver(&cfg.Services.Secret.Database)
 	if cfg.Server.BackendOnly == nil || !*cfg.Server.BackendOnly {
 		cfg.UI.Services.Session.Database.Driver = databaseDriver(sessionDatabaseToDatabase(&cfg.UI.Services.Session.Database))
 	}
 
 	localDev, ok := os.LookupEnv("BURNIT_LOCAL_DEVELOPMENT")
 	if ok && strings.ToLower(localDev) == "true" || localDev == "1" || flags.localDevelopment != nil && *flags.localDevelopment {
-		cfg.UI.RuntimeRender = toPtr(true)
-		if len(cfg.Services.Database.URI) == 0 {
-			cfg.Services.Database.Driver = "sqlite"
+		cfg.UI.RuntimeParse = toPtr(true)
+		if len(cfg.Services.Secret.Database.URI) == 0 {
+			cfg.Services.Secret.Database.Driver = "sqlite"
 		}
 	}
 

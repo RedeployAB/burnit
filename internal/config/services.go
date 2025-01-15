@@ -22,19 +22,18 @@ type services struct {
 
 // SetupServices configures and sets up the services.
 func SetupServices(config Services) (*services, error) {
-	dbClient, err := setupDBClient(&config.Database)
+	dbClient, err := setupDBClient(&config.Secret.Database)
 	if err != nil {
 		return nil, fmt.Errorf("failed to setup database client: %w", err)
 	}
 
-	store, err := setupSecretStore(dbClient, &config.Database)
+	store, err := setupSecretStore(dbClient, &config.Secret.Database)
 	if err != nil {
 		return nil, fmt.Errorf("failed to setup secret store: %w", err)
 	}
 
 	secrets, err := secret.NewService(
 		store,
-		secret.WithValueMaxCharacters(config.Secret.ValueMaxCharacters),
 		secret.WithTimeout(config.Secret.Timeout),
 	)
 	if err != nil {

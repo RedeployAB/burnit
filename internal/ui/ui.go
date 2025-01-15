@@ -32,23 +32,23 @@ const (
 type UI interface {
 	Render(w http.ResponseWriter, statusCode int, tmpl string, data any, options ...RenderOption)
 	Static() fs.FS
-	RuntimeRender() bool
+	RuntimeParse() bool
 }
 
 // ui is a user interface handler.
 type ui struct {
-	templates     map[string]*template.Template
-	head          []template.HTML
-	templateDir   string
-	staticFS      fs.FS
-	runtimeRender bool
+	templates    map[string]*template.Template
+	head         []template.HTML
+	templateDir  string
+	staticFS     fs.FS
+	runtimeParse bool
 }
 
 // Options for the UI.
 type Options struct {
-	TemplateDir   string
-	StaticDir     string
-	RuntimeRender bool
+	TemplateDir  string
+	StaticDir    string
+	RuntimeParse bool
 }
 
 // Option is a function that configures the UI.
@@ -62,10 +62,10 @@ func New(options ...Option) (*ui, error) {
 	}
 
 	ui := &ui{
-		templates:     make(map[string]*template.Template),
-		templateDir:   opts.TemplateDir,
-		runtimeRender: opts.RuntimeRender,
-		head:          newStylesAndScripts(opts.RuntimeRender),
+		templates:    make(map[string]*template.Template),
+		templateDir:  opts.TemplateDir,
+		runtimeParse: opts.RuntimeParse,
+		head:         newStylesAndScripts(opts.RuntimeParse),
 	}
 
 	if err := ui.parseTemplates(templateFS, defaultTemplateDir, true); err != nil {
@@ -130,7 +130,7 @@ func (u ui) Render(w http.ResponseWriter, statusCode int, tmpl string, data any,
 		w.Header().Set("Content-Type", "text/html")
 	}
 
-	if !u.runtimeRender {
+	if !u.runtimeParse {
 		w.WriteHeader(statusCode)
 		if err := u.templates[tmpl].ExecuteTemplate(w, execTemplate, d); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -177,9 +177,9 @@ func (u ui) Static() fs.FS {
 	return u.staticFS
 }
 
-// RuntimeRender returns true if the UI should render templates at runtime.
-func (u ui) RuntimeRender() bool {
-	return u.runtimeRender
+// RuntimeParse returns true if the UI should parse templates at runtime.
+func (u ui) RuntimeParse() bool {
+	return u.runtimeParse
 }
 
 // trimExtension trims the extension from a file name.
@@ -227,8 +227,8 @@ func (u *ui) parseTemplates(fsys fs.FS, path string, embedded bool) error {
 }
 
 // newStylesAndScripts returns the styles and scripts for the UI.
-func newStylesAndScripts(runtimeRender bool) []template.HTML {
-	if !runtimeRender {
+func newStylesAndScripts(runtimeParse bool) []template.HTML {
+	if !runtimeParse {
 		return []template.HTML{
 			`<link rel="stylesheet" href="/static/css/main.min.css">` + "\n",
 			`  <script src="/static/js/main.min.js"></script>`,

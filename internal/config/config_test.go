@@ -31,13 +31,12 @@ func TestNew(t *testing.T) {
 				},
 				Services: Services{
 					Secret: Secret{
-						ValueMaxCharacters: defaultSecretServiceValueMaxCharacters,
-						Timeout:            defaultSecretServiceTimeout,
-					},
-					Database: Database{
-						Database:       defaultDatabaseName,
-						Timeout:        defaultDatabaseTimeout,
-						ConnectTimeout: defaultDatabaseConnectTimeout,
+						Timeout: defaultSecretServiceTimeout,
+						Database: Database{
+							Database:       defaultDatabaseName,
+							Timeout:        defaultDatabaseTimeout,
+							ConnectTimeout: defaultDatabaseConnectTimeout,
+						},
 					},
 				},
 				UI: UI{
@@ -82,18 +81,17 @@ func TestNew(t *testing.T) {
 				},
 				Services: Services{
 					Secret: Secret{
-						ValueMaxCharacters: defaultSecretServiceValueMaxCharacters,
-						Timeout:            15 * time.Second,
-					},
-					Database: Database{
-						Driver:         "mongodb",
-						URI:            "mongodb://localhost:27017",
-						Address:        "localhost:27017",
-						Database:       "test",
-						Username:       "test",
-						Password:       "test",
-						Timeout:        15 * time.Second,
-						ConnectTimeout: 15 * time.Second,
+						Timeout: 15 * time.Second,
+						Database: Database{
+							Driver:         "mongodb",
+							URI:            "mongodb://localhost:27017",
+							Address:        "localhost:27017",
+							Database:       "test",
+							Username:       "test",
+							Password:       "test",
+							Timeout:        15 * time.Second,
+							ConnectTimeout: 15 * time.Second,
+						},
 					},
 				},
 				UI: UI{
@@ -157,18 +155,17 @@ func TestNew(t *testing.T) {
 				},
 				Services: Services{
 					Secret: Secret{
-						ValueMaxCharacters: defaultSecretServiceValueMaxCharacters,
-						Timeout:            20 * time.Second,
-					},
-					Database: Database{
-						Driver:         "mongodb",
-						URI:            "mongodb://localhost2:27018",
-						Address:        "localhost2:27018",
-						Database:       "test2",
-						Username:       "test2",
-						Password:       "test2",
-						Timeout:        20 * time.Second,
-						ConnectTimeout: 20 * time.Second,
+						Timeout: 20 * time.Second,
+						Database: Database{
+							Driver:         "mongodb",
+							URI:            "mongodb://localhost2:27018",
+							Address:        "localhost2:27018",
+							Database:       "test2",
+							Username:       "test2",
+							Password:       "test2",
+							Timeout:        20 * time.Second,
+							ConnectTimeout: 20 * time.Second,
+						},
 					},
 				},
 				UI: UI{
@@ -202,7 +199,7 @@ func TestNew(t *testing.T) {
 					"-rate-limiter-burst", "8",
 					"-rate-limiter-cleanup-interval", "15m",
 					"-rate-limiter-ttl", "20m",
-					"-timeout", "25s",
+					"-secret-service-timeout", "25s",
 					"-database-uri", "mongodb://localhost3:27019",
 					"-database-address", "localhost3:27019",
 					"-database", "test3",
@@ -221,7 +218,6 @@ func TestNew(t *testing.T) {
 					"BURNIT_RATE_LIMITER_BURST":            "6",
 					"BURNIT_RATE_LIMITER_CLEANUP_INTERVAL": "10m",
 					"BURNIT_RATE_LIMITER_TTL":              "15m",
-					"BURNIT_SECRETS_ENCRYPTION_KEY":        "key2",
 					"BURNIT_SECRETS_TIMEOUT":               "20s",
 					"BURNIT_DATABASE_URI":                  "mongodb://localhost2:27018",
 					"BURNIT_DATABASE_ADDRESS":              "localhost2:27018",
@@ -252,18 +248,17 @@ func TestNew(t *testing.T) {
 				},
 				Services: Services{
 					Secret: Secret{
-						ValueMaxCharacters: defaultSecretServiceValueMaxCharacters,
-						Timeout:            25 * time.Second,
-					},
-					Database: Database{
-						Driver:         "mongodb",
-						URI:            "mongodb://localhost3:27019",
-						Address:        "localhost3:27019",
-						Database:       "test3",
-						Username:       "test3",
-						Password:       "test3",
-						Timeout:        25 * time.Second,
-						ConnectTimeout: 25 * time.Second,
+						Timeout: 25 * time.Second,
+						Database: Database{
+							Driver:         "mongodb",
+							URI:            "mongodb://localhost3:27019",
+							Address:        "localhost3:27019",
+							Database:       "test3",
+							Username:       "test3",
+							Password:       "test3",
+							Timeout:        25 * time.Second,
+							ConnectTimeout: 25 * time.Second,
+						},
 					},
 				},
 				UI: UI{
@@ -340,15 +335,15 @@ func TestMergeConfigurations(t *testing.T) {
 						Services: Services{
 							Secret: Secret{
 								Timeout: 10 * time.Second,
-							},
-							Database: Database{
-								URI:            "mongodb://localhost:27017",
-								Address:        "localhost:27017",
-								Database:       "test",
-								Username:       "user",
-								Password:       "password",
-								Timeout:        10 * time.Second,
-								ConnectTimeout: 10 * time.Second,
+								Database: Database{
+									URI:            "mongodb://localhost:27017",
+									Address:        "localhost:27017",
+									Database:       "test",
+									Username:       "user",
+									Password:       "password",
+									Timeout:        10 * time.Second,
+									ConnectTimeout: 10 * time.Second,
+								},
 							},
 						},
 					},
@@ -362,15 +357,15 @@ func TestMergeConfigurations(t *testing.T) {
 				Services: Services{
 					Secret: Secret{
 						Timeout: 10 * time.Second,
-					},
-					Database: Database{
-						URI:            "mongodb://localhost:27017",
-						Address:        "localhost:27017",
-						Database:       "test",
-						Username:       "user",
-						Password:       "password",
-						Timeout:        10 * time.Second,
-						ConnectTimeout: 10 * time.Second,
+						Database: Database{
+							URI:            "mongodb://localhost:27017",
+							Address:        "localhost:27017",
+							Database:       "test",
+							Username:       "user",
+							Password:       "password",
+							Timeout:        10 * time.Second,
+							ConnectTimeout: 10 * time.Second,
+						},
 					},
 				},
 			},
@@ -389,15 +384,15 @@ func TestMergeConfigurations(t *testing.T) {
 					Services: Services{
 						Secret: Secret{
 							Timeout: 10 * time.Second,
-						},
-						Database: Database{
-							URI:            "mongodb://localhost:27017",
-							Address:        "localhost:27017",
-							Database:       "test",
-							Username:       "user",
-							Password:       "password",
-							Timeout:        10 * time.Second,
-							ConnectTimeout: 10 * time.Second,
+							Database: Database{
+								URI:            "mongodb://localhost:27017",
+								Address:        "localhost:27017",
+								Database:       "test",
+								Username:       "user",
+								Password:       "password",
+								Timeout:        10 * time.Second,
+								ConnectTimeout: 10 * time.Second,
+							},
 						},
 					},
 				},
@@ -410,15 +405,15 @@ func TestMergeConfigurations(t *testing.T) {
 						Services: Services{
 							Secret: Secret{
 								Timeout: 20 * time.Second,
-							},
-							Database: Database{
-								URI:            "mongodb://0.0.0.0:27017",
-								Address:        "0.0.0.0:27017",
-								Database:       "new-test",
-								Username:       "new-user",
-								Password:       "new-password",
-								Timeout:        20 * time.Second,
-								ConnectTimeout: 20 * time.Second,
+								Database: Database{
+									URI:            "mongodb://0.0.0.0:27017",
+									Address:        "0.0.0.0:27017",
+									Database:       "new-test",
+									Username:       "new-user",
+									Password:       "new-password",
+									Timeout:        20 * time.Second,
+									ConnectTimeout: 20 * time.Second,
+								},
 							},
 						},
 					},
@@ -432,15 +427,15 @@ func TestMergeConfigurations(t *testing.T) {
 				Services: Services{
 					Secret: Secret{
 						Timeout: 20 * time.Second,
-					},
-					Database: Database{
-						URI:            "mongodb://0.0.0.0:27017",
-						Address:        "0.0.0.0:27017",
-						Database:       "new-test",
-						Username:       "new-user",
-						Password:       "new-password",
-						Timeout:        20 * time.Second,
-						ConnectTimeout: 20 * time.Second,
+						Database: Database{
+							URI:            "mongodb://0.0.0.0:27017",
+							Address:        "0.0.0.0:27017",
+							Database:       "new-test",
+							Username:       "new-user",
+							Password:       "new-password",
+							Timeout:        20 * time.Second,
+							ConnectTimeout: 20 * time.Second,
+						},
 					},
 				},
 			},
@@ -459,15 +454,15 @@ func TestMergeConfigurations(t *testing.T) {
 					Services: Services{
 						Secret: Secret{
 							Timeout: 10 * time.Second,
-						},
-						Database: Database{
-							URI:            "mongodb://localhost:27017",
-							Address:        "localhost:27017",
-							Database:       "test",
-							Username:       "user",
-							Password:       "password",
-							Timeout:        10 * time.Second,
-							ConnectTimeout: 10 * time.Second,
+							Database: Database{
+								URI:            "mongodb://localhost:27017",
+								Address:        "localhost:27017",
+								Database:       "test",
+								Username:       "user",
+								Password:       "password",
+								Timeout:        10 * time.Second,
+								ConnectTimeout: 10 * time.Second,
+							},
 						},
 					},
 				},
@@ -480,15 +475,15 @@ func TestMergeConfigurations(t *testing.T) {
 						Services: Services{
 							Secret: Secret{
 								Timeout: 20 * time.Second,
-							},
-							Database: Database{
-								URI:            "mongodb://0.0.0.0:27017",
-								Address:        "0.0.0.0:27017",
-								Database:       "new-test",
-								Username:       "new-user",
-								Password:       "new-password",
-								Timeout:        20 * time.Second,
-								ConnectTimeout: 20 * time.Second,
+								Database: Database{
+									URI:            "mongodb://0.0.0.0:27017",
+									Address:        "0.0.0.0:27017",
+									Database:       "new-test",
+									Username:       "new-user",
+									Password:       "new-password",
+									Timeout:        20 * time.Second,
+									ConnectTimeout: 20 * time.Second,
+								},
 							},
 						},
 					},
@@ -500,15 +495,15 @@ func TestMergeConfigurations(t *testing.T) {
 						Services: Services{
 							Secret: Secret{
 								Timeout: 30 * time.Second,
-							},
-							Database: Database{
-								URI:            "mongodb://0.0.0.0:27017",
-								Address:        "0.0.0.0:27017",
-								Database:       "new-test-2",
-								Username:       "new-user-2",
-								Password:       "new-password-2",
-								Timeout:        20 * time.Second,
-								ConnectTimeout: 20 * time.Second,
+								Database: Database{
+									URI:            "mongodb://0.0.0.0:27017",
+									Address:        "0.0.0.0:27017",
+									Database:       "new-test-2",
+									Username:       "new-user-2",
+									Password:       "new-password-2",
+									Timeout:        20 * time.Second,
+									ConnectTimeout: 20 * time.Second,
+								},
 							},
 						},
 					},
@@ -522,15 +517,15 @@ func TestMergeConfigurations(t *testing.T) {
 				Services: Services{
 					Secret: Secret{
 						Timeout: 30 * time.Second,
-					},
-					Database: Database{
-						URI:            "mongodb://0.0.0.0:27017",
-						Address:        "0.0.0.0:27017",
-						Database:       "new-test-2",
-						Username:       "new-user-2",
-						Password:       "new-password-2",
-						Timeout:        20 * time.Second,
-						ConnectTimeout: 20 * time.Second,
+						Database: Database{
+							URI:            "mongodb://0.0.0.0:27017",
+							Address:        "0.0.0.0:27017",
+							Database:       "new-test-2",
+							Username:       "new-user-2",
+							Password:       "new-password-2",
+							Timeout:        20 * time.Second,
+							ConnectTimeout: 20 * time.Second,
+						},
 					},
 				},
 			},
@@ -549,15 +544,15 @@ func TestMergeConfigurations(t *testing.T) {
 					Services: Services{
 						Secret: Secret{
 							Timeout: 10 * time.Second,
-						},
-						Database: Database{
-							URI:            "mongodb://localhost:27017",
-							Address:        "localhost:27017",
-							Database:       "test",
-							Username:       "user",
-							Password:       "password",
-							Timeout:        10 * time.Second,
-							ConnectTimeout: 10 * time.Second,
+							Database: Database{
+								URI:            "mongodb://localhost:27017",
+								Address:        "localhost:27017",
+								Database:       "test",
+								Username:       "user",
+								Password:       "password",
+								Timeout:        10 * time.Second,
+								ConnectTimeout: 10 * time.Second,
+							},
 						},
 					},
 				},
@@ -571,15 +566,15 @@ func TestMergeConfigurations(t *testing.T) {
 				Services: Services{
 					Secret: Secret{
 						Timeout: 10 * time.Second,
-					},
-					Database: Database{
-						URI:            "mongodb://localhost:27017",
-						Address:        "localhost:27017",
-						Database:       "test",
-						Username:       "user",
-						Password:       "password",
-						Timeout:        10 * time.Second,
-						ConnectTimeout: 10 * time.Second,
+						Database: Database{
+							URI:            "mongodb://localhost:27017",
+							Address:        "localhost:27017",
+							Database:       "test",
+							Username:       "user",
+							Password:       "password",
+							Timeout:        10 * time.Second,
+							ConnectTimeout: 10 * time.Second,
+						},
 					},
 				},
 			},
