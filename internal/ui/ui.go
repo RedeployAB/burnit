@@ -9,6 +9,8 @@ import (
 	_path "path"
 	"path/filepath"
 	"strings"
+
+	"github.com/RedeployAB/burnit/internal/session"
 )
 
 var (
@@ -32,12 +34,14 @@ const (
 type UI interface {
 	Render(w http.ResponseWriter, statusCode int, tmpl string, data any, options ...RenderOption)
 	Static() fs.FS
+	Sessions() session.Service
 	RuntimeParse() bool
 }
 
 // ui is a user interface handler.
 type ui struct {
 	templates    map[string]*template.Template
+	sessions     session.Service
 	head         []template.HTML
 	templateDir  string
 	staticFS     fs.FS
@@ -55,13 +59,14 @@ type Options struct {
 type Option func(o *Options)
 
 // New returns a new UI.
-func New(options ...Option) (*ui, error) {
+func New(sessions session.Service, options ...Option) (*ui, error) {
 	opts := Options{}
 	for _, option := range options {
 		option(&opts)
 	}
 
 	ui := &ui{
+		sessions:     sessions,
 		templates:    make(map[string]*template.Template),
 		templateDir:  opts.TemplateDir,
 		runtimeParse: opts.RuntimeParse,
@@ -180,6 +185,11 @@ func (u ui) Static() fs.FS {
 // RuntimeParse returns true if the UI should parse templates at runtime.
 func (u ui) RuntimeParse() bool {
 	return u.runtimeParse
+}
+
+// Sessions returns the session service.
+func (u ui) Sessions() session.Service {
+	return u.sessions
 }
 
 // trimExtension trims the extension from a file name.
