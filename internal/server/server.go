@@ -12,7 +12,6 @@ import (
 
 	"github.com/RedeployAB/burnit/internal/log"
 	"github.com/RedeployAB/burnit/internal/secret"
-	"github.com/RedeployAB/burnit/internal/session"
 	"github.com/RedeployAB/burnit/internal/ui"
 )
 
@@ -31,7 +30,6 @@ type server struct {
 	router        *router
 	secrets       secret.Service
 	ui            ui.UI
-	sessions      session.Service
 	tls           TLSConfig
 	rateLimiter   RateLimiter
 	log           log.Logger
@@ -125,8 +123,8 @@ func New(secrets secret.Service, options ...Option) (*server, error) {
 	if s.httpServer.Handler == nil {
 		s.httpServer.Handler = s.router
 	}
-	if s.sessions != nil {
-		s.shutdownFuncs = append(s.shutdownFuncs, s.sessions.Close)
+	if s.ui != nil && s.ui.Sessions() != nil {
+		s.shutdownFuncs = append(s.shutdownFuncs, s.ui.Sessions().Close)
 	}
 
 	return s, nil
@@ -145,9 +143,9 @@ func (s server) Start() error {
 		}
 	}()
 
-	if s.sessions != nil {
+	if s.ui != nil && s.ui.Sessions() != nil {
 		go func() {
-			for err := range s.sessions.Cleanup() {
+			for err := range s.ui.Sessions().Cleanup() {
 				s.log.Error("Could not cleanup sessions", "error", err)
 			}
 		}()
