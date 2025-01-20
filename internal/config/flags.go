@@ -65,8 +65,8 @@ type flags struct {
 	localDevelopment *bool
 }
 
-// parseFlags parses the flags.
-func parseFlags(args []string) (flags, string, error) {
+// ParseFlags parses the flags.
+func ParseFlags(args []string) (*flags, string, error) {
 	fs := flag.NewFlagSet("config", flag.ContinueOnError)
 	var buf bytes.Buffer
 	fs.SetOutput(&buf)
@@ -142,7 +142,7 @@ func parseFlags(args []string) (flags, string, error) {
 	fs.Var(&localDevelopment, "local-development", "Optional. Enable local development mode.")
 
 	if err := fs.Parse(args); err != nil {
-		return f, buf.String(), err
+		return &f, buf.String(), err
 	}
 
 	if backendOnly.isSet {
@@ -175,7 +175,7 @@ func parseFlags(args []string) (flags, string, error) {
 		f.sessionDatabaseRedisEnableTLS = &sessionDatabaseRedisEnableTLS.value
 	}
 
-	return f, buf.String(), nil
+	return &f, buf.String(), nil
 }
 
 // configurationFromFlags reads the configuration from the flags.

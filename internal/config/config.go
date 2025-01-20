@@ -416,12 +416,23 @@ type SessionRedis struct {
 	EnableTLS       *bool         `env:"SESSION_DATABASE_REDIS_ENABLE_TLS" yaml:"enableTLS"`
 }
 
+// Options contains the configuration options.
+type Options struct {
+	Flags *flags
+}
+
+// Option is a function that configures the Options for the Configuration.
+type Option func(o *Options)
+
 // New creates a new Configuration.
-func New() (*Configuration, error) {
-	flags, output, err := parseFlags(os.Args[1:])
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", output)
-		return nil, err
+func New(options ...Option) (*Configuration, error) {
+	opts := Options{}
+	for _, option := range options {
+		option(&opts)
+	}
+
+	if opts.Flags == nil {
+		opts.Flags = &flags{}
 	}
 
 	cfg := &Configuration{
@@ -453,7 +464,7 @@ func New() (*Configuration, error) {
 		},
 	}
 
-	yamlCfg, err := configurationFromYAMLFile(flags.configPath)
+	yamlCfg, err := configurationFromYAMLFile(opts.Flags.configPath)
 	if err != nil {
 		return nil, err
 	}
@@ -463,7 +474,7 @@ func New() (*Configuration, error) {
 		return nil, err
 	}
 
-	flagCfg, err := configurationFromFlags(&flags)
+	flagCfg, err := configurationFromFlags(opts.Flags)
 	if err != nil {
 		return nil, err
 	}
@@ -478,7 +489,7 @@ func New() (*Configuration, error) {
 	}
 
 	localDev, ok := os.LookupEnv("BURNIT_LOCAL_DEVELOPMENT")
-	if ok && strings.ToLower(localDev) == "true" || localDev == "1" || flags.localDevelopment != nil && *flags.localDevelopment {
+	if ok && strings.ToLower(localDev) == "true" || localDev == "1" || opts.Flags.localDevelopment != nil && *opts.Flags.localDevelopment {
 		cfg.UI.RuntimeParse = toPtr(true)
 		if len(cfg.Services.Secret.Database.URI) == 0 {
 			cfg.Services.Secret.Database.Driver = "sqlite"
@@ -486,6 +497,13 @@ func New() (*Configuration, error) {
 	}
 
 	return cfg, nil
+}
+
+// WithFlags sets the flags for the configuration.
+func WithFlags(flags *flags) Option {
+	return func(o *Options) {
+		o.Flags = flags
+	}
 }
 
 // mergeConfigurations merges the src configuration into the dst configuration.
