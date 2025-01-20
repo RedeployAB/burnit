@@ -285,7 +285,7 @@ func TestNew(t *testing.T) {
 			}
 			os.Args = append([]string{"cmd"}, test.input.args...)
 
-			flags, _, _ := ParseFlags(os.Args[1:])
+			flags, _ := ParseFlags(os.Args[1:])
 
 			got, gotErr := New(func(o *Options) {
 				o.Flags = flags

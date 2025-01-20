@@ -1,8 +1,9 @@
 package config
 
 import (
-	"bytes"
 	"flag"
+	"fmt"
+	"os"
 	"strconv"
 	"time"
 )
@@ -66,11 +67,7 @@ type flags struct {
 }
 
 // ParseFlags parses the flags.
-func ParseFlags(args []string) (*flags, string, error) {
-	fs := flag.NewFlagSet("config", flag.ContinueOnError)
-	var buf bytes.Buffer
-	fs.SetOutput(&buf)
-
+func ParseFlags(args []string) (*flags, error) {
 	var (
 		f                             flags
 		backendOnly                   boolFlag
@@ -83,6 +80,12 @@ func ParseFlags(args []string) (*flags, string, error) {
 		sessionDatabaseSQLiteInMemory boolFlag
 		sessionDatabaseRedisEnableTLS boolFlag
 	)
+
+	fs := flag.NewFlagSet("config", flag.ContinueOnError)
+	fs.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Command-line configuration for burnit:\n\n")
+		fs.PrintDefaults()
+	}
 
 	fs.StringVar(&f.configPath, "config-path", "", "Optional. Path to a configuration file. Defaults to: "+defaultConfigPath+".")
 	fs.StringVar(&f.host, "host", "", "Optional. Host (IP) to listen on. Default: "+defaultListenHost+".")
@@ -142,7 +145,7 @@ func ParseFlags(args []string) (*flags, string, error) {
 	fs.Var(&localDevelopment, "local-development", "Optional. Enable local development mode.")
 
 	if err := fs.Parse(args); err != nil {
-		return &f, buf.String(), err
+		return &f, err
 	}
 
 	if backendOnly.isSet {
@@ -175,7 +178,7 @@ func ParseFlags(args []string) (*flags, string, error) {
 		f.sessionDatabaseRedisEnableTLS = &sessionDatabaseRedisEnableTLS.value
 	}
 
-	return &f, buf.String(), nil
+	return &f, nil
 }
 
 // configurationFromFlags reads the configuration from the flags.

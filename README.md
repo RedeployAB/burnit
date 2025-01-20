@@ -363,7 +363,8 @@ ui:
 ### Command-line flags
 
 ```sh
-Usage of burnit:
+Command-line configuration for burnit:
+
   # Server configuration.
   -config-path string
         Optional. Path to a configuration file. Defaults to: config.yaml.

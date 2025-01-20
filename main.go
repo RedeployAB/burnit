@@ -23,10 +23,10 @@ func main() {
 
 // run the application.
 func run(log log.Logger) error {
-	flags, output, err := config.ParseFlags(os.Args[1:])
+	flags, err := config.ParseFlags(os.Args[1:])
 	if err != nil {
 		if errors.Is(err, flag.ErrHelp) {
-			fmt.Fprintf(os.Stderr, "%s\n", output)
+			// Return nil and show help.
 			return nil
 		}
 		return fmt.Errorf("could not parse flags: %w", err)
