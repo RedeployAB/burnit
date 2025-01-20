@@ -285,7 +285,11 @@ func TestNew(t *testing.T) {
 			}
 			os.Args = append([]string{"cmd"}, test.input.args...)
 
-			got, gotErr := New()
+			flags, _ := ParseFlags(os.Args[1:])
+
+			got, gotErr := New(func(o *Options) {
+				o.Flags = flags
+			})
 
 			if diff := cmp.Diff(test.want, got); diff != "" {
 				t.Errorf("New() = unexpected result (-want +got)\n%s\n", diff)

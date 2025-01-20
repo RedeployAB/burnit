@@ -11,13 +11,13 @@ func TestParseFlags(t *testing.T) {
 	var tests = []struct {
 		name    string
 		input   []string
-		want    flags
+		want    *flags
 		wantErr error
 	}{
 		{
 			name:  "parse flags - empty",
 			input: []string{},
-			want:  flags{},
+			want:  &flags{},
 		},
 		{
 			name: "parse flags - all flags",
@@ -72,7 +72,7 @@ func TestParseFlags(t *testing.T) {
 				"-session-database-redis-enable-tls", "true",
 				"-local-development", "true",
 			},
-			want: flags{
+			want: &flags{
 				configPath:                          "path",
 				host:                                "host",
 				port:                                3001,
@@ -128,7 +128,7 @@ func TestParseFlags(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			got, _, gotErr := parseFlags(test.input)
+			got, gotErr := ParseFlags(test.input)
 
 			if diff := cmp.Diff(test.want, got, cmp.AllowUnexported(flags{})); diff != "" {
 				t.Errorf("parseFlags() = unexpected result (-want +got)\n%s\n", diff)

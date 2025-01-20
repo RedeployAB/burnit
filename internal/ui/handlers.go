@@ -45,18 +45,18 @@ func Privacy(ui UI) http.Handler {
 }
 
 // CreateSecret handles requests to create a secret.
-func CreateSecret(ui UI, secrets secret.Service, sessions session.Service) http.Handler {
+func CreateSecret(ui UI, secrets secret.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Sessions are only implemented for CSRF tokens at the moment.
 		// Use the CSRF token as the session ID when setting the session.
 		sess := session.NewSession(session.WithCSRF(session.NewCSRF()))
-		sessions.Set(sess)
+		ui.Sessions().Set(sess)
 		ui.Render(w, http.StatusOK, "secret-create", secretCreateResponse{CSRFToken: sess.CSRF().Token()})
 	})
 }
 
 // GetSecret handles requests to get a secret.
-func GetSecret(ui UI, secrets secret.Service, sessions session.Service, log log.Logger) http.Handler {
+func GetSecret(ui UI, secrets secret.Service, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id, passphrase, err := extractIDAndPassphrase("/ui/secrets/", r.URL.Path)
 		if err != nil || len(id) == 0 {
@@ -82,7 +82,7 @@ func GetSecret(ui UI, secrets secret.Service, sessions session.Service, log log.
 			// Sessions are only implemented for CSRF tokens at the moment.
 			// Use the CSRF token as the session ID when setting the session.
 			sess := session.NewSession(session.WithCSRF(session.NewCSRF()))
-			sessions.Set(sess)
+			ui.Sessions().Set(sess)
 			ui.Render(w, http.StatusUnauthorized, "secret-get-passphrase", secretGetResponse{ID: id, CSRFToken: sess.CSRF().Token()})
 			return
 		}
@@ -119,11 +119,11 @@ func GetSecret(ui UI, secrets secret.Service, sessions session.Service, log log.
 }
 
 // CreateSecretHandler handles requests containing a form to create a secret.
-func CreateSecretHandler(ui UI, secrets secret.Service, sessions session.Service, log log.Logger) http.Handler {
+func CreateSecretHandler(ui UI, secrets secret.Service, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
 			sess := session.NewSession(session.WithCSRF(session.NewCSRF()))
-			sessions.Set(sess)
+			ui.Sessions().Set(sess)
 			ui.Render(w, http.StatusOK, "secret-create", secretCreateResponse{CSRFToken: sess.CSRF().Token()}, WithPartial())
 			return
 		}
@@ -136,12 +136,12 @@ func CreateSecretHandler(ui UI, secrets secret.Service, sessions session.Service
 		}
 
 		defer func() {
-			if err := sessions.Delete(session.DeleteWithCSRFToken(r.FormValue("csrf-token"))); err != nil {
+			if err := ui.Sessions().Delete(session.DeleteWithCSRFToken(r.FormValue("csrf-token"))); err != nil {
 				log.Error("Failed to delete session.", uiLog(err, "HandlerCreateSecret", requestIDFromContext(r.Context()))...)
 			}
 		}()
 
-		ok, statusCode, errResp, err := validateCSRFTToken(r.Context(), sessions, r.FormValue("csrf-token"))
+		ok, statusCode, errResp, err := validateCSRFTToken(r.Context(), ui.Sessions(), r.FormValue("csrf-token"))
 		if err != nil {
 			requestID := requestIDFromContext(r.Context())
 			log.Error("Failed to validate CSRF token.", uiLog(err, "HandlerCreateSecret", requestID)...)
@@ -200,7 +200,7 @@ func CreateSecretHandler(ui UI, secrets secret.Service, sessions session.Service
 
 // GetSecretHandler handles requests containing a form to get a secret.
 // This form will be used when a passphrase is not provided in the URL.
-func GetSecretHandler(ui UI, secrets secret.Service, sessions session.Service, log log.Logger) http.Handler {
+func GetSecretHandler(ui UI, secrets secret.Service, log log.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			requestID := middleware.RequestIDFromContext(r.Context())
@@ -210,12 +210,12 @@ func GetSecretHandler(ui UI, secrets secret.Service, sessions session.Service, l
 		}
 
 		defer func() {
-			if err := sessions.Delete(session.DeleteWithCSRFToken(r.FormValue("csrf-token"))); err != nil {
+			if err := ui.Sessions().Delete(session.DeleteWithCSRFToken(r.FormValue("csrf-token"))); err != nil {
 				log.Error("Failed to delete session.", "handler", "HandlerGetSecret", "error", err, "requestId", requestIDFromContext(r.Context()))
 			}
 		}()
 
-		ok, statusCode, errResp, err := validateCSRFTToken(r.Context(), sessions, r.FormValue("csrf-token"))
+		ok, statusCode, errResp, err := validateCSRFTToken(r.Context(), ui.Sessions(), r.FormValue("csrf-token"))
 		if err != nil {
 			log.Error("Failed to validate CSRF token.", uiLog(err, "HandlerGetSecret", requestIDFromContext(r.Context()))...)
 			ui.Render(w, statusCode, "error", errResp, WithPartial())
