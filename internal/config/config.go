@@ -502,7 +502,11 @@ func New(options ...Option) (*Configuration, error) {
 
 	cfg.Services.Secret.Database.Driver, err = databaseDriver(&cfg.Services.Secret.Database)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, ErrCouldNotDetermineDatabaseDriver) {
+			cfg.Services.Secret.Database.Driver = string(databaseDriverInMem)
+		} else {
+			return nil, err
+		}
 	}
 	if cfg.Services.Secret.Database.Driver == string(databaseDriverInMem) || cfg.Services.Secret.Database.SQLite.InMemory != nil && *cfg.Services.Secret.Database.SQLite.InMemory {
 		cfg.Services.Secret.Database.IsInMemory = true
@@ -511,7 +515,11 @@ func New(options ...Option) (*Configuration, error) {
 	if cfg.Server.BackendOnly == nil || !*cfg.Server.BackendOnly {
 		cfg.UI.Services.Session.Database.Driver, err = databaseDriver(sessionDatabaseToDatabase(&cfg.UI.Services.Session.Database))
 		if err != nil && !errors.Is(err, ErrCouldNotDetermineDatabaseDriver) {
-			return nil, err
+			if errors.Is(err, ErrCouldNotDetermineDatabaseDriver) {
+				cfg.UI.Services.Session.Database.Driver = string(databaseDriverInMem)
+			} else {
+				return nil, err
+			}
 		}
 	}
 
