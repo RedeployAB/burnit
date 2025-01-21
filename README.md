@@ -15,6 +15,8 @@ it can be used to generate new secrets.
   * [Configuration file](#configuration-file)
   * [Environment variables](#environment-variables)
   * [Command-line flags](#command-line-flags)
+  * [Database configuration](#database-configuration)
+    * [Database driver configuration](#database-driver-configuration)
 * [Usage](#usage)
   * [API](#api)
     * [Secrets](#secrets)
@@ -47,14 +49,14 @@ If running as a container the recommended resources are (as a start, and dependi
 
 ### Supported databases
 
-The supported databases for the application (sessions included) are:
+The supported databases for the application are:
 
 - PostgreSQL
 - MSSQL
 - SQLite
 - MongoDB
 - Redis
-- In-memory (sessions only)
+- In-memory
 
 The main application database and the session database does not have to be the same database or driver.
 
@@ -117,7 +119,9 @@ services:
     # Timeout for the internal secret service.
     timeout: 10s
     database:
-      # Database driver.
+      # Database driver. This is normally evaluated by the other database
+      # configuration options but needs to be set if using a non-standard
+      # port, in-memory database or sqlite without options.
       driver: ""
       # URI (DSN) for the database.
       uri: ""
@@ -257,7 +261,7 @@ ui:
 
 | Name | Description |
 |------|-------------|
-| `BURNIT_DATABASE_DRIVER` | Database driver. |
+| `BURNIT_DATABASE_DRIVER` | Database driver. This is normally evaluated by the other database configuration options but needs to be set if using a non-standard port, in-memory database or sqlite without options. |
 | `BURNIT_DATABASE_URI` | URI (DSN) for the database. |
 | `BURNIT_DATABASE_ADDRESS` | Address (host and port) for the database. |
 | `BURNIT_DATABASE` | Database name. |
@@ -390,7 +394,7 @@ Command-line configuration for burnit:
   -secret-service-timeout duration
         Optional. Timeout for the internal secret service. Default: 10s.
   -database-driver string
-        Optional. Database driver.
+        Optional. Database driver. This is normally evaluated by the other database configuration options but needs to be set if using a non-standard port, in-memory database or sqlite without options.
   -database-uri string
         Optional. URI (DSN) for the database.
   -database-address string
@@ -469,6 +473,33 @@ Command-line configuration for burnit:
   -session-database-redis-min-retry-backoff duration
         Optional. Minimum retry backoff for the Redis client.
 ```
+
+### Database configuration
+
+The application supports various database drivers as mentioned in the [requirements](#requirements) section. The main database (containing secrets) and the database for handling sessions can be handled separately and does not need to be the same database or driver.
+
+If no database configuration is set for the session database it will default to using a built-in in-memory database. This is considered a normal configuration due to the lifetime cycle and nature of the sessions in this application.
+
+To use an in-memory database for secrets (main application database), specify the database driver `inmem`.
+
+#### Database driver configuration
+
+In most circumstances the database driver does not need to be configured as it is evaluated by the database configuration.
+
+The situations where the driver needs to be configured are:
+
+* Using an in-memory database for secrets (main application) with driver `inmem`.
+* Using a non-standard port when using an address for database configuration.
+* Using SQLite without specifying either a path to a database file, or specifying to use SQLite with in-memory mode.
+
+The supported values for the database driver are:
+
+* `mongodb`
+* `postgres`
+* `sqlserver`
+* `sqlite`
+* `redis`
+* `inmem`
 
 ## Usage
 
