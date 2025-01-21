@@ -1,7 +1,6 @@
 package config
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/RedeployAB/burnit/internal/db"
@@ -79,7 +78,8 @@ func setupSecretStore(clients *dbClient, config *Database) (db.SecretStore, erro
 	case clients.redis != nil:
 		store, err = redis.NewSecretStore(clients.redis)
 	default:
-		return nil, errors.New("no database client configured")
+		store = inmem.NewSecretStore()
+		err = nil
 	}
 
 	if err != nil {

@@ -151,10 +151,17 @@ type Secret struct {
 // `json:"-"` is that this way we must explicitly set the properties to be marshalled
 // and thus output to the logs.
 func (s Secret) MarshalJSON() ([]byte, error) {
+	var secretDatabase *Database
+	if len(s.Database.Driver) > 0 {
+		secretDatabase = &s.Database
+	}
+
 	return json.Marshal(struct {
-		Timeout time.Duration `json:",omitempty"`
+		Timeout  time.Duration `json:",omitempty"`
+		Database *Database     `json:",omitempty"`
 	}{
-		Timeout: s.Timeout,
+		Timeout:  s.Timeout,
+		Database: secretDatabase,
 	})
 }
 
@@ -176,6 +183,7 @@ type Database struct {
 	MSSQL                 MSSQL         `yaml:"mssql"`
 	SQLite                SQLite        `yaml:"sqlite"`
 	Redis                 Redis         `yaml:"redis"`
+	IsInMemory            bool
 }
 
 // MarshalJSON returns the JSON encoding of Database. A custom marshalling method
@@ -483,16 +491,27 @@ func New(options ...Option) (*Configuration, error) {
 		return nil, err
 	}
 
-	cfg.Services.Secret.Database.Driver = databaseDriver(&cfg.Services.Secret.Database)
-	if cfg.Server.BackendOnly == nil || !*cfg.Server.BackendOnly {
-		cfg.UI.Services.Session.Database.Driver = databaseDriver(sessionDatabaseToDatabase(&cfg.UI.Services.Session.Database))
-	}
-
 	localDev, ok := os.LookupEnv("BURNIT_LOCAL_DEVELOPMENT")
 	if ok && strings.ToLower(localDev) == "true" || localDev == "1" || opts.Flags.localDevelopment != nil && *opts.Flags.localDevelopment {
 		cfg.UI.RuntimeParse = toPtr(true)
-		if len(cfg.Services.Secret.Database.URI) == 0 {
-			cfg.Services.Secret.Database.Driver = "sqlite"
+		if len(cfg.Services.Secret.Database.Driver) == 0 && len(cfg.Services.Secret.Database.URI) == 0 && len(cfg.Services.Secret.Database.Address) == 0 {
+			cfg.Services.Secret.Database.Driver = string(databaseDriverInMem)
+			cfg.Services.Secret.Database.IsInMemory = true
+		}
+	}
+
+	cfg.Services.Secret.Database.Driver, err = databaseDriver(&cfg.Services.Secret.Database)
+	if err != nil {
+		return nil, err
+	}
+	if cfg.Services.Secret.Database.Driver == string(databaseDriverInMem) || cfg.Services.Secret.Database.SQLite.InMemory != nil && *cfg.Services.Secret.Database.SQLite.InMemory {
+		cfg.Services.Secret.Database.IsInMemory = true
+	}
+
+	if cfg.Server.BackendOnly == nil || !*cfg.Server.BackendOnly {
+		cfg.UI.Services.Session.Database.Driver, err = databaseDriver(sessionDatabaseToDatabase(&cfg.UI.Services.Session.Database))
+		if err != nil && !errors.Is(err, ErrCouldNotDetermineDatabaseDriver) {
+			return nil, err
 		}
 	}
 

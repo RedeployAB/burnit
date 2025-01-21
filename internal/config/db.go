@@ -1,6 +1,8 @@
 package config
 
 import (
+	"errors"
+	"fmt"
 	"net/url"
 	"strings"
 
@@ -15,6 +17,7 @@ var (
 	databaseDriverMSSQL    = "sqlserver"
 	databaseDriverSQLite   = "sqlite"
 	databaseDriverRedis    = "redis"
+	databaseDriverInMem    = "inmem"
 
 	databasePorts = map[string]string{
 		databaseDriverMongo:    "27017",
@@ -22,6 +25,11 @@ var (
 		databaseDriverMSSQL:    "1433",
 		databaseDriverRedis:    "6379",
 	}
+)
+
+var (
+	// ErrCouldNotDetermineDatabaseDriver is returned when the database driver could not be determined.
+	ErrCouldNotDetermineDatabaseDriver = errors.New("could not determine database driver")
 )
 
 // dbClient contains configured db client.
@@ -32,31 +40,33 @@ type dbClient struct {
 }
 
 // databaseDriver returns the database driver. Returns empty string if the driver could not be determined.
-func databaseDriver(db *Database) string {
+func databaseDriver(db *Database) (string, error) {
 	var driver string
-	if len(db.Driver) > 0 && supportedDBDriver(db.Driver) {
-		return db.Driver
+	if len(db.Driver) > 0 {
+		if !supportedDBDriver(db.Driver) {
+			return "", fmt.Errorf("unsupported database driver: %s", db.Driver)
+		}
+		return db.Driver, nil
 	}
 
 	if len(db.URI) > 0 {
 		driver = dbDriverFromURI(db.URI)
 		if len(driver) > 0 && supportedDBDriver(driver) {
-			return driver
+			return driver, nil
 		}
 	}
 
 	if len(db.Address) > 0 {
 		driver = dbDriverFromAddress(db.Address)
 		if len(driver) > 0 && supportedDBDriver(driver) {
-			return driver
+			return driver, nil
 		}
 	}
 
 	if len(db.SQLite.File) > 0 || db.SQLite.InMemory != nil && *db.SQLite.InMemory {
-		return databaseDriverSQLite
+		return databaseDriverSQLite, nil
 	}
-
-	return driver
+	return "", ErrCouldNotDetermineDatabaseDriver
 }
 
 // dbDriverFromURI returns the database driver from the URI.
@@ -80,7 +90,7 @@ func dbDriverFromAddress(addr string) string {
 // supportedDBDriver returns true if the driver is supported.
 func supportedDBDriver(driver string) bool {
 	switch driver {
-	case databaseDriverMongo, databaseDriverPostgres, databaseDriverMSSQL, databaseDriverSQLite, databaseDriverRedis:
+	case databaseDriverMongo, databaseDriverPostgres, databaseDriverMSSQL, databaseDriverSQLite, databaseDriverRedis, databaseDriverInMem:
 		return true
 	default:
 		return false
