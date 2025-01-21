@@ -46,7 +46,7 @@ type ServiceOption func(s *service)
 // NewService creats a new session service.
 func NewService(store db.SessionStore, options ...ServiceOption) (*service, error) {
 	if store == nil {
-		return nil, ErrNilStore
+		return nil, errors.New("nil session store")
 	}
 
 	svc := &service{
