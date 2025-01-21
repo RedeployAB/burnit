@@ -39,7 +39,7 @@ type SessionStoreOption func(o *SessionStoreOptions)
 // NewSessionStore returns a new SessionStore.
 func NewSessionStore(client Client, options ...SessionStoreOption) (*sessionStore, error) {
 	if client == nil {
-		return nil, ErrNilClient
+		return nil, errors.New("nil client")
 	}
 
 	opts := SessionStoreOptions{
