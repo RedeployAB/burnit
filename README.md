@@ -121,7 +121,7 @@ services:
     database:
       # Database driver. This is normally evaluated by the other database
       # configuration options but needs to be set if using a non-standard
-      # port, in-memory database or sqlite without options.
+      # port (when using address) or sqlite without options.
       driver: ""
       # URI (DSN) for the database.
       uri: ""
@@ -181,7 +181,9 @@ ui:
       # Timeout for the internal session service.
       timeout: 5s
       database:
-        # Session database driver.
+        # Session database driver. This is normally evaluated by the other
+        # database configuration options but needs to be set if using a
+        # non-standard port (when using address) or sqlite without options.
         driver: ""
         # URI (DSN) for the session database.
         uri: ""
@@ -261,7 +263,7 @@ ui:
 
 | Name | Description |
 |------|-------------|
-| `BURNIT_DATABASE_DRIVER` | Database driver. This is normally evaluated by the other database configuration options but needs to be set if using a non-standard port, in-memory database or sqlite without options. |
+| `BURNIT_DATABASE_DRIVER` | Database driver. This is normally evaluated by the other database configuration options but needs to be set if using a non-standard port (when using address) or sqlite without options. |
 | `BURNIT_DATABASE_URI` | URI (DSN) for the database. |
 | `BURNIT_DATABASE_ADDRESS` | Address (host and port) for the database. |
 | `BURNIT_DATABASE` | Database name. |
@@ -319,7 +321,7 @@ ui:
 
 | Name | Description |
 |------|-------------|
-| `BURNIT_SESSION_DATABASE_DRIVER` | Session database driver. |
+| `BURNIT_SESSION_DATABASE_DRIVER` | Session database driver. This is normally evaluated by the other database configuration options but needs to be set if using a non-standard port (when using address) or sqlite without options. |
 | `BURNIT_SESSION_DATABASE_URI` | URI (DSN) for the session database. |
 | `BURNIT_SESSION_DATABASE_ADDRESS` | Address (host and port) for the session database. |
 | `BURNIT_SESSION_DATABASE` | Session database name. |
@@ -394,7 +396,7 @@ Command-line configuration for burnit:
   -secret-service-timeout duration
         Optional. Timeout for the internal secret service. Default: 10s.
   -database-driver string
-        Optional. Database driver. This is normally evaluated by the other database configuration options but needs to be set if using a non-standard port, in-memory database or sqlite without options.
+        Optional. Database driver. This is normally evaluated by the other database configuration options but needs to be set if using a non-standard port (when using address) or sqlite without options.
   -database-uri string
         Optional. URI (DSN) for the database.
   -database-address string
@@ -437,7 +439,7 @@ Command-line configuration for burnit:
   -local-development value
         Optional. Enable local development mode.
   -session-database-driver string
-        Optional. Database driver.
+        Optional. Database driver. This is normally evaluated by the other database configuration options but needs to be set if using a non-standard port (when using address) or sqlite without options.
   -session-database-uri string
         Optional. URI for the session database.
   -session-database-address string
@@ -480,9 +482,7 @@ The application supports various database drivers as mentioned in the [requireme
 
 If not database configuration is set for the application it will default to using a built-in in-memory database. This will not persist secrets between restarts and is not recommended unless this is desired. Expired secrets are cleaned up from the database.
 
-**Session database**
-
-If no database configuration is set for the session database it will default to using a built-in in-memory database. This is considered a normal configuration due to the lifetime cycle and nature of the sessions in this application and will
+As with the main application database, if no database configuration is set for the session database it will default to using a built-in in-memory database. This is considered a normal configuration due to the lifetime cycle and nature of the sessions in this application and will
 not log a warning. Expired sessions are cleaned up from the database.
 
 #### Database driver configuration

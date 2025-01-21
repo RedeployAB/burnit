@@ -100,7 +100,7 @@ func ParseFlags(args []string) (*flags, error) {
 	fs.DurationVar(&f.secretServiceTimeout, "secret-service-timeout", 0, "Optional. Timeout for the internal secret service. Default: "+defaultSecretServiceTimeout.String()+".")
 	fs.Var(&backendOnly, "backend-only", "Optional. Disable UI (frontend). Default: false.")
 	// Database flags.
-	fs.StringVar(&f.databaseDriver, "database-driver", "", "Optional. Database driver. This is normally evaluated by the other database configuration options but needs to be set if using a non-standard port, in-memory database or sqlite without options.")
+	fs.StringVar(&f.databaseDriver, "database-driver", "", "Optional. Database driver. This is normally evaluated by the other database configuration options but needs to be set if using a non-standard port (when using address) or sqlite without options.")
 	fs.StringVar(&f.databaseURI, "database-uri", "", "Optional. URI (DSN) for the database.")
 	fs.StringVar(&f.databaseAddr, "database-address", "", "Optional. Address (host and port) for the database. ")
 	fs.StringVar(&f.database, "database", "", "Optional. Database name.")
@@ -122,7 +122,7 @@ func ParseFlags(args []string) (*flags, error) {
 	fs.DurationVar(&f.sessionServiceTimeout, "session-service-timeout", 0, "Optional. Timeout for the internal session service. Default: "+defaultSessionServiceTimeout.String()+".")
 	fs.Var(&runtimeParse, "runtime-parse", "Optional. Enable runtime parsing of the UI templates.")
 	// Session database flags.
-	fs.StringVar(&f.sessionDatabaseDriver, "session-database-driver", "", "Optional. Database driver.")
+	fs.StringVar(&f.sessionDatabaseDriver, "session-database-driver", "", "Optional. Database driver. This is normally evaluated by the other database configuration options but needs to be set if using a non-standard port (when using address) or sqlite without options.")
 	fs.StringVar(&f.sessionDatabaseURI, "session-database-uri", "", "Optional. URI for the session database.")
 	fs.StringVar(&f.sessionDatabaseAddr, "session-database-address", "", "Optional. Address for the session database.")
 	fs.StringVar(&f.sessionDatabase, "session-database", "", "Optional. Session database name.")
