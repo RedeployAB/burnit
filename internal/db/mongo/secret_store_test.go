@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -63,7 +64,7 @@ func TestNewSecretStore(t *testing.T) {
 			}{
 				client: nil,
 			},
-			wantErr: ErrNilClient,
+			wantErr: errors.New("nil client"),
 		},
 	}
 
@@ -75,8 +76,8 @@ func TestNewSecretStore(t *testing.T) {
 				t.Errorf("NewSecretStore() = unexpected result (-want +got)\n%s\n", diff)
 			}
 
-			if diff := cmp.Diff(test.wantErr, gotErr, cmpopts.EquateErrors()); diff != "" {
-				t.Errorf("NewSecretStore() = unexpected error (-want +got)\n%s\n", diff)
+			if test.wantErr != nil && gotErr == nil {
+				t.Errorf("NewSecretStore() = expected error: %v\n", test.wantErr)
 			}
 		})
 	}

@@ -28,7 +28,7 @@ type SecretStoreOption func(o *SecretStoreOptions)
 // NewSecretStore creates and configures a new SecretStore.
 func NewSecretStore(client Client, options ...SecretStoreOption) (*secretStore, error) {
 	if client == nil {
-		return nil, ErrNilClient
+		return nil, errors.New("nil client")
 	}
 
 	opts := SecretStoreOptions{}

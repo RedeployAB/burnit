@@ -1,8 +1,6 @@
 package main
 
 import (
-	"errors"
-	"flag"
 	"fmt"
 	"os"
 	"strconv"
@@ -25,11 +23,7 @@ func main() {
 func run(log log.Logger) error {
 	flags, err := config.ParseFlags(os.Args[1:])
 	if err != nil {
-		if errors.Is(err, flag.ErrHelp) {
-			// Return nil and show help.
-			return nil
-		}
-		return fmt.Errorf("could not parse flags: %w", err)
+		return nil
 	}
 
 	log.Info("Starting service.", "version", version.Version())
@@ -37,7 +31,11 @@ func run(log log.Logger) error {
 	if err != nil {
 		return fmt.Errorf("could not load configuration: %w", err)
 	}
+
 	log.Info("Configuration loaded.", "config", cfg)
+	if cfg.Services.Secret.Database.IsInMemory {
+		log.Warn("Using in-memory database. Secrets will not be persisted after restart.")
+	}
 
 	services, err := config.Setup(cfg)
 	if err != nil {

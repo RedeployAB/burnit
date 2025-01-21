@@ -33,9 +33,11 @@ func TestNew(t *testing.T) {
 					Secret: Secret{
 						Timeout: defaultSecretServiceTimeout,
 						Database: Database{
+							Driver:         databaseDriverInMem,
 							Database:       defaultDatabaseName,
 							Timeout:        defaultDatabaseTimeout,
 							ConnectTimeout: defaultDatabaseConnectTimeout,
+							IsInMemory:     true,
 						},
 					},
 				},

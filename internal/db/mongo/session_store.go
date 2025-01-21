@@ -40,7 +40,7 @@ type SessionStoreOption func(o *SessionStoreOptions)
 // NewSessionStore creates and configures a new SessionStore.
 func NewSessionStore(client Client, options ...SessionStoreOption) (*sessionStore, error) {
 	if client == nil {
-		return nil, ErrNilClient
+		return nil, errors.New("nil client")
 	}
 
 	opts := SessionStoreOptions{
@@ -53,7 +53,7 @@ func NewSessionStore(client Client, options ...SessionStoreOption) (*sessionStor
 	}
 
 	if len(opts.Database) == 0 {
-		return nil, ErrDatabaseNotSet
+		return nil, errors.New("database not set")
 	}
 
 	store := &sessionStore{

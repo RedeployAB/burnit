@@ -13,12 +13,12 @@ import (
 
 func TestNewSessionStore(t *testing.T) {
 	got := NewSessionStore()
-	if diff := cmp.Diff(&sessionStore{sessions: make(map[string]db.Session), sessionCSRF: make(map[string]string), mu: sync.RWMutex{}}, got, cmp.AllowUnexported(sessionStore{}), cmpopts.IgnoreFields(sessionStore{}, "mu", "stopCh")); diff != "" {
+	if diff := cmp.Diff(&sessionStore{sessions: make(map[string]db.Session), sessionCSRF: make(map[string]string), mu: sync.RWMutex{}}, got, cmp.AllowUnexported(sessionStore{}), cmpopts.IgnoreFields(sessionStore{}, "mu")); diff != "" {
 		t.Errorf("NewInMemoryStore() = unexpected result (-want +got)\n%s\n", diff)
 	}
 }
 
-func TestInMemoryStore_Get(t *testing.T) {
+func TestSessionStore_Get(t *testing.T) {
 	n := now()
 	var tests = []struct {
 		name  string
@@ -77,12 +77,11 @@ func TestInMemoryStore_Get(t *testing.T) {
 			if diff := cmp.Diff(test.wantErr, gotErr, cmpopts.EquateErrors()); diff != "" {
 				t.Errorf("Get() = unexpected error (-want +got)\n%s\n", diff)
 			}
-
 		})
 	}
 }
 
-func TestInMemoryStore_GetByCSRFToken(t *testing.T) {
+func TestSessionStore_GetByCSRFToken(t *testing.T) {
 	n := now()
 	var tests = []struct {
 		name  string
@@ -172,12 +171,11 @@ func TestInMemoryStore_GetByCSRFToken(t *testing.T) {
 			if diff := cmp.Diff(test.wantErr, gotErr, cmpopts.EquateErrors()); diff != "" {
 				t.Errorf("Get() = unexpected error (-want +got)\n%s\n", diff)
 			}
-
 		})
 	}
 }
 
-func TestInMemoryStore_Upsert(t *testing.T) {
+func TestSessionStore_Upsert(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input struct {
@@ -234,7 +232,7 @@ func TestInMemoryStore_Upsert(t *testing.T) {
 	}
 }
 
-func TestInMemoryStore_Delete(t *testing.T) {
+func TestSessionStore_Delete(t *testing.T) {
 	var tests = []struct {
 		name  string
 		input struct {
@@ -276,12 +274,11 @@ func TestInMemoryStore_Delete(t *testing.T) {
 			if ok {
 				t.Errorf("Delete() = session not deleted")
 			}
-
 		})
 	}
 }
 
-func TestInMemoryStore_DeleteExpired(t *testing.T) {
+func TestSessionStore_DeleteExpired(t *testing.T) {
 	n := now()
 
 	var tests = []struct {
