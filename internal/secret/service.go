@@ -82,7 +82,7 @@ type ServiceOption func(s *service)
 // NewService creates a new secret service.
 func NewService(store db.SecretStore, options ...ServiceOption) (*service, error) {
 	if store == nil {
-		return nil, ErrNilStore
+		return nil, errors.New("nil secret store")
 	}
 
 	svc := &service{

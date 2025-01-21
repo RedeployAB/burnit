@@ -3,8 +3,6 @@ package secret
 import "errors"
 
 var (
-	// ErrNilStore is returned when no store is provided.
-	ErrNilStore = errors.New("nil store")
 	// ErrSecretNotFound is returned when a secret is not found.
 	ErrSecretNotFound = errors.New("secret not found")
 	// ErrInvalidPassphrase is returned when the passphrase is invalid for a secret.

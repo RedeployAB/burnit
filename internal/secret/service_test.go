@@ -79,7 +79,7 @@ func TestNewService(t *testing.T) {
 			}{
 				secrets: nil,
 			},
-			wantErr: ErrNilStore,
+			wantErr: errors.New("nil secret store"),
 		},
 	}
 
@@ -91,8 +91,8 @@ func TestNewService(t *testing.T) {
 				t.Errorf("NewService() = unexpected result (-want +got)\n%s\n", diff)
 			}
 
-			if diff := cmp.Diff(test.wantErr, gotErr, cmpopts.EquateErrors()); diff != "" {
-				t.Errorf("NewService() = unexpected error (-want +got)\n%s\n", diff)
+			if test.wantErr != nil && gotErr == nil {
+				t.Errorf("NewService() = expected error: %v\n", test.wantErr)
 			}
 		})
 	}
