@@ -480,7 +480,7 @@ Command-line configuration for burnit:
 
 The application supports various database drivers as mentioned in the [requirements](#requirements) section. The main database (containing secrets) and the database for handling sessions can be handled separately and does not need to be the same database or driver.
 
-If not database configuration is set for the application it will default to using a built-in in-memory database. This will not persist secrets between restarts and is not recommended unless this is desired. Expired secrets are cleaned up from the database.
+If not database configuration is set for the application it will default to using a built-in in-memory database. This will not persist secrets between restarts and is not recommended unless this is desired. Using the in-memory database will log a warning. Expired secrets are cleaned up from the database.
 
 As with the main application database, if no database configuration is set for the session database it will default to using a built-in in-memory database. This is considered a normal configuration due to the lifetime cycle and nature of the sessions in this application and will
 not log a warning. Expired sessions are cleaned up from the database.
