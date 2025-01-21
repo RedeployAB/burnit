@@ -3,7 +3,6 @@ package inmem
 import (
 	"context"
 	"sync"
-	"time"
 
 	"github.com/RedeployAB/burnit/internal/db"
 	dberrors "github.com/RedeployAB/burnit/internal/db/errors"
@@ -13,7 +12,6 @@ import (
 type sessionStore struct {
 	sessions    map[string]db.Session
 	sessionCSRF map[string]string
-	stopCh      chan struct{}
 	mu          sync.RWMutex
 }
 
@@ -23,7 +21,6 @@ func NewSessionStore() *sessionStore {
 		sessions:    make(map[string]db.Session),
 		sessionCSRF: make(map[string]string),
 		mu:          sync.RWMutex{},
-		stopCh:      make(chan struct{}),
 	}
 	return s
 }
@@ -134,8 +131,4 @@ func (s *sessionStore) DeleteExpired(ctx context.Context) error {
 // Close the store and its underlying connections.
 func (s *sessionStore) Close() error {
 	return nil
-}
-
-var now = func() time.Time {
-	return time.Now().UTC()
 }
