@@ -9,8 +9,10 @@ it can be used to generate new secrets.
 
 * [Features](#features)
 * [Requirements](#requirements)
-  * [Container](#container)
   * [Supported databases](#supported-databases)
+  * [Running in a container](#running-in-a-container)
+* [Install](#install)
+* [Build](#build)
 * [Configuration](#configuration)
   * [Configuration file](#configuration-file)
   * [Environment variables](#environment-variables)
@@ -24,6 +26,7 @@ it can be used to generate new secrets.
       * [Error codes](#error-codes)
 * [Sessions](#sessions)
 * [Rate limiting](#rate-limiting)
+* [Development](#development)
 * [TODO](#todo)
 
 ## Features
@@ -40,13 +43,6 @@ and complexity based on the incoming request. These secrets are not stored.
 
 ## Requirements
 
-### Container
-
-If running as a container the recommended resources are (as a start, and depending on expected load):
-
-- **CPU**: `100m`
-- **Memory**: `64Mi`
-
 ### Supported databases
 
 The supported databases for the application are:
@@ -60,6 +56,51 @@ The supported databases for the application are:
 
 The main application database and the session database does not have to be the same database or driver.
 
+### Running in a container
+
+If running as a container the recommended resources are (as a start, and depending on expected load):
+
+- **CPU**: `100m`
+- **Memory**: `64Mi`
+
+
+## Install
+
+## Build
+
+**Scripted build**
+
+TEMP
+- Build UI
+- Explain about the SHA256 sums
+- Explain about the updated SHA256 sum for HTMX
+
+Set the following environment variables:
+
+**Build UI (frontend)**
+
+```sh
+export ESBUILD_SHA256=77dce3e5d160db73bb37a61d89b5b38c5de1f18fbf4cc1c9c284a65ae5abb526
+export HTMX_SHA256=24d3f3df3046e54d3fc260f58dcdeb82c53c38ee38f482eac74a5b6179d08ca7
+export TAILWINDCSS_SHA256=cb5fff9d398d0d4f21c37c2e99578ada43766fbc6807b5f929d835ebfd07526b
+
+./scripts/build-ui.sh
+```
+
+The resulting files will be placed in `internal/ui/static` (they are present in `.gitignore`). This due to that they are to be embedded into the application binary.
+
+**Build application**
+
+```sh
+# Build binary only:
+./scripts/build.sh --version <version> --os <linux|darwin> --arch <amd64|arm64>
+
+# Build binary and container image:
+./scripts/build.sh --version <version> --os <linux|darwin> --arch <amd64|arm64> --image
+```
+
+The resulting binary (or container image) can then be run without any copying of assets due to them being embedded into the binary. Deploy the binary or container image to a target hosting environment
+and run it.
 
 ## Configuration
 
@@ -77,8 +118,38 @@ In most scenarios the only configuration that needs to be set is the connection 
 
 Sessions and rate limiting uses in-memory databases due to their short lived nature by default. To avoid to use databases for these in scenarios where the application might need to scale, sticky sessions are an alternative.
 
+**Example with configuration file**
+
+The following configuration is all that is needed for most scenarios (example with PostgreSQL):
+
+```yaml
+services:
+  secret:
+    database:
+      uri: postgres://<user>:<password>@<host>:5432/burnit
+```
+
+**Example with environment variables**
+
+The following configuration is all that is needed for most scenarios (example with PostgreSQL):
+
+```sh
+export BURNIT_DATABASE_URI=postgres://<user>:<password>@<host>:5432/burnit
+```
+
+**Example with command-line flags**
+
+The following configuration is all that is needed for most scenarios (example with PostgreSQL):
+
+```sh
+./burnit --database-uri postgres://<user>:<password>@<host>:5432/burnit
+```
 
 ### Configuration file
+
+By default the application will look for the file `config.yaml` in the same location as the binary. If another location and/or filename is desired, used the command-line flag: `-config-file <path>`.
+
+All the available configuration that can be done with a configuration file:
 
 ```yaml
 # Server configuration.
@@ -236,6 +307,8 @@ ui:
 
 ### Environment variables
 
+All the available configuration that can be done with environment variables:
+
 **Server configuration**
 
 | Name | Description |
@@ -308,13 +381,13 @@ ui:
 | `BURNIT_DATABASE_REDIS_MAX_RETRY_BACKOFF` | Maximum retry backoff for the Redis client. |
 | `BURNIT_DATABASE_REDIS_ENABLE_TLS` | Enable TLS for the Redis client. Default: true. |
 
+
 **UI configuration**
 
 | Name | Description |
 |------|-------------|
 | `BURNIT_SESSION_SERVICE_TIMEOUT` | Timeout for the internal session service. Default: `5s`. |
 | `BURNIT_RUNTIME_PARSE` | Enable runtime parsing of the UI templates. |
-| `BURNIT_LOCAL_DEVELOPMENT` | Enable local development mode. |
 
 
 **Session database configuration**
@@ -367,6 +440,8 @@ ui:
 | `BURNIT_SESSION_DATABASE_REDIS_ENABLE_TLS` | Enable TLS for the Redis client. Default: true. |
 
 ### Command-line flags
+
+All the available configuration that can be done with environment variables:
 
 ```sh
 Command-line configuration for burnit:
@@ -436,8 +511,6 @@ Command-line configuration for burnit:
         Optional. Timeout for the internal session service. Default: 5s.
   -runtime-render value
         Optional. Enable runtime rendering of the UI.
-  -local-development value
-        Optional. Enable local development mode.
   -session-database-driver string
         Optional. Database driver. This is normally evaluated by the other database configuration options but needs to be set if using a non-standard port (when using address) or sqlite without options.
   -session-database-uri string
@@ -503,6 +576,7 @@ The supported values for the database driver are:
 * `redis`
 * `inmem`
 
+
 ## Usage
 
 ### API
@@ -550,6 +624,10 @@ Error responses have the following structure:
 ## Sessions
 
 ## Rate limiting
+
+## Development
+
+The following section covers ... ...
 
 ## TODO
 
