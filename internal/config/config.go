@@ -8,7 +8,6 @@ import (
 	"os"
 	"reflect"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/caarlos0/env/v11"
@@ -489,15 +488,6 @@ func New(options ...Option) (*Configuration, error) {
 
 	if err := mergeConfigurations(cfg, &yamlCfg, &envCfg, &flagCfg); err != nil {
 		return nil, err
-	}
-
-	localDev, ok := os.LookupEnv("BURNIT_LOCAL_DEVELOPMENT")
-	if ok && strings.ToLower(localDev) == "true" || localDev == "1" || opts.Flags.localDevelopment != nil && *opts.Flags.localDevelopment {
-		cfg.UI.RuntimeParse = toPtr(true)
-		if len(cfg.Services.Secret.Database.Driver) == 0 && len(cfg.Services.Secret.Database.URI) == 0 && len(cfg.Services.Secret.Database.Address) == 0 {
-			cfg.Services.Secret.Database.Driver = string(databaseDriverInMem)
-			cfg.Services.Secret.Database.IsInMemory = true
-		}
 	}
 
 	cfg.Services.Secret.Database.Driver, err = databaseDriver(&cfg.Services.Secret.Database)

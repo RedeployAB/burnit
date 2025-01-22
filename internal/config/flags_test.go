@@ -121,7 +121,6 @@ func TestParseFlags(t *testing.T) {
 				sessionDatabaseRedisMinRetryBackoff: time.Second * 15,
 				sessionDatabaseRedisMaxRetryBackoff: time.Second * 15,
 				sessionDatabaseRedisEnableTLS:       toPtr(true),
-				localDevelopment:                    toPtr(true),
 			},
 		},
 	}

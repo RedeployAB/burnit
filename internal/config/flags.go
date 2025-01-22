@@ -62,8 +62,6 @@ type flags struct {
 	sessionDatabaseRedisMinRetryBackoff time.Duration
 	sessionDatabaseRedisMaxRetryBackoff time.Duration
 	sessionDatabaseRedisEnableTLS       *bool
-	// Local development flag.
-	localDevelopment *bool
 }
 
 // ParseFlags parses the flags.
@@ -72,7 +70,6 @@ func ParseFlags(args []string) (*flags, error) {
 		f                             flags
 		backendOnly                   boolFlag
 		runtimeParse                  boolFlag
-		localDevelopment              boolFlag
 		databaseMongoEnableTLS        boolFlag
 		databaseSQLiteInMemory        boolFlag
 		databaseRedisEnableTLS        boolFlag
@@ -141,18 +138,12 @@ func ParseFlags(args []string) (*flags, error) {
 	fs.DurationVar(&f.sessionDatabaseRedisMaxRetryBackoff, "session-database-redis-max-retry-backoff", 0, "Optional. Maximum retry backoff for the Redis client.")
 	fs.Var(&sessionDatabaseRedisEnableTLS, "session-database-redis-enable-tls", "Optional. Enable TLS for the Redis client. Default: true.")
 
-	// Local development flag.
-	fs.Var(&localDevelopment, "local-development", "Optional. Enable local development mode.")
-
 	if err := fs.Parse(args); err != nil {
 		return &f, err
 	}
 
 	if backendOnly.isSet {
 		f.backendOnly = &backendOnly.value
-	}
-	if localDevelopment.isSet {
-		f.localDevelopment = &localDevelopment.value
 	}
 	if runtimeParse.isSet {
 		f.runtimeParse = &runtimeParse.value
