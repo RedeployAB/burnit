@@ -87,6 +87,11 @@ export TAILWINDCSS_SHA256=cb5fff9d398d0d4f21c37c2e99578ada43766fbc6807b5f929d835
 ./scripts/build-ui.sh
 ```
 
+**Note**: The hashes listed above have been calculated by getting the checksum for:
+- `esbuild@v0.24.0` from its official [download location](https://esbuild.github.io/dl/v0.24.0).
+- `htmx@v2.0.3` from its official [download location](https://github.com/bigskysoftware/htmx/releases/download/v2.0.3/htmx.esm.js) + a modification to the file that replaces a call to `eval`.
+- `tailwindcss@v3.4.14` from its official [download location](https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.14/tailwindcss-linux-x64).
+
 The resulting files will be placed in `internal/ui/static` (they are present in `.gitignore`). This due to that they are to be embedded into the application binary.
 
 **Build application**
@@ -581,6 +586,10 @@ The supported values for the database driver are:
 
 ### API
 
+### Secret
+
+### Secrets
+
 ### Errors
 
 Error responses have the following structure:
@@ -623,7 +632,34 @@ Error responses have the following structure:
 
 ## Sessions
 
+The application handle sessions with CSRF tokens to increase security when creating and retrieving secrets. Sessions are short-lived with a lifetime of 15 minutes. The application clears out expired sessions from the database every minute which frees up memory.
+
+It is also possible to store sessions in a database. See more at the sections [Database configuration](#database-configuration), [Configuration file](#configuration-file), [Environment variables](#environment-variables) and [Command-line flags](#command-line-flags).
+
+
 ## Rate limiting
+
+A simple rate limiting mechanism is built-in into the application. It handels rate limiting on a per IP basis and store the data in an in-memory database. The rate limiting model is according to a token bucket algorithm that allows for requests to be made as long as there are tokens in the bucket.
+
+If a request is made it will refill with *n* tokens per second, with an allowed burst of *n*.
+A rate limit for an IP address have a default time-to-live of 5 minutes and are cleared out periodically (default every 10 seconds).
+
+**Example of rate limiting**
+
+Rate is configured to `1` and burst is configured to `3` it will allow for an average of 1 request per second with a maximum burst of 3 in consecutive requests.
+
+### Enable rate limiting
+
+To enable rate limiting one or more options for it needs to be configured.
+
+The options that are not configured will have the following default values:
+
+* Rate: `1`
+* Burst: `3`
+* TTL: `5m`
+* Cleanup interval `10s`
+
+If more advanced rate limiting is required, do not enable rate limiting and configure an external rate limiter.
 
 ## Development
 
