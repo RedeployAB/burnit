@@ -68,14 +68,7 @@ If running as a container the recommended resources are (as a start, and dependi
 
 ## Build
 
-**Scripted build**
-
-TEMP
-- Build UI
-- Explain about the SHA256 sums
-- Explain about the updated SHA256 sum for HTMX
-
-Set the following environment variables:
+Scripts are provided to build the UI (frontend) and to build the application (that embeds the UI assets).
 
 **Build UI (frontend)**
 
@@ -514,8 +507,8 @@ Command-line configuration for burnit:
   # UI configuration.
   -session-service-timeout duration
         Optional. Timeout for the internal session service. Default: 5s.
-  -runtime-render value
-        Optional. Enable runtime rendering of the UI.
+  -runtime-parse value
+        Optional. Enable runtime parsing of the UI.
   -session-database-driver string
         Optional. Database driver. This is normally evaluated by the other database configuration options but needs to be set if using a non-standard port (when using address) or sqlite without options.
   -session-database-uri string
@@ -663,7 +656,27 @@ If more advanced rate limiting is required, do not enable rate limiting and conf
 
 ## Development
 
-The following section covers ... ...
+To develop the application the following tools are needed:
+
+* `tailwindcss` - Build the CSS file(s).
+* `esbuild` - Bundle and minify CSS and JavaScript files.
+
+**Note**: Only required if developing the UI/frontend.
+
+To actively build the CSS files while making modifications to the HTML templates run `tailwindcss` with watching:
+
+```sh
+cd internal/ui
+tailwindcss -i ./static/css/tailwind.css -o ./static/css/main.css --watch
+```
+
+Either set `BURNIT_RUNTIME_PARSE` to `true` or use the command-line flag `--runtime-parse` when running the application, like so:
+
+```sh
+go run main.go --runtime-parse=true
+```
+
+This will make sure the application parses the HTML template every call, thus making it possible to see changes to HTML templates, JavaScript and CSS at every save.
 
 ## TODO
 
