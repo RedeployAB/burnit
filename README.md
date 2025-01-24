@@ -787,5 +787,4 @@ This will make sure the application parses the HTML template every call, thus ma
 
 ## TODO
 
-- [ ] Update documentation
 - [ ] Add deployment examples, templates and scripts
