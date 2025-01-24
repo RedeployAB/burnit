@@ -316,6 +316,7 @@ All the available configuration that can be done with environment variables:
 | `BURNIT_TLS_CERT_FILE` | Path to TLS certificate file. |
 | `BURNIT_TLS_KEY_FILE` | Path to TLS key file. |
 | `BURNIT_CORS_ORIGIN` | CORS origin. Only necessary if frontend is not served through the server. |
+| `BURNIT_RATE_LIMITER` | Enable rate limiter with default values. Default: `false`. |
 | `BURNIT_RATE_LIMITER_RATE` | The average number of requests per second. |
 | `BURNIT_RATE_LIMITER_BURST` | The maximum burst of requests. |
 | `BURNIT_RATE_LIMITER_TTL` | The time-to-live for rate limiter entries. |
@@ -581,7 +582,113 @@ The supported values for the database driver are:
 
 ### Secret
 
+#### Generate secret
+
+```http
+GET /secret
+```
+
+```http
+GET /secret?length=32&specialCharacters=true
+```
+
+##### Headers
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `Accept` | **False** | Supported values: `application/json` and `plain/text`|
+
+##### URI parameters
+
+| Name | In | Required | Type | Description |
+|------|----|----------|------|-------------|
+| `length` | Query | **False** | *number* | Amount of characters in the secret. Alias `l` can be used. |
+| `specialCharacters` | Query| **False** | *boolean* | Use special characters or not. Default `false`. Alias `sc` can be used |
+
+##### Response
+
+```http
+200 Status Ok
+```
+
+**`application/json`**
+
+```json
+{
+  "value": "secret"
+}
+```
+
+**`plain/text`**
+
+```http
+secret
+```
+
 ### Secrets
+
+#### Get secret
+
+```http
+GET /secrets/{id}
+```
+
+##### Headers
+
+| Name | Required | Description |
+|------|----------|-------------|
+| `Passphrase` | **True** | Passphrase for the secret. |
+
+##### URI parameters
+
+| Name | In | Required | Type | Description |
+|------|----|----------|------|-------------|
+| `id` | Path | **True** | *string* | The ID of the secret to retrieve. |
+
+##### Response
+
+```json
+{
+  "value": "secret"
+}
+```
+
+#### Create secret
+
+##### Request body
+
+```json
+{
+  "value": "secret",
+  "passphrase": "passphrase",
+  "ttl": "1h",
+  "expiresAt": "2025-01-24T18:09:55+01:00"
+}
+```
+
+| Name | Required | Type | Description |
+| ---- | -------- | ---- | ----------- |
+| `value` |
+| `passphrase` |
+| `ttl` | **False** | A time duration. Example: `1h`<sup>*1)</sup>. |
+| `expiresAt` | **False** | Date in RFC3399. Takes precedence over `ttl`. See example body. |
+
+<sup>*1) A duration according to the Go duration format. Example: `1m`, `1h` and so on. The highest unit is `h`. For 3 days the value should be `72h`. Can be used with additional units like so: `1h10m10s` which is 1 hour, 10 minnutes and 10 seconds.</sup>
+
+##### Response
+
+```http
+201 Status Created
+```
+
+```json
+{
+  "id": "00000000-0000-0000-0000-000000000000",
+  "passphrase": "passphrase",
+  "ttl": "1h0m0s",
+  "expiresAt": "2025-01-24T18:09:55+01:00"
+}
+```
 
 ### Errors
 
