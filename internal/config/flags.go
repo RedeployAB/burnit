@@ -16,6 +16,7 @@ type flags struct {
 	tlsCertFile                  string
 	tlsKeyFile                   string
 	corsOrigin                   string
+	rateLimiter                  *bool
 	rateLimiterRate              float64
 	rateLimiterBurst             int
 	rateLimiterCleanupInterval   time.Duration
@@ -69,10 +70,11 @@ func ParseFlags(args []string) (*flags, error) {
 	var (
 		f                             flags
 		backendOnly                   boolFlag
-		runtimeParse                  boolFlag
+		rateLimiter                   boolFlag
 		databaseMongoEnableTLS        boolFlag
 		databaseSQLiteInMemory        boolFlag
 		databaseRedisEnableTLS        boolFlag
+		runtimeParse                  boolFlag
 		sessionDatabaseMongoEnableTLS boolFlag
 		sessionDatabaseSQLiteInMemory boolFlag
 		sessionDatabaseRedisEnableTLS boolFlag
@@ -90,6 +92,7 @@ func ParseFlags(args []string) (*flags, error) {
 	fs.StringVar(&f.tlsCertFile, "tls-cert-file", "", "Optional. Path to TLS certificate file.")
 	fs.StringVar(&f.tlsKeyFile, "tls-key-file", "", "Optional. Path to TLS key file.")
 	fs.StringVar(&f.corsOrigin, "cors-origin", "", "Optional. CORS origin. Only necessary if frontend is not served through the server.")
+	fs.Var(&rateLimiter, "rate-limiter", "Optional. Enable rate limiter with default values. Default: false.")
 	fs.Float64Var(&f.rateLimiterRate, "rate-limiter-rate", 0, "Optional. The average number of requests per second.")
 	fs.IntVar(&f.rateLimiterBurst, "rate-limiter-burst", 0, "Optional. The maximum burst of requests.")
 	fs.DurationVar(&f.rateLimiterCleanupInterval, "rate-limiter-cleanup-interval", 0, "Optional. The interval at which to clean up stale rate limiter entires.")
@@ -145,10 +148,9 @@ func ParseFlags(args []string) (*flags, error) {
 	if backendOnly.isSet {
 		f.backendOnly = &backendOnly.value
 	}
-	if runtimeParse.isSet {
-		f.runtimeParse = &runtimeParse.value
+	if rateLimiter.isSet {
+		f.rateLimiter = &rateLimiter.value
 	}
-
 	if databaseMongoEnableTLS.isSet {
 		f.databaseMongoEnableTLS = &databaseMongoEnableTLS.value
 	}
@@ -159,6 +161,9 @@ func ParseFlags(args []string) (*flags, error) {
 		f.databaseRedisEnableTLS = &databaseRedisEnableTLS.value
 	}
 
+	if runtimeParse.isSet {
+		f.runtimeParse = &runtimeParse.value
+	}
 	if sessionDatabaseMongoEnableTLS.isSet {
 		f.sessionDatabaseMongoEnableTLS = &sessionDatabaseMongoEnableTLS.value
 	}
@@ -186,6 +191,7 @@ func configurationFromFlags(flags *flags) (Configuration, error) {
 				Origin: flags.corsOrigin,
 			},
 			RateLimiter: RateLimiter{
+				Enabled:         flags.rateLimiter,
 				Rate:            flags.rateLimiterRate,
 				Burst:           flags.rateLimiterBurst,
 				CleanupInterval: flags.rateLimiterCleanupInterval,

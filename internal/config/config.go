@@ -41,6 +41,17 @@ const (
 )
 
 const (
+	// defaultRateLimiterRate is the default rate limiter rate.
+	defaultRateLimiterRate = 1
+	// defaultRateLimiterBurst is the default rate limiter burst.
+	defaultRateLimiterBurst = 3
+	// defaultRateLimiterTTL is the default rate limiter time-to-live.
+	defaultRateLimiterTTL = 5 * time.Minute
+	// defaultRateLimiterCleanupInterval is the default rate limiter cleanup interval.
+	defaultRateLimiterCleanupInterval = 10 * time.Second
+)
+
+const (
 	// defaultRuntimeParseTemplateDir is the default directory for the runtime parse templates.
 	defaultRuntimeParseTemplateDir = "internal/ui/templates"
 	// defaultRuntimeParseStaticDir is the default directory for the runtime parse static files.
@@ -128,6 +139,7 @@ type CORS struct {
 
 // RateLimiter contains the configuration for the rate limiter.
 type RateLimiter struct {
+	Enabled         *bool         `env:"RATE_LIMITER" yaml:"enabled"`
 	Rate            float64       `env:"RATE_LIMITER_RATE" yaml:"rate"`
 	Burst           int           `env:"RATE_LIMITER_BURST" yaml:"burst"`
 	TTL             time.Duration `env:"RATE_LIMITER_TTL" yaml:"ttl"`
@@ -510,6 +522,21 @@ func New(options ...Option) (*Configuration, error) {
 			} else {
 				return nil, err
 			}
+		}
+	}
+
+	if cfg.Server.RateLimiter.Enabled != nil && *cfg.Server.RateLimiter.Enabled {
+		if cfg.Server.RateLimiter.Rate == 0 {
+			cfg.Server.RateLimiter.Rate = defaultRateLimiterRate
+		}
+		if cfg.Server.RateLimiter.Burst == 0 {
+			cfg.Server.RateLimiter.Burst = defaultRateLimiterBurst
+		}
+		if cfg.Server.RateLimiter.TTL == 0 {
+			cfg.Server.RateLimiter.TTL = defaultRateLimiterTTL
+		}
+		if cfg.Server.RateLimiter.CleanupInterval == 0 {
+			cfg.Server.RateLimiter.CleanupInterval = defaultRateLimiterCleanupInterval
 		}
 	}
 
