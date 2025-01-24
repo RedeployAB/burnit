@@ -668,10 +668,10 @@ GET /secrets/{id}
 
 | Name | Required | Type | Description |
 | ---- | -------- | ---- | ----------- |
-| `value` |
-| `passphrase` |
-| `ttl` | **False** | A time duration. Example: `1h`<sup>*1)</sup>. |
-| `expiresAt` | **False** | Date in RFC3399. Takes precedence over `ttl`. See example body. |
+| `value` | **True** | *string* | Secret value. |
+| `passphrase` | **True** | *string* | Passphrase for the secret. |
+| `ttl` | **False** | *string* | A time duration. Example: `1h`<sup>*1)</sup>. |
+| `expiresAt` | **False** | *Date* | Date in RFC3399. Takes precedence over `ttl`. See example body. |
 
 <sup>*1) A duration according to the Go duration format. Example: `1m`, `1h` and so on. The highest unit is `h`. For 3 days the value should be `72h`. Can be used with additional units like so: `1h10m10s` which is 1 hour, 10 minnutes and 10 seconds.</sup>
 
