@@ -70,7 +70,6 @@ func TestParseFlags(t *testing.T) {
 				"-session-database-redis-min-retry-backoff", "15s",
 				"-session-database-redis-max-retry-backoff", "15s",
 				"-session-database-redis-enable-tls", "true",
-				"-local-development", "true",
 			},
 			want: &flags{
 				configPath:                          "path",
@@ -121,7 +120,6 @@ func TestParseFlags(t *testing.T) {
 				sessionDatabaseRedisMinRetryBackoff: time.Second * 15,
 				sessionDatabaseRedisMaxRetryBackoff: time.Second * 15,
 				sessionDatabaseRedisEnableTLS:       toPtr(true),
-				localDevelopment:                    toPtr(true),
 			},
 		},
 	}

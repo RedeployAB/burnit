@@ -8,7 +8,6 @@ import (
 	"os"
 	"reflect"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/caarlos0/env/v11"
@@ -39,6 +38,17 @@ const (
 	defaultDatabaseConnectTimeout = 10 * time.Second
 	// defaultDatabaseName is the default name for the database.
 	defaultDatabaseName = "burnit"
+)
+
+const (
+	// defaultRateLimiterRate is the default rate limiter rate.
+	defaultRateLimiterRate = 1
+	// defaultRateLimiterBurst is the default rate limiter burst.
+	defaultRateLimiterBurst = 3
+	// defaultRateLimiterTTL is the default rate limiter time-to-live.
+	defaultRateLimiterTTL = 5 * time.Minute
+	// defaultRateLimiterCleanupInterval is the default rate limiter cleanup interval.
+	defaultRateLimiterCleanupInterval = 10 * time.Second
 )
 
 const (
@@ -129,6 +139,7 @@ type CORS struct {
 
 // RateLimiter contains the configuration for the rate limiter.
 type RateLimiter struct {
+	Enabled         *bool         `env:"RATE_LIMITER" yaml:"enabled"`
 	Rate            float64       `env:"RATE_LIMITER_RATE" yaml:"rate"`
 	Burst           int           `env:"RATE_LIMITER_BURST" yaml:"burst"`
 	TTL             time.Duration `env:"RATE_LIMITER_TTL" yaml:"ttl"`
@@ -491,15 +502,6 @@ func New(options ...Option) (*Configuration, error) {
 		return nil, err
 	}
 
-	localDev, ok := os.LookupEnv("BURNIT_LOCAL_DEVELOPMENT")
-	if ok && strings.ToLower(localDev) == "true" || localDev == "1" || opts.Flags.localDevelopment != nil && *opts.Flags.localDevelopment {
-		cfg.UI.RuntimeParse = toPtr(true)
-		if len(cfg.Services.Secret.Database.Driver) == 0 && len(cfg.Services.Secret.Database.URI) == 0 && len(cfg.Services.Secret.Database.Address) == 0 {
-			cfg.Services.Secret.Database.Driver = string(databaseDriverInMem)
-			cfg.Services.Secret.Database.IsInMemory = true
-		}
-	}
-
 	cfg.Services.Secret.Database.Driver, err = databaseDriver(&cfg.Services.Secret.Database)
 	if err != nil {
 		if errors.Is(err, ErrCouldNotDetermineDatabaseDriver) {
@@ -520,6 +522,21 @@ func New(options ...Option) (*Configuration, error) {
 			} else {
 				return nil, err
 			}
+		}
+	}
+
+	if cfg.Server.RateLimiter.Enabled != nil && *cfg.Server.RateLimiter.Enabled {
+		if cfg.Server.RateLimiter.Rate == 0 {
+			cfg.Server.RateLimiter.Rate = defaultRateLimiterRate
+		}
+		if cfg.Server.RateLimiter.Burst == 0 {
+			cfg.Server.RateLimiter.Burst = defaultRateLimiterBurst
+		}
+		if cfg.Server.RateLimiter.TTL == 0 {
+			cfg.Server.RateLimiter.TTL = defaultRateLimiterTTL
+		}
+		if cfg.Server.RateLimiter.CleanupInterval == 0 {
+			cfg.Server.RateLimiter.CleanupInterval = defaultRateLimiterCleanupInterval
 		}
 	}
 

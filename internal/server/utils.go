@@ -7,12 +7,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
-	"strconv"
 	"strings"
 
 	"github.com/RedeployAB/burnit/internal/api"
-	"github.com/RedeployAB/burnit/internal/secret"
 )
 
 const (
@@ -68,38 +65,4 @@ func writeValue(w http.ResponseWriter, value string) {
 	w.Header().Set(contentType, contentTypeText)
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(value))
-}
-
-// parseGenerateSecretQuery parses the query parameters for length
-// and special characters.
-func parseGenerateSecretQuery(v url.Values) secret.GenerateOption {
-	var length string
-	if l, ok := v["length"]; ok {
-		length = l[0]
-	}
-	if l, ok := v["l"]; ok {
-		length = l[0]
-	}
-
-	var specialCharacters string
-	if sc, ok := v["specialCharacters"]; ok {
-		specialCharacters = sc[0]
-	}
-	if sc, ok := v["sc"]; ok {
-		specialCharacters = sc[0]
-	}
-
-	l, err := strconv.Atoi(length)
-	if err != nil {
-		l = defaultLength
-	}
-	sc, err := strconv.ParseBool(specialCharacters)
-	if err != nil {
-		sc = false
-	}
-
-	return func(o *secret.GenerateOptions) {
-		o.Length = l
-		o.SpecialCharacters = sc
-	}
 }
