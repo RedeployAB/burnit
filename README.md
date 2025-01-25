@@ -602,8 +602,10 @@ GET /secret?length=32&specialCharacters=true
 
 | Name | In | Required | Type | Description |
 |------|----|----------|------|-------------|
-| `length` | Query | **False** | *number* | Amount of characters in the secret. Alias `l` can be used. |
-| `specialCharacters` | Query| **False** | *boolean* | Use special characters or not. Default `false`. Alias `sc` can be used |
+| `length` | Query | **False** | *number* | Amount of characters in the secret. Default: `16`. Alias `l` can be used. |
+| `specialCharacters` | Query| **False** | *boolean* | Use special characters or not. Default `false`. Alias `sc` can be used. |
+
+**Note**: If not len
 
 ##### Response
 
@@ -669,11 +671,15 @@ GET /secrets/{id}
 | Name | Required | Type | Description |
 | ---- | -------- | ---- | ----------- |
 | `value` | **True** | *string* | Secret value. |
-| `passphrase` | **True** | *string* | Passphrase for the secret. |
-| `ttl` | **False** | *string* | A time duration. Example: `1h`<sup>*1)</sup>. |
-| `expiresAt` | **False** | *Date* | Date in RFC3399. Takes precedence over `ttl`. See example body. |
+| `passphrase` | **False** | *string* | Passphrase for the secret. <sup>*1)</sup> |
+| `ttl` | **False** | *string* | A time duration. Example: `1h` <sup>*1)</sup><sup>*3)</sup>. |
+| `expiresAt` | **False** | *Date* | Date in RFC3399. Takes precedence over `ttl`. See example body. <sup>*3)</sup> |
 
-<sup>*1) A duration according to the Go duration format. Example: `1m`, `1h` and so on. The highest unit is `h`. For 3 days the value should be `72h`. Can be used with additional units like so: `1h10m10s` which is 1 hour, 10 minnutes and 10 seconds.</sup>
+**Note**
+
+<sup>*1) A passphrase will be generated if non is provided.<br/>
+<sup>*2) A duration according to the Go duration format. Example: `1m`, `1h` and so on. The highest unit is `h`. For 3 days the value should be `72h`. Can be used with additional units like so: `1h10m10s` which is 1 hour, 10 minutes and 10 seconds.</sup><br/>
+<sup>*3) If neither `ttl` or `expiresAt` is provided a default expiration time of `1h` will be set.</sup>
 
 ##### Response
 
@@ -739,7 +745,7 @@ It is also possible to store sessions in a database. See more at the sections [D
 
 ## Rate limiting
 
-A simple rate limiting mechanism is built-in into the application. It handels rate limiting on a per IP basis and store the data in an in-memory database. The rate limiting model is according to a token bucket algorithm that allows for requests to be made as long as there are tokens in the bucket.
+A simple rate limiting mechanism is built-in into the application. It handles rate limiting on a per IP basis and store the data in an in-memory database. The rate limiting model is according to a token bucket algorithm that allows for requests to be made as long as there are tokens in the bucket.
 
 If a request is made it will refill with *n* tokens per second, with an allowed burst of *n*.
 A rate limit for an IP address have a default time-to-live of 5 minutes and are cleared out periodically (default every 10 seconds).
@@ -750,7 +756,14 @@ Rate is configured to `1` and burst is configured to `3` it will allow for an av
 
 ### Enable rate limiting
 
-To enable rate limiting one or more options for it needs to be configured.
+To enable rate limiting either set one or more options, or set the environment `BURNIT_RATE_LIMITER=true`, use the command-line flag `-rate-limiter=true` or enable it in the config file:
+
+```yaml
+server:
+  rateLimiter:
+    enabled: true
+```
+
 
 The options that are not configured will have the following default values:
 
@@ -777,10 +790,11 @@ cd internal/ui
 tailwindcss -i ./static/css/tailwind.css -o ./static/css/main.css --watch
 ```
 
-Either set `BURNIT_RUNTIME_PARSE` to `true` or use the command-line flag `--runtime-parse` when running the application, like so:
+Set `BURNIT_RUNTIME_PARSE=true`, use the command-line flag `--runtime-parse=true` or enable it in the config file:
 
-```sh
-go run main.go --runtime-parse=true
+```yaml
+ui:
+  runtimeParse: true
 ```
 
 This will make sure the application parses the HTML template every call, thus making it possible to see changes to HTML templates, JavaScript and CSS at every save.
