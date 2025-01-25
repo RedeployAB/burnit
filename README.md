@@ -672,14 +672,15 @@ GET /secrets/{id}
 | ---- | -------- | ---- | ----------- |
 | `value` | **True** | *string* | Secret value. |
 | `passphrase` | **False** | *string* | Passphrase for the secret. <sup>*1)</sup> |
-| `ttl` | **False** | *string* | A time duration. Example: `1h` <sup>*1)</sup><sup>*3)</sup>. |
-| `expiresAt` | **False** | *Date* | Date in RFC3399. Takes precedence over `ttl`. See example body. <sup>*3)</sup> |
+| `ttl` | **False** | *string* | A time duration. Example: `1h`. <sup>*2)</sup><sup>*3)</sup><sup>*4)</sup> |
+| `expiresAt` | **False** | *Date* | Date in RFC3399 (ISO 8601). Takes precedence over `ttl`. See example body. <sup>*3)</sup><sup>*4)</sup> |
 
 **Note**
 
 <sup>*1) A passphrase will be generated if non is provided.<br/>
 <sup>*2) A duration according to the Go duration format. Example: `1m`, `1h` and so on. The highest unit is `h`. For 3 days the value should be `72h`. Can be used with additional units like so: `1h10m10s` which is 1 hour, 10 minutes and 10 seconds.</sup><br/>
-<sup>*3) If neither `ttl` or `expiresAt` is provided a default expiration time of `1h` will be set.</sup>
+<sup>*3) If neither `ttl` or `expiresAt` is provided a default expiration time of `1h` will be set.</sup><br/>
+<sup>*4)Minumum expiration time is `1m` (1 minute) and maximum expiration time is `168h` (7 days).</sup>
 
 ##### Response
 
