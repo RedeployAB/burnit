@@ -3,10 +3,11 @@ bin=burnit
 module_path=github.com/RedeployAB/$bin
 os=linux
 arch=amd64
-build_root=build/
+build_root=build
 bin_path=$build_root/$bin
 version=""
 container=0
+archive=0
 
 for arg in "$@"
 do
@@ -28,6 +29,10 @@ do
       ;;
     --image)
       container=1
+      shift
+      ;;
+    --archive)
+      archive=1
       shift
       ;;
   esac
@@ -64,4 +69,12 @@ CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build \
 
 if [ $container -eq 1 ] && [ "$os" == "linux" ]; then
   docker build -t $bin:$version --platform $os/$arch .
+fi
+
+if [ $archive -eq 1 ]; then
+  cwd=$(pwd)
+  cp LICENSE LICENSE-THIRD-PARTY.md README.md $build_root
+  cd $build_root
+  tar -czf $bin-$version-$os-$arch.tar.gz *
+  cd $cwd
 fi
