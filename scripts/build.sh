@@ -4,7 +4,7 @@ module_path=github.com/RedeployAB/$bin
 os=linux
 arch=amd64
 build_root=build
-bin_path=$build_root/$os/$arch
+
 version=""
 container=0
 archive=0
@@ -43,6 +43,8 @@ do
   esac
 done
 
+bin_path=$build_root/$os/$arch
+
 if [ -z $bin ]; then
   bin=$(echo $(basename $(pwd)))
 fi
@@ -73,8 +75,7 @@ CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build \
   -trimpath main.go
 
 if [ $container -eq 1 ] && [ "$os" == "linux" ]; then
-  docker buildx create --use --name multiarch
-  docker buildx inspect multiarch --bootstrap
+  docker buildx create --name multiarch --use --bootstrap
   docker build -t $bin:$version --platform $os/$arch .
   docker buildx rm multiarch
 fi
