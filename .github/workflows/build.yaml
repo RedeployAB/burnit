@@ -62,15 +62,15 @@ jobs:
         else
           version=$(git rev-parse --short HEAD)
         fi
-        echo $version
+        echo "$version" #temp
         echo "version=$version" >> "$GITHUB_OUTPUT"
 
     - name: Build UI
       run: ./scripts/build-ui.sh
       env:
-        HTMX_SHA256: ${{ var.HTMX_SHA256 }}
-        TAILWINDCSS_SHA256: ${{ var.TAILWINDCSS_SHA256 }}
-        ESBUILD_SHA256: ${{ var.ESBUILD_SHA256 }}
+        HTMX_SHA256: ${{ vars.HTMX_SHA256 }}
+        TAILWINDCSS_SHA256: ${{ vars.TAILWINDCSS_SHA256 }}
+        ESBUILD_SHA256: ${{ vars.ESBUILD_SHA256 }}
 
     - name: Build binary
       run: ./scripts/build.sh --version $VERSION --os $OS --arch $ARCH --archive
