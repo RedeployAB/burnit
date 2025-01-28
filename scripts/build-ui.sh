@@ -48,7 +48,7 @@ if [ -z "$(command -v tailwindcss)" ]; then
     echo "SHA256 checksum mismatch for tailwindcss"
     exit 1
   fi
-  tailwindcss=./$tailwindcss
+  tailwindcss=../../$tailwindcss
 fi
 
 
