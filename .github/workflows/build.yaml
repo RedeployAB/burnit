@@ -51,7 +51,7 @@ jobs:
 
 
   build:
-    name: Build
+    name: Build and release
     needs: [ test ]
     #if: ${{ startsWith(github.ref, 'refs/tags/v') }}
     runs-on: ubuntu-latest
@@ -70,7 +70,6 @@ jobs:
         else
           version=$(git rev-parse --short HEAD)
         fi
-        echo "$version" #temp
         echo "version=$version" >> "$GITHUB_OUTPUT"
 
     - name: Build UI
@@ -87,11 +86,9 @@ jobs:
         OS: linux
         ARCH: ${{ matrix.arch }}
 
-    - name: temp
-      run: ls -lsaR ./build
+    - name: Check
+      run: ls -lsa ./build
 
-  #release:
-  #  name: Release
-  #  if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-  #  runs-on: ubuntu-latest
-  #  steps:
+    # Build container image
+
+    # Create release

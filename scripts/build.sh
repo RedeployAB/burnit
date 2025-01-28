@@ -84,6 +84,8 @@ if [ $archive -eq 1 ]; then
   cwd=$(pwd)
   cp LICENSE LICENSE-THIRD-PARTY.md README.md $bin_path
   cd $bin_path
-  tar -czf $bin-$version-$os-$arch.tar.gz *
+  targz=$bin-$version-$os-$arch.tar.gz
+  tar -czf $targs *
+  mv $targz $build_root/$targz
   cd $cwd
 fi
