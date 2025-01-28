@@ -85,7 +85,7 @@ if [ $archive -eq 1 ]; then
   cp LICENSE LICENSE-THIRD-PARTY.md README.md $bin_path
   cd $bin_path
   targz=$bin-$version-$os-$arch.tar.gz
-  tar -czf $targs *
-  mv $targz $build_root/$targz
+  tar -czf $targz *
+  mv $targz $cwd/$build_root/$targz
   cd $cwd
 fi
