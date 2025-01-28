@@ -62,9 +62,6 @@ jobs:
     env:
       REGISTRY: ghcr.io
       IMAGE: burnit
-    strategy:
-      matrix:
-        arch: [ 'amd64', 'arm64' ]
     steps:
     - uses: actions/checkout@v4
 
@@ -86,12 +83,11 @@ jobs:
         TAILWINDCSS_SHA256: ${{ vars.TAILWINDCSS_SHA256 }}
         ESBUILD_SHA256: ${{ vars.ESBUILD_SHA256 }}
 
-    - name: Build binary
-      run: ./scripts/build.sh --version $VERSION --os $OS --arch $ARCH --archive
+    - name: Build binaries
+      run: ./scripts/build.sh --version $VERSION --platform $PLATFORM --archive --skip-tests
       env:
         VERSION: ${{ steps.setversion.outputs.version }}
-        OS: linux
-        ARCH: ${{ matrix.arch }}
+        PLATFORM: linux/amd64,linux/arm64
 
     - name: Check
       run: ls -lsa ./build
