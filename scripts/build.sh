@@ -4,10 +4,11 @@ module_path=github.com/RedeployAB/$bin
 os=linux
 arch=amd64
 build_root=build
-bin_path=$build_root/$bin
+bin_path=$build_root/$os/$arch
 version=""
 container=0
 archive=0
+cleanup=0
 
 for arg in "$@"
 do
@@ -35,6 +36,10 @@ do
       archive=1
       shift
       ;;
+    --cleanup)
+      cleanup=1
+      shift
+      ;;
   esac
 done
 
@@ -51,7 +56,7 @@ if [ -z $build_root ]; then
   exit 1
 fi
 
-if [ -d $build_root ]; then
+if [ $cleanup -eq 1 ] && [ -d $build_root ]; then
   rm -rf $build_root/*
 fi
 
@@ -63,18 +68,21 @@ if [ $? -ne 0 ]; then
 fi
 
 CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build \
-  -o $bin_path \
+  -o $bin_path/$bin \
   -ldflags="-s -w -X '$module_path/internal/version.version=$version'" \
   -trimpath main.go
 
 if [ $container -eq 1 ] && [ "$os" == "linux" ]; then
+  docker buildx create --use --name multiarch
+  docker buildx inspect multiarch --bootstrap
   docker build -t $bin:$version --platform $os/$arch .
+  docker buildx rm multiarch
 fi
 
 if [ $archive -eq 1 ]; then
   cwd=$(pwd)
-  cp LICENSE LICENSE-THIRD-PARTY.md README.md $build_root
-  cd $build_root
+  cp LICENSE LICENSE-THIRD-PARTY.md README.md $bin_path
+  cd $bin_path
   tar -czf $bin-$version-$os-$arch.tar.gz *
   cd $cwd
 fi
