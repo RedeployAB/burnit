@@ -22,6 +22,7 @@ if [ -z "$(command -v esbuild)" ]; then
 
     actual_esbuild_sha256=$(sha256sum ./esbuild | awk '{print $1}')
     if [ "$expected_esbuild_sha256" != "$actual_esbuild_sha256" ]; then
+        echo "SHA256: $actual_esbuild_sha256"
         echo "SHA256 checksum mismatch for esbuild"
         exit 1
     fi
@@ -43,6 +44,7 @@ if [ -z "$(command -v tailwindcss)" ]; then
 
   actual_tailwindcss_sha256=$(sha256sum ./tailwindcss | awk '{print $1}')
   if [ "$expected_tailwindcss_sha256" != "$actual_tailwindcss_sha256" ]; then
+    echo "SHA256: $actual_esbuild_sha256"
     echo "SHA256 checksum mismatch for tailwindcss"
     exit 1
   fi
