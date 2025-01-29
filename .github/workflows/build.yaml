@@ -128,4 +128,7 @@ jobs:
         tags: ${{ steps.metadata.outputs.tags }}
         labels: ${{ steps.metadata.outputs.labels }}
 
-    # Create release
+    - name: Create release
+      run: gh release create $GITHUB_REF_NAME ./build/*.tar.gz --generate-notes
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
