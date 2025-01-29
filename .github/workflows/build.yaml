@@ -105,6 +105,8 @@ jobs:
 
     - name: Setup Docker buildx
       uses: docker/setup-buildx-action@v3
+      env:
+        BUILDX_NO_DEFAULT_ATTESTATIONS: 1
 
     - name: Image metadata
       id: metadata
