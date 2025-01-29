@@ -1,0 +1,128 @@
+name: burnit
+on:
+  push:
+    branches:
+    - dev/*
+    - feature/*
+    - fix/*
+    tags:
+    - 'v[0-9]+.[0-9]+.[0-9]+'
+    paths-ignore:
+    - '**.md'
+    - 'scripts/**'
+  pull_request:
+    branches:
+    - main
+    paths-ignore:
+    - '**.md'
+    - 'scripts/**'
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+
+    - name: Download dependecies
+      run: |
+        go get .
+        go install golang.org/x/vuln/cmd/govulncheck@latest
+
+    - name: Build UI
+      run: ./scripts/build-ui.sh
+      env:
+        HTMX_SHA256: ${{ vars.HTMX_SHA256 }}
+        TAILWINDCSS_SHA256: ${{ vars.TAILWINDCSS_SHA256 }}
+        ESBUILD_SHA256: ${{ vars.ESBUILD_SHA256 }}
+
+    - name: Run tests
+      run: go vet ./... && go test -v ./...
+
+    - name: Test for vulnerabilities
+      run: govulncheck ./...
+
+  build:
+    name: Build and release
+    needs: [ test ]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      attestations: write
+    env:
+      REGISTRY: ghcr.io
+      IMAGE: burnit
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set version
+      id: setversion
+      run: |
+        version=""
+        if [[ $GITHUB_REF_NAME =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          version=$(echo $GITHUB_REF_NAME | sed -e "s/^v//")
+        else
+          version=$(git rev-parse --short HEAD)
+        fi
+        echo "version=$version" >> "$GITHUB_OUTPUT"
+
+    - name: Build UI
+      run: ./scripts/build-ui.sh
+      env:
+        HTMX_SHA256: ${{ vars.HTMX_SHA256 }}
+        TAILWINDCSS_SHA256: ${{ vars.TAILWINDCSS_SHA256 }}
+        ESBUILD_SHA256: ${{ vars.ESBUILD_SHA256 }}
+
+    - name: Build binaries
+      run: ./scripts/build.sh --version $VERSION --platform $PLATFORM --archive --skip-tests
+      env:
+        VERSION: ${{ steps.setversion.outputs.version }}
+        PLATFORM: linux/amd64,linux/arm64
+
+    - name: Container registry login
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Setup QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Setup Docker buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Image metadata
+      id: metadata
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ env.IMAGE }}
+        tags: |
+          type=ref,event=branch
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=semver,pattern={{major}}
+          type=sha
+
+    - name: Build and push image
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        push: true
+        provenance: false
+        platforms: linux/amd64,linux/arm64
+        tags: ${{ steps.metadata.outputs.tags }}
+        labels: ${{ steps.metadata.outputs.labels }}
+
+    - name: Create release
+      run: gh release create $GITHUB_REF_NAME ./build/*.tar.gz --generate-notes
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
