@@ -5,12 +5,11 @@ on:
     - dev/*
     - feature/*
     - fix/*
-    - cicd/* # TEMP
     tags:
     - 'v[0-9]+.[0-9]+.[0-9]+'
     paths-ignore:
     - '**.md'
-    #- 'scripts/**'
+    - 'scripts/**'
   pull_request:
     branches:
     - main
@@ -53,7 +52,7 @@ jobs:
   build:
     name: Build and release
     needs: [ test ]
-    #if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -70,7 +69,7 @@ jobs:
       run: |
         version=""
         if [[ $GITHUB_REF_NAME =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-          version=$(echo $GITHUB_REF_NAME | sed -e "s|^v||")
+          version=$(echo $GITHUB_REF_NAME | sed -e "s/^v//")
         else
           version=$(git rev-parse --short HEAD)
         fi
@@ -89,10 +88,6 @@ jobs:
         VERSION: ${{ steps.setversion.outputs.version }}
         PLATFORM: linux/amd64,linux/arm64
 
-    - name: Check
-      run: ls -lsa ./build
-
-    # Build container image
     - name: Container registry login
       uses: docker/login-action@v3
       with:
