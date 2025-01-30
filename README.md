@@ -12,6 +12,8 @@ it can be used to generate new secrets.
   * [Supported databases](#supported-databases)
   * [Running in a container](#running-in-a-container)
 * [Install](#install)
+  * [Binary](#binary)
+  * [Container image](#container-image)
 * [Build](#build)
 * [Configuration](#configuration)
   * [Configuration file](#configuration-file)
@@ -66,19 +68,66 @@ If running as a container the recommended resources are (as a start, and dependi
 
 ## Install
 
+The application can either be deployed as a binary to a platform that can handle running applications, such as
+a server or as a container image on a platoform that can run containers.
+
+* [Binary](#binary)
+* [Container image](#container-image)
+
+### Binary
+
+The application is served as an archive (gzipped tarball) and contains:
+
+- `burnit` (the application binary)
+- `README.md`
+- `LICENSE`
+- `LICENSE-THIRD-PARTY.md`
+
+Download the archive for the desired platform from [releases](https://github.com/RedeployAB/burnit/releases).
+
+**Note**: Binaries are available for platforms `linux/amd64` and `linux/arm64`.
+
+### Container image
+
+```sh
+docker pull ghcr.io/redeployab/burnit/burnit:<tag|version> --platform <platform>
+```
+
+**Note**: Images are available for platforms `linux/amd64` and `linux/arm64`.
+
 ## Build
 
 Scripts are provided to build the UI (frontend) and to build the application (that embeds the UI assets).
 
+**Clone the repository**
+
+```sh
+# HTTP.
+git clone https://github.com/RedeployAB/burnit.git
+
+# SSH.
+git clone git@github.com:RedeployAB/burnit.git
+```
+
 **Build UI (frontend)**
 
 ```sh
-export ESBUILD_SHA256=77dce3e5d160db73bb37a61d89b5b38c5de1f18fbf4cc1c9c284a65ae5abb526
-export HTMX_SHA256=24d3f3df3046e54d3fc260f58dcdeb82c53c38ee38f482eac74a5b6179d08ca7
-export TAILWINDCSS_SHA256=cb5fff9d398d0d4f21c37c2e99578ada43766fbc6807b5f929d835ebfd07526b
+export HTMX_SHA256=<sha256>
+export TAILWINDCSS_SHA256=<sha256>
+export ESBUILD_SHA256=<sha256>
 
 ./scripts/build-ui.sh
 ```
+
+**Hashes**
+
+| Resource | Hash | OS |
+|----------|------|----|
+| `htmx` | `24d3f3df3046e54d3fc260f58dcdeb82c53c38ee38f482eac74a5b6179d08ca7` | **Linux/macOS** |
+| `tailwindcss` | `85a474091c8770af215d40245bdebc522eaf1a988f3f95759a2ee7ea5392ef53` | **Linux** |
+| `tailwindcss` | `cb5fff9d398d0d4f21c37c2e99578ada43766fbc6807b5f929d835ebfd07526b` | **macOS** |
+| `esbuild` | `8367cdb8aa8069785db9a37da1f5cdcea5c28c449509020a85b4c54e53a37353` | **Linux** |
+| `esbuild` | `77dce3e5d160db73bb37a61d89b5b38c5de1f18fbf4cc1c9c284a65ae5abb526` | **macOS** |
 
 **Note**: The hashes listed above have been calculated by getting the checksum for:
 - `esbuild@v0.24.0` from its official [download location](https://esbuild.github.io/dl/v0.24.0).
@@ -91,11 +140,13 @@ The resulting files will be placed in `internal/ui/static` (they are present in 
 
 ```sh
 # Build binary only:
-./scripts/build.sh --version <version> --os <linux|darwin> --arch <amd64|arm64>
+./scripts/build.sh --version <version> --platform linux/amd64
 
 # Build binary and container image:
-./scripts/build.sh --version <version> --os <linux|darwin> --arch <amd64|arm64> --image
+./scripts/build.sh --version <version> --platform linux/amd64 --image
 ```
+
+**Note**: Tested and supported platforms are `linux/amd64`, `linux/arm64` and `darwin/arm64`.
 
 The resulting binary (or container image) can then be run without any copying of assets due to them being embedded into the binary. Deploy the binary or container image to a target hosting environment
 and run it.
@@ -579,6 +630,11 @@ The supported values for the database driver are:
 ## Usage
 
 ### API
+
+* [Secret](#secret) - Generate secrets
+* [Secrets](#secrets) - Manage secrets
+
+An [Open API specification](/docs/openapi.json) is also available.
 
 ### Secret
 
