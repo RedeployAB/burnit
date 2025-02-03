@@ -3,8 +3,8 @@
 ## github.com/caarlos0/env/v11
 
 * Name: github.com/caarlos0/env/v11
-* Version: v11.2.2
-* License: [MIT](https://github.com/caarlos0/env/blob/v11.2.2/LICENSE.md)
+* Version: v11.3.1
+* License: [MIT](https://github.com/caarlos0/env/blob/v11.3.1/LICENSE.md)
 
 ```
 The MIT License (MIT)
@@ -34,8 +34,8 @@ SOFTWARE.
 ## github.com/cespare/xxhash/v2
 
 * Name: github.com/cespare/xxhash/v2
-* Version: v2.2.0
-* License: [MIT](https://github.com/cespare/xxhash/blob/v2.2.0/LICENSE.txt)
+* Version: v2.3.0
+* License: [MIT](https://github.com/cespare/xxhash/blob/v2.3.0/LICENSE.txt)
 
 ```
 Copyright (c) 2016 Caleb Spare
@@ -551,8 +551,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ## github.com/jackc/pgx/v5
 
 * Name: github.com/jackc/pgx/v5
-* Version: v5.7.1
-* License: [MIT](https://github.com/jackc/pgx/blob/v5.7.1/LICENSE)
+* Version: v5.7.2
+* License: [MIT](https://github.com/jackc/pgx/blob/v5.7.2/LICENSE)
 
 ```
 Copyright (c) 2013-2021 Jack Christensen
@@ -615,8 +615,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ## github.com/klauspost/compress
 
 * Name: github.com/klauspost/compress
-* Version: v1.17.10
-* License: [Apache-2.0](https://github.com/klauspost/compress/blob/v1.17.10/LICENSE)
+* Version: v1.17.11
+* License: [Apache-2.0](https://github.com/klauspost/compress/blob/v1.17.11/LICENSE)
 
 ```
 Copyright (c) 2012 The Go Authors. All rights reserved.
@@ -929,8 +929,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 ## github.com/klauspost/compress/internal/snapref
 
 * Name: github.com/klauspost/compress/internal/snapref
-* Version: v1.17.10
-* License: [BSD-3-Clause](https://github.com/klauspost/compress/blob/v1.17.10/internal/snapref/LICENSE)
+* Version: v1.17.11
+* License: [BSD-3-Clause](https://github.com/klauspost/compress/blob/v1.17.11/internal/snapref/LICENSE)
 
 ```
 Copyright (c) 2011 The Snappy-Go Authors. All rights reserved.
@@ -966,8 +966,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ## github.com/klauspost/compress/zstd/internal/xxhash
 
 * Name: github.com/klauspost/compress/zstd/internal/xxhash
-* Version: v1.17.10
-* License: [MIT](https://github.com/klauspost/compress/blob/v1.17.10/zstd/internal/xxhash/LICENSE.txt)
+* Version: v1.17.11
+* License: [MIT](https://github.com/klauspost/compress/blob/v1.17.11/zstd/internal/xxhash/LICENSE.txt)
 
 ```
 Copyright (c) 2016 Caleb Spare
@@ -1017,8 +1017,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 ## github.com/microsoft/go-mssqldb
 
 * Name: github.com/microsoft/go-mssqldb
-* Version: v1.7.2
-* License: [BSD-3-Clause](https://github.com/microsoft/go-mssqldb/blob/v1.7.2/LICENSE.txt)
+* Version: v1.8.0
+* License: [BSD-3-Clause](https://github.com/microsoft/go-mssqldb/blob/v1.8.0/LICENSE.txt)
 
 ```
 Copyright (c) 2012 The Go Authors. All rights reserved.
@@ -1055,8 +1055,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ## github.com/microsoft/go-mssqldb/internal/github.com/swisscom/mssql-always-encrypted/pkg
 
 * Name: github.com/microsoft/go-mssqldb/internal/github.com/swisscom/mssql-always-encrypted/pkg
-* Version: v1.7.2
-* License: [MIT](https://github.com/microsoft/go-mssqldb/blob/v1.7.2/internal/github.com/swisscom/mssql-always-encrypted/LICENSE.txt)
+* Version: v1.8.0
+* License: [MIT](https://github.com/microsoft/go-mssqldb/blob/v1.8.0/internal/github.com/swisscom/mssql-always-encrypted/LICENSE.txt)
 
 ```
 Copyright (c) 2021 Swisscom (Switzerland) Ltd
@@ -1147,8 +1147,8 @@ SOFTWARE.
 ## github.com/redis/go-redis/v9
 
 * Name: github.com/redis/go-redis/v9
-* Version: v9.6.1
-* License: [BSD-2-Clause](https://github.com/redis/go-redis/blob/v9.6.1/LICENSE)
+* Version: v9.7.0
+* License: [BSD-2-Clause](https://github.com/redis/go-redis/blob/v9.7.0/LICENSE)
 
 ```
 Copyright (c) 2013 The github.com/redis/go-redis Authors.
@@ -1804,8 +1804,8 @@ SOFTWARE.
 ## go.mongodb.org/mongo-driver
 
 * Name: go.mongodb.org/mongo-driver
-* Version: v1.17.0
-* License: [Apache-2.0](https://github.com/mongodb/mongo-go-driver/blob/v1.17.0/LICENSE)
+* Version: v1.17.2
+* License: [Apache-2.0](https://github.com/mongodb/mongo-go-driver/blob/v1.17.2/LICENSE)
 
 ```
                                  Apache License
@@ -2015,8 +2015,45 @@ SOFTWARE.
 ## golang.org/x/crypto
 
 * Name: golang.org/x/crypto
-* Version: v0.27.0
-* License: [BSD-3-Clause](https://cs.opensource.google/go/x/crypto/+/v0.27.0:LICENSE)
+* Version: v0.32.0
+* License: [BSD-3-Clause](https://cs.opensource.google/go/x/crypto/+/v0.32.0:LICENSE)
+
+```
+Copyright 2009 The Go Authors.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+   * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+   * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+   * Neither the name of Google LLC nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+```
+
+## golang.org/x/exp/constraints
+
+* Name: golang.org/x/exp/constraints
+* Version: v0.0.0-20250128182459-e0ece0dbea4c
+* License: [BSD-3-Clause](https://cs.opensource.google/go/x/exp/+/e0ece0db:LICENSE)
 
 ```
 Copyright 2009 The Go Authors.
@@ -2052,8 +2089,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ## golang.org/x/sync
 
 * Name: golang.org/x/sync
-* Version: v0.8.0
-* License: [BSD-3-Clause](https://cs.opensource.google/go/x/sync/+/v0.8.0:LICENSE)
+* Version: v0.10.0
+* License: [BSD-3-Clause](https://cs.opensource.google/go/x/sync/+/v0.10.0:LICENSE)
 
 ```
 Copyright 2009 The Go Authors.
@@ -2089,8 +2126,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ## golang.org/x/sys/unix
 
 * Name: golang.org/x/sys/unix
-* Version: v0.25.0
-* License: [BSD-3-Clause](https://cs.opensource.google/go/x/sys/+/v0.25.0:LICENSE)
+* Version: v0.29.0
+* License: [BSD-3-Clause](https://cs.opensource.google/go/x/sys/+/v0.29.0:LICENSE)
 
 ```
 Copyright 2009 The Go Authors.
@@ -2126,8 +2163,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ## golang.org/x/text
 
 * Name: golang.org/x/text
-* Version: v0.18.0
-* License: [BSD-3-Clause](https://cs.opensource.google/go/x/text/+/v0.18.0:LICENSE)
+* Version: v0.21.0
+* License: [BSD-3-Clause](https://cs.opensource.google/go/x/text/+/v0.21.0:LICENSE)
 
 ```
 Copyright 2009 The Go Authors.
@@ -2163,8 +2200,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ## golang.org/x/time/rate
 
 * Name: golang.org/x/time/rate
-* Version: v0.7.0
-* License: [BSD-3-Clause](https://cs.opensource.google/go/x/time/+/v0.7.0:LICENSE)
+* Version: v0.9.0
+* License: [BSD-3-Clause](https://cs.opensource.google/go/x/time/+/v0.9.0:LICENSE)
 
 ```
 Copyright 2009 The Go Authors.
@@ -2260,8 +2297,8 @@ limitations under the License.
 ## modernc.org/libc
 
 * Name: modernc.org/libc
-* Version: v1.55.3
-* License: [BSD-3-Clause](https://gitlab.com/cznic/libc/blob/v1.55.3/LICENSE-GO)
+* Version: v1.61.11
+* License: [BSD-3-Clause](https://gitlab.com/cznic/libc/blob/v1.61.11/LICENSE-GO)
 
 ```
 Copyright (c) 2009 The Go Authors. All rights reserved.
@@ -2297,8 +2334,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ## modernc.org/libc/honnef.co/go/netdb
 
 * Name: modernc.org/libc/honnef.co/go/netdb
-* Version: v1.55.3
-* License: [MIT](https://gitlab.com/cznic/libc/blob/v1.55.3/honnef.co/go/netdb/LICENSE)
+* Version: v1.61.11
+* License: [MIT](https://gitlab.com/cznic/libc/blob/v1.61.11/honnef.co/go/netdb/LICENSE)
 
 ```
 Copyright (c) 2012 Dominik Honnef
@@ -2327,18 +2364,45 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ## modernc.org/mathutil
 
 * Name: modernc.org/mathutil
-* Version: v1.6.0
-* License: [Unknown](Unknown)
+* Version: v1.7.1
+* License: [BSD-3-Clause](https://gitlab.com/cznic/mathutil/-/blob/v1.7.1/LICENSE)
 
 ```
+Copyright (c) 2014 The mathutil Authors. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+   * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+   * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+   * Neither the names of the authors nor the names of the
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ```
 
 ## modernc.org/memory
 
 * Name: modernc.org/memory
-* Version: v1.8.0
-* License: [BSD-3-Clause](https://gitlab.com/cznic/memory/blob/v1.8.0/LICENSE-GO)
+* Version: v1.8.2
+* License: [BSD-3-Clause](https://gitlab.com/cznic/memory/blob/v1.8.2/LICENSE-GO)
 
 ```
 Copyright (c) 2009 The Go Authors. All rights reserved.
@@ -2374,8 +2438,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ## modernc.org/sqlite
 
 * Name: modernc.org/sqlite
-* Version: v1.33.1
-* License: [BSD-3-Clause](https://gitlab.com/cznic/sqlite/blob/v1.33.1/LICENSE)
+* Version: v1.34.5
+* License: [BSD-3-Clause](https://gitlab.com/cznic/sqlite/blob/v1.34.5/LICENSE)
 
 ```
 Copyright (c) 2017 The Sqlite Authors. All rights reserved.
