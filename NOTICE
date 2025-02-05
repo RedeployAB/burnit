@@ -2,7 +2,7 @@ NOTICE
 -------
 
 This project is licensed under the MIT License. It also uses third-party libraries
-with different licenses, including Apache-2.0, BSD-2-Clause, and BSD-3-Clause.
+with different licenses, including Apache-2.0, BSD-Zero, BSD-2-Clause, BSD-3-Clause and MIT.
 
 A compilation of the included libraries and their licenses can be found in: LICENSE-THIRD-PARTY.
 
