@@ -8,7 +8,7 @@ A compilation of the included libraries and their licenses can be found in: LICE
 
 ---
 
-Components included that are licensed under the Apache 2.0:
+Components included that are licensed under the Apache 2.0 license:
 
 - github.com/golang-sql/civil (https://github.com/golang-sql/civil/blob/b832511892a9/LICENSE)
 - github.com/klauspost/compress (https://github.com/klauspost/compress/blob/v1.17.11/LICENSE)
@@ -19,11 +19,10 @@ Components included that are licensed under the Apache 2.0:
 
 ---
 
-The following libraries contains notices:
+The following libraries contains NOTICE (or NOTICE related files):
 
 - gopkg.in/yaml.v3
 - go.mongodb.org/mongo-driver
-
 
 ---
 
