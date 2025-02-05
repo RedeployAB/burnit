@@ -85,6 +85,7 @@ for p in "${platforms[@]}"; do
   if [ $archive -eq 1 ]; then
     cd $bin_path
     targz=$bin-$version-$os-$arch.tar.gz
+    cp $cwd/README.md $cwd/LICENSE $cwd/LICENSE-THIRD-PARTY $cwd/NOTICE .
     tar -czf $targz *
     mv $targz $cwd/$build_root/$targz
     cd $cwd

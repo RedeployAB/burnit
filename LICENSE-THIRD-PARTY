@@ -1,4 +1,4 @@
-# Licenses
+# Third party licenses
 
 ## github.com/caarlos0/env/v11
 
