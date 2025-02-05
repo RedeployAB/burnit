@@ -19,7 +19,7 @@ Components included that are licensed under the Apache 2.0 license:
 
 ---
 
-The following libraries contains NOTICE (or NOTICE related files):
+The following libraries contains a NOTICE (or NOTICE related) file:
 
 - gopkg.in/yaml.v3
 - go.mongodb.org/mongo-driver
