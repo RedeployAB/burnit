@@ -8,7 +8,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.2
 	github.com/microsoft/go-mssqldb v1.8.0
-	github.com/redis/go-redis/v9 v9.7.0
+	github.com/redis/go-redis/v9 v9.7.3
 	go.mongodb.org/mongo-driver v1.17.2
 	golang.org/x/time v0.9.0
 	gopkg.in/yaml.v3 v3.0.1
